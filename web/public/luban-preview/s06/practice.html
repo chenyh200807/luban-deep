@@ -123,7 +123,7 @@
         <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
       </div>
       <div style="padding:0 16px 24px;">
-        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？追问AI（已带题目）</button>
       </div>
     </div>
     </sc-if>
@@ -178,7 +178,7 @@
         <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
         <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
           <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
-          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">追问AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
           <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
         </div>
         <div style="flex:none;padding:0 16px;">
@@ -601,7 +601,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S06")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzE4NDA1YjE1ODcyIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yODdkNDc0Y2QxMmEiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLTI5NDVjYzEyMjQ4MiIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2RkZjNhMDQxYjlhIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYWFlMWU5YTAwMmUwIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImMxZGExYmQwMGNiODQwMTAxNTkxMzA1NzljN2E2OTY2YzJmY2QwZTM1OTEwZjQwMGM4NGNmNTVhNzljMGMwNTEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S06")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzE4NDA1YjE1ODcyIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yODdkNDc0Y2QxMmEiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLTI5NDVjYzEyMjQ4MiIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2RkZjNhMDQxYjlhIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYWFlMWU5YTAwMmUwIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImM0MTRlMWRiNzA4YTU5NjY4M2E0MDA0ZGViZTg0YzlmZjhlMmY3ODA3ZTM3YmFlNzY1N2ZlZWJkMWVmZTExMzciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
@@ -662,7 +662,7 @@ class Component extends DCLogic {
     this.__dtOverlayLoading();
     let response,data;
     try{
-      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"S06",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzE4NDA1YjE1ODcyIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yODdkNDc0Y2QxMmEiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLTI5NDVjYzEyMjQ4MiIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2RkZjNhMDQxYjlhIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYWFlMWU5YTAwMmUwIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImMxZGExYmQwMGNiODQwMTAxNTkxMzA1NzljN2E2OTY2YzJmY2QwZTM1OTEwZjQwMGM4NGNmNTVhNzljMGMwNTEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"S06",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzE4NDA1YjE1ODcyIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0yODdkNDc0Y2QxMmEiLCJTMDYtaHRtbC1wcmFjdGljZS1odG1sLXEzLTI5NDVjYzEyMjQ4MiIsIlMwNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2RkZjNhMDQxYjlhIiwiUzA2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYWFlMWU5YTAwMmUwIl0sInBhY2tfaWQiOiJTMDYiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImM0MTRlMWRiNzA4YTU5NjY4M2E0MDA0ZGViZTg0YzlmZjhlMmY3ODA3ZTM3YmFlNzY1N2ZlZWJkMWVmZTExMzciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNmQ4NWUxM2RjNDMzYzM1NWYzNjAxZjg4NTU0MjY1ZDYxZTM4MzZjZmU2MjkzNjI3ODFmNWIwNGY2NGYyOTczMCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
       data=await response.json().catch(function(){ return {}; });
     }catch(_){
       this.__dtRound.state='failed';

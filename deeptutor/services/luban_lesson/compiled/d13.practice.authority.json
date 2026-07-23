@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "D13",
   "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
-  "source_bundle_sha256": "41e73ca22568346d7bc3bf3a82913fd0fbaab0534489c1f78c6c60b299bf2c33",
+  "source_bundle_sha256": "6f27420770247c29d30db94aedd3b8887cdd6b8cfaa65a49f5645c27add07543",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -39,8 +39,8 @@
         "D13-html-practice-html-q13-0e7b79cdf924",
         "D13-html-practice-html-q15-5ec84ba4a21d"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjE5NmVjOWJmMzcxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04NzMxMTU4ZjkwMDkiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZiMmVjZGY5MDY1MyIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmQ0MDg4Zjk3N2YxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNWVjODRiYTRhMjFkIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6Ijg5ODc2MzY2YTI2YTYzZjcwMGZmNjk1NDY0MTM1MDRlN2VlZmE0YWFmYzU3MWUxZGUyYTI2ZTg4MTA0OTdkZDciLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "6c590a1bd7681120a1dd76c793c0f9c6288bb6f9263b6284caa5913f7851a84e"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjE5NmVjOWJmMzcxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04NzMxMTU4ZjkwMDkiLCJEMTMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWZiMmVjZGY5MDY1MyIsIkQxMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmQ0MDg4Zjk3N2YxIiwiRDEzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtNWVjODRiYTRhMjFkIl0sInBhY2tfaWQiOiJEMTMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjUxYmZjZTFjMjhmMjVkMDQwMmMxMWI1YzdlODg4OGM0MTE4MDZmMjZiNThjMDE1ZmI3NmMzNzdhYzc5ODJkMjgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYTAyZTQzYWJjZjVlMTBlNmFkYzI1ODdhZjlhNmYxOTkxOTYzMTc0NzU1M2YwZmE5Zjg2OGRhOWUxZmRkZDkxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "f4f4e90c78ed6e49023731e5911957590aecad6afb994e28b44d4a7b5cba2cdb"
     }
   ],
   "items": [
@@ -95,27 +95,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q1",
       "source_anchor": "exam:2015:案例2",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-interfloor-firestop",
       "skeleton_id": "d13-skel-封堵要素全枚举",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b44e6970492d209ba709f2d58864536dade546979d2a078718991774f568a3ca",
+      "content_sha256": "9255651583d5ed2e8d39a1993cdc6e0dbcba1fb7e2a8af67d7dc0b3d78310ab1",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b44e6970492d209ba709f2d58864536dade546979d2a078718991774f568a3ca",
+        "reviewed_content_sha256": "9255651583d5ed2e8d39a1993cdc6e0dbcba1fb7e2a8af67d7dc0b3d78310ab1",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -125,7 +125,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "幕墙与楼板间缝隙用不燃材料封堵厚度≥100mm+水平防火烟带+镀锌钢板承托+防火密封胶, 真题 exam:2015:案例2 支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -274,27 +274,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q2",
       "source_anchor": "exam:2015:案例2",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-support-plate-material",
       "skeleton_id": "d13-skel-承托板镀锌钢板不得铝板",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "cf7eac123f7b8d4cd8fffda0e8f2171ff8e518ad3d3143b80397f8c76f99f825",
+      "content_sha256": "b560888a021e78097d736c6ea4acafcf2cfa92df4fe1685887db1465c207bbe4",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "cf7eac123f7b8d4cd8fffda0e8f2171ff8e518ad3d3143b80397f8c76f99f825",
+        "reviewed_content_sha256": "b560888a021e78097d736c6ea4acafcf2cfa92df4fe1685887db1465c207bbe4",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -304,7 +304,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "防火层承托板应≥1.5mm镀锌钢板, 不得用铝板(铝熔点低), 真题直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -470,27 +470,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q3",
       "source_anchor": "exam:2015:案例2",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-support-plate-thickness-unit",
       "skeleton_id": "d13-skel-1.5mm单位辨析",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7ce7202d289bdf0467d835dac584dd93020766e9e1f88c0ed538330c2b1e67a5",
+      "content_sha256": "9f05e429b4f9a4be518e5e16dbd6838f50894373ef188e7cd4add68de79df54a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7ce7202d289bdf0467d835dac584dd93020766e9e1f88c0ed538330c2b1e67a5",
+        "reviewed_content_sha256": "9f05e429b4f9a4be518e5e16dbd6838f50894373ef188e7cd4add68de79df54a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -500,7 +500,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "承托板厚度1.5mm(毫米非米)镀锌钢板, 单位辨析题, 真题支持。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -768,27 +768,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q4",
       "source_anchor": "kc:1A413030_148_0286:0",
       "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-opening-vertical-separation",
       "skeleton_id": "d13-skel-上下层开口实体墙挑檐",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c9e4aef92634efb11a43a887fb2bf436160f77fc61acab41f2f850c4f2eebfa7",
+      "content_sha256": "eb57e1551bebbc57880c38916d6042befd1f89df2a4916158a80c1eb0e9eb880",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c9e4aef92634efb11a43a887fb2bf436160f77fc61acab41f2f850c4f2eebfa7",
+        "reviewed_content_sha256": "eb57e1551bebbc57880c38916d6042befd1f89df2a4916158a80c1eb0e9eb880",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -798,7 +798,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "上下层开口间设≥1.2m实体墙, 不足时防火挑檐宽≥1.0m且长≥开口宽, 教材 kc:...148_0286:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1066,27 +1066,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q5",
       "source_anchor": "kc:1A413030_148_0286:0",
       "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-interfloor-firestop",
       "skeleton_id": "d13-skel-尺寸部位配对辨析",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c28528e96c7fdd495167a1adeca22be837eab2990b3fc53753327d9dd5b248fd",
+      "content_sha256": "b630f45f0ef7a3a1216cb4dff355a96f48c4912b82a16823c0795052ffc9b93b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c28528e96c7fdd495167a1adeca22be837eab2990b3fc53753327d9dd5b248fd",
+        "reviewed_content_sha256": "b630f45f0ef7a3a1216cb4dff355a96f48c4912b82a16823c0795052ffc9b93b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1096,7 +1096,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "200mm=窗槛墙空腔填塞高度(教材逐字);100mm=楼板缝隙封堵岩棉/矿棉厚度(exam:2015案例2'厚度不应小于100mm'逐字,亦为机器候选)。"
+        "note": "200mm=窗槛墙空腔填塞高度(教材逐字);100mm=楼板缝隙封堵岩棉/矿棉厚度(exam:2015案例2'厚度不应小于100mm'逐字,亦为机器候选)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1262,17 +1262,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0881555a71a77f852d70ebf40811526ed0213ea9de1d87313e60f8585da7d44d",
+      "content_sha256": "d855044caeea24b4453f21812ff1c3f5a14096039c7e1452347f80340e30ad0c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0881555a71a77f852d70ebf40811526ed0213ea9de1d87313e60f8585da7d44d",
+        "reviewed_content_sha256": "d855044caeea24b4453f21812ff1c3f5a14096039c7e1452347f80340e30ad0c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1446,27 +1446,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q7",
       "source_anchor": "exam:2015:案例2",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-interfloor-firestop",
       "skeleton_id": "d13-skel-承托板缝隙防火密封胶",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b663ea6999b1e4a18a34661e853afc7006370eb96ceecdc3a877d990ce982d82",
+      "content_sha256": "b6ea5e5f3b1de62b8b377edd96291a7c9629f1c6e1c1636bd929c2b18ee3b4f7",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b663ea6999b1e4a18a34661e853afc7006370eb96ceecdc3a877d990ce982d82",
+        "reviewed_content_sha256": "b6ea5e5f3b1de62b8b377edd96291a7c9629f1c6e1c1636bd929c2b18ee3b4f7",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1476,7 +1476,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "承托板与主体/幕墙结构间缝隙应用防火密封胶密封, 真题支持。三联 immediate_confirm(同层间封堵 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1625,27 +1625,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q8",
       "source_anchor": "exam:2015:案例2",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-interfloor-firestop",
       "skeleton_id": "d13-skel-水平防火烟带耐火极限",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b36345362d4f92ddf907c5c7c46c0ff83cab5f94ee69232fa67517c96bbea9b0",
+      "content_sha256": "79232e182cce495a117bf59f734ee2c58275032c4c737b2ee8202dd58284d7ce",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b36345362d4f92ddf907c5c7c46c0ff83cab5f94ee69232fa67517c96bbea9b0",
+        "reviewed_content_sha256": "79232e182cce495a117bf59f734ee2c58275032c4c737b2ee8202dd58284d7ce",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1655,7 +1655,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "层间封堵应形成水平防火烟带并满足耐火极限, 逐层截断, 真题支持。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1804,27 +1804,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q9",
       "source_anchor": "exam:2020:第23题",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-curtainwall-lightning",
       "skeleton_id": "d13-skel-框架连主体总要求",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b134dd41de9b2ea6c3cf865ba5ce71febd867deaaae63215eb87b7c72a135ff7",
+      "content_sha256": "944522461de3d233074663b29cb0fb755877d24bd6a64ef4056912b45f5bb5fb",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b134dd41de9b2ea6c3cf865ba5ce71febd867deaaae63215eb87b7c72a135ff7",
+        "reviewed_content_sha256": "944522461de3d233074663b29cb0fb755877d24bd6a64ef4056912b45f5bb5fb",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1834,7 +1834,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "金属框架与主体防雷体系可靠连接,2020真题E项(ACDE)+2019第29题E项(BCE)跨年互证+教材kc:148_0287:0。新fact非surface,confirm入口不可达仅d1可达。"
+        "note": "金属框架与主体防雷体系可靠连接,2020真题E项(ACDE)+2019第29题E项(BCE)跨年互证+教材kc:148_0287:0。新fact非surface,confirm入口不可达仅d1可达。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2034,27 +2034,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q10",
       "source_anchor": "kc:1A413030_148_0287:0",
       "source_sha256": "edfc1963b42f713a1d4140be9ca6b3cdfb1c1dad94557ba7296ffb2f92b6b826",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-curtainwall-lightning",
       "skeleton_id": "d13-skel-立柱柔性导线10m",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9e70984c347179f5d132bf24bb2cd9c5bf961f16b1b4b46a035d3f8fc53772a6",
+      "content_sha256": "289d9406e2f0877b2fc0a20751a6d2880c213cf4d07b43417234e042736bdb6f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "9e70984c347179f5d132bf24bb2cd9c5bf961f16b1b4b46a035d3f8fc53772a6",
+        "reviewed_content_sha256": "289d9406e2f0877b2fc0a20751a6d2880c213cf4d07b43417234e042736bdb6f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2064,7 +2064,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "铝合金立柱每10m内柔性导线连通上下柱,教材防雷连接要点逐字核对。"
+        "note": "铝合金立柱每10m内柔性导线连通上下柱,教材防雷连接要点逐字核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2213,27 +2213,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q11",
       "source_anchor": "exam:2020:第23题",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-curtainwall-lightning",
       "skeleton_id": "d13-skel-均压环三层焊接",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f25bedcd3d2e045c374388697f05683e4593343debc6d2651e1bbc0f50864cde",
+      "content_sha256": "2dac58d7c67c2464de20f1cadf9b4ac2529e4041137e323346e8964b86965ccc",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "f25bedcd3d2e045c374388697f05683e4593343debc6d2651e1bbc0f50864cde",
+        "reviewed_content_sha256": "2dac58d7c67c2464de20f1cadf9b4ac2529e4041137e323346e8964b86965ccc",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2243,7 +2243,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "预埋件圆钢/扁钢与均压环焊接(教材kc:148_0287)+避雷接地一般每三层连接(2020真题A项正确);干扰项'每一层'判错正确。"
+        "note": "预埋件圆钢/扁钢与均压环焊接(教材kc:148_0287)+避雷接地一般每三层连接(2020真题A项正确);干扰项'每一层'判错正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2511,27 +2511,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q12",
       "source_anchor": "exam:2020:第23题",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-curtainwall-lightning",
       "skeleton_id": "d13-skel-除镀膜层",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ef1f1efe575624ec8dcfadf627be87bc8cf6728f74bdca864a6ab912946086c6",
+      "content_sha256": "e65ff4d7f814d1d981367c63d6c92108b5d7133f5cfd9c65bc82b4ad44fe31a6",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "ef1f1efe575624ec8dcfadf627be87bc8cf6728f74bdca864a6ab912946086c6",
+        "reviewed_content_sha256": "e65ff4d7f814d1d981367c63d6c92108b5d7133f5cfd9c65bc82b4ad44fe31a6",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2541,7 +2541,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "有镀膜构件防雷连接应除去镀膜层,2020真题D项正确;2019第29题D'不应破坏镀膜层'判错,跨年互证方向一致。"
+        "note": "有镀膜构件防雷连接应除去镀膜层,2020真题D项正确;2019第29题D'不应破坏镀膜层'判错,跨年互证方向一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2690,27 +2690,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q13",
       "source_anchor": "exam:2020:第23题",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-curtainwall-lightning",
       "skeleton_id": "d13-skel-隐蔽验收程序",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "362a9459ebf94c16cffe2d380a1eab72a3b46905fdf041635a486c7a1ce74171",
+      "content_sha256": "b0982fdebf4806ab0996b874e1ee3d38ab31f911bcea04d3c3bac11d6d3aca10",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "362a9459ebf94c16cffe2d380a1eab72a3b46905fdf041635a486c7a1ce74171",
+        "reviewed_content_sha256": "b0982fdebf4806ab0996b874e1ee3d38ab31f911bcea04d3c3bac11d6d3aca10",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2720,7 +2720,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "防雷构造连接必须隐蔽工程验收,2020真题B项'不必验收'判错反推。"
+        "note": "防雷构造连接必须隐蔽工程验收,2020真题B项'不必验收'判错反推。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2869,17 +2869,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "114249b0d152bd3e25543d5543a526cbf5eaadd7d53100efdd019cf09b8c8ca0",
+      "content_sha256": "d70aaf084af192b7bda1d7458a1e0fa09d732f7b899190e8ba7be0519d8a5142",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "114249b0d152bd3e25543d5543a526cbf5eaadd7d53100efdd019cf09b8c8ca0",
+        "reviewed_content_sha256": "d70aaf084af192b7bda1d7458a1e0fa09d732f7b899190e8ba7be0519d8a5142",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3053,27 +3053,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q15",
       "source_anchor": "exam:2015:案例2",
       "source_sha256": "e8fa0e683320f53a4f13b84704e730963904a38e7fa60b332753397130ff9e35",
-      "source_html_sha256": "a6616f0f9b24f76fc4dd26825bf0acd64a75376b52b9dff03ce242f3606d2e39",
+      "source_html_sha256": "f41d30ebc250dcf54605ac02e3b55cf985d3e056129076924948ff28488159d9",
       "fact_id": "d13-fact-interfloor-firestop-diagnosis",
       "skeleton_id": "d13-skel-层间封堵诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b2c3b913db6d36ff38c2d4cf82a6887c8eefe3a9bd3feb807e769281083e0de0",
+      "content_sha256": "8e253d5c728e60fc598908a94108d060f644cc810f713bdff6273bc997258617",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b2c3b913db6d36ff38c2d4cf82a6887c8eefe3a9bd3feb807e769281083e0de0",
+        "reviewed_content_sha256": "8e253d5c728e60fc598908a94108d060f644cc810f713bdff6273bc997258617",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3083,7 +3083,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "诊断: ①缺≥100mm与水平烟带 ②承托板应改镀锌钢板 ③缝隙应用防火密封胶, 三处均正确, 真题综合。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3148,5 +3148,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "4563cdf686b038f861195417e4b3db42320026a0e52a1fe9226a5d95ab343d35"
+  "published_lesson_sha256": "825c1b359a62a73f9fe9ea510423054b84e1c10e630ec360a0016a2ca7b9c924"
 }

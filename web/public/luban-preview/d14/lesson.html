@@ -9,7 +9,7 @@
 <body>
 <audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=98647a2e4f4dfb98" aria-hidden="true" style="display:none"></audio>
 <x-dc>
-<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 追问AI。Fork 后只改【内容区】，骨架别动。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
@@ -341,7 +341,7 @@
       </div>
       </sc-if>
       <div style="display:flex;gap:8px;margin-top:11px;">
-        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">追问AI</button>
         <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
       </div>
     </div>
@@ -483,7 +483,7 @@
      · RAF 时间轴 loop / toggle / seek / jump
      · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
      · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
-     · 问追AI 弹层 + authoring preview bridge
+     · 追问AI 弹层 + authoring preview bridge
      · 视口/全屏注入 componentDidMount
 
    规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；

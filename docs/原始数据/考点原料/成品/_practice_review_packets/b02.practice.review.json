@@ -1,2411 +1,2402 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "B02",
-  "source_pack_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
-  "source_bundle_sha256": "a6306000784f3986604ae0c9a6973a83f2b8a4ff8aa4a3e1b1076d23c32475b5",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 32,
-  "eligible_count": 12,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "B02-html-practice-html-q1-dc22990f1c95",
-      "surface_id": "practice.html",
-      "stem": "基坑施工前应编制专项施工方案。选出内容列举最完整、能得分的作答。",
-      "options": [
-        {
-          "text": "专项方案以支护结构和土方开挖两部分作为编制内容即可，降水、监测等其他事项由施工过程中另行部署安排，不必纳入方案正文。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得支护、开挖是主体，其余临时定。",
-          "loss_reason": "漏降水、监测、应急等多项采分点。",
-          "fix": "补齐降水、工艺、安全、应急、监测，共七项。",
-          "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-1"
-        },
-        {
-          "text": "方案中写明支护、降水（地下水控制）与土方开挖的做法即可满足编制要求，无需注明危大工程与专家论证的相关要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "三大件齐了就以为够。",
-          "loss_reason": "漏'开挖≥5m 属危大、须专家论证'采分点。",
-          "fix": "补'开挖≥5m 属危大、须专家论证'。",
-          "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-2"
-        },
-        {
-          "text": "专项方案应含支护、降水、土方开挖、工艺流程、安全、应急、监测七项；开挖深度≥5m 的基坑属危大工程，须专家论证。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "七项内容 + 危大≥5m 专家论证一并写全，正是采分点。",
-          "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-3"
-        },
-        {
-          "text": "开挖深度不足 5m 的浅基坑可不编制专项施工方案，按常规工艺组织开挖即可，仅深基坑需在施工前编制专项方案。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为浅坑可免方案。",
-          "loss_reason": "基坑施工前均应编专项方案，违反规范。",
-          "fix": "施工前均应编专项方案，≥5m 另须专家论证。",
-          "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-4"
-        }
-      ],
-      "model_answer": "专项方案含支护、降水（地下水控制）、土方开挖、工艺流程、安全、应急、监测；开挖≥5m 属危大须专家论证。",
-      "rule_group": "专项方案·记录维",
-      "content_sha256": "f71c0e1ae1d30c7852516cc36248839d04d54562c262e460170a2cfe339b41ae",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q1",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "b02-fact-special-plan-content-weida",
-        "skeleton_id": "b02-skel-方案内容七项列举",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2021:第5题",
-        "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "f71c0e1ae1d30c7852516cc36248839d04d54562c262e460170a2cfe339b41ae",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "partial锚(W3裁决):危大≥5m须专家论证半锚忠实(2021真题第5题:开挖6m基坑须论证)。七项内容列举真源kc:1A413000_076_0146:0(0.35)仍在TOP_K=5外,内容半无机器候选可签,诚实标注。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q2-8f70a9b74ad5",
-      "surface_id": "practice.html",
-      "stem": "关于基坑专项施工方案的编制与论证程序，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "专项施工方案由监理单位组织编制、交由施工单位负责执行，深基坑的专家论证由建设单位直接组织开展。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "分不清编制主体。",
-          "loss_reason": "编制主体答反、论证组织错。",
-          "fix": "施工单位编、报监理审批，危大再专家论证。",
-          "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-1"
-        },
-        {
-          "text": "专项施工方案经施工单位编制完成后即可组织实施，危大基坑也无需开展专家论证，以加强技术交底予以弥补。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "想省掉论证环节。",
-          "loss_reason": "漏危大专家论证采分点。",
-          "fix": "≥5m 危大须专家论证方可实施。",
-          "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-2"
-        },
-        {
-          "text": "各类基坑无论开挖深浅，均应先行组织专家论证，再依据论证意见编制专项施工方案并组织实施。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为都要论证且顺序在前。",
-          "loss_reason": "论证限危大(≥5m)、且程序颠倒。",
-          "fix": "先编方案，≥5m 危大才须专家论证。",
-          "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-3"
-        },
-        {
-          "text": "专项施工方案由施工单位编制、报监理审批；开挖深度≥5m 的危大基坑，还须组织专家论证后实施。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "编制主体、审批、危大论证三步齐，程序分清。",
-          "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-4"
-        }
-      ],
-      "model_answer": "专项方案由施工单位编制、报监理审批；开挖≥5m 危大基坑须组织专家论证后实施。",
-      "rule_group": "专项方案·程序维",
-      "content_sha256": "88a275870782a3d1d73271cd9be0b2e6e976856c5d73e1d46a3dce15acaad2ed",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q2",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "b02-fact-special-plan-procedure",
-        "skeleton_id": "b02-skel-方案编制论证程序",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2022:第19题",
-        "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "88a275870782a3d1d73271cd9be0b2e6e976856c5d73e1d46a3dce15acaad2ed",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "partial锚(W3裁决):危大专家论证半锚忠实(2022真题第19题)。编制主体'施工单位编制报监理审批'编译库无原子采分点,程序半按管理常识+真题语境支撑,诚实标注。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q3-6a140c0a38c3",
-      "surface_id": "practice.html",
-      "stem": "某深基坑安全等级为一级。选出支护结构选型正确、能得分的作答。",
-      "options": [
-        {
-          "text": "安全等级一级的基坑可采用土钉墙支护，其施工便捷、造价较低，适用于各类深基坑工程。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "土钉墙常见就直接套用。",
-          "loss_reason": "土钉墙限二三级，用于一级越界。",
-          "fix": "一级用排桩/地连墙/型钢搅拌墙。",
-          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-1"
-        },
-        {
-          "text": "支护类型的确定与安全等级并无关联，按工程造价最低的方案选定支护结构即可。",
-          "is_correct": false,
-          "source_error_code": "E01",
-          "temptation": "只顾省造价。",
-          "loss_reason": "忽略安全等级对应的适用条件。",
-          "fix": "按适用条件筛，一级用排桩/地连墙。",
-          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-2"
-        },
-        {
-          "text": "安全等级一级宜选灌注桩排桩、地下连续墙或型钢水泥土搅拌墙等刚度大的支护结构。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "一级对应排桩/地连墙/型钢搅拌墙，刚度大控制变形。",
-          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-3"
-        },
-        {
-          "text": "安全等级一级的基坑宜选用水泥土重力式围护墙，依靠墙体自重挡土，受力明确、稳定可靠。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "重力墙听着稳当。",
-          "loss_reason": "重力墙属二三级、且限淤泥质≤7m。",
-          "fix": "一级用排桩/地连墙等；重力墙限二三级。",
-          "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-4"
-        }
-      ],
-      "model_answer": "一级宜选灌注桩排桩、地下连续墙、型钢水泥土搅拌墙等刚度大的支护。",
-      "rule_group": "支护选型·条件维",
-      "content_sha256": "7b6333f0127ac28d004dab3b0d7ba280e36aa89d53ed8fe6899f41fe72d001dd",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q3",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "b02-fact-level1-support-selection",
-        "skeleton_id": "b02-skel-一级支护选型直问",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2022:第30题",
-        "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "7b6333f0127ac28d004dab3b0d7ba280e36aa89d53ed8fe6899f41fe72d001dd",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "2022真题第30题原题:一级适用灌注桩排桩/地下连续墙/型钢水泥土搅拌墙,土钉墙不适用。忠实。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q4-817b50177da8",
-      "surface_id": "practice.html",
-      "stem": "关于基坑支护选型的依据，选出最完整、能得分的作答。",
-      "options": [
-        {
-          "text": "支护选型按安全等级对号入座即可完成，一级选用排桩、二三级选用土钉墙，其余条件不必逐项核对。",
-          "is_correct": false,
-          "source_error_code": "E01",
-          "temptation": "以为安全等级单因子定死。",
-          "loss_reason": "漏基坑深度/土性水文/周边环境等因素，选型不封闭。",
-          "fix": "应综合基坑深度、土性及地下水、周边环境等因素。",
-          "option_id": "B02-html-practice-html-q4-817b50177da8:option-1"
-        },
-        {
-          "text": "支护选型仅按开挖深度一项确定即可，深基坑一律选用排桩支护、浅基坑一律选用土钉墙，其他条件不必考虑。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为深度单因子决定。",
-          "loss_reason": "漏土性地下水/周边环境/工艺可行性多因子。",
-          "fix": "深度之外还须综合土性水文、周边环境等因素。",
-          "option_id": "B02-html-practice-html-q4-817b50177da8:option-2"
-        },
-        {
-          "text": "支护选型应以造价与工期最省作为唯一比选标准，土层与地下水位情况均不属于选型依据。",
-          "is_correct": false,
-          "source_error_code": "E01",
-          "temptation": "只算经济账。",
-          "loss_reason": "否认土性及地下水这一明确选型因素。",
-          "fix": "经济仅是综合因素之一，土性水文是明确依据。",
-          "option_id": "B02-html-practice-html-q4-817b50177da8:option-3"
-        },
-        {
-          "text": "支护选型应综合考虑基坑深度、土的性状及地下水条件、周边环境的承受能力、施工工艺可行性等因素确定。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "扣住 JGJ 120 综合因素：深度、土性水文、周边环境、工艺可行性。",
-          "option_id": "B02-html-practice-html-q4-817b50177da8:option-4"
-        }
-      ],
-      "model_answer": "选型应综合考虑基坑深度、土的性状及地下水条件、周边环境、施工工艺可行性、场地与工期等因素（JGJ 120）。",
-      "rule_group": "支护选型·条件维",
-      "content_sha256": "4055c01ca9b4bd59b5ab1a774e9c88570386ce6e39bf9fbf933eff4301ddb323",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q4",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "b02-fact-support-selection-factors",
-        "skeleton_id": "b02-skel-选型依据列举",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A422000_032_0053:1",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "4055c01ca9b4bd59b5ab1a774e9c88570386ce6e39bf9fbf933eff4301ddb323",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "W1治愈:教材仲裁命中2026教材p32 JGJ 120—2012'支护结构选型时应综合考虑'七因素,补采分点逐字quote;卡端q4已按七因素口径改写(去'安全等级=首轮筛选'合成断言)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q5-e68bd3e889d0",
-      "surface_id": "practice.html",
-      "stem": "某淤泥质土基坑，开挖深度6m，安全等级二级。选出支护可选、能得分的作答。",
-      "options": [
-        {
-          "text": "该基坑应选用地下连续墙进行支护，水泥土重力式围护墙不能用于淤泥质土层。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为软土一定要硬支护。",
-          "loss_reason": "二级淤泥质≤7m 正适重力墙。",
-          "fix": "二级淤泥质≤7m 可选水泥土重力墙。",
-          "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-1"
-        },
-        {
-          "text": "该基坑安全等级二级、淤泥质土、深度≤7m，可选用水泥土重力式围护墙，也可用土钉墙。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "抓住二级 + 淤泥质 + ≤7m，正对应重力墙适用条件。",
-          "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-2"
-        },
-        {
-          "text": "水泥土重力式围护墙适用于开挖深度不超过 10m 的基坑，本基坑深 6m，处于其适用范围之内。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记错了适用深度阈值。",
-          "loss_reason": "重力墙限深度≤7m，写10m 数字错。",
-          "fix": "水泥土重力墙适用深度≤7m。",
-          "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-3"
-        },
-        {
-          "text": "该淤泥质土深基坑宜选用土钉墙支护，按超前支护、逐层施作的原则组织施工即可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "土钉墙直接套用。",
-          "loss_reason": "淤泥质软土不宜土钉墙。",
-          "fix": "淤泥质≤7m 宜水泥土重力墙。",
-          "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-4"
-        }
-      ],
-      "model_answer": "二级可选水泥土重力式围护墙（适淤泥质土、深度≤7m）或土钉墙等。",
-      "rule_group": "支护选型·条件维",
-      "content_sha256": "7ec731cb8f82cdeb32f4bce8d3631daa43ed1b1d0296643d439db4ff556ab204",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q5",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "b02-fact-gravity-wall-applicability",
-        "skeleton_id": "b02-skel-淤泥质二级场景选型",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_080_0151:1",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "7ec731cb8f82cdeb32f4bce8d3631daa43ed1b1d0296643d439db4ff556ab204",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "W2治愈:TOP_K=5召回真源(rank4/0.3315,前轮top3截断0.336)。水泥土重力式围护墙适用淤泥质土、深度不宜大于7m,与题干6m二级场景对齐。忠实。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q6-e84f11189daa",
-      "surface_id": "practice.html",
-      "stem": "关于地下连续墙导墙的构造尺寸，选出数字正确、能得分的作答。",
-      "options": [
-        {
-          "text": "地下连续墙导墙厚度不应小于 100mm，高度不应小于 1.0m。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把数字都记小了。",
-          "loss_reason": "厚、高两个阈值都写错。",
-          "fix": "厚≥200mm、高≥1.2m。",
-          "option_id": "B02-html-practice-html-q6-e84f11189daa:option-1"
-        },
-        {
-          "text": "导墙满足成槽机械的导向功能即可，厚度与高度按施工经验确定。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为无量化定值。",
-          "loss_reason": "漏导墙关键数字采分。",
-          "fix": "须写厚≥200mm、高≥1.2m。",
-          "option_id": "B02-html-practice-html-q6-e84f11189daa:option-2"
-        },
-        {
-          "text": "地下连续墙导墙厚度不应小于 300mm，高度不应小于 0.8m。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "厚记大、高记小。",
-          "loss_reason": "两个数字都不对。",
-          "fix": "厚≥200mm、高≥1.2m。",
-          "option_id": "B02-html-practice-html-q6-e84f11189daa:option-3"
-        },
-        {
-          "text": "地下连续墙导墙厚度不应小于 200mm，高度不应小于 1.2m。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "厚≥200mm、高≥1.2m 两个数字带上就得分。",
-          "option_id": "B02-html-practice-html-q6-e84f11189daa:option-4"
-        }
-      ],
-      "model_answer": "导墙厚≥200mm、高≥1.2m。",
-      "rule_group": "关键数字·记录维",
-      "content_sha256": "ab5b873d009b4c361f7d0486dd80385984c3f1321d8db8a677c92022700e7292",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q6",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "ab5b873d009b4c361f7d0486dd80385984c3f1321d8db8a677c92022700e7292",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q7-dfc27361067f",
-      "surface_id": "practice.html",
-      "stem": "灌注桩排桩施工，选出成桩顺序与间隔要求正确、能得分的作答。",
-      "options": [
-        {
-          "text": "应间隔成桩：已浇桩与相邻桩间距应大于 2 倍桩径，或间隔时间大于 24h。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字记小了。",
-          "loss_reason": "阈值写错（应>4D/>36h）。",
-          "fix": ">4倍桩径 或 >36h。",
-          "option_id": "B02-html-practice-html-q7-dfc27361067f:option-1"
-        },
-        {
-          "text": "应间隔成桩：已浇桩与相邻桩间距应大于 4 倍桩径，或间隔时间大于 36h。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": ">4倍桩径 或 >36h 两个口径写全，防串孔挤土。",
-          "option_id": "B02-html-practice-html-q7-dfc27361067f:option-2"
-        },
-        {
-          "text": "为保证工序衔接宜连续成桩，相邻桩依次紧跟浇筑，以缩短排桩施工的总工期。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "图省时连着打。",
-          "loss_reason": "混凝土未凝即钻邻孔，串孔挤土。",
-          "fix": "应间隔成桩 >4倍桩径 或 >36h。",
-          "option_id": "B02-html-practice-html-q7-dfc27361067f:option-3"
-        },
-        {
-          "text": "相邻桩不同时浇筑即可，对桩间距离与间隔时间不作具体的量化规定。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为无量化要求。",
-          "loss_reason": "漏>4D/>36h 量化条件。",
-          "fix": "须>4倍桩径 或 >36h。",
-          "option_id": "B02-html-practice-html-q7-dfc27361067f:option-4"
-        }
-      ],
-      "model_answer": "间隔成桩：已浇桩与邻桩间距>4倍桩径，或间隔>36h。",
-      "rule_group": "关键数字·程序维",
-      "content_sha256": "6098d650c5ba06f9ba47028c3742a4557910f00e1db61dab65563b3e29bb263f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q7",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "6098d650c5ba06f9ba47028c3742a4557910f00e1db61dab65563b3e29bb263f",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q8-20d7254f8a33",
-      "surface_id": "practice.html",
-      "stem": "关于土钉墙施工原则，选出列举正确、能得分的作答。",
-      "options": [
-        {
-          "text": "土钉墙应分层开挖、及时喷锚，超前支护与限时封闭不作强制要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "抓两条丢三条。",
-          "loss_reason": "漏超前支护、限时封闭等原则。",
-          "fix": "五原则齐：超前支护/分层分段/逐层/限时封闭/严禁超挖。",
-          "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-1"
-        },
-        {
-          "text": "土钉墙可一次开挖至设计深度，再自上而下统一施作各层土钉。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为可一次挖到底。",
-          "loss_reason": "违反逐层施作、严禁超挖。",
-          "fix": "逐层施作、严禁超挖、限时封闭。",
-          "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-2"
-        },
-        {
-          "text": "土钉墙按放坡开挖对待，控制好边坡坡度即可，无需支护原则。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "混同放坡。",
-          "loss_reason": "土钉墙是支护、有五原则。",
-          "fix": "须超前支护/分层分段/逐层/限时封闭/严禁超挖。",
-          "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-3"
-        },
-        {
-          "text": "土钉墙应超前支护、分层分段、逐层施作、限时封闭、严禁超挖。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "五原则齐全，一条不落。",
-          "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-4"
-        }
-      ],
-      "model_answer": "超前支护、分层分段、逐层施作、限时封闭、严禁超挖。",
-      "rule_group": "土钉墙·程序维",
-      "content_sha256": "a2fcf4623066a4f6b46fd936b5599b8a241c9a2fba530b3071719dbf413c99ef",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q8",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "a2fcf4623066a4f6b46fd936b5599b8a241c9a2fba530b3071719dbf413c99ef",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q9-3c66292fb073",
-      "surface_id": "practice.html",
-      "stem": "关于土钉墙的坡比要求，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "土钉墙坡面坡比不宜大于 1:0.2。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "坡比≤1:0.2 记准这个阈值。",
-          "option_id": "B02-html-practice-html-q9-3c66292fb073:option-1"
-        },
-        {
-          "text": "土钉墙坡面坡比不宜大于 1:1。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记成 1:1。",
-          "loss_reason": "阈值错。",
-          "fix": "坡比不宜大于 1:0.2。",
-          "option_id": "B02-html-practice-html-q9-3c66292fb073:option-2"
-        },
-        {
-          "text": "土钉墙坡面坡比不宜大于 1:0.5。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为越缓越对。",
-          "loss_reason": "坡比阈值写错（应1:0.2）。",
-          "fix": "坡比不宜大于 1:0.2。",
-          "option_id": "B02-html-practice-html-q9-3c66292fb073:option-3"
-        },
-        {
-          "text": "土钉墙坡比按土质条件确定，无统一限值。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为无定值。",
-          "loss_reason": "漏 1:0.2 采分。",
-          "fix": "坡比不宜大于 1:0.2。",
-          "option_id": "B02-html-practice-html-q9-3c66292fb073:option-4"
-        }
-      ],
-      "model_answer": "土钉墙坡比不宜大于 1:0.2。",
-      "rule_group": "土钉墙·记录维",
-      "content_sha256": "7d74b25aba82e790003790bb8c09fda8153f5c9da7f7d797591c7e3bbe6434c6",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q9",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "7d74b25aba82e790003790bb8c09fda8153f5c9da7f7d797591c7e3bbe6434c6",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q10-7c80cf85535d",
-      "surface_id": "practice.html",
-      "stem": "某土钉墙基坑：一次开挖到坑底后，再自上而下施作土钉。选出诊断与改正正确、能得分的作答。",
-      "options": [
-        {
-          "text": "不妥：违反分层分段、逐层施作、限时封闭、严禁超挖；应分层开挖、随挖随做土钉并限时封闭。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出主错(超挖到底)+给出逐层施作的正确做法。",
-          "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-1"
-        },
-        {
-          "text": "不妥之处仅在于土钉施作后未及时喷浆封闭，开挖顺序本身符合要求，无需再作调整。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只抓喷浆一点。",
-          "loss_reason": "漏'一次超挖到底'这个主错。",
-          "fix": "主错是超挖到底，应分层逐层施作。",
-          "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-2"
-        },
-        {
-          "text": "该做法基本可行：只要土钉施作及时、喷锚封闭跟进到位，一次开挖至坑底并不影响基坑的安全。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为快就行。",
-          "loss_reason": "一次挖到底临空面塌落，违反逐层。",
-          "fix": "须分层开挖、逐层施作、严禁超挖。",
-          "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-3"
-        },
-        {
-          "text": "应改正为：先在原地面上施作完成全部土钉，再统一开挖至坑底设计标高。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把顺序反着改。",
-          "loss_reason": "土钉须随挖随做，不能先做后挖。",
-          "fix": "分层开挖、逐层施作、限时封闭。",
-          "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-4"
-        }
-      ],
-      "model_answer": "不妥：违反分层分段、逐层施作、限时封闭、严禁超挖；应分层开挖、逐层施作土钉并限时封闭。",
-      "rule_group": "土钉墙·判断纠错",
-      "content_sha256": "c679aba52d3763121917b1b03173739831294464b06b2e70d0f298325810105f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q10",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "c679aba52d3763121917b1b03173739831294464b06b2e70d0f298325810105f",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q11-8db0dc34f9cc",
-      "surface_id": "practice.html",
-      "stem": "关于锚杆布置间距，选出数字正确、能得分的作答。",
-      "options": [
-        {
-          "text": "锚杆垂直间距不应小于 1.5m，水平间距不应小于 1.0m。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字都记小了。",
-          "loss_reason": "垂直、水平阈值都写错。",
-          "fix": "垂直≥2.0m、水平≥1.5m。",
-          "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-1"
-        },
-        {
-          "text": "锚杆间距按支护受力情况布置，无统一的下限要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为无定值。",
-          "loss_reason": "漏间距采分。",
-          "fix": "垂直≥2.0m、水平≥1.5m。",
-          "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-2"
-        },
-        {
-          "text": "锚杆垂直间距不应小于 2.0m，水平间距不应小于 1.5m。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "垂直≥2.0m、水平≥1.5m 两个数分清。",
-          "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-3"
-        },
-        {
-          "text": "锚杆水平间距不应小于 2.0m，垂直间距不应小于 1.5m。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "垂直、水平记反了。",
-          "loss_reason": "两个数颠倒。",
-          "fix": "垂直≥2.0m、水平≥1.5m。",
-          "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-4"
-        }
-      ],
-      "model_answer": "锚杆垂直间距≥2.0m、水平间距≥1.5m。",
-      "rule_group": "锚杆·记录维",
-      "content_sha256": "531437abe02198c3305c1b25095eaf911e3aab252badc9d4968da3d824ebef47",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q11",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "531437abe02198c3305c1b25095eaf911e3aab252badc9d4968da3d824ebef47",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q12-4cc15aac4d79",
-      "surface_id": "practice.html",
-      "stem": "关于锚杆张拉的强度条件，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "锚固段注浆体强度达到 15MPa 且达到设计强度的 75% 后方可张拉，张拉至设计值的 1.05~1.10 倍。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "15MPa + 75% 两个门槛 + 张拉倍数一并写全。",
-          "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-1"
-        },
-        {
-          "text": "锚固段注浆体强度达到 10MPa 或达到设计强度的 50% 后即可张拉，张拉至设计值的 1.05~1.10 倍。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字记小了。",
-          "loss_reason": "阈值写错（应15MPa/75%）。",
-          "fix": "≥15MPa 且达75%。",
-          "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-2"
-        },
-        {
-          "text": "锚杆安装并注浆完成后即可进行张拉受力，无需等待注浆体强度形成，以便支护结构尽早发挥作用。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为装完即可拉。",
-          "loss_reason": "未达强度张拉致锚固段拔出。",
-          "fix": "须≥15MPa 且达75% 方可张拉。",
-          "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-3"
-        },
-        {
-          "text": "基坑侧壁土方开挖至锚杆设计标高后即可实施张拉锁定，张拉时机与注浆体强度并无直接关系。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "混淆张拉条件。",
-          "loss_reason": "张拉条件是强度而非开挖到位。",
-          "fix": "须锚固段≥15MPa 且达75%。",
-          "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-4"
-        }
-      ],
-      "model_answer": "锚固段强度≥15MPa 且达设计强度75% 方可张拉，张拉至设计值1.05~1.10倍。",
-      "rule_group": "锚杆·条件维",
-      "content_sha256": "53d66bf9326cded81049fb15522643ccfbe9fb42835b2e899a11fc31d20e3f74",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q12",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "53d66bf9326cded81049fb15522643ccfbe9fb42835b2e899a11fc31d20e3f74",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q13-bf05f5918c6d",
-      "surface_id": "practice.html",
-      "stem": "某邻近既有建筑的一级深基坑，要求控制变形、避免挤土。选出支护选型较合理、能得分的作答。",
-      "options": [
-        {
-          "text": "邻近建筑的基坑宜选用沉管灌注桩快速成桩，以缩短支护施工工期、减少基坑暴露时间。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "只图工期快。",
-          "loss_reason": "挤土桩加剧周边变形。",
-          "fix": "用低挤土排桩/地连墙、间隔成桩。",
-          "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-1"
-        },
-        {
-          "text": "邻近建筑的一级深基坑宜选灌注桩排桩或地下连续墙，刚度大、变形小，并间隔成桩以避免挤土。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "扣住'一级+邻建'选低扰动刚性支护+间隔成桩。",
-          "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-2"
-        },
-        {
-          "text": "邻近建筑的深基坑宜选用土钉墙支护，随开挖逐层喷锚施作，施工扰动小，对周边建筑影响轻微。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为土钉墙扰动小。",
-          "loss_reason": "一级 + 敏感区不宜土钉墙。",
-          "fix": "敏感区一级用排桩/地连墙。",
-          "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-3"
-        },
-        {
-          "text": "支护选型与是否邻近既有建筑无关，仍按工程造价最低的支护方案进行确定即可。",
-          "is_correct": false,
-          "source_error_code": "E01",
-          "temptation": "忽略周边环境。",
-          "loss_reason": "漏周边环境这一选型依据。",
-          "fix": "周边敏感应选低扰动排桩/地连墙。",
-          "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-4"
-        }
-      ],
-      "model_answer": "邻建敏感区宜选刚度大、挤土小的排桩/地连墙，并间隔成桩防挤土。",
-      "rule_group": "支护选型·周边环境",
-      "content_sha256": "cfbe07cdeff0fa2c80b5c148d4b4d6bcadbefd818ea9b23c5e717e8edbbcd387",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q13",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "cfbe07cdeff0fa2c80b5c148d4b4d6bcadbefd818ea9b23c5e717e8edbbcd387",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q14-bc87900bb016",
-      "surface_id": "practice.html",
-      "stem": "某基坑开挖深度 6m，专项方案仅含支护、土方开挖两部分，且未组织论证即施工。选出诊断与补正确、能得分的作答。",
-      "options": [
-        {
-          "text": "不妥：方案漏降水、工艺、安全、应急、监测多项；且 6m≥5m 属危大，须专家论证后方可施工。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "内容缺项 + 危大漏论证两处失分都揪出。",
-          "option_id": "B02-html-practice-html-q14-bc87900bb016:option-1"
-        },
-        {
-          "text": "该方案的编制内容已经齐全，仅专家论证程序存在遗漏，补充组织专家论证后即可按原方案继续施工。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只抓论证一处。",
-          "loss_reason": "漏'内容缺项'这处失分。",
-          "fix": "内容补五项 + 危大论证两处都要。",
-          "option_id": "B02-html-practice-html-q14-bc87900bb016:option-2"
-        },
-        {
-          "text": "开挖深度 6m 的基坑不属于危大工程，无需组织专家论证，补齐方案内容后即可开工。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "误判危大门槛。",
-          "loss_reason": "6m≥5m 属危大，须论证。",
-          "fix": "≥5m 属危大须专家论证。",
-          "option_id": "B02-html-practice-html-q14-bc87900bb016:option-3"
-        },
-        {
-          "text": "方案仅缺少监测一项内容，补充监测安排后其余部分均无问题，可以继续组织施工。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为只缺监测。",
-          "loss_reason": "漏降水/应急等多项及论证。",
-          "fix": "补齐七项 + 专家论证。",
-          "option_id": "B02-html-practice-html-q14-bc87900bb016:option-4"
-        }
-      ],
-      "model_answer": "不妥：漏降水/工艺/安全/应急/监测多项；6m≥5m 属危大，须专家论证后方可施工。",
-      "rule_group": "专项方案·判断纠错",
-      "content_sha256": "bcdbc0e4c504ea5468ace0ee8152937cbf3edd3db0380d79d81b5d41e16e4773",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q14",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "bcdbc0e4c504ea5468ace0ee8152937cbf3edd3db0380d79d81b5d41e16e4773",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q15-7f2712dc99aa",
-      "surface_id": "practice.html",
-      "stem": "关于支护构件受力前的强度要求，选出表述正确、能得分的作答。",
-      "options": [
-        {
-          "text": "内支撑与锚杆施工完成后即可开挖下一层土方，不必等待混凝土及注浆体强度形成，以保证连续作业。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "图快抢下挖。",
-          "loss_reason": "未达强度下挖易失稳/拔出。",
-          "fix": "达强度后再张拉/下挖。",
-          "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-1"
-        },
-        {
-          "text": "锚固段强度≥15MPa 且达设计强度 75% 方可张拉；混凝土内支撑达到规定强度后方可进行下层土方开挖。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "锚杆张拉、支撑下挖都要等强度形成。",
-          "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-2"
-        },
-        {
-          "text": "锚固段注浆体强度达到 5MPa 即可实施张拉；混凝土内支撑浇筑完成之后随即进行下一层土方开挖作业。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字过小。",
-          "loss_reason": "阈值错（应15MPa/75%）。",
-          "fix": "≥15MPa 且达75% 方张拉。",
-          "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-3"
-        },
-        {
-          "text": "支护构件的强度与土方开挖顺序无关，按既定流水段组织推进即可，不必另行设置强度条件。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "忽略强度条件。",
-          "loss_reason": "漏强度形成这一前提。",
-          "fix": "须达强度方受力/下挖。",
-          "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-4"
-        }
-      ],
-      "model_answer": "锚固段≥15MPa 且75% 方张拉；混凝土内支撑达规定强度后方可下层开挖。",
-      "rule_group": "强度顺序·概念维",
-      "content_sha256": "7f04e6b85e74e9f62a3b4fbc19515bdb7b34a0365a6c714c010c5edb9843c59c",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q15",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "7f04e6b85e74e9f62a3b4fbc19515bdb7b34a0365a6c714c010c5edb9843c59c",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice-html-q16-9c57ccba6119",
-      "surface_id": "practice.html",
-      "stem": "关于浅基坑支护选型，选出与适用条件匹配、能得分的作答。",
-      "options": [
-        {
-          "text": "各类浅基坑均可采用放坡开挖处理，不必设置任何形式的支护结构，以简化施工组织安排。",
-          "is_correct": false,
-          "source_error_code": "E01",
-          "temptation": "以为浅坑都能免支护。",
-          "loss_reason": "有条件限制，非一律放坡。",
-          "fix": "按水位/土质/周边选型钢桩横挡板等。",
-          "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-1"
-        },
-        {
-          "text": "低地下水位的黏性土浅基坑应优先设置截水帷幕，由帷幕承担基坑的挡土功能。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "混淆帷幕功能。",
-          "loss_reason": "帷幕是截水、不是挡土支护。",
-          "fix": "低水位黏性土用型钢桩加横挡板。",
-          "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-2"
-        },
-        {
-          "text": "浅基坑可按条件选型：低地下水位黏性土可用型钢桩加横挡板，邻近建筑时可用挡土灌注桩支护。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "按水位/土质/周边匹配轻型支护，条件对号。",
-          "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-3"
-        },
-        {
-          "text": "浅基坑与深基坑的支护选型原则完全相同，均应选用灌注桩排桩或地下连续墙等刚性支护结构。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "套用深坑方案。",
-          "loss_reason": "浅坑有专门的轻型支护。",
-          "fix": "浅坑用斜撑/锚拉/型钢桩横挡板等。",
-          "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-4"
-        }
-      ],
-      "model_answer": "浅基坑按条件选型：低水位黏性土可用型钢桩加横挡板，邻建可用挡土灌注桩。",
-      "rule_group": "浅基坑选型·条件维",
-      "content_sha256": "0540190a93288face8cc8392eb823bf7230ccbc7118927eb4dbd25a380a006d3",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q16",
-      "authoring_sha256": "ffae3e19c94673836a723a194ee307605ff6c0cb0112bdc01a7cc428fe9d058b",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "0540190a93288face8cc8392eb823bf7230ccbc7118927eb4dbd25a380a006d3",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q1-a16beb8512f0",
-      "surface_id": "practice2.html",
-      "stem": "某基坑为砂砾层、渗透系数较大。选出降水方法正确、能得分的作答。",
-      "options": [
-        {
-          "text": "渗透系数较大的砂砾层宜采用轻型井点，依靠真空负压抽吸，降水速度较快。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为井点万能、越急越用轻型。",
-          "loss_reason": "轻型用于中等渗透，大渗透应用管井。",
-          "fix": "渗透系数大 → 降水管井。",
-          "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-1"
-        },
-        {
-          "text": "渗透系数较大的地层采用集水明排即可满足降水要求，不必设置井点系统。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为明排通用。",
-          "loss_reason": "明排限≤3m少量水，大渗透深坑不适。",
-          "fix": "渗透大深坑 → 降水管井。",
-          "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-2"
-        },
-        {
-          "text": "渗透系数较大的砂砾层宜采用降水管井（管井井点），靠重力排水，降水效率高。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "渗透大对应管井，重力排水，扣住渗透系数这一判据。",
-          "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-3"
-        },
-        {
-          "text": "渗透系数较大的砂砾层宜采用喷射井点降水，利用高速射流抽吸适应大渗透量地层。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "看喷射能抽就套用。",
-          "loss_reason": "喷射解决的是深降深，不是大渗透。",
-          "fix": "渗透大 → 管井；喷射解决深降深。",
-          "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-4"
-        }
-      ],
-      "model_answer": "渗透系数大 → 降水管井（管井井点），靠重力排水。",
-      "rule_group": "降水选型·条件维",
-      "content_sha256": "8c7ce06ad4423f02ae091ca9f26657a8a18b980f5393d88085b521a1898d94d9",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q1",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-dewatering-method-selection",
-        "skeleton_id": "b02-skel-砂砾大渗透选管井",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2019:第7题",
-        "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "8c7ce06ad4423f02ae091ca9f26657a8a18b980f5393d88085b521a1898d94d9",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "2019真题第7题解析:降水管井适用渗透系数较大砂砾层。忠实。三件套fact成员(anchor)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q2-5601a7b54fc9",
-      "surface_id": "practice2.html",
-      "stem": "某基坑为填土层（渗透系数小）。关于降水方法，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "填土层的渗透系数较大，正适合采用降水管井以重力排水方式进行降水。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把填土误当大渗透。",
-          "loss_reason": "填土渗透系数小，判据用反。",
-          "fix": "填土渗透小 → 不宜管井。",
-          "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-1"
-        },
-        {
-          "text": "填土（渗透系数小）不宜采用降水管井，宜选用轻型井点、喷射井点或电渗井点等。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "小渗透不宜管井，给出轻型/喷射/电渗备选。",
-          "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-2"
-        },
-        {
-          "text": "填土层同样可以采用降水管井进行降水，管井适用于各类土层，具有较强的通用性。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为管井通用。",
-          "loss_reason": "填土/黏土渗透小不宜管井。",
-          "fix": "小渗透不宜管井，用轻型/喷射/电渗。",
-          "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-3"
-        },
-        {
-          "text": "填土层基坑采用集水明排即可满足降水要求，无需设置井点降水系统。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为填土好排。",
-          "loss_reason": "深坑填土仍需井点，明排限≤3m。",
-          "fix": "按降深选轻型/喷射，非一律明排。",
-          "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-4"
-        }
-      ],
-      "model_answer": "填土/黏土渗透系数小，不宜用降水管井，宜轻型/喷射/电渗井点。",
-      "rule_group": "降水选型·条件维",
-      "content_sha256": "74ce0a204347ad91870820edfd880aabff7789868175c4f15d8cf8a7e4698515",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q2",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-dewatering-method-selection",
-        "skeleton_id": "b02-skel-填土渗透小不宜管井",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2019:第7题",
-        "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "74ce0a204347ad91870820edfd880aabff7789868175c4f15d8cf8a7e4698515",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "2019真题第7题原题:不宜用于填土的降水方法=降水管井,宜轻型/喷射/电渗。忠实。同fact异skeleton。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q3-1cd313937993",
-      "surface_id": "practice2.html",
-      "stem": "某基坑需降水深度约 15m。选出降水方法正确、能得分的作答。",
-      "options": [
-        {
-          "text": "降水深度不影响井点类型的选择，任选一种井点均可满足要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "忽略降深这个因子。",
-          "loss_reason": "降深是选型关键。",
-          "fix": "≤6m 轻型、8~20m 喷射。",
-          "option_id": "B02-html-practice2-html-q3-1cd313937993:option-1"
-        },
-        {
-          "text": "降水深度约 15m，宜采用喷射井点（适用降深 8~20m）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "扣住降深区间 8~20m 选喷射。",
-          "option_id": "B02-html-practice2-html-q3-1cd313937993:option-2"
-        },
-        {
-          "text": "降水深度约 15m，可采用轻型井点降水，其降深能力足以达到 15m。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为轻型能到 15m。",
-          "loss_reason": "轻型降深≤6m，多级也仅 6~10m。",
-          "fix": "15m 用喷射井点(8~20m)。",
-          "option_id": "B02-html-practice2-html-q3-1cd313937993:option-3"
-        },
-        {
-          "text": "降水深度约 15m，可采用集水明排并配备大功率水泵抽降。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为泵大就能深降。",
-          "loss_reason": "明排不是深降水方法。",
-          "fix": "深降水用喷射井点。",
-          "option_id": "B02-html-practice2-html-q3-1cd313937993:option-4"
-        }
-      ],
-      "model_answer": "降深8~20m → 喷射井点。",
-      "rule_group": "降水选型·记录维",
-      "content_sha256": "4e0824f647765c128b4a9d15cba6af9231e7fd8e9a29c3bdcbb5ebd7e31b68a0",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q3",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-jetwell-depth-range",
-        "skeleton_id": "b02-skel-降深15m选喷射",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_082_0155:1",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "4e0824f647765c128b4a9d15cba6af9231e7fd8e9a29c3bdcbb5ebd7e31b68a0",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "喷射井点降水深度8~20m,15m落界内。忠实。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q4-31ac34948254",
-      "surface_id": "practice2.html",
-      "stem": "关于轻型井点的降水深度，选出数字正确、能得分的作答。",
-      "options": [
-        {
-          "text": "单级轻型井点的降水深度即可达到 8~20m，可满足深基坑的降水作业需要。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把喷射的区间记到轻型上。",
-          "loss_reason": "8~20m 是喷射井点，轻型≤6m。",
-          "fix": "轻型单级≤6m，8~20m 用喷射。",
-          "option_id": "B02-html-practice2-html-q4-31ac34948254:option-1"
-        },
-        {
-          "text": "按规定，单级轻型井点的降水深度不宜超过 3m，选型时应据此控制。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字记小了。",
-          "loss_reason": "轻型单级可到 6m。",
-          "fix": "单级≤6m、多级6~10m。",
-          "option_id": "B02-html-practice2-html-q4-31ac34948254:option-2"
-        },
-        {
-          "text": "轻型井点的降水深度不受限制，加长井管与管路即可继续加深降水。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为可无限加深。",
-          "loss_reason": "受真空度限制，单级≤6m。",
-          "fix": "单级≤6m、多级6~10m。",
-          "option_id": "B02-html-practice2-html-q4-31ac34948254:option-3"
-        },
-        {
-          "text": "单级轻型井点降水深度不宜超过 6m，多级轻型井点可达 6~10m。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "单级≤6m、多级6~10m 两个数带上。",
-          "option_id": "B02-html-practice2-html-q4-31ac34948254:option-4"
-        }
-      ],
-      "model_answer": "单级轻型井点降深≤6m，多级可达 6~10m。",
-      "rule_group": "降水选型·记录维",
-      "content_sha256": "1f8462d940ae53900baefafe6d4bdfce4d9123d3cbd50637b618ce72ea2ff924",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q4",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-lightwell-depth-limit",
-        "skeleton_id": "b02-skel-轻型井点降深数字",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_082_0155:0",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "1f8462d940ae53900baefafe6d4bdfce4d9123d3cbd50637b618ce72ea2ff924",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "轻型井点降水深度≤6m、多级6~10m。忠实。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q5-2e0179d5fbe9",
-      "surface_id": "practice2.html",
-      "stem": "关于基坑降水的水位控制，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "降水应使地下水位降至坑底以下 500mm 以上，并持续降水至基础施工完成。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "坑底以下≥500mm + 持续至基础完工两句齐。",
-          "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-1"
-        },
-        {
-          "text": "降水应使地下水位降至坑底以下 200mm 以上，即可满足基础施工的干作业要求。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字记小了。",
-          "loss_reason": "应≥500mm，200mm 不够。",
-          "fix": "坑底以下 ≥500mm。",
-          "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-2"
-        },
-        {
-          "text": "降水使地下水位降至与坑底标高齐平即可，不必再继续向下超降水位。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为到坑底就够。",
-          "loss_reason": "须降至坑底以下 500mm。",
-          "fix": "坑底以下 ≥500mm。",
-          "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-3"
-        },
-        {
-          "text": "降水以基坑内不出现明水作为控制标准，无需设定具体的控制标高。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为无量化标高。",
-          "loss_reason": "漏'坑底以下500mm'采分。",
-          "fix": "须降至坑底以下 500mm 以上。",
-          "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-4"
-        }
-      ],
-      "model_answer": "水位降至坑底以下 500mm 以上，持续降水至基础完工。",
-      "rule_group": "降水控制·记录维",
-      "content_sha256": "6dcb93636a3c49ec1d86a7b64545cea69defaa4bf94206306305fced2d4b7529",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q5",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-water-level-500mm",
-        "skeleton_id": "b02-skel-水位控制标高",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_084_0157:2",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "6dcb93636a3c49ec1d86a7b64545cea69defaa4bf94206306305fced2d4b7529",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "水位降至坑底以下500mm以上且持续至基础施工完成。忠实(0.6051全包最高分)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q6-2b560a059d74",
-      "surface_id": "practice2.html",
-      "stem": "关于集水明排的适用条件，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "集水明排适用于开挖深度浅（≤3m）、渗水量不大的情况，用排水沟、集水井排出。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点明≤3m 少量渗水的适用边界。",
-          "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-1"
-        },
-        {
-          "text": "软土基坑凡出现渗水情况均可采用集水明排方式处理，选型时不受开挖深度条件的限制。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为明排万能。",
-          "loss_reason": "深>3m 或渗水大不宜明排。",
-          "fix": "明排限≤3m少量水，深用井点。",
-          "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-2"
-        },
-        {
-          "text": "设置集水明排系统能够有效防止坑底承压水突涌，保证坑底土体稳定。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为排水就防突涌。",
-          "loss_reason": "明排不防承压水突涌。",
-          "fix": "突涌用水平封底/钻孔减压。",
-          "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-3"
-        },
-        {
-          "text": "集水明排同样适用于渗透系数较大的砂砾层深基坑，可作为主要降水方法。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为砂砾好排就明排。",
-          "loss_reason": "深坑大渗透应用管井。",
-          "fix": "明排限浅坑少量水。",
-          "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-4"
-        }
-      ],
-      "model_answer": "集水明排适用于开挖深度浅（≤3m）、渗水量不大的情况。",
-      "rule_group": "降水选型·条件维",
-      "content_sha256": "fcff776b5e775ee618b11745f3aafb4b2a6631a427b99cefb25dbaa08a021fa6",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q6",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-dewatering-method-selection",
-        "skeleton_id": "b02-skel-明排适用边界",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A413000_082_0154:0",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fcff776b5e775ee618b11745f3aafb4b2a6631a427b99cefb25dbaa08a021fa6",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "降水方案选择三原则:深度≤3m且软土→集水明排,>3m→井点。q6明排边界=同一选型事实的边界侧。忠实。三件套immediate_confirm。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q7-99a0c905bb9d",
-      "surface_id": "practice2.html",
-      "stem": "某基坑降水可能引起周边建筑沉降。选出保护措施正确、能得分的作答。",
-      "options": [
-        {
-          "text": "应加大降水井功率、提高抽水强度以加快降水进程，缩短降水对周边环境的影响时间，从而减轻沉降影响。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "以为快降就少影响。",
-          "loss_reason": "加大降水反而加深漏斗、加剧沉降；漏截水/回灌。",
-          "fix": "用截水帷幕或回灌保周边。",
-          "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-1"
-        },
-        {
-          "text": "周边建筑的沉降问题应通过对既有建筑基础进行加固补强予以解决，与本基坑的降水措施没有直接关系。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把问题推给建筑加固。",
-          "loss_reason": "源头在降水，应从降水措施防治。",
-          "fix": "截水帷幕/回灌控制水位。",
-          "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-2"
-        },
-        {
-          "text": "周边有沉降风险时，设置截水帷幕（渗透系数宜<1×10⁻³cm/s）即可有效控制周边沉降，无需再采取井点回灌等其他措施。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数量级记错。",
-          "loss_reason": "帷幕渗透系数宜<1×10⁻⁶，非10⁻³。",
-          "fix": "帷幕渗透系数宜<1×10⁻⁶cm/s。",
-          "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-3"
-        },
-        {
-          "text": "周边有沉降风险时，应采取截水帷幕（渗透系数宜<1×10⁻⁶cm/s）或井点回灌，维持原水位平衡、防止周边沉降。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "截水/回灌 + 维持原水位平衡，措施到位。",
-          "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-4"
-        }
-      ],
-      "model_answer": "截水帷幕（渗透系数宜<1×10⁻⁶）或井点回灌，维持原水位平衡防沉降。",
-      "rule_group": "周边保护·条件维",
-      "content_sha256": "491c97b7c86a698d1edc6957d1f4f8ff9878821ca9abdefbe45bf388dc857fce",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q7",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "491c97b7c86a698d1edc6957d1f4f8ff9878821ca9abdefbe45bf388dc857fce",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q8-b0227e691a31",
-      "surface_id": "practice2.html",
-      "stem": "关于井点回灌的作用，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "井点回灌通过在坑外注水维持原地下水位、平衡有效应力，防止降水引起的周边地面沉降。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "维持原水位 + 防周边沉降，因果说清。",
-          "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-1"
-        },
-        {
-          "text": "井点回灌即把降水抽出的地下水就近排入河道等水体，属于排水环节，与周边地面沉降并无关联。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "把回灌当排水。",
-          "loss_reason": "漏'维持水位防沉降'关键。",
-          "fix": "回灌维持原水位、防周边沉降。",
-          "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-2"
-        },
-        {
-          "text": "井点回灌的作用是向基坑内部补充水量，以方便坑内各项作业的正常开展。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把回灌方向搞反。",
-          "loss_reason": "回灌注在坑外，不是坑内。",
-          "fix": "坑外回灌维持原水位防沉降。",
-          "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-3"
-        },
-        {
-          "text": "设置井点回灌的主要作用，在于防止基坑坑底的承压水发生突涌事故。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "和突涌防治混了。",
-          "loss_reason": "回灌不防突涌。",
-          "fix": "回灌防周边沉降；突涌另用封底减压。",
-          "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-4"
-        }
-      ],
-      "model_answer": "回灌以等量注水维持坑外原水位、平衡有效应力，防止周边地面沉降。",
-      "rule_group": "周边保护·后果维",
-      "content_sha256": "8205c4620f061c5bf2991971fa8b2deca116cda467d24ea65b543cedd8059c36",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q8",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "8205c4620f061c5bf2991971fa8b2deca116cda467d24ea65b543cedd8059c36",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q9-b9aa1233f06a",
-      "surface_id": "practice2.html",
-      "stem": "关于深基坑土方开挖，选出分层要求正确、能得分的作答。",
-      "options": [
-        {
-          "text": "为提高出土效率可先开挖至坑底标高，再自上而下统一架设各道内支撑体系。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "图效率先挖后撑。",
-          "loss_reason": "违反先撑后挖、易失稳。",
-          "fix": "先撑后挖、分层开挖。",
-          "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-1"
-        },
-        {
-          "text": "深基坑组织分层开挖即可，对每层开挖厚度以及是否超挖均不设硬性限制。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为无量化限制。",
-          "loss_reason": "漏≤3m 与严禁超挖。",
-          "fix": "每层≤3m、严禁超挖。",
-          "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-2"
-        },
-        {
-          "text": "深基坑应分层开挖，每层厚度不宜大于 3m，先撑后挖、严禁超挖，坑底预留土层人工挖除。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "每层≤3m + 先撑后挖 + 预留土人工清写全。",
-          "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-3"
-        },
-        {
-          "text": "深基坑应分层开挖，每层厚度不宜大于 5m，先撑后挖、严禁超挖，坑底预留土层人工挖除。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字记大了。",
-          "loss_reason": "每层应≤3m。",
-          "fix": "分层每层≤3m。",
-          "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-4"
-        }
-      ],
-      "model_answer": "分层开挖每层≤3m，先撑后挖、严禁超挖，预留土层人工挖除。",
-      "rule_group": "分层开挖·记录维",
-      "content_sha256": "ffef68676d528d1eec841fca665f9cdd4a0502492856d8adc0797d5be46b81ed",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q9",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "ffef68676d528d1eec841fca665f9cdd4a0502492856d8adc0797d5be46b81ed",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q10-7ab07a002b5d",
-      "surface_id": "practice2.html",
-      "stem": "关于基坑开挖与支护、降水设施的关系，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "土方开挖应以出土效率优先安排，个别井管碰损后可以事后修补，不影响整体降水效果。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为设施可事后补。",
-          "loss_reason": "损坏降水设施致降水失效。",
-          "fix": "开挖不得损坏支护降水设施。",
-          "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-1"
-        },
-        {
-          "text": "开挖过程中保护好支护墙体即可，降水井管等设施不列入保护对象范围。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只顾支护墙。",
-          "loss_reason": "漏保护降水设施。",
-          "fix": "支护与降水设施都不得损坏。",
-          "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-2"
-        },
-        {
-          "text": "土方开挖应与支护、降水工况匹配，不得损坏支护结构与降水设施（如井管、支撑）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "工况匹配 + 不损坏设施，采分到位。",
-          "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-3"
-        },
-        {
-          "text": "降水设施与土方开挖两项工作互不相干，可先行拆除降水井后再组织土方开挖。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为降水先撤。",
-          "loss_reason": "降水须持续至基础完工。",
-          "fix": "开挖期间保护降水设施、持续降水。",
-          "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-4"
-        }
-      ],
-      "model_answer": "开挖不得损坏支护结构与降水设施，开挖与支护降水工况匹配。",
-      "rule_group": "分层开挖·后果维",
-      "content_sha256": "e58568c74f2fb4307e63dac687066a532387e23ce7fac9fae0db1686716d0e08",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q10",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e58568c74f2fb4307e63dac687066a532387e23ce7fac9fae0db1686716d0e08",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q11-4028304deb9d",
-      "surface_id": "practice2.html",
-      "stem": "关于基坑必须监测的条件，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "仅开挖深度≥5m 的深基坑需要进行变形监测，各类浅基坑无论等级与地质情况均不必监测。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为只看深度。",
-          "loss_reason": "一二级或地质复杂的浅坑也须监测。",
-          "fix": "三条件任一即测。",
-          "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-1"
-        },
-        {
-          "text": "只有安全等级一级的基坑才需要开展监测，二级及以下等级的基坑均不必进行。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "把门槛抬到一级。",
-          "loss_reason": "一、二级均须监测。",
-          "fix": "一二级 OR ≥5m OR 地质复杂。",
-          "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-2"
-        },
-        {
-          "text": "是否开展基坑监测，可由施工单位根据现场具体情况与施工经验自行决定。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为可自行决定。",
-          "loss_reason": "触发条件是强制的。",
-          "fix": "满足任一条件强制监测。",
-          "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-3"
-        },
-        {
-          "text": "安全等级一、二级，或开挖深度≥5m，或地质条件复杂，满足任一条件即应进行基坑监测。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三条件 OR 关系，任一即测，写全。",
-          "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-4"
-        }
-      ],
-      "model_answer": "安全等级一二级 OR 深度≥5m OR 地质复杂，满足任一即须监测。",
-      "rule_group": "监测·条件维",
-      "content_sha256": "2c8ca40bbbd60c19e5bd0752db507ea3f7ebec7a0d88b8b072487f5b2075605f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q11",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "2c8ca40bbbd60c19e5bd0752db507ea3f7ebec7a0d88b8b072487f5b2075605f",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q12-b75f0f200b54",
-      "surface_id": "practice2.html",
-      "stem": "关于基坑变形监测的对象，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "监测对象应包括基坑及支护结构变形，以及周边建筑、管线、道路等周边环境变形。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "坑内支护 + 周边环境两类都要。",
-          "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-1"
-        },
-        {
-          "text": "监测对象为周边建筑物的变形情况，基坑内部与支护结构的变形不必纳入监测。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为只护周边。",
-          "loss_reason": "漏基坑及支护结构变形。",
-          "fix": "坑内支护 + 周边环境都测。",
-          "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-2"
-        },
-        {
-          "text": "监测对象为基坑本体及支护结构的变形，周边建筑与管线等环境变形不列入监测范围。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为只看坑内。",
-          "loss_reason": "漏周边环境变形。",
-          "fix": "补周边环境（建筑/管线/道路）变形。",
-          "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-3"
-        },
-        {
-          "text": "监测地下水位一项即可全面反映基坑安全状态，无需再监测各类变形项目。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为水位代表全部。",
-          "loss_reason": "漏变形类监测对象。",
-          "fix": "含支护结构变形 + 周边环境变形。",
-          "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-4"
-        }
-      ],
-      "model_answer": "监测对象含基坑及支护结构变形 + 周边环境变形。",
-      "rule_group": "监测·记录维",
-      "content_sha256": "b3d5e2b36ee786a93fc07124b29e86039d68bb254cdd28b30f7de189b1637c73",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q12",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "b3d5e2b36ee786a93fc07124b29e86039d68bb254cdd28b30f7de189b1637c73",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q13-413ea74743c6",
-      "surface_id": "practice2.html",
-      "stem": "关于基坑监测的实施主体，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "基坑监测工作应由项目监理单位负责组织并具体实施。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把监理当监测主体。",
-          "loss_reason": "监理是审批/见证，非监测实施主体。",
-          "fix": "建设方委托具备资质第三方。",
-          "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-1"
-        },
-        {
-          "text": "基坑监测应由建设单位委托具备相应资质的第三方监测单位实施。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "建设方委托第三方，主体认准。",
-          "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-2"
-        },
-        {
-          "text": "基坑监测宜由施工单位自行组织实施，便于施工与监测的同步安排。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为谁干谁测。",
-          "loss_reason": "主体答反，应第三方。",
-          "fix": "建设方委托第三方实施。",
-          "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-3"
-        },
-        {
-          "text": "基坑监测由施工单位或建设单位中任意一方组织实施均可。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为随便哪方都行。",
-          "loss_reason": "应由建设方委托有资质第三方。",
-          "fix": "建设方委托第三方，不含施工单位自测。",
-          "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-4"
-        }
-      ],
-      "model_answer": "基坑监测应由建设单位委托具备相应资质的第三方监测单位实施。",
-      "rule_group": "监测·主体维",
-      "content_sha256": "380b147af5ca2072513306d098ad0146a320db937e267aa7da910ddaf0050d3a",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q13",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "380b147af5ca2072513306d098ad0146a320db937e267aa7da910ddaf0050d3a",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q14-e7ed1aa660d7",
-      "surface_id": "practice2.html",
-      "stem": "关于基坑监测报警（危险征兆），选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "只有基坑发生整体坍塌等严重事故时才需要报警并上报处理，位移等一般性变形的发展不必作报警处理。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为塌了才报。",
-          "loss_reason": "报警是征兆预警、非事后。",
-          "fix": "位移突增等征兆即报警。",
-          "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-1"
-        },
-        {
-          "text": "发现报警征兆后仍可以继续组织施工，同时加强观测频次并加密监测点位即可应对。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为观测就够。",
-          "loss_reason": "漏停工、分析、应急处置。",
-          "fix": "报警须停工、分析、应急。",
-          "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-2"
-        },
-        {
-          "text": "出现位移突增、流沙管涌隆起、支撑或锚杆断裂拔出、周边建筑开裂下陷、管线泄漏等任一情况即应报警。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "多项征兆任一即报警，列举齐。",
-          "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-3"
-        },
-        {
-          "text": "报警仅以位移监测值突增一项作为判定依据，管涌、断裂等其余各类现象不作为报警判定条件。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "只抓位移。",
-          "loss_reason": "漏管涌/支撑断裂/管线泄漏等。",
-          "fix": "多项征兆任一即报警。",
-          "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-4"
-        }
-      ],
-      "model_answer": "位移突增/流沙管涌隆起/支撑锚杆断裂拔出/周边裂缝下陷/管线泄漏等任一即报警。",
-      "rule_group": "监测·后果维",
-      "content_sha256": "10bf21fa0dac7d1ea76ac93fc98e5180603df8ab2f8569220134e6a8687064ed",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q14",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "10bf21fa0dac7d1ea76ac93fc98e5180603df8ab2f8569220134e6a8687064ed",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q15-81cdc3ffd660",
-      "surface_id": "practice2.html",
-      "stem": "某基坑下有承压水、坑底出现突涌隆起风险。选出防治措施正确、能得分的作答。",
-      "options": [
-        {
-          "text": "承压水突涌应通过加深支护墙的嵌固深度予以解决，与降压措施并无关系。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为加深墙就行。",
-          "loss_reason": "关键在减压/隔渗，非加深墙。",
-          "fix": "水平封底隔渗或钻孔减压。",
-          "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-1"
-        },
-        {
-          "text": "坑底承压水突涌应采取水平封底隔渗或钻孔减压（降压井）等措施，并先验算突涌稳定性。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "封底隔渗/钻孔减压对症，先验算稳定性。",
-          "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-2"
-        },
-        {
-          "text": "加大集水明排的抽水能力并增加水泵数量与总抽水量，即可有效压住坑底承压水的突涌。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为多抽就压住。",
-          "loss_reason": "明排排的是上层水，不减承压水压力。",
-          "fix": "用水平封底隔渗或钻孔减压。",
-          "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-3"
-        },
-        {
-          "text": "采用井点回灌抬高坑外地下水位，即可防止基坑坑底发生承压水突涌。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把回灌当万能。",
-          "loss_reason": "回灌防周边沉降，不防突涌。",
-          "fix": "突涌用封底隔渗/钻孔减压。",
-          "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-4"
-        }
-      ],
-      "model_answer": "采取水平封底隔渗或钻孔减压（降压井），先验算突涌稳定性。",
-      "rule_group": "承压水突涌·条件维",
-      "content_sha256": "c9aaf6e4a50fec1e5bf6a914195b68a8af2d28cea7f101c6bd656fe0289f8f23",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q15",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "c9aaf6e4a50fec1e5bf6a914195b68a8af2d28cea7f101c6bd656fe0289f8f23",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "B02-html-practice2-html-q16-1f8abfd02855",
-      "surface_id": "practice2.html",
-      "stem": "某砂砾层深基坑（降深8m）方案：用轻型井点降水、不设周边保护、监测由施工单位自测。选出诊断与补正确、能得分的作答。",
-      "options": [
-        {
-          "text": "仅监测主体一处不妥，改由建设单位委托第三方实施即可；轻型井点降水与不设周边保护两项安排均无问题。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "只抓监测主体一处。",
-          "loss_reason": "漏降水方法与周边保护两处。",
-          "fix": "降水改管井/喷射 + 补周边保护 + 第三方监测。",
-          "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-1"
-        },
-        {
-          "text": "仅降水方法一处不妥，改为多级轻型井点即可满足降深要求；周边保护与监测主体两项现有安排均无需调整。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "只改降水且改得不够。",
-          "loss_reason": "多级轻型也仅6~10m；漏周边与监测两处。",
-          "fix": "8m 大渗透宜管井/喷射，并补周边 + 第三方监测。",
-          "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-2"
-        },
-        {
-          "text": "该方案总体上基本合理，仅需适当提高监测频次、加密监测点位后即可继续实施，无需再作其他方面的调整。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为小修即可。",
-          "loss_reason": "漏降水方法、周边保护、监测主体三处。",
-          "fix": "三处都要改：降水/周边/监测主体。",
-          "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-3"
-        },
-        {
-          "text": "三处不妥：砂砾大渗透且降深8m，应选降水管井或喷射井点（轻型≤6m 不够）；应补周边截水帷幕或回灌；监测应由建设方委托第三方。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "降水方法、周边保护、监测主体三处失分全揪出。",
-          "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-4"
-        }
-      ],
-      "model_answer": "三处不妥：砂砾大渗透+降深8m 应用降水管井或喷射（轻型≤6m 不够）；应补周边截水/回灌；监测应由建设方委托第三方。",
-      "rule_group": "降水监测·判断纠错",
-      "content_sha256": "f18c0a0cda17093fae443768e894c95e80d8ece1ddd0429e8c7d587daa1c9f1c",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q16",
-      "authoring_sha256": "4475f4bd9cdf41621824844235ab7ea0f4c389b68e9d9a8165cb67d95027e7ca",
-      "decision": {
-        "fact_id": "b02-fact-dewatering-method-selection",
-        "skeleton_id": "b02-skel-降水方案综合诊断",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A422000_033_0055:4",
-        "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "f18c0a0cda17093fae443768e894c95e80d8ece1ddd0429e8c7d587daa1c9f1c",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:45:01+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "综合诊断三处失分,签首要判分眼=降水方法选型(轻型≤6m不够,宜管井/喷射;锚JGJ120地下水控制方法条款)。周边保护/监测主体两处教材支撑(kc:1A413000_083_0156:1、kc:1A413000_081_0152系)未进本题TOP_K候选,按G01/G03单锚先例记录于note,守零编造红线。三件套d1_probe。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "B02",
+ "source_pack_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
+ "source_bundle_sha256": "2e1beeae190a98c34440d4991f45decd68f0d1d0ec087d07d385adb55e80dfb3",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 32,
+ "eligible_count": 12,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "codex-cross-model + textbook arbitration 2026-07-20: 前轮NO-GO两病灶治愈 — W1(q4支护选型依据全库无源)以教材仲裁补采分点 kc:1A422000_032_0053:1(2026教材167-221v3 p32, JGJ 120—2012 支护选型七因素逐字)+卡端q4按JGJ120口径改写; W2(q5真源被TOP_K=3挤出)由 prefill TOP_K=5 召回 kc:1A413000_080_0151:1(rank4/0.3315)。q1/q2 按前轮W3裁决以危大半锚partial签发,note诚实标注。其余8投影沿用前轮逐题忠实裁决(sign_b02.log)。",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "B02-html-practice-html-q1-dc22990f1c95",
+   "surface_id": "practice.html",
+   "stem": "基坑施工前应编制专项施工方案。选出内容列举最完整、能得分的作答。",
+   "options": [
+    {
+     "text": "专项方案以支护结构和土方开挖两部分作为编制内容即可，降水、监测等其他事项由施工过程中另行部署安排，不必纳入方案正文。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得支护、开挖是主体，其余临时定。",
+     "loss_reason": "漏降水、监测、应急等多项采分点。",
+     "fix": "补齐降水、工艺、安全、应急、监测，共七项。",
+     "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-1"
+    },
+    {
+     "text": "方案中写明支护、降水（地下水控制）与土方开挖的做法即可满足编制要求，无需注明危大工程与专家论证的相关要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "三大件齐了就以为够。",
+     "loss_reason": "漏'开挖≥5m 属危大、须专家论证'采分点。",
+     "fix": "补'开挖≥5m 属危大、须专家论证'。",
+     "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-2"
+    },
+    {
+     "text": "专项方案应含支护、降水、土方开挖、工艺流程、安全、应急、监测七项；开挖深度≥5m 的基坑属危大工程，须专家论证。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "七项内容 + 危大≥5m 专家论证一并写全，正是采分点。",
+     "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-3"
+    },
+    {
+     "text": "开挖深度不足 5m 的浅基坑可不编制专项施工方案，按常规工艺组织开挖即可，仅深基坑需在施工前编制专项方案。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为浅坑可免方案。",
+     "loss_reason": "基坑施工前均应编专项方案，违反规范。",
+     "fix": "施工前均应编专项方案，≥5m 另须专家论证。",
+     "option_id": "B02-html-practice-html-q1-dc22990f1c95:option-4"
+    }
+   ],
+   "model_answer": "专项方案含支护、降水（地下水控制）、土方开挖、工艺流程、安全、应急、监测；开挖≥5m 属危大须专家论证。",
+   "rule_group": "专项方案·记录维",
+   "content_sha256": "0d16c81f0eb561bb1371bd3c83d97c05ebde34aad907692eed4522ada719970d",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q1",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "b02-fact-special-plan-content-weida",
+    "skeleton_id": "b02-skel-方案内容七项列举",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2021:第5题",
+    "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "0d16c81f0eb561bb1371bd3c83d97c05ebde34aad907692eed4522ada719970d",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "partial锚(W3裁决):危大≥5m须专家论证半锚忠实(2021真题第5题:开挖6m基坑须论证)。七项内容列举真源kc:1A413000_076_0146:0(0.35)仍在TOP_K=5外,内容半无机器候选可签,诚实标注。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q2-8f70a9b74ad5",
+   "surface_id": "practice.html",
+   "stem": "关于基坑专项施工方案的编制与论证程序，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "专项施工方案由监理单位组织编制、交由施工单位负责执行，深基坑的专家论证由建设单位直接组织开展。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "分不清编制主体。",
+     "loss_reason": "编制主体答反、论证组织错。",
+     "fix": "施工单位编、报监理审批，危大再专家论证。",
+     "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-1"
+    },
+    {
+     "text": "专项施工方案经施工单位编制完成后即可组织实施，危大基坑也无需开展专家论证，以加强技术交底予以弥补。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "想省掉论证环节。",
+     "loss_reason": "漏危大专家论证采分点。",
+     "fix": "≥5m 危大须专家论证方可实施。",
+     "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-2"
+    },
+    {
+     "text": "各类基坑无论开挖深浅，均应先行组织专家论证，再依据论证意见编制专项施工方案并组织实施。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为都要论证且顺序在前。",
+     "loss_reason": "论证限危大(≥5m)、且程序颠倒。",
+     "fix": "先编方案，≥5m 危大才须专家论证。",
+     "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-3"
+    },
+    {
+     "text": "专项施工方案由施工单位编制、报监理审批；开挖深度≥5m 的危大基坑，还须组织专家论证后实施。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "编制主体、审批、危大论证三步齐，程序分清。",
+     "option_id": "B02-html-practice-html-q2-8f70a9b74ad5:option-4"
+    }
+   ],
+   "model_answer": "专项方案由施工单位编制、报监理审批；开挖≥5m 危大基坑须组织专家论证后实施。",
+   "rule_group": "专项方案·程序维",
+   "content_sha256": "64858ba70d064c687ce92193f2b42c70d8a88a7648f83757fc7bcf6a4368d755",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q2",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "b02-fact-special-plan-procedure",
+    "skeleton_id": "b02-skel-方案编制论证程序",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2022:第19题",
+    "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "64858ba70d064c687ce92193f2b42c70d8a88a7648f83757fc7bcf6a4368d755",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "partial锚(W3裁决):危大专家论证半锚忠实(2022真题第19题)。编制主体'施工单位编制报监理审批'编译库无原子采分点,程序半按管理常识+真题语境支撑,诚实标注。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q3-6a140c0a38c3",
+   "surface_id": "practice.html",
+   "stem": "某深基坑安全等级为一级。选出支护结构选型正确、能得分的作答。",
+   "options": [
+    {
+     "text": "安全等级一级的基坑可采用土钉墙支护，其施工便捷、造价较低，适用于各类深基坑工程。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "土钉墙常见就直接套用。",
+     "loss_reason": "土钉墙限二三级，用于一级越界。",
+     "fix": "一级用排桩/地连墙/型钢搅拌墙。",
+     "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-1"
+    },
+    {
+     "text": "支护类型的确定与安全等级并无关联，按工程造价最低的方案选定支护结构即可。",
+     "is_correct": false,
+     "source_error_code": "E01",
+     "temptation": "只顾省造价。",
+     "loss_reason": "忽略安全等级对应的适用条件。",
+     "fix": "按适用条件筛，一级用排桩/地连墙。",
+     "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-2"
+    },
+    {
+     "text": "安全等级一级宜选灌注桩排桩、地下连续墙或型钢水泥土搅拌墙等刚度大的支护结构。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "一级对应排桩/地连墙/型钢搅拌墙，刚度大控制变形。",
+     "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-3"
+    },
+    {
+     "text": "安全等级一级的基坑宜选用水泥土重力式围护墙，依靠墙体自重挡土，受力明确、稳定可靠。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "重力墙听着稳当。",
+     "loss_reason": "重力墙属二三级、且限淤泥质≤7m。",
+     "fix": "一级用排桩/地连墙等；重力墙限二三级。",
+     "option_id": "B02-html-practice-html-q3-6a140c0a38c3:option-4"
+    }
+   ],
+   "model_answer": "一级宜选灌注桩排桩、地下连续墙、型钢水泥土搅拌墙等刚度大的支护。",
+   "rule_group": "支护选型·条件维",
+   "content_sha256": "d9210a0a159f5211ed515e87b1930a838fbfbd69b708a4eb47a420c53d890a64",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q3",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "b02-fact-level1-support-selection",
+    "skeleton_id": "b02-skel-一级支护选型直问",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2022:第30题",
+    "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "d9210a0a159f5211ed515e87b1930a838fbfbd69b708a4eb47a420c53d890a64",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "2022真题第30题原题:一级适用灌注桩排桩/地下连续墙/型钢水泥土搅拌墙,土钉墙不适用。忠实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q4-817b50177da8",
+   "surface_id": "practice.html",
+   "stem": "关于基坑支护选型的依据，选出最完整、能得分的作答。",
+   "options": [
+    {
+     "text": "支护选型按安全等级对号入座即可完成，一级选用排桩、二三级选用土钉墙，其余条件不必逐项核对。",
+     "is_correct": false,
+     "source_error_code": "E01",
+     "temptation": "以为安全等级单因子定死。",
+     "loss_reason": "漏基坑深度/土性水文/周边环境等因素，选型不封闭。",
+     "fix": "应综合基坑深度、土性及地下水、周边环境等因素。",
+     "option_id": "B02-html-practice-html-q4-817b50177da8:option-1"
+    },
+    {
+     "text": "支护选型仅按开挖深度一项确定即可，深基坑一律选用排桩支护、浅基坑一律选用土钉墙，其他条件不必考虑。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为深度单因子决定。",
+     "loss_reason": "漏土性地下水/周边环境/工艺可行性多因子。",
+     "fix": "深度之外还须综合土性水文、周边环境等因素。",
+     "option_id": "B02-html-practice-html-q4-817b50177da8:option-2"
+    },
+    {
+     "text": "支护选型应以造价与工期最省作为唯一比选标准，土层与地下水位情况均不属于选型依据。",
+     "is_correct": false,
+     "source_error_code": "E01",
+     "temptation": "只算经济账。",
+     "loss_reason": "否认土性及地下水这一明确选型因素。",
+     "fix": "经济仅是综合因素之一，土性水文是明确依据。",
+     "option_id": "B02-html-practice-html-q4-817b50177da8:option-3"
+    },
+    {
+     "text": "支护选型应综合考虑基坑深度、土的性状及地下水条件、周边环境的承受能力、施工工艺可行性等因素确定。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "扣住 JGJ 120 综合因素：深度、土性水文、周边环境、工艺可行性。",
+     "option_id": "B02-html-practice-html-q4-817b50177da8:option-4"
+    }
+   ],
+   "model_answer": "选型应综合考虑基坑深度、土的性状及地下水条件、周边环境、施工工艺可行性、场地与工期等因素（JGJ 120）。",
+   "rule_group": "支护选型·条件维",
+   "content_sha256": "bbe969c7c8afedc1484839b7f4b6d31e7321537fd053c780d6845d0733d8a7ff",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q4",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "b02-fact-support-selection-factors",
+    "skeleton_id": "b02-skel-选型依据列举",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A422000_032_0053:1",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "bbe969c7c8afedc1484839b7f4b6d31e7321537fd053c780d6845d0733d8a7ff",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "W1治愈:教材仲裁命中2026教材p32 JGJ 120—2012'支护结构选型时应综合考虑'七因素,补采分点逐字quote;卡端q4已按七因素口径改写(去'安全等级=首轮筛选'合成断言)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q5-e68bd3e889d0",
+   "surface_id": "practice.html",
+   "stem": "某淤泥质土基坑，开挖深度6m，安全等级二级。选出支护可选、能得分的作答。",
+   "options": [
+    {
+     "text": "该基坑应选用地下连续墙进行支护，水泥土重力式围护墙不能用于淤泥质土层。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为软土一定要硬支护。",
+     "loss_reason": "二级淤泥质≤7m 正适重力墙。",
+     "fix": "二级淤泥质≤7m 可选水泥土重力墙。",
+     "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-1"
+    },
+    {
+     "text": "该基坑安全等级二级、淤泥质土、深度≤7m，可选用水泥土重力式围护墙，也可用土钉墙。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "抓住二级 + 淤泥质 + ≤7m，正对应重力墙适用条件。",
+     "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-2"
+    },
+    {
+     "text": "水泥土重力式围护墙适用于开挖深度不超过 10m 的基坑，本基坑深 6m，处于其适用范围之内。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记错了适用深度阈值。",
+     "loss_reason": "重力墙限深度≤7m，写10m 数字错。",
+     "fix": "水泥土重力墙适用深度≤7m。",
+     "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-3"
+    },
+    {
+     "text": "该淤泥质土深基坑宜选用土钉墙支护，按超前支护、逐层施作的原则组织施工即可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "土钉墙直接套用。",
+     "loss_reason": "淤泥质软土不宜土钉墙。",
+     "fix": "淤泥质≤7m 宜水泥土重力墙。",
+     "option_id": "B02-html-practice-html-q5-e68bd3e889d0:option-4"
+    }
+   ],
+   "model_answer": "二级可选水泥土重力式围护墙（适淤泥质土、深度≤7m）或土钉墙等。",
+   "rule_group": "支护选型·条件维",
+   "content_sha256": "cb3fce4b7dab9b306048eeb14d8dd1f32914179a617188f5523fe944e31dd34c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q5",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "b02-fact-gravity-wall-applicability",
+    "skeleton_id": "b02-skel-淤泥质二级场景选型",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_080_0151:1",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "cb3fce4b7dab9b306048eeb14d8dd1f32914179a617188f5523fe944e31dd34c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "W2治愈:TOP_K=5召回真源(rank4/0.3315,前轮top3截断0.336)。水泥土重力式围护墙适用淤泥质土、深度不宜大于7m,与题干6m二级场景对齐。忠实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q6-e84f11189daa",
+   "surface_id": "practice.html",
+   "stem": "关于地下连续墙导墙的构造尺寸，选出数字正确、能得分的作答。",
+   "options": [
+    {
+     "text": "地下连续墙导墙厚度不应小于 100mm，高度不应小于 1.0m。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把数字都记小了。",
+     "loss_reason": "厚、高两个阈值都写错。",
+     "fix": "厚≥200mm、高≥1.2m。",
+     "option_id": "B02-html-practice-html-q6-e84f11189daa:option-1"
+    },
+    {
+     "text": "导墙满足成槽机械的导向功能即可，厚度与高度按施工经验确定。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为无量化定值。",
+     "loss_reason": "漏导墙关键数字采分。",
+     "fix": "须写厚≥200mm、高≥1.2m。",
+     "option_id": "B02-html-practice-html-q6-e84f11189daa:option-2"
+    },
+    {
+     "text": "地下连续墙导墙厚度不应小于 300mm，高度不应小于 0.8m。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "厚记大、高记小。",
+     "loss_reason": "两个数字都不对。",
+     "fix": "厚≥200mm、高≥1.2m。",
+     "option_id": "B02-html-practice-html-q6-e84f11189daa:option-3"
+    },
+    {
+     "text": "地下连续墙导墙厚度不应小于 200mm，高度不应小于 1.2m。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "厚≥200mm、高≥1.2m 两个数字带上就得分。",
+     "option_id": "B02-html-practice-html-q6-e84f11189daa:option-4"
+    }
+   ],
+   "model_answer": "导墙厚≥200mm、高≥1.2m。",
+   "rule_group": "关键数字·记录维",
+   "content_sha256": "a2f8edc255ea0899beb50e610baec208f686a72e0f0a8c3bd17b8446ce719b15",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q6",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "a2f8edc255ea0899beb50e610baec208f686a72e0f0a8c3bd17b8446ce719b15",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q7-dfc27361067f",
+   "surface_id": "practice.html",
+   "stem": "灌注桩排桩施工，选出成桩顺序与间隔要求正确、能得分的作答。",
+   "options": [
+    {
+     "text": "应间隔成桩：已浇桩与相邻桩间距应大于 2 倍桩径，或间隔时间大于 24h。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字记小了。",
+     "loss_reason": "阈值写错（应>4D/>36h）。",
+     "fix": ">4倍桩径 或 >36h。",
+     "option_id": "B02-html-practice-html-q7-dfc27361067f:option-1"
+    },
+    {
+     "text": "应间隔成桩：已浇桩与相邻桩间距应大于 4 倍桩径，或间隔时间大于 36h。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": ">4倍桩径 或 >36h 两个口径写全，防串孔挤土。",
+     "option_id": "B02-html-practice-html-q7-dfc27361067f:option-2"
+    },
+    {
+     "text": "为保证工序衔接宜连续成桩，相邻桩依次紧跟浇筑，以缩短排桩施工的总工期。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "图省时连着打。",
+     "loss_reason": "混凝土未凝即钻邻孔，串孔挤土。",
+     "fix": "应间隔成桩 >4倍桩径 或 >36h。",
+     "option_id": "B02-html-practice-html-q7-dfc27361067f:option-3"
+    },
+    {
+     "text": "相邻桩不同时浇筑即可，对桩间距离与间隔时间不作具体的量化规定。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为无量化要求。",
+     "loss_reason": "漏>4D/>36h 量化条件。",
+     "fix": "须>4倍桩径 或 >36h。",
+     "option_id": "B02-html-practice-html-q7-dfc27361067f:option-4"
+    }
+   ],
+   "model_answer": "间隔成桩：已浇桩与邻桩间距>4倍桩径，或间隔>36h。",
+   "rule_group": "关键数字·程序维",
+   "content_sha256": "7190ff6724aea07e805e585acf5785415fe0e30bdfb47ecf72b3e37eb27a994b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q7",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "7190ff6724aea07e805e585acf5785415fe0e30bdfb47ecf72b3e37eb27a994b",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q8-20d7254f8a33",
+   "surface_id": "practice.html",
+   "stem": "关于土钉墙施工原则，选出列举正确、能得分的作答。",
+   "options": [
+    {
+     "text": "土钉墙应分层开挖、及时喷锚，超前支护与限时封闭不作强制要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓两条丢三条。",
+     "loss_reason": "漏超前支护、限时封闭等原则。",
+     "fix": "五原则齐：超前支护/分层分段/逐层/限时封闭/严禁超挖。",
+     "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-1"
+    },
+    {
+     "text": "土钉墙可一次开挖至设计深度，再自上而下统一施作各层土钉。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "以为可一次挖到底。",
+     "loss_reason": "违反逐层施作、严禁超挖。",
+     "fix": "逐层施作、严禁超挖、限时封闭。",
+     "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-2"
+    },
+    {
+     "text": "土钉墙按放坡开挖对待，控制好边坡坡度即可，无需支护原则。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "混同放坡。",
+     "loss_reason": "土钉墙是支护、有五原则。",
+     "fix": "须超前支护/分层分段/逐层/限时封闭/严禁超挖。",
+     "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-3"
+    },
+    {
+     "text": "土钉墙应超前支护、分层分段、逐层施作、限时封闭、严禁超挖。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "五原则齐全，一条不落。",
+     "option_id": "B02-html-practice-html-q8-20d7254f8a33:option-4"
+    }
+   ],
+   "model_answer": "超前支护、分层分段、逐层施作、限时封闭、严禁超挖。",
+   "rule_group": "土钉墙·程序维",
+   "content_sha256": "f068fb57f216748b2b16592be95f21f8abb47ca928bfa075b4fbef855c9f0919",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q8",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "f068fb57f216748b2b16592be95f21f8abb47ca928bfa075b4fbef855c9f0919",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q9-3c66292fb073",
+   "surface_id": "practice.html",
+   "stem": "关于土钉墙的坡比要求，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "土钉墙坡面坡比不宜大于 1:0.2。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "坡比≤1:0.2 记准这个阈值。",
+     "option_id": "B02-html-practice-html-q9-3c66292fb073:option-1"
+    },
+    {
+     "text": "土钉墙坡面坡比不宜大于 1:1。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记成 1:1。",
+     "loss_reason": "阈值错。",
+     "fix": "坡比不宜大于 1:0.2。",
+     "option_id": "B02-html-practice-html-q9-3c66292fb073:option-2"
+    },
+    {
+     "text": "土钉墙坡面坡比不宜大于 1:0.5。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为越缓越对。",
+     "loss_reason": "坡比阈值写错（应1:0.2）。",
+     "fix": "坡比不宜大于 1:0.2。",
+     "option_id": "B02-html-practice-html-q9-3c66292fb073:option-3"
+    },
+    {
+     "text": "土钉墙坡比按土质条件确定，无统一限值。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为无定值。",
+     "loss_reason": "漏 1:0.2 采分。",
+     "fix": "坡比不宜大于 1:0.2。",
+     "option_id": "B02-html-practice-html-q9-3c66292fb073:option-4"
+    }
+   ],
+   "model_answer": "土钉墙坡比不宜大于 1:0.2。",
+   "rule_group": "土钉墙·记录维",
+   "content_sha256": "2a17ed3c3746e8ddc8c320b7833edeb559316ff633b80e6a4ef49b3f69e6bbd4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q9",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "2a17ed3c3746e8ddc8c320b7833edeb559316ff633b80e6a4ef49b3f69e6bbd4",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q10-7c80cf85535d",
+   "surface_id": "practice.html",
+   "stem": "某土钉墙基坑：一次开挖到坑底后，再自上而下施作土钉。选出诊断与改正正确、能得分的作答。",
+   "options": [
+    {
+     "text": "不妥：违反分层分段、逐层施作、限时封闭、严禁超挖；应分层开挖、随挖随做土钉并限时封闭。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点出主错(超挖到底)+给出逐层施作的正确做法。",
+     "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-1"
+    },
+    {
+     "text": "不妥之处仅在于土钉施作后未及时喷浆封闭，开挖顺序本身符合要求，无需再作调整。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只抓喷浆一点。",
+     "loss_reason": "漏'一次超挖到底'这个主错。",
+     "fix": "主错是超挖到底，应分层逐层施作。",
+     "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-2"
+    },
+    {
+     "text": "该做法基本可行：只要土钉施作及时、喷锚封闭跟进到位，一次开挖至坑底并不影响基坑的安全。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "以为快就行。",
+     "loss_reason": "一次挖到底临空面塌落，违反逐层。",
+     "fix": "须分层开挖、逐层施作、严禁超挖。",
+     "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-3"
+    },
+    {
+     "text": "应改正为：先在原地面上施作完成全部土钉，再统一开挖至坑底设计标高。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把顺序反着改。",
+     "loss_reason": "土钉须随挖随做，不能先做后挖。",
+     "fix": "分层开挖、逐层施作、限时封闭。",
+     "option_id": "B02-html-practice-html-q10-7c80cf85535d:option-4"
+    }
+   ],
+   "model_answer": "不妥：违反分层分段、逐层施作、限时封闭、严禁超挖；应分层开挖、逐层施作土钉并限时封闭。",
+   "rule_group": "土钉墙·判断纠错",
+   "content_sha256": "07cc30a7c952d35ba3aa83867dd9aaa5a75d9fe1be13c4815b46949460460d38",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q10",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "07cc30a7c952d35ba3aa83867dd9aaa5a75d9fe1be13c4815b46949460460d38",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q11-8db0dc34f9cc",
+   "surface_id": "practice.html",
+   "stem": "关于锚杆布置间距，选出数字正确、能得分的作答。",
+   "options": [
+    {
+     "text": "锚杆垂直间距不应小于 1.5m，水平间距不应小于 1.0m。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字都记小了。",
+     "loss_reason": "垂直、水平阈值都写错。",
+     "fix": "垂直≥2.0m、水平≥1.5m。",
+     "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-1"
+    },
+    {
+     "text": "锚杆间距按支护受力情况布置，无统一的下限要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为无定值。",
+     "loss_reason": "漏间距采分。",
+     "fix": "垂直≥2.0m、水平≥1.5m。",
+     "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-2"
+    },
+    {
+     "text": "锚杆垂直间距不应小于 2.0m，水平间距不应小于 1.5m。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "垂直≥2.0m、水平≥1.5m 两个数分清。",
+     "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-3"
+    },
+    {
+     "text": "锚杆水平间距不应小于 2.0m，垂直间距不应小于 1.5m。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "垂直、水平记反了。",
+     "loss_reason": "两个数颠倒。",
+     "fix": "垂直≥2.0m、水平≥1.5m。",
+     "option_id": "B02-html-practice-html-q11-8db0dc34f9cc:option-4"
+    }
+   ],
+   "model_answer": "锚杆垂直间距≥2.0m、水平间距≥1.5m。",
+   "rule_group": "锚杆·记录维",
+   "content_sha256": "233c1ffce9cbbb8891ac39c5cfef8af9139b4f39d424ca352c2aad7a53eec0ee",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q11",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "233c1ffce9cbbb8891ac39c5cfef8af9139b4f39d424ca352c2aad7a53eec0ee",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q12-4cc15aac4d79",
+   "surface_id": "practice.html",
+   "stem": "关于锚杆张拉的强度条件，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "锚固段注浆体强度达到 15MPa 且达到设计强度的 75% 后方可张拉，张拉至设计值的 1.05~1.10 倍。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "15MPa + 75% 两个门槛 + 张拉倍数一并写全。",
+     "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-1"
+    },
+    {
+     "text": "锚固段注浆体强度达到 10MPa 或达到设计强度的 50% 后即可张拉，张拉至设计值的 1.05~1.10 倍。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字记小了。",
+     "loss_reason": "阈值写错（应15MPa/75%）。",
+     "fix": "≥15MPa 且达75%。",
+     "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-2"
+    },
+    {
+     "text": "锚杆安装并注浆完成后即可进行张拉受力，无需等待注浆体强度形成，以便支护结构尽早发挥作用。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为装完即可拉。",
+     "loss_reason": "未达强度张拉致锚固段拔出。",
+     "fix": "须≥15MPa 且达75% 方可张拉。",
+     "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-3"
+    },
+    {
+     "text": "基坑侧壁土方开挖至锚杆设计标高后即可实施张拉锁定，张拉时机与注浆体强度并无直接关系。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "混淆张拉条件。",
+     "loss_reason": "张拉条件是强度而非开挖到位。",
+     "fix": "须锚固段≥15MPa 且达75%。",
+     "option_id": "B02-html-practice-html-q12-4cc15aac4d79:option-4"
+    }
+   ],
+   "model_answer": "锚固段强度≥15MPa 且达设计强度75% 方可张拉，张拉至设计值1.05~1.10倍。",
+   "rule_group": "锚杆·条件维",
+   "content_sha256": "39020c912b234f82fbf29a9be893f2cee22f4c3d4a22519eec4a14cbafafedc1",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q12",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "39020c912b234f82fbf29a9be893f2cee22f4c3d4a22519eec4a14cbafafedc1",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q13-bf05f5918c6d",
+   "surface_id": "practice.html",
+   "stem": "某邻近既有建筑的一级深基坑，要求控制变形、避免挤土。选出支护选型较合理、能得分的作答。",
+   "options": [
+    {
+     "text": "邻近建筑的基坑宜选用沉管灌注桩快速成桩，以缩短支护施工工期、减少基坑暴露时间。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "只图工期快。",
+     "loss_reason": "挤土桩加剧周边变形。",
+     "fix": "用低挤土排桩/地连墙、间隔成桩。",
+     "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-1"
+    },
+    {
+     "text": "邻近建筑的一级深基坑宜选灌注桩排桩或地下连续墙，刚度大、变形小，并间隔成桩以避免挤土。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "扣住'一级+邻建'选低扰动刚性支护+间隔成桩。",
+     "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-2"
+    },
+    {
+     "text": "邻近建筑的深基坑宜选用土钉墙支护，随开挖逐层喷锚施作，施工扰动小，对周边建筑影响轻微。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为土钉墙扰动小。",
+     "loss_reason": "一级 + 敏感区不宜土钉墙。",
+     "fix": "敏感区一级用排桩/地连墙。",
+     "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-3"
+    },
+    {
+     "text": "支护选型与是否邻近既有建筑无关，仍按工程造价最低的支护方案进行确定即可。",
+     "is_correct": false,
+     "source_error_code": "E01",
+     "temptation": "忽略周边环境。",
+     "loss_reason": "漏周边环境这一选型依据。",
+     "fix": "周边敏感应选低扰动排桩/地连墙。",
+     "option_id": "B02-html-practice-html-q13-bf05f5918c6d:option-4"
+    }
+   ],
+   "model_answer": "邻建敏感区宜选刚度大、挤土小的排桩/地连墙，并间隔成桩防挤土。",
+   "rule_group": "支护选型·周边环境",
+   "content_sha256": "842806696ad3863dfb86103c18745dbd5d8718807f43c4a3dcc33b50f70dbf8b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q13",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "842806696ad3863dfb86103c18745dbd5d8718807f43c4a3dcc33b50f70dbf8b",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q14-bc87900bb016",
+   "surface_id": "practice.html",
+   "stem": "某基坑开挖深度 6m，专项方案仅含支护、土方开挖两部分，且未组织论证即施工。选出诊断与补正确、能得分的作答。",
+   "options": [
+    {
+     "text": "不妥：方案漏降水、工艺、安全、应急、监测多项；且 6m≥5m 属危大，须专家论证后方可施工。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "内容缺项 + 危大漏论证两处失分都揪出。",
+     "option_id": "B02-html-practice-html-q14-bc87900bb016:option-1"
+    },
+    {
+     "text": "该方案的编制内容已经齐全，仅专家论证程序存在遗漏，补充组织专家论证后即可按原方案继续施工。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只抓论证一处。",
+     "loss_reason": "漏'内容缺项'这处失分。",
+     "fix": "内容补五项 + 危大论证两处都要。",
+     "option_id": "B02-html-practice-html-q14-bc87900bb016:option-2"
+    },
+    {
+     "text": "开挖深度 6m 的基坑不属于危大工程，无需组织专家论证，补齐方案内容后即可开工。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "误判危大门槛。",
+     "loss_reason": "6m≥5m 属危大，须论证。",
+     "fix": "≥5m 属危大须专家论证。",
+     "option_id": "B02-html-practice-html-q14-bc87900bb016:option-3"
+    },
+    {
+     "text": "方案仅缺少监测一项内容，补充监测安排后其余部分均无问题，可以继续组织施工。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为只缺监测。",
+     "loss_reason": "漏降水/应急等多项及论证。",
+     "fix": "补齐七项 + 专家论证。",
+     "option_id": "B02-html-practice-html-q14-bc87900bb016:option-4"
+    }
+   ],
+   "model_answer": "不妥：漏降水/工艺/安全/应急/监测多项；6m≥5m 属危大，须专家论证后方可施工。",
+   "rule_group": "专项方案·判断纠错",
+   "content_sha256": "1ba96da2a8f577635bbfaea4cd97842be8ad7f98511fb1c4e59c57b0636e22c6",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q14",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "1ba96da2a8f577635bbfaea4cd97842be8ad7f98511fb1c4e59c57b0636e22c6",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q15-7f2712dc99aa",
+   "surface_id": "practice.html",
+   "stem": "关于支护构件受力前的强度要求，选出表述正确、能得分的作答。",
+   "options": [
+    {
+     "text": "内支撑与锚杆施工完成后即可开挖下一层土方，不必等待混凝土及注浆体强度形成，以保证连续作业。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "图快抢下挖。",
+     "loss_reason": "未达强度下挖易失稳/拔出。",
+     "fix": "达强度后再张拉/下挖。",
+     "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-1"
+    },
+    {
+     "text": "锚固段强度≥15MPa 且达设计强度 75% 方可张拉；混凝土内支撑达到规定强度后方可进行下层土方开挖。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "锚杆张拉、支撑下挖都要等强度形成。",
+     "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-2"
+    },
+    {
+     "text": "锚固段注浆体强度达到 5MPa 即可实施张拉；混凝土内支撑浇筑完成之后随即进行下一层土方开挖作业。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字过小。",
+     "loss_reason": "阈值错（应15MPa/75%）。",
+     "fix": "≥15MPa 且达75% 方张拉。",
+     "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-3"
+    },
+    {
+     "text": "支护构件的强度与土方开挖顺序无关，按既定流水段组织推进即可，不必另行设置强度条件。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "忽略强度条件。",
+     "loss_reason": "漏强度形成这一前提。",
+     "fix": "须达强度方受力/下挖。",
+     "option_id": "B02-html-practice-html-q15-7f2712dc99aa:option-4"
+    }
+   ],
+   "model_answer": "锚固段≥15MPa 且75% 方张拉；混凝土内支撑达规定强度后方可下层开挖。",
+   "rule_group": "强度顺序·概念维",
+   "content_sha256": "65c77833fcd9fc3870ad1a1c5611d5f0438572c5177c4a1437a44cf778e7afec",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q15",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "65c77833fcd9fc3870ad1a1c5611d5f0438572c5177c4a1437a44cf778e7afec",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice-html-q16-9c57ccba6119",
+   "surface_id": "practice.html",
+   "stem": "关于浅基坑支护选型，选出与适用条件匹配、能得分的作答。",
+   "options": [
+    {
+     "text": "各类浅基坑均可采用放坡开挖处理，不必设置任何形式的支护结构，以简化施工组织安排。",
+     "is_correct": false,
+     "source_error_code": "E01",
+     "temptation": "以为浅坑都能免支护。",
+     "loss_reason": "有条件限制，非一律放坡。",
+     "fix": "按水位/土质/周边选型钢桩横挡板等。",
+     "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-1"
+    },
+    {
+     "text": "低地下水位的黏性土浅基坑应优先设置截水帷幕，由帷幕承担基坑的挡土功能。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "混淆帷幕功能。",
+     "loss_reason": "帷幕是截水、不是挡土支护。",
+     "fix": "低水位黏性土用型钢桩加横挡板。",
+     "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-2"
+    },
+    {
+     "text": "浅基坑可按条件选型：低地下水位黏性土可用型钢桩加横挡板，邻近建筑时可用挡土灌注桩支护。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "按水位/土质/周边匹配轻型支护，条件对号。",
+     "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-3"
+    },
+    {
+     "text": "浅基坑与深基坑的支护选型原则完全相同，均应选用灌注桩排桩或地下连续墙等刚性支护结构。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "套用深坑方案。",
+     "loss_reason": "浅坑有专门的轻型支护。",
+     "fix": "浅坑用斜撑/锚拉/型钢桩横挡板等。",
+     "option_id": "B02-html-practice-html-q16-9c57ccba6119:option-4"
+    }
+   ],
+   "model_answer": "浅基坑按条件选型：低水位黏性土可用型钢桩加横挡板，邻建可用挡土灌注桩。",
+   "rule_group": "浅基坑选型·条件维",
+   "content_sha256": "e7a3aadafdb729596105fa31f48f16bc86711c1f6f699e7d9798f8d3ffbee89e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.up.dc.html#Q16",
+   "authoring_sha256": "12d75a97e202b133da40a7c93d44d500135d334852b4edad90a01cfdc1142597",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "e7a3aadafdb729596105fa31f48f16bc86711c1f6f699e7d9798f8d3ffbee89e",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q1-a16beb8512f0",
+   "surface_id": "practice2.html",
+   "stem": "某基坑为砂砾层、渗透系数较大。选出降水方法正确、能得分的作答。",
+   "options": [
+    {
+     "text": "渗透系数较大的砂砾层宜采用轻型井点，依靠真空负压抽吸，降水速度较快。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为井点万能、越急越用轻型。",
+     "loss_reason": "轻型用于中等渗透，大渗透应用管井。",
+     "fix": "渗透系数大 → 降水管井。",
+     "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-1"
+    },
+    {
+     "text": "渗透系数较大的地层采用集水明排即可满足降水要求，不必设置井点系统。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为明排通用。",
+     "loss_reason": "明排限≤3m少量水，大渗透深坑不适。",
+     "fix": "渗透大深坑 → 降水管井。",
+     "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-2"
+    },
+    {
+     "text": "渗透系数较大的砂砾层宜采用降水管井（管井井点），靠重力排水，降水效率高。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "渗透大对应管井，重力排水，扣住渗透系数这一判据。",
+     "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-3"
+    },
+    {
+     "text": "渗透系数较大的砂砾层宜采用喷射井点降水，利用高速射流抽吸适应大渗透量地层。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "看喷射能抽就套用。",
+     "loss_reason": "喷射解决的是深降深，不是大渗透。",
+     "fix": "渗透大 → 管井；喷射解决深降深。",
+     "option_id": "B02-html-practice2-html-q1-a16beb8512f0:option-4"
+    }
+   ],
+   "model_answer": "渗透系数大 → 降水管井（管井井点），靠重力排水。",
+   "rule_group": "降水选型·条件维",
+   "content_sha256": "ca22e33eab8696c8ccba5708234c8bc360f82c159926d3ac8868c98b8d15a47d",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q1",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-dewatering-method-selection",
+    "skeleton_id": "b02-skel-砂砾大渗透选管井",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2019:第7题",
+    "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "ca22e33eab8696c8ccba5708234c8bc360f82c159926d3ac8868c98b8d15a47d",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "2019真题第7题解析:降水管井适用渗透系数较大砂砾层。忠实。三件套fact成员(anchor)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q2-5601a7b54fc9",
+   "surface_id": "practice2.html",
+   "stem": "某基坑为填土层（渗透系数小）。关于降水方法，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "填土层的渗透系数较大，正适合采用降水管井以重力排水方式进行降水。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把填土误当大渗透。",
+     "loss_reason": "填土渗透系数小，判据用反。",
+     "fix": "填土渗透小 → 不宜管井。",
+     "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-1"
+    },
+    {
+     "text": "填土（渗透系数小）不宜采用降水管井，宜选用轻型井点、喷射井点或电渗井点等。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "小渗透不宜管井，给出轻型/喷射/电渗备选。",
+     "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-2"
+    },
+    {
+     "text": "填土层同样可以采用降水管井进行降水，管井适用于各类土层，具有较强的通用性。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为管井通用。",
+     "loss_reason": "填土/黏土渗透小不宜管井。",
+     "fix": "小渗透不宜管井，用轻型/喷射/电渗。",
+     "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-3"
+    },
+    {
+     "text": "填土层基坑采用集水明排即可满足降水要求，无需设置井点降水系统。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为填土好排。",
+     "loss_reason": "深坑填土仍需井点，明排限≤3m。",
+     "fix": "按降深选轻型/喷射，非一律明排。",
+     "option_id": "B02-html-practice2-html-q2-5601a7b54fc9:option-4"
+    }
+   ],
+   "model_answer": "填土/黏土渗透系数小，不宜用降水管井，宜轻型/喷射/电渗井点。",
+   "rule_group": "降水选型·条件维",
+   "content_sha256": "b1bcfbf6e7ec76c5b62aee58325708e788218c6c8a17be9cd5ba2b86ee8ffacd",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q2",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-dewatering-method-selection",
+    "skeleton_id": "b02-skel-填土渗透小不宜管井",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2019:第7题",
+    "source_sha256": "09cb0f0c92fe2e0bdf34321bbf9a8c84c50fa3b288b82b88247693387b4d19d7",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b1bcfbf6e7ec76c5b62aee58325708e788218c6c8a17be9cd5ba2b86ee8ffacd",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "2019真题第7题原题:不宜用于填土的降水方法=降水管井,宜轻型/喷射/电渗。忠实。同fact异skeleton。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q3-1cd313937993",
+   "surface_id": "practice2.html",
+   "stem": "某基坑需降水深度约 15m。选出降水方法正确、能得分的作答。",
+   "options": [
+    {
+     "text": "降水深度不影响井点类型的选择，任选一种井点均可满足要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "忽略降深这个因子。",
+     "loss_reason": "降深是选型关键。",
+     "fix": "≤6m 轻型、8~20m 喷射。",
+     "option_id": "B02-html-practice2-html-q3-1cd313937993:option-1"
+    },
+    {
+     "text": "降水深度约 15m，宜采用喷射井点（适用降深 8~20m）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "扣住降深区间 8~20m 选喷射。",
+     "option_id": "B02-html-practice2-html-q3-1cd313937993:option-2"
+    },
+    {
+     "text": "降水深度约 15m，可采用轻型井点降水，其降深能力足以达到 15m。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为轻型能到 15m。",
+     "loss_reason": "轻型降深≤6m，多级也仅 6~10m。",
+     "fix": "15m 用喷射井点(8~20m)。",
+     "option_id": "B02-html-practice2-html-q3-1cd313937993:option-3"
+    },
+    {
+     "text": "降水深度约 15m，可采用集水明排并配备大功率水泵抽降。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为泵大就能深降。",
+     "loss_reason": "明排不是深降水方法。",
+     "fix": "深降水用喷射井点。",
+     "option_id": "B02-html-practice2-html-q3-1cd313937993:option-4"
+    }
+   ],
+   "model_answer": "降深8~20m → 喷射井点。",
+   "rule_group": "降水选型·记录维",
+   "content_sha256": "eacb4fbbbf752e3b893cb35cf6330b21971fc970e271d760f4cffed23d5dde9b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q3",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-jetwell-depth-range",
+    "skeleton_id": "b02-skel-降深15m选喷射",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_082_0155:1",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "eacb4fbbbf752e3b893cb35cf6330b21971fc970e271d760f4cffed23d5dde9b",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "喷射井点降水深度8~20m,15m落界内。忠实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q4-31ac34948254",
+   "surface_id": "practice2.html",
+   "stem": "关于轻型井点的降水深度，选出数字正确、能得分的作答。",
+   "options": [
+    {
+     "text": "单级轻型井点的降水深度即可达到 8~20m，可满足深基坑的降水作业需要。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把喷射的区间记到轻型上。",
+     "loss_reason": "8~20m 是喷射井点，轻型≤6m。",
+     "fix": "轻型单级≤6m，8~20m 用喷射。",
+     "option_id": "B02-html-practice2-html-q4-31ac34948254:option-1"
+    },
+    {
+     "text": "按规定，单级轻型井点的降水深度不宜超过 3m，选型时应据此控制。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字记小了。",
+     "loss_reason": "轻型单级可到 6m。",
+     "fix": "单级≤6m、多级6~10m。",
+     "option_id": "B02-html-practice2-html-q4-31ac34948254:option-2"
+    },
+    {
+     "text": "轻型井点的降水深度不受限制，加长井管与管路即可继续加深降水。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为可无限加深。",
+     "loss_reason": "受真空度限制，单级≤6m。",
+     "fix": "单级≤6m、多级6~10m。",
+     "option_id": "B02-html-practice2-html-q4-31ac34948254:option-3"
+    },
+    {
+     "text": "单级轻型井点降水深度不宜超过 6m，多级轻型井点可达 6~10m。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "单级≤6m、多级6~10m 两个数带上。",
+     "option_id": "B02-html-practice2-html-q4-31ac34948254:option-4"
+    }
+   ],
+   "model_answer": "单级轻型井点降深≤6m，多级可达 6~10m。",
+   "rule_group": "降水选型·记录维",
+   "content_sha256": "9aca22db90fbef2a8284c5216e3c0144f7a25f31ac52144bc9e7b1bee9b71cab",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q4",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-lightwell-depth-limit",
+    "skeleton_id": "b02-skel-轻型井点降深数字",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_082_0155:0",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "9aca22db90fbef2a8284c5216e3c0144f7a25f31ac52144bc9e7b1bee9b71cab",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "轻型井点降水深度≤6m、多级6~10m。忠实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q5-2e0179d5fbe9",
+   "surface_id": "practice2.html",
+   "stem": "关于基坑降水的水位控制，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "降水应使地下水位降至坑底以下 500mm 以上，并持续降水至基础施工完成。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "坑底以下≥500mm + 持续至基础完工两句齐。",
+     "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-1"
+    },
+    {
+     "text": "降水应使地下水位降至坑底以下 200mm 以上，即可满足基础施工的干作业要求。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字记小了。",
+     "loss_reason": "应≥500mm，200mm 不够。",
+     "fix": "坑底以下 ≥500mm。",
+     "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-2"
+    },
+    {
+     "text": "降水使地下水位降至与坑底标高齐平即可，不必再继续向下超降水位。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为到坑底就够。",
+     "loss_reason": "须降至坑底以下 500mm。",
+     "fix": "坑底以下 ≥500mm。",
+     "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-3"
+    },
+    {
+     "text": "降水以基坑内不出现明水作为控制标准，无需设定具体的控制标高。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为无量化标高。",
+     "loss_reason": "漏'坑底以下500mm'采分。",
+     "fix": "须降至坑底以下 500mm 以上。",
+     "option_id": "B02-html-practice2-html-q5-2e0179d5fbe9:option-4"
+    }
+   ],
+   "model_answer": "水位降至坑底以下 500mm 以上，持续降水至基础完工。",
+   "rule_group": "降水控制·记录维",
+   "content_sha256": "eee8392b9885743ed1137f41e6eece04c8b040a813b4f60ed5f59026c73454cf",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q5",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-water-level-500mm",
+    "skeleton_id": "b02-skel-水位控制标高",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_084_0157:2",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "eee8392b9885743ed1137f41e6eece04c8b040a813b4f60ed5f59026c73454cf",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "水位降至坑底以下500mm以上且持续至基础施工完成。忠实(0.6051全包最高分)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q6-2b560a059d74",
+   "surface_id": "practice2.html",
+   "stem": "关于集水明排的适用条件，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "集水明排适用于开挖深度浅（≤3m）、渗水量不大的情况，用排水沟、集水井排出。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点明≤3m 少量渗水的适用边界。",
+     "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-1"
+    },
+    {
+     "text": "软土基坑凡出现渗水情况均可采用集水明排方式处理，选型时不受开挖深度条件的限制。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为明排万能。",
+     "loss_reason": "深>3m 或渗水大不宜明排。",
+     "fix": "明排限≤3m少量水，深用井点。",
+     "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-2"
+    },
+    {
+     "text": "设置集水明排系统能够有效防止坑底承压水突涌，保证坑底土体稳定。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为排水就防突涌。",
+     "loss_reason": "明排不防承压水突涌。",
+     "fix": "突涌用水平封底/钻孔减压。",
+     "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-3"
+    },
+    {
+     "text": "集水明排同样适用于渗透系数较大的砂砾层深基坑，可作为主要降水方法。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为砂砾好排就明排。",
+     "loss_reason": "深坑大渗透应用管井。",
+     "fix": "明排限浅坑少量水。",
+     "option_id": "B02-html-practice2-html-q6-2b560a059d74:option-4"
+    }
+   ],
+   "model_answer": "集水明排适用于开挖深度浅（≤3m）、渗水量不大的情况。",
+   "rule_group": "降水选型·条件维",
+   "content_sha256": "8fb4fc7f5b0ef8b61fcb10026840e96255906ae54d5bc62b0dbf204a7eb9fc8b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q6",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-dewatering-method-selection",
+    "skeleton_id": "b02-skel-明排适用边界",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A413000_082_0154:0",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "8fb4fc7f5b0ef8b61fcb10026840e96255906ae54d5bc62b0dbf204a7eb9fc8b",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "降水方案选择三原则:深度≤3m且软土→集水明排,>3m→井点。q6明排边界=同一选型事实的边界侧。忠实。三件套immediate_confirm。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q7-99a0c905bb9d",
+   "surface_id": "practice2.html",
+   "stem": "某基坑降水可能引起周边建筑沉降。选出保护措施正确、能得分的作答。",
+   "options": [
+    {
+     "text": "应加大降水井功率、提高抽水强度以加快降水进程，缩短降水对周边环境的影响时间，从而减轻沉降影响。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "以为快降就少影响。",
+     "loss_reason": "加大降水反而加深漏斗、加剧沉降；漏截水/回灌。",
+     "fix": "用截水帷幕或回灌保周边。",
+     "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-1"
+    },
+    {
+     "text": "周边建筑的沉降问题应通过对既有建筑基础进行加固补强予以解决，与本基坑的降水措施没有直接关系。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把问题推给建筑加固。",
+     "loss_reason": "源头在降水，应从降水措施防治。",
+     "fix": "截水帷幕/回灌控制水位。",
+     "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-2"
+    },
+    {
+     "text": "周边有沉降风险时，设置截水帷幕（渗透系数宜<1×10⁻³cm/s）即可有效控制周边沉降，无需再采取井点回灌等其他措施。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数量级记错。",
+     "loss_reason": "帷幕渗透系数宜<1×10⁻⁶，非10⁻³。",
+     "fix": "帷幕渗透系数宜<1×10⁻⁶cm/s。",
+     "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-3"
+    },
+    {
+     "text": "周边有沉降风险时，应采取截水帷幕（渗透系数宜<1×10⁻⁶cm/s）或井点回灌，维持原水位平衡、防止周边沉降。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "截水/回灌 + 维持原水位平衡，措施到位。",
+     "option_id": "B02-html-practice2-html-q7-99a0c905bb9d:option-4"
+    }
+   ],
+   "model_answer": "截水帷幕（渗透系数宜<1×10⁻⁶）或井点回灌，维持原水位平衡防沉降。",
+   "rule_group": "周边保护·条件维",
+   "content_sha256": "e286da8aea0b881f0a03bbff6bdc71f1060aa624469083cb73a49f0bca1f1adc",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q7",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "e286da8aea0b881f0a03bbff6bdc71f1060aa624469083cb73a49f0bca1f1adc",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q8-b0227e691a31",
+   "surface_id": "practice2.html",
+   "stem": "关于井点回灌的作用，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "井点回灌通过在坑外注水维持原地下水位、平衡有效应力，防止降水引起的周边地面沉降。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "维持原水位 + 防周边沉降，因果说清。",
+     "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-1"
+    },
+    {
+     "text": "井点回灌即把降水抽出的地下水就近排入河道等水体，属于排水环节，与周边地面沉降并无关联。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "把回灌当排水。",
+     "loss_reason": "漏'维持水位防沉降'关键。",
+     "fix": "回灌维持原水位、防周边沉降。",
+     "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-2"
+    },
+    {
+     "text": "井点回灌的作用是向基坑内部补充水量，以方便坑内各项作业的正常开展。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把回灌方向搞反。",
+     "loss_reason": "回灌注在坑外，不是坑内。",
+     "fix": "坑外回灌维持原水位防沉降。",
+     "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-3"
+    },
+    {
+     "text": "设置井点回灌的主要作用，在于防止基坑坑底的承压水发生突涌事故。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "和突涌防治混了。",
+     "loss_reason": "回灌不防突涌。",
+     "fix": "回灌防周边沉降；突涌另用封底减压。",
+     "option_id": "B02-html-practice2-html-q8-b0227e691a31:option-4"
+    }
+   ],
+   "model_answer": "回灌以等量注水维持坑外原水位、平衡有效应力，防止周边地面沉降。",
+   "rule_group": "周边保护·后果维",
+   "content_sha256": "c3501d6f28178b462ac515bfa35e11fb5be9cc4790023732d516c7f750698795",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q8",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "c3501d6f28178b462ac515bfa35e11fb5be9cc4790023732d516c7f750698795",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q9-b9aa1233f06a",
+   "surface_id": "practice2.html",
+   "stem": "关于深基坑土方开挖，选出分层要求正确、能得分的作答。",
+   "options": [
+    {
+     "text": "为提高出土效率可先开挖至坑底标高，再自上而下统一架设各道内支撑体系。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "图效率先挖后撑。",
+     "loss_reason": "违反先撑后挖、易失稳。",
+     "fix": "先撑后挖、分层开挖。",
+     "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-1"
+    },
+    {
+     "text": "深基坑组织分层开挖即可，对每层开挖厚度以及是否超挖均不设硬性限制。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为无量化限制。",
+     "loss_reason": "漏≤3m 与严禁超挖。",
+     "fix": "每层≤3m、严禁超挖。",
+     "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-2"
+    },
+    {
+     "text": "深基坑应分层开挖，每层厚度不宜大于 3m，先撑后挖、严禁超挖，坑底预留土层人工挖除。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "每层≤3m + 先撑后挖 + 预留土人工清写全。",
+     "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-3"
+    },
+    {
+     "text": "深基坑应分层开挖，每层厚度不宜大于 5m，先撑后挖、严禁超挖，坑底预留土层人工挖除。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字记大了。",
+     "loss_reason": "每层应≤3m。",
+     "fix": "分层每层≤3m。",
+     "option_id": "B02-html-practice2-html-q9-b9aa1233f06a:option-4"
+    }
+   ],
+   "model_answer": "分层开挖每层≤3m，先撑后挖、严禁超挖，预留土层人工挖除。",
+   "rule_group": "分层开挖·记录维",
+   "content_sha256": "91a58528a47936bddda325749a3210bd761cbb8e2d284993aacca519236b94d7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q9",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "91a58528a47936bddda325749a3210bd761cbb8e2d284993aacca519236b94d7",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q10-7ab07a002b5d",
+   "surface_id": "practice2.html",
+   "stem": "关于基坑开挖与支护、降水设施的关系，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "土方开挖应以出土效率优先安排，个别井管碰损后可以事后修补，不影响整体降水效果。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为设施可事后补。",
+     "loss_reason": "损坏降水设施致降水失效。",
+     "fix": "开挖不得损坏支护降水设施。",
+     "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-1"
+    },
+    {
+     "text": "开挖过程中保护好支护墙体即可，降水井管等设施不列入保护对象范围。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只顾支护墙。",
+     "loss_reason": "漏保护降水设施。",
+     "fix": "支护与降水设施都不得损坏。",
+     "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-2"
+    },
+    {
+     "text": "土方开挖应与支护、降水工况匹配，不得损坏支护结构与降水设施（如井管、支撑）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "工况匹配 + 不损坏设施，采分到位。",
+     "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-3"
+    },
+    {
+     "text": "降水设施与土方开挖两项工作互不相干，可先行拆除降水井后再组织土方开挖。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为降水先撤。",
+     "loss_reason": "降水须持续至基础完工。",
+     "fix": "开挖期间保护降水设施、持续降水。",
+     "option_id": "B02-html-practice2-html-q10-7ab07a002b5d:option-4"
+    }
+   ],
+   "model_answer": "开挖不得损坏支护结构与降水设施，开挖与支护降水工况匹配。",
+   "rule_group": "分层开挖·后果维",
+   "content_sha256": "b2b0095ad825a43547809216c16967d79f6b3e8203a63d398cc53825999e7a3c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q10",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "b2b0095ad825a43547809216c16967d79f6b3e8203a63d398cc53825999e7a3c",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q11-4028304deb9d",
+   "surface_id": "practice2.html",
+   "stem": "关于基坑必须监测的条件，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "仅开挖深度≥5m 的深基坑需要进行变形监测，各类浅基坑无论等级与地质情况均不必监测。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为只看深度。",
+     "loss_reason": "一二级或地质复杂的浅坑也须监测。",
+     "fix": "三条件任一即测。",
+     "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-1"
+    },
+    {
+     "text": "只有安全等级一级的基坑才需要开展监测，二级及以下等级的基坑均不必进行。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "把门槛抬到一级。",
+     "loss_reason": "一、二级均须监测。",
+     "fix": "一二级 OR ≥5m OR 地质复杂。",
+     "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-2"
+    },
+    {
+     "text": "是否开展基坑监测，可由施工单位根据现场具体情况与施工经验自行决定。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为可自行决定。",
+     "loss_reason": "触发条件是强制的。",
+     "fix": "满足任一条件强制监测。",
+     "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-3"
+    },
+    {
+     "text": "安全等级一、二级，或开挖深度≥5m，或地质条件复杂，满足任一条件即应进行基坑监测。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三条件 OR 关系，任一即测，写全。",
+     "option_id": "B02-html-practice2-html-q11-4028304deb9d:option-4"
+    }
+   ],
+   "model_answer": "安全等级一二级 OR 深度≥5m OR 地质复杂，满足任一即须监测。",
+   "rule_group": "监测·条件维",
+   "content_sha256": "fa5584c743bb98704dab230ec9c89d44c063192a7b319542e4d0c07949a812a3",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q11",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "fa5584c743bb98704dab230ec9c89d44c063192a7b319542e4d0c07949a812a3",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q12-b75f0f200b54",
+   "surface_id": "practice2.html",
+   "stem": "关于基坑变形监测的对象，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "监测对象应包括基坑及支护结构变形，以及周边建筑、管线、道路等周边环境变形。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "坑内支护 + 周边环境两类都要。",
+     "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-1"
+    },
+    {
+     "text": "监测对象为周边建筑物的变形情况，基坑内部与支护结构的变形不必纳入监测。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为只护周边。",
+     "loss_reason": "漏基坑及支护结构变形。",
+     "fix": "坑内支护 + 周边环境都测。",
+     "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-2"
+    },
+    {
+     "text": "监测对象为基坑本体及支护结构的变形，周边建筑与管线等环境变形不列入监测范围。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为只看坑内。",
+     "loss_reason": "漏周边环境变形。",
+     "fix": "补周边环境（建筑/管线/道路）变形。",
+     "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-3"
+    },
+    {
+     "text": "监测地下水位一项即可全面反映基坑安全状态，无需再监测各类变形项目。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为水位代表全部。",
+     "loss_reason": "漏变形类监测对象。",
+     "fix": "含支护结构变形 + 周边环境变形。",
+     "option_id": "B02-html-practice2-html-q12-b75f0f200b54:option-4"
+    }
+   ],
+   "model_answer": "监测对象含基坑及支护结构变形 + 周边环境变形。",
+   "rule_group": "监测·记录维",
+   "content_sha256": "e522fcb2f442901982729bde4f3e15a8ee83db1b17ad01cad78616f9624b5fcb",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q12",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "e522fcb2f442901982729bde4f3e15a8ee83db1b17ad01cad78616f9624b5fcb",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q13-413ea74743c6",
+   "surface_id": "practice2.html",
+   "stem": "关于基坑监测的实施主体，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "基坑监测工作应由项目监理单位负责组织并具体实施。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把监理当监测主体。",
+     "loss_reason": "监理是审批/见证，非监测实施主体。",
+     "fix": "建设方委托具备资质第三方。",
+     "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-1"
+    },
+    {
+     "text": "基坑监测应由建设单位委托具备相应资质的第三方监测单位实施。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "建设方委托第三方，主体认准。",
+     "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-2"
+    },
+    {
+     "text": "基坑监测宜由施工单位自行组织实施，便于施工与监测的同步安排。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为谁干谁测。",
+     "loss_reason": "主体答反，应第三方。",
+     "fix": "建设方委托第三方实施。",
+     "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-3"
+    },
+    {
+     "text": "基坑监测由施工单位或建设单位中任意一方组织实施均可。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为随便哪方都行。",
+     "loss_reason": "应由建设方委托有资质第三方。",
+     "fix": "建设方委托第三方，不含施工单位自测。",
+     "option_id": "B02-html-practice2-html-q13-413ea74743c6:option-4"
+    }
+   ],
+   "model_answer": "基坑监测应由建设单位委托具备相应资质的第三方监测单位实施。",
+   "rule_group": "监测·主体维",
+   "content_sha256": "676d824b4e51a746085f842c0e115d7486ca83df3a3d0b10a141e365025e353c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q13",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "676d824b4e51a746085f842c0e115d7486ca83df3a3d0b10a141e365025e353c",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q14-e7ed1aa660d7",
+   "surface_id": "practice2.html",
+   "stem": "关于基坑监测报警（危险征兆），选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "只有基坑发生整体坍塌等严重事故时才需要报警并上报处理，位移等一般性变形的发展不必作报警处理。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为塌了才报。",
+     "loss_reason": "报警是征兆预警、非事后。",
+     "fix": "位移突增等征兆即报警。",
+     "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-1"
+    },
+    {
+     "text": "发现报警征兆后仍可以继续组织施工，同时加强观测频次并加密监测点位即可应对。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为观测就够。",
+     "loss_reason": "漏停工、分析、应急处置。",
+     "fix": "报警须停工、分析、应急。",
+     "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-2"
+    },
+    {
+     "text": "出现位移突增、流沙管涌隆起、支撑或锚杆断裂拔出、周边建筑开裂下陷、管线泄漏等任一情况即应报警。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "多项征兆任一即报警，列举齐。",
+     "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-3"
+    },
+    {
+     "text": "报警仅以位移监测值突增一项作为判定依据，管涌、断裂等其余各类现象不作为报警判定条件。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "只抓位移。",
+     "loss_reason": "漏管涌/支撑断裂/管线泄漏等。",
+     "fix": "多项征兆任一即报警。",
+     "option_id": "B02-html-practice2-html-q14-e7ed1aa660d7:option-4"
+    }
+   ],
+   "model_answer": "位移突增/流沙管涌隆起/支撑锚杆断裂拔出/周边裂缝下陷/管线泄漏等任一即报警。",
+   "rule_group": "监测·后果维",
+   "content_sha256": "32776f364807358729eb6ff2c62151392310d37fee96f6ee0c5ce54850f7a962",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q14",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "32776f364807358729eb6ff2c62151392310d37fee96f6ee0c5ce54850f7a962",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q15-81cdc3ffd660",
+   "surface_id": "practice2.html",
+   "stem": "某基坑下有承压水、坑底出现突涌隆起风险。选出防治措施正确、能得分的作答。",
+   "options": [
+    {
+     "text": "承压水突涌应通过加深支护墙的嵌固深度予以解决，与降压措施并无关系。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为加深墙就行。",
+     "loss_reason": "关键在减压/隔渗，非加深墙。",
+     "fix": "水平封底隔渗或钻孔减压。",
+     "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-1"
+    },
+    {
+     "text": "坑底承压水突涌应采取水平封底隔渗或钻孔减压（降压井）等措施，并先验算突涌稳定性。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "封底隔渗/钻孔减压对症，先验算稳定性。",
+     "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-2"
+    },
+    {
+     "text": "加大集水明排的抽水能力并增加水泵数量与总抽水量，即可有效压住坑底承压水的突涌。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为多抽就压住。",
+     "loss_reason": "明排排的是上层水，不减承压水压力。",
+     "fix": "用水平封底隔渗或钻孔减压。",
+     "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-3"
+    },
+    {
+     "text": "采用井点回灌抬高坑外地下水位，即可防止基坑坑底发生承压水突涌。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把回灌当万能。",
+     "loss_reason": "回灌防周边沉降，不防突涌。",
+     "fix": "突涌用封底隔渗/钻孔减压。",
+     "option_id": "B02-html-practice2-html-q15-81cdc3ffd660:option-4"
+    }
+   ],
+   "model_answer": "采取水平封底隔渗或钻孔减压（降压井），先验算突涌稳定性。",
+   "rule_group": "承压水突涌·条件维",
+   "content_sha256": "ac133317460ca6a5e8aaecffbce5ddcb81c64f06ec8933563e4cc812b22e6ae2",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q15",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "ac133317460ca6a5e8aaecffbce5ddcb81c64f06ec8933563e4cc812b22e6ae2",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "B02-html-practice2-html-q16-1f8abfd02855",
+   "surface_id": "practice2.html",
+   "stem": "某砂砾层深基坑（降深8m）方案：用轻型井点降水、不设周边保护、监测由施工单位自测。选出诊断与补正确、能得分的作答。",
+   "options": [
+    {
+     "text": "仅监测主体一处不妥，改由建设单位委托第三方实施即可；轻型井点降水与不设周边保护两项安排均无问题。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "只抓监测主体一处。",
+     "loss_reason": "漏降水方法与周边保护两处。",
+     "fix": "降水改管井/喷射 + 补周边保护 + 第三方监测。",
+     "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-1"
+    },
+    {
+     "text": "仅降水方法一处不妥，改为多级轻型井点即可满足降深要求；周边保护与监测主体两项现有安排均无需调整。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "只改降水且改得不够。",
+     "loss_reason": "多级轻型也仅6~10m；漏周边与监测两处。",
+     "fix": "8m 大渗透宜管井/喷射，并补周边 + 第三方监测。",
+     "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-2"
+    },
+    {
+     "text": "该方案总体上基本合理，仅需适当提高监测频次、加密监测点位后即可继续实施，无需再作其他方面的调整。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为小修即可。",
+     "loss_reason": "漏降水方法、周边保护、监测主体三处。",
+     "fix": "三处都要改：降水/周边/监测主体。",
+     "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-3"
+    },
+    {
+     "text": "三处不妥：砂砾大渗透且降深8m，应选降水管井或喷射井点（轻型≤6m 不够）；应补周边截水帷幕或回灌；监测应由建设方委托第三方。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "降水方法、周边保护、监测主体三处失分全揪出。",
+     "option_id": "B02-html-practice2-html-q16-1f8abfd02855:option-4"
+    }
+   ],
+   "model_answer": "三处不妥：砂砾大渗透+降深8m 应用降水管井或喷射（轻型≤6m 不够）；应补周边截水/回灌；监测应由建设方委托第三方。",
+   "rule_group": "降水监测·判断纠错",
+   "content_sha256": "e27b3f1a61c2cda51c278a00bdb7cfb1d9945dd7c4ec7075133b4773731d1bc8",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_B02/P40_B02.practice.down.dc.html#Q16",
+   "authoring_sha256": "643f73967dbac165554cd056e9e67a8c0e30a511b0e622387159c0dbd2155bcb",
+   "decision": {
+    "fact_id": "b02-fact-dewatering-method-selection",
+    "skeleton_id": "b02-skel-降水方案综合诊断",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A422000_033_0055:4",
+    "source_sha256": "c4aeadd99cef3c21beb4293ab477767a8db5dce4a294ea8111da2319914aabfe",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "e27b3f1a61c2cda51c278a00bdb7cfb1d9945dd7c4ec7075133b4773731d1bc8",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "综合诊断三处失分,签首要判分眼=降水方法选型(轻型≤6m不够,宜管井/喷射;锚JGJ120地下水控制方法条款)。周边保护/监测主体两处教材支撑(kc:1A413000_083_0156:1、kc:1A413000_081_0152系)未进本题TOP_K候选,按G01/G03单锚先例记录于note,守零编造红线。三件套d1_probe。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

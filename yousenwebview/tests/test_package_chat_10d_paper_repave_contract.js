@@ -178,7 +178,7 @@ assert(
   "old generic wait copy must be gone from chat.js",
 );
 
-/* ── 9. 教学卡「问追AI」深链承接 ─────────────────────────── */
+/* ── 9. 教学卡「追问AI」深链承接 ─────────────────────────── */
 assert(
   chatJs.indexOf('"teach_card"') >= 0 &&
     chatJs.indexOf("options.pack_id") >= 0 &&

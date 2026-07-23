@@ -1,1175 +1,1166 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "G03",
-  "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
-  "source_bundle_sha256": "1dcd42a5a57ee741f53ec3bce57cef04bd0b73a3b8a06d69a8f610a435253118",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 14,
-  "eligible_count": 14,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "G03-html-practice-html-q1-a5069fbe7083",
-      "surface_id": "practice.html",
-      "stem": "某工程采用灌注桩基础。判定灌注桩按成孔工法的分类，选出完整、能得分的作答。",
-      "options": [
-        {
-          "text": "灌注桩按成孔工法仅分为泥浆护壁与沉管两大类，长螺旋钻孔压灌和干作业成孔均不再单独列出。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只记住最常见两种。",
-          "loss_reason": "漏长螺旋钻孔压灌与干作业成孔，工法分类不全。",
-          "fix": "补全四类：泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔。",
-          "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-1"
-        },
-        {
-          "text": "灌注桩按受力性状分端承桩与摩擦桩两类，据此性状直接确定成孔工艺。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "端承/摩擦听着像分类。",
-          "loss_reason": "端承/摩擦是受力性状，不是成孔工法分类，答错维度。",
-          "fix": "成孔工法=泥浆护壁/沉管/长螺旋/干作业，别用受力分类替代。",
-          "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-2"
-        },
-        {
-          "text": "灌注桩与预制桩同理，先区分锤击还是静压沉桩，再据打法确定成孔工法。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "把预制桩打法套到灌注桩。",
-          "loss_reason": "锤击/静压是预制桩沉桩方式，灌注桩看成孔工法，审题错位。",
-          "fix": "灌注桩按成孔工法定性，不用锤击/静压。",
-          "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-3"
-        },
-        {
-          "text": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查要求。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "四类工法列全、并点出先定性再查要求，这是答题地基。",
-          "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-4"
-        }
-      ],
-      "model_answer": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
-      "rule_group": "定性·条件维",
-      "content_sha256": "81bcf71bc9783208fd422a7770a13250c8d68a15f6ad15ae99b2ffefe7cad689",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-bored-pile-typology",
-        "skeleton_id": "g03-skel-成孔工法四类定性",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_091_0167:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "81bcf71bc9783208fd422a7770a13250c8d68a15f6ad15ae99b2ffefe7cad689",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "灌注桩成孔工法四类定性。教材0167逐字'可分为泥浆护壁灌注桩、沉管灌注桩、长螺旋钻孔压灌桩和干作业（机械、人工）成孔灌注桩等'。正确项四类与教材一致;三干扰项(仅两类/按受力性状/照搬预制桩)确误。沿用 2026-07-20 sign_g03 重裁 SIGNABLE 结论。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q2-8c691c527a8d",
-      "surface_id": "practice.html",
-      "stem": "预制混凝土桩的吊运与打桩，对桩身混凝土强度有何要求？选出数字准确的作答。",
-      "options": [
-        {
-          "text": "混凝土强度达设计值≥100%方可起吊、达≥70%即可运输和打桩，可先行运输后再养护补足强度。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记得有70与100，配反了。",
-          "loss_reason": "70%/100%配反：起吊受力小≥70%即可，运输打桩受力大须≥100%。",
-          "fix": "≥70%起吊、≥100%运输打桩，别配反。",
-          "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-1"
-        },
-        {
-          "text": "预制桩只要脱模成型、外观完好无明显裂缝即可起吊运输，桩身强度按现场施工经验掌握。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭手感觉得结实就行。",
-          "loss_reason": "用常识替代规范阈值，未达强度吊运会断桩。",
-          "fix": "按规范≥70%起吊、≥100%运输打桩。",
-          "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-2"
-        },
-        {
-          "text": "混凝土强度达设计值≥75%即可起吊、达设计值≥90%即可运输和打桩。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记了个大概的数。",
-          "loss_reason": "数值错位，规范是70%与100%。",
-          "fix": "起吊≥70%、运输打桩≥100%。",
-          "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-3"
-        },
-        {
-          "text": "混凝土强度达设计值≥70%方可起吊、≥100%方可运输和打桩；两点吊吊点距桩端0.2L。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "70%/100%两档写准，并带吊点0.2L，未达强度吊运致断桩的前提也点到。",
-          "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-4"
-        }
-      ],
-      "model_answer": "混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
-      "rule_group": "预制桩强度·条件维",
-      "content_sha256": "7ea0b70b9f4d041726ecd5b38f617d9e3122adaaf928e6efc55270f47d60775e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-precast-strength-thresholds",
-        "skeleton_id": "g03-skel-预制桩70-100吊运打",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_090_0165:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "7ea0b70b9f4d041726ecd5b38f617d9e3122adaaf928e6efc55270f47d60775e",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "预制桩强度阈值。教材0165①②逐字:≥70%起吊/≥100%运输打桩/两点吊0.2L。数值三连全对;干扰项(70/100倒置、75/90、经验掌握)确误。沿用重裁 SIGNABLE。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q4-1867683ad625",
-      "surface_id": "practice.html",
-      "stem": "锤击法沉桩宜采用何种落锤方式？选出正确作答。",
-      "options": [
-        {
-          "text": "宜采用重锤高击，锤举得越高、单击能量越大，沉桩速度更快。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "以为锤举越高越快。",
-          "loss_reason": "高落距冲击峰值超混凝土抗压，桩头碎裂、桩身纵裂。",
-          "fix": "应重锤低击，不是重锤高击。",
-          "option_id": "G03-html-practice-html-q4-1867683ad625:option-1"
-        },
-        {
-          "text": "宜采用重锤低击或低锤重打，减小冲击峰值、保桩身完整。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "重锤低击/低锤重打，规范落锤方式，得分。",
-          "option_id": "G03-html-practice-html-q4-1867683ad625:option-2"
-        },
-        {
-          "text": "宜采用轻锤高击，靠高频率轻打把桩逐步打入。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "觉得轻打不伤桩。",
-          "loss_reason": "轻锤高击有效贯入能量不足、桩头反复受冲击也易损。",
-          "fix": "应重锤低击或低锤重打。",
-          "option_id": "G03-html-practice-html-q4-1867683ad625:option-3"
-        },
-        {
-          "text": "落锤方式对桩身完整并无影响，按机械默认落距施打即可。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "以为落锤方式无所谓。",
-          "loss_reason": "落锤方式直接影响桩头/桩身完整，须控制。",
-          "fix": "宜重锤低击或低锤重打。",
-          "option_id": "G03-html-practice-html-q4-1867683ad625:option-4"
-        }
-      ],
-      "model_answer": "宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
-      "rule_group": "锤击方式·条件维",
-      "content_sha256": "a8bb3beee3475170e4a798bab00a51255b5e19bba4ba28715e15819eb7590d1e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-hammer-drop-mode",
-        "skeleton_id": "g03-skel-重锤低击真题",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2017:第26题",
-        "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "a8bb3beee3475170e4a798bab00a51255b5e19bba4ba28715e15819eb7590d1e",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "锤击落锤方式。真题 exam:2017:第26题官答 BD=重锤低击/低锤重打,解析同口径;教材本包无此条,真题锚独立成立且与2026教材无冲突。沿用重裁 SIGNABLE。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q5-6742026d87de",
-      "surface_id": "practice.html",
-      "stem": "静力压桩施工与终止沉桩控制，下列作答正确的是？",
-      "options": [
-        {
-          "text": "试压桩不应少于3根；可边压边挖以便随时纠偏纠斜；终止沉桩一律以最大压桩力控制为准。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得边压边挖能纠偏、压力控制最直观。",
-          "loss_reason": "边压边挖破坏土体，且终止标准摩擦桩应以标高为主，答混。",
-          "fix": "不得边压边挖；摩擦桩以标高为主、端承桩以压力为主。",
-          "option_id": "G03-html-practice-html-q5-6742026d87de:option-1"
-        },
-        {
-          "text": "试验桩设1根即可；终止沉桩摩擦桩以压力为主、端承桩以标高为主控制。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "根数记少、终止标准配反。",
-          "loss_reason": "试压桩≥3根；终止标准摩擦↔端承互换错误。",
-          "fix": "试压桩≥3根；摩擦看标高、端承看压力。",
-          "option_id": "G03-html-practice-html-q5-6742026d87de:option-2"
-        },
-        {
-          "text": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "试压桩根数、不得边压边挖、终止标准按桩型，三项齐，得分。",
-          "option_id": "G03-html-practice-html-q5-6742026d87de:option-3"
-        },
-        {
-          "text": "只要压桩力大于机架配重即可终止，无须另行设置试压桩加以验证。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只盯压桩力。",
-          "loss_reason": "漏试压桩要求；最大压桩力还应小于机架配重×0.9。",
-          "fix": "补试压桩≥3根，压桩力<(机架+配重)×0.9。",
-          "option_id": "G03-html-practice-html-q5-6742026d87de:option-4"
-        }
-      ],
-      "model_answer": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
-      "rule_group": "静压·终止·主体维",
-      "content_sha256": "392a5a91d01fd2a71f991dfd6ba3579f0b3a44449aee0650824304cd8e4670ef",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-static-press-termination",
-        "skeleton_id": "g03-skel-静压终止标高压力",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_091_0166:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "392a5a91d01fd2a71f991dfd6ba3579f0b3a44449aee0650824304cd8e4670ef",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "静压终止标准。核心判分眼(摩擦桩标高为主/端承桩压力为主)教材0166⑧a逐字;干扰项1为主辅对调。辅助采分句'试压桩≥3根/不得边压边挖'教材0165静压①③逐字为真(第一手核对),其候选点0165:1本轮已进q5 TOP_K=5候选,核心眼仍签0166:0。沿用重裁 SIGNABLE(带拆锚记录)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q6-f235160114d8",
-      "surface_id": "practice.html",
-      "stem": "泥浆护壁回转钻成孔灌注桩的施工流程，选出完整、不漏关键节点的作答。",
-      "options": [
-        {
-          "text": "平整放线→钻机成孔→下钢筋笼→浇筑水下混凝土→成桩，成孔后即可直接下笼。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "觉得成孔完就能下笼。",
-          "loss_reason": "漏清孔（除沉渣）和埋护筒，沉渣超标、孔口坍塌。",
-          "fix": "成孔后必须清孔、成孔前须埋护筒。",
-          "option_id": "G03-html-practice-html-q6-f235160114d8:option-1"
-        },
-        {
-          "text": "平整放线→埋设护筒→钻机成孔→清孔→下钢筋笼→水下浇筑混凝土→成桩。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "护筒、清孔两个易漏节点都在，流程完整，得分。",
-          "option_id": "G03-html-practice-html-q6-f235160114d8:option-2"
-        },
-        {
-          "text": "平整放线→埋护筒→成孔→下钢筋笼→清孔→浇筑→成桩，先下笼后清孔。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "以为清孔可放到下笼后。",
-          "loss_reason": "清孔应在下钢筋笼前完成，顺序颠倒。",
-          "fix": "成孔→清孔→下钢筋笼→浇筑。",
-          "option_id": "G03-html-practice-html-q6-f235160114d8:option-3"
-        },
-        {
-          "text": "泥浆护壁仅需成孔与浇筑两步，其余节点按干作业成孔方式处理。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "把流程压成两步。",
-          "loss_reason": "漏护筒/清孔/下笼多个采分节点。",
-          "fix": "按完整流程逐节点写，别压缩。",
-          "option_id": "G03-html-practice-html-q6-f235160114d8:option-4"
-        }
-      ],
-      "model_answer": "场地平整→放线→泥浆池→埋设护筒→钻机就位→成孔→清孔→下钢筋笼→水下浇筑→成桩。",
-      "rule_group": "泥浆护壁流程·程序维",
-      "content_sha256": "6b81b0a228285c428f565d508395e9eaf9c42320c1d9b9b3f374f59b43070cea",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-slurry-wall-process",
-        "skeleton_id": "g03-skel-护壁流程护筒清孔",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_091_0168:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "6b81b0a228285c428f565d508395e9eaf9c42320c1d9b9b3f374f59b43070cea",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "泥浆护壁成孔流程。教材0168完整流程逐字支撑正确项(护筒/清孔两易漏节点齐)。工单(沿用):正确项省略下笼后二次清孔节点;干扰项2'先下笼后清孔'指完全跳过首次清孔仍确误,但与二次清孔工序有表述混淆风险。备用位可签。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q7-0c0075bd0b2e",
-      "surface_id": "practice.html",
-      "stem": "灌注桩孔底沉渣厚度按桩型控制，选出数值正确的作答。",
-      "options": [
-        {
-          "text": "各类灌注桩孔底沉渣一律控制在≤200mm，按统一限值管理便于施工。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "图省事记一个数。",
-          "loss_reason": "各桩型套同一标准，端承桩持力层最敏感应≤50mm。",
-          "fix": "端承≤50、摩擦≤100、抗拔≤200，分档控制。",
-          "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-1"
-        },
-        {
-          "text": "端承型桩≤200mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤50mm，按此分档控制。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "数字对上了但配反。",
-          "loss_reason": "端承与抗拔数值互换错误。",
-          "fix": "端承最严≤50、抗拔最松≤200。",
-          "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-2"
-        },
-        {
-          "text": "端承型桩≤50mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤200mm。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三档数值按桩型写全，端承最严，得分。",
-          "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-3"
-        },
-        {
-          "text": "孔底沉渣厚度只要肉眼看不出明显淤积，即可不必逐桩量测控制。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭观感。",
-          "loss_reason": "须按桩型量测控制，不能凭观感。",
-          "fix": "端承≤50/摩擦≤100/抗拔≤200mm。",
-          "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-4"
-        }
-      ],
-      "model_answer": "端承型≤50mm、摩擦型≤100mm、抗拔及抗水平≤200mm。",
-      "rule_group": "孔底沉渣·条件维",
-      "content_sha256": "3b8702d439a6fe1355e849c558a28932a04e2a3464edd22964ca9000487fce01",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-sediment-thickness",
-        "skeleton_id": "g03-skel-沉渣50-100-200",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_091_0169:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "3b8702d439a6fe1355e849c558a28932a04e2a3464edd22964ca9000487fce01",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "孔底沉渣三档。教材0169逐字(端承≤50/摩擦≤100/抗拔抗水平≤200mm)。沿用重裁备用可签。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q8-a8a5bec0b9cc",
-      "surface_id": "practice.html",
-      "stem": "某水下灌注桩方案：灌注时桩顶混凝土面超过设计标高500mm即停灌。选出对该做法的正确判断与改正。",
-      "options": [
-        {
-          "text": "妥当。桩顶混凝土面超过设计标高500mm已留有余量，凿除桩头浮浆后即可满足设计标高要求。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "觉得超了就行、500有余量。",
-          "loss_reason": "未指出不妥，超灌不足、浮浆凿除后桩顶会低于设计标高。",
-          "fix": "应判不妥，超灌高度应高于设计桩顶标高1m以上。",
-          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-1"
-        },
-        {
-          "text": "不妥。水下混凝土超灌高度应高于设计桩顶标高1m以上，凿除浮浆后桩头才达标。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "指出不妥+写准高于设计桩顶标高1m以上+点出凿浮浆，三段齐，得分。注：2016年官答曾用0.8~1.0m口径，现行教材以1m以上为准。",
-          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-2"
-        },
-        {
-          "text": "不妥，应适当加大超灌高度，但具体超灌多少可结合现场浮浆情况确定。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "指出了不妥却不敢写数。",
-          "loss_reason": "正确做法漏写1m以上这一具体数值，阅卷不给该分。",
-          "fix": "补写超灌高度应高于设计桩顶标高1m以上。",
-          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-3"
-        },
-        {
-          "text": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "老真题官答就是0.8~1.0m，背得熟。",
-          "loss_reason": "这是2016年官答旧口径，现行教材要求高于设计桩顶标高1m以上，0.8m达不到下限。",
-          "fix": "按现行教材写：超灌高度应高于设计桩顶标高1m以上。",
-          "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-4"
-        }
-      ],
-      "model_answer": "不妥。水下混凝土超灌高度应高于设计桩顶标高1m以上，凿除浮浆后桩头混凝土才达标。",
-      "rule_group": "超灌纠错·记录计算维",
-      "content_sha256": "70f48aef16ce90bc47a7ac5577c154993ec1b62e2aec9b25c48a7ab154bd18fd",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-overcast-height-2026",
-        "skeleton_id": "g03-skel-超灌纠错500mm",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_091_0169:1",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "70f48aef16ce90bc47a7ac5577c154993ec1b62e2aec9b25c48a7ab154bd18fd",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "超灌纠错(2026-07-20 冲突修正后新裁)。教材 page91 chunk 0169 ⑧逐字'水下混凝土超灌高度应高于设计桩顶标高 1m 以上，充盈系数不应小于 1'。正确项已改为2026教材口径'高于设计桩顶标高1m以上';2016案例1官答0.8~1.0m旧口径降级为M08干扰项并在解析注明新旧口径(authority-ladder 教材>历史官答,owner-delegated 仲裁)。锚为拆锚修复后的独立超灌采分点(候选rank3,repair_note在编译库)。前轮NO-GO病灶已治,SIGNABLE。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q9-3dfec01f94ce",
-      "surface_id": "practice.html",
-      "stem": "沉管灌注桩除单打法外还有哪些工法？成桩关键步骤是什么？选出正确作答。",
-      "options": [
-        {
-          "text": "工法还包括长螺旋法与旋挖法；沉管到位后一次浇满再拔管即可成桩。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把别的成孔法当沉管工法。",
-          "loss_reason": "长螺旋/旋挖不是沉管工法，且漏边振边拔续浇。",
-          "fix": "沉管工法=单打/复打/反插；须边振边拔续浇。",
-          "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-1"
-        },
-        {
-          "text": "单打法之外别无其他工法；拔管时应快速上拔以免混凝土发生离析。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为只有单打。",
-          "loss_reason": "漏复打、反插两工法，快速拔管易缩颈断桩。",
-          "fix": "补复打/反插；边振边拔、控制拔管速度。",
-          "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-2"
-        },
-        {
-          "text": "工法还包括复打法、反插法；边振边拔管边继续浇筑→下钢筋笼继续浇筑→成桩。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "复打/反插补全，边振边拔续浇关键步点到，得分。",
-          "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-3"
-        },
-        {
-          "text": "工法还包括复打法与反插法；先将套管整体全部拔出完毕后再下钢筋笼浇筑混凝土成桩。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "工法补对了但步骤颠倒。",
-          "loss_reason": "应边振边拔边浇，先拔完管再浇会离析缩颈。",
-          "fix": "边振边拔管边继续浇筑，别先拔完再浇。",
-          "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-4"
-        }
-      ],
-      "model_answer": "工法还包括复打法、反插法；成桩边振（锤击）边拔管并继续浇筑、下钢筋笼继续浇筑、成桩。",
-      "rule_group": "沉管成桩·程序维",
-      "content_sha256": "f387331ea68eec0b2bffe98113a80a55feca8a57607a0bfa4bf5fb3ed74387fa",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-immersed-tube-methods",
-        "skeleton_id": "g03-skel-沉管复打反插续浇",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_092_0171:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "f387331ea68eec0b2bffe98113a80a55feca8a57607a0bfa4bf5fb3ed74387fa",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "沉管工法+成桩步骤。教材0171逐字+exam:2022:第(三)题官答双证(复打法/反插法;边振边拔→下笼继续浇→成桩)。沿用重裁备用可签。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q10-bd097c720984",
-      "surface_id": "practice.html",
-      "stem": "人工挖孔灌注桩的开挖间距与顺序，选出符合规范的作答。",
-      "options": [
-        {
-          "text": "桩距<2.5m时应间隔开挖并浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "间隔开挖、≥5m、先中间后周边三项齐，得分。",
-          "option_id": "G03-html-practice-html-q10-bd097c720984:option-1"
-        },
-        {
-          "text": "相邻各桩可以同时开挖以加快施工进度，待本批桩身浇筑完成后再依次开挖下一批桩孔。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "想同时挖加快进度。",
-          "loss_reason": "相邻同时挖易塌孔伤人，应间隔开挖、间距≥5m。",
-          "fix": "间隔开挖、相邻最小≥5m。",
-          "option_id": "G03-html-practice-html-q10-bd097c720984:option-2"
-        },
-        {
-          "text": "挖土宜先周边后中间，扩底时应先扩大底部再开挖上部圆柱段。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "顺序凭感觉。",
-          "loss_reason": "挖土应先中间后周边，扩底应先挖圆柱再扩底，全反。",
-          "fix": "先中间后周边；先挖圆柱再扩底。",
-          "option_id": "G03-html-practice-html-q10-bd097c720984:option-3"
-        },
-        {
-          "text": "只要护壁施工到位，相邻桩间距不受限制，紧挨着开挖也可以。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为护壁到位就无间距要求。",
-          "loss_reason": "漏最小间距≥5m的硬约束。",
-          "fix": "相邻桩最小间距≥5m、间隔开挖。",
-          "option_id": "G03-html-practice-html-q10-bd097c720984:option-4"
-        }
-      ],
-      "model_answer": "桩距小于2.5m时应间隔开挖浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
-      "rule_group": "人工挖孔·程序维",
-      "content_sha256": "2338c16b57df6d800dea403fd0e418ec5a507961edbcacefac5156402747ac15",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-manual-dug-pile-spacing",
-        "skeleton_id": "g03-skel-挖孔间隔5m先中后周",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_092_0172:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "2338c16b57df6d800dea403fd0e418ec5a507961edbcacefac5156402747ac15",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "人工挖孔间距顺序。教材0172逐字(<2.5m间隔开挖浇筑/最小≥5m/先中间后周边)。沿用重裁备用可签。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q11-66c7323d8d73",
-      "surface_id": "practice.html",
-      "stem": "灌注桩桩底后注浆的终止控制，选出正确作答。",
-      "options": [
-        {
-          "text": "以注浆压力作为唯一的主控指标，压力一旦达到设计值即行终止，不再计量注浆总量。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得压力最直观。",
-          "loss_reason": "应以注浆量为主控，单看压力可能量不足。",
-          "fix": "以注浆量为主控，兼顾压力条件。",
-          "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-1"
-        },
-        {
-          "text": "注浆总量达到设计值的50%即可终止注浆，以节约水泥浆液用量。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记了个偏小的比例。",
-          "loss_reason": "比例记错，应≥80%且压力大于设计值。",
-          "fix": "注浆量≥80%且压力>设计值，或总量达设计。",
-          "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-2"
-        },
-        {
-          "text": "注浆至桩底出现返浆冒浆为止，凭现场返浆情况判断终止时机。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭返浆手感。",
-          "loss_reason": "须按注浆量/压力量化控制。",
-          "fix": "以注浆量为主控：总量达设计或≥80%且压力>设计。",
-          "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-3"
-        },
-        {
-          "text": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且压力大于设计值时终止。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "量为主、双条件写全，得分。",
-          "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-4"
-        }
-      ],
-      "model_answer": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且注浆压力大于设计值时可终止。",
-      "rule_group": "桩底注浆·条件维",
-      "content_sha256": "c055736d5d6f61b7a560df7e730aa05eb452c3307777051df2a366331bcc3f5a",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-post-grouting-control",
-        "skeleton_id": "g03-skel-注浆量主控80",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_092_0170:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "c055736d5d6f61b7a560df7e730aa05eb452c3307777051df2a366331bcc3f5a",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "桩底注浆终止控制。教材0170逐字(以注浆量为主;总量达设计 或 ≥80%且压力>设计值)。沿用重裁备用可签。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q12-81340bfc439c",
-      "surface_id": "practice.html",
-      "stem": "桩基检测方法与检测目的的匹配，选出正确作答。",
-      "options": [
-        {
-          "text": "桩身承载力采用低应变法测定，方法快速经济且适用于各类桩型。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "以为低应变啥都能测。",
-          "loss_reason": "低应变只判完整性、给不出承载力，方法目的错配。",
-          "fix": "承载力用静载或高应变，低应变测完整性。",
-          "option_id": "G03-html-practice-html-q12-81340bfc439c:option-1"
-        },
-        {
-          "text": "完整性缺陷采用静载试验测定，直接加载即可判断桩身有无破损。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "以为加载就能看缺陷。",
-          "loss_reason": "静载测承载力，完整性缺陷用低应变/声波透射/钻芯。",
-          "fix": "缺陷用低应变/声波透射，承载力才用静载。",
-          "option_id": "G03-html-practice-html-q12-81340bfc439c:option-2"
-        },
-        {
-          "text": "各类检测方法均可任意选取，只要能出具检测报告即可，方法与目的之间无须一一对应。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "以为有报告就行。",
-          "loss_reason": "方法必须对应目的，否则结论无效。",
-          "fix": "按目的选方法：承载力静载/高应变、持力层钻芯、缺陷低应变声波透射。",
-          "option_id": "G03-html-practice-html-q12-81340bfc439c:option-3"
-        },
-        {
-          "text": "承载力用静载或高应变；持力层岩性用钻芯法；完整性缺陷用低应变或声波透射法。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "方法对着目的选，甲级承载力必静载，得分。",
-          "option_id": "G03-html-practice-html-q12-81340bfc439c:option-4"
-        }
-      ],
-      "model_answer": "承载力用静载或高应变；桩端持力层岩性用钻芯法；桩身完整性缺陷用低应变或声波透射；试验桩定单桩极限承载力。",
-      "rule_group": "检测方法适用·主体维",
-      "content_sha256": "2d92bcb83b644483684719fcddffb3e64f7c87bbe41c826501550071592576bc",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-pile-testing-eyes",
-        "skeleton_id": "g03-skel-方法目的匹配",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_092_0173:0",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "2d92bcb83b644483684719fcddffb3e64f7c87bbe41c826501550071592576bc",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "检测方法-目的匹配。教材0173方法汇总五连全覆盖+0174逐字+exam:2021:第14题(钻芯法=A)旁证。jury issue#1(高应变也可判完整性)为工单级非fatal——选项未写'只能',配对法与教材口径一致。三件套 anchor。沿用重裁 SIGNABLE。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q13-e3d20b4a2a14",
-      "surface_id": "practice.html",
-      "stem": "桩身完整性分类Ⅰ–Ⅳ类，选出对Ⅱ、Ⅲ类描述正确的作答。",
-      "options": [
-        {
-          "text": "Ⅱ类有轻微缺陷但不影响桩身结构承载力；Ⅲ类有明显缺陷、影响承载力。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "Ⅱ/Ⅲ分界在影不影响承载力，答对，得分。",
-          "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-1"
-        },
-        {
-          "text": "Ⅱ类有明显缺陷、明显影响桩身承载力；Ⅲ类仅有轻微缺陷、不影响承载力。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "Ⅱ、Ⅲ描述整体配反。",
-          "loss_reason": "Ⅱ轻微不影响、Ⅲ明显影响，互换错误。",
-          "fix": "Ⅱ轻微不影响承载力、Ⅲ明显影响承载力。",
-          "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-2"
-        },
-        {
-          "text": "Ⅱ类即判为不合格桩、须直接报废处理；Ⅲ类可照常投入正常使用。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为Ⅱ类就废。",
-          "loss_reason": "Ⅱ类不影响承载力可用，处置判断错。",
-          "fix": "Ⅱ类可用（不影响承载力），Ⅲ/Ⅳ才需处理。",
-          "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-3"
-        },
-        {
-          "text": "完整性只需分合格与不合格两类，无须再细分为Ⅰ至Ⅳ四个等级。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "图省事分两类。",
-          "loss_reason": "漏Ⅰ–Ⅳ四类分级采分点。",
-          "fix": "按Ⅰ完整/Ⅱ轻微/Ⅲ明显/Ⅳ严重四类。",
-          "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-4"
-        }
-      ],
-      "model_answer": "Ⅰ类完整；Ⅱ类有轻微缺陷、不影响承载力；Ⅲ类有明显缺陷、影响承载力；Ⅳ类严重缺陷。",
-      "rule_group": "完整性分类·条件维",
-      "content_sha256": "b1b6182a3b6760e377e81a4fa81656f27fc1a7001b2a613c85c1e1f941980a50",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-pile-testing-eyes",
-        "skeleton_id": "g03-skel-完整性II-III分界",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A413030_093_0174:1",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "b1b6182a3b6760e377e81a4fa81656f27fc1a7001b2a613c85c1e1f941980a50",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "完整性Ⅱ/Ⅲ分界。教材0174:1逐字(Ⅱ轻微不影响/Ⅲ明显影响承载力)。三件套 immediate_confirm,第2独立skeleton。沿用重裁 SIGNABLE。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q14-2880cbbb0da6",
-      "surface_id": "practice.html",
-      "stem": "钻芯法检测的钻孔数量随桩径如何确定？选出正确作答。",
-      "options": [
-        {
-          "text": "桩径<1.2m钻1~2孔、1.2~1.6m钻2孔、>1.6m钻3孔；孔位距桩中心(0.15~0.25)D。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三档孔数+孔位写全，粗桩多孔有代表性，得分。",
-          "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-1"
-        },
-        {
-          "text": "无论桩径大小，钻芯法每桩均只钻取1孔即可，以一根芯样的检测结果代表整根桩身质量。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "图省事每桩1孔。",
-          "loss_reason": "粗桩1孔代表性不足，须按桩径分档增孔。",
-          "fix": "<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔。",
-          "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-2"
-        },
-        {
-          "text": "桩径<1.2m钻3孔、1.2~1.6m钻2孔、>1.6m钻1孔，桩径越细钻孔数越多。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "孔数与桩径关系记反。",
-          "loss_reason": "应桩越粗孔越多，方向反了。",
-          "fix": "细桩少孔、粗桩多孔：1~2/2/3孔。",
-          "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-3"
-        },
-        {
-          "text": "钻芯孔数由检测单位视现场取样需要自行确定，只要能满足取样即可，不按桩径分档控制。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "以为随意定。",
-          "loss_reason": "孔数按桩径规范确定，非随意。",
-          "fix": "按桩径<1.2m/1.2~1.6m/>1.6m对应1~2/2/3孔。",
-          "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-4"
-        }
-      ],
-      "model_answer": "桩径<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔；孔位距桩中心(0.15~0.25)D。",
-      "rule_group": "钻芯孔数·条件维",
-      "content_sha256": "fab0996c6af0aefbda881a9ef3860140d90370f0543736cc2430a1482b2b8936",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-pile-testing-eyes",
-        "skeleton_id": "g03-skel-钻芯孔数分档",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A413030_093_0174:2",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fab0996c6af0aefbda881a9ef3860140d90370f0543736cc2430a1482b2b8936",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "钻芯孔数分档。教材0174:2逐字+数值复核(<1.2m为1~2孔/1.2~1.6m为2孔/>1.6m为3孔,孔位0.15~0.25D)。三件套 d1_probe,第3独立skeleton。沿用重裁 SIGNABLE。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G03-html-practice-html-q15-cf892847c628",
-      "surface_id": "practice.html",
-      "stem": "某甲级泥浆护壁灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③成孔坍孔因运气不好、防治为加强管理。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，坍孔归因于运气不好也情有可原，可判给分。",
-          "is_correct": false,
-          "source_error_code": "E05",
-          "temptation": "只看有没有作答、没核对采分点。",
-          "loss_reason": "三处全错还判对，超灌不足、甲级应30%、坍孔归因空话。",
-          "fix": "三处都要改：超灌1m以上、30%·270根、坍孔按泥浆/水头/护筒/进尺找原因加具体防治。",
-          "option_id": "G03-html-practice-html-q15-cf892847c628:option-1"
-        },
-        {
-          "text": "只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与坍孔归因运气两处均无问题，可予以保留。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "抓到抽检一处就收手。",
-          "loss_reason": "漏诊超灌不足与坍孔口号化两处失分。",
-          "fix": "超灌改1m以上、坍孔写泥浆比重/水头/护筒/进尺具体成因加防治，不止改抽检。",
-          "option_id": "G03-html-practice-html-q15-cf892847c628:option-2"
-        },
-        {
-          "text": "三处都不妥：超灌应高于设计桩顶标高1m以上；甲级完整性≥30%即900×30%=270根；坍孔从泥浆比重、水头、护筒埋深、进尺找原因并补具体防治。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "超灌、抽检、坍孔三处全揪出并补写采分句，这就是会写答案。",
-          "option_id": "G03-html-practice-html-q15-cf892847c628:option-3"
-        },
-        {
-          "text": "坍孔成因已经写到位、无须再作改动，主要问题在超灌不足，只需改成超灌0.8~1.0m，完整性抽检仍按20%执行即可。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "超灌0.8~1.0m是背过的老官答口径。",
-          "loss_reason": "坍孔归因运气是空话未提泥浆/水头/护筒/进尺；0.8~1.0m是2016官答旧口径，现行教材要求1m以上；甲级抽检也不是20%。",
-          "fix": "坍孔写具体成因加防治；超灌1m以上；甲级抽检30%且≥20根。",
-          "option_id": "G03-html-practice-html-q15-cf892847c628:option-4"
-        }
-      ],
-      "model_answer": "三处都失分：超灌应高于设计桩顶标高1m以上；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；坍孔应从泥浆比重不够、水头高度不足、护筒埋置太浅、进尺过快等找原因，防治写优质泥浆、升高护筒增大水头、控制进尺。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "5243936161cabf98bc438c941ed734f009839f3f2d0630fb873b0c8e37ada152",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
-      "authoring_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
-      "decision": {
-        "fact_id": "g03-fact-pile-diagnosis-composite",
-        "skeleton_id": "g03-skel-诊断超灌抽检坍孔",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413030_091_0169:1",
-        "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "5243936161cabf98bc438c941ed734f009839f3f2d0630fb873b0c8e37ada152",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T19:27:46+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "复合诊断末题(2026-07-20 双病灶修复后新裁)。①超灌:正确项改2026教材口径'高于设计桩顶标高1m以上',主锚即该教材逐字采分点(候选rank1);0.8~1.0m旧口径降级为E08干扰项内错误成分并在解析点破。②甲级完整性≥30%且≥20根,900×30%=270根,exam:2016官答逐字支持、教材无冲突(前轮已裁无病)。③前轮预制桩'断裂五因'拼装错误已整段替换为泥浆护壁灌注桩坍孔病谱,教材 page71 chunk 1A434000_071_0110 '原因分析'六条逐字支撑(泥浆比重/水头/护筒埋深/进尺等,已按S02同法补独立采分点 kc:1A434000_071_0110:2+repair_note;该点rank7未进本题TOP_K=5候选,单锚按G01-q15先例取首要判分眼超灌教材点)。场景已改'甲级泥浆护壁灌注桩',病谱-场景自洽。前轮三重阻断全部解除,SIGNABLE。工单:正确项偏长(诊断题固有,同G01-q15口径)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "G03",
+ "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
+ "source_bundle_sha256": "a07aa9d7600b7becfc8ab155f9792c53a46e0886cc26af0713cf16237a0c463a",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 14,
+ "eligible_count": 14,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "fable-adjudication 2026-07-20 G03 冲突修正重签(owner指令40包全上线,教研裁决权owner-delegated按2026教材仲裁): 前轮 sign_g03 重裁定位两病灶(超灌2016官答旧口径0.8~1.0m与2026教材'高于设计桩顶标高1m以上'相悖=A级共同病灶; q15③预制桩断裂五因拼装灌注桩场景+零锚)。本轮改源 P40_G03.practice.dc.html(q8/q15/KNOWLEDGE/moreText/双fig)按2026教材口径重编,教材原文第一手核验(chunk 1A413030_091_0169 page91 / 1A434000_071_0110 page71 逐字,见 fix_g03.log 对照表); 编译库按 jury issue#6 拆锚+S02同法补两采分点(kc:1A413030_091_0169:1 / kc:1A434000_071_0110:2,均带repair_note)。其余12行沿用 2026-07-20 sign_g03.log 逐题终局裁决(variant_id 未变)。anchor 均为该题机器候选(零编造)。",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "G03-html-practice-html-q1-a5069fbe7083",
+   "surface_id": "practice.html",
+   "stem": "某工程采用灌注桩基础。判定灌注桩按成孔工法的分类，选出完整、能得分的作答。",
+   "options": [
+    {
+     "text": "灌注桩按成孔工法仅分为泥浆护壁与沉管两大类，长螺旋钻孔压灌和干作业成孔均不再单独列出。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只记住最常见两种。",
+     "loss_reason": "漏长螺旋钻孔压灌与干作业成孔，工法分类不全。",
+     "fix": "补全四类：泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔。",
+     "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-1"
+    },
+    {
+     "text": "灌注桩按受力性状分端承桩与摩擦桩两类，据此性状直接确定成孔工艺。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "端承/摩擦听着像分类。",
+     "loss_reason": "端承/摩擦是受力性状，不是成孔工法分类，答错维度。",
+     "fix": "成孔工法=泥浆护壁/沉管/长螺旋/干作业，别用受力分类替代。",
+     "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-2"
+    },
+    {
+     "text": "灌注桩与预制桩同理，先区分锤击还是静压沉桩，再据打法确定成孔工法。",
+     "is_correct": false,
+     "source_error_code": "E05",
+     "temptation": "把预制桩打法套到灌注桩。",
+     "loss_reason": "锤击/静压是预制桩沉桩方式，灌注桩看成孔工法，审题错位。",
+     "fix": "灌注桩按成孔工法定性，不用锤击/静压。",
+     "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-3"
+    },
+    {
+     "text": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查要求。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "四类工法列全、并点出先定性再查要求，这是答题地基。",
+     "option_id": "G03-html-practice-html-q1-a5069fbe7083:option-4"
+    }
+   ],
+   "model_answer": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
+   "rule_group": "定性·条件维",
+   "content_sha256": "9d571a65afaf262e4532e13fd227abd2addd199abf5996568b35ccb51d245b38",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-bored-pile-typology",
+    "skeleton_id": "g03-skel-成孔工法四类定性",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_091_0167:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "9d571a65afaf262e4532e13fd227abd2addd199abf5996568b35ccb51d245b38",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "灌注桩成孔工法四类定性。教材0167逐字'可分为泥浆护壁灌注桩、沉管灌注桩、长螺旋钻孔压灌桩和干作业（机械、人工）成孔灌注桩等'。正确项四类与教材一致;三干扰项(仅两类/按受力性状/照搬预制桩)确误。沿用 2026-07-20 sign_g03 重裁 SIGNABLE 结论。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q2-8c691c527a8d",
+   "surface_id": "practice.html",
+   "stem": "预制混凝土桩的吊运与打桩，对桩身混凝土强度有何要求？选出数字准确的作答。",
+   "options": [
+    {
+     "text": "混凝土强度达设计值≥100%方可起吊、达≥70%即可运输和打桩，可先行运输后再养护补足强度。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记得有70与100，配反了。",
+     "loss_reason": "70%/100%配反：起吊受力小≥70%即可，运输打桩受力大须≥100%。",
+     "fix": "≥70%起吊、≥100%运输打桩，别配反。",
+     "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-1"
+    },
+    {
+     "text": "预制桩只要脱模成型、外观完好无明显裂缝即可起吊运输，桩身强度按现场施工经验掌握。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭手感觉得结实就行。",
+     "loss_reason": "用常识替代规范阈值，未达强度吊运会断桩。",
+     "fix": "按规范≥70%起吊、≥100%运输打桩。",
+     "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-2"
+    },
+    {
+     "text": "混凝土强度达设计值≥75%即可起吊、达设计值≥90%即可运输和打桩。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记了个大概的数。",
+     "loss_reason": "数值错位，规范是70%与100%。",
+     "fix": "起吊≥70%、运输打桩≥100%。",
+     "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-3"
+    },
+    {
+     "text": "混凝土强度达设计值≥70%方可起吊、≥100%方可运输和打桩；两点吊吊点距桩端0.2L。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "70%/100%两档写准，并带吊点0.2L，未达强度吊运致断桩的前提也点到。",
+     "option_id": "G03-html-practice-html-q2-8c691c527a8d:option-4"
+    }
+   ],
+   "model_answer": "混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
+   "rule_group": "预制桩强度·条件维",
+   "content_sha256": "76937e4b33cea5d5c4a0252a2a808c9f299762ffd01c4bd524b0c4d9e7b7bcef",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-precast-strength-thresholds",
+    "skeleton_id": "g03-skel-预制桩70-100吊运打",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_090_0165:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "76937e4b33cea5d5c4a0252a2a808c9f299762ffd01c4bd524b0c4d9e7b7bcef",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "预制桩强度阈值。教材0165①②逐字:≥70%起吊/≥100%运输打桩/两点吊0.2L。数值三连全对;干扰项(70/100倒置、75/90、经验掌握)确误。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q4-1867683ad625",
+   "surface_id": "practice.html",
+   "stem": "锤击法沉桩宜采用何种落锤方式？选出正确作答。",
+   "options": [
+    {
+     "text": "宜采用重锤高击，锤举得越高、单击能量越大，沉桩速度更快。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "以为锤举越高越快。",
+     "loss_reason": "高落距冲击峰值超混凝土抗压，桩头碎裂、桩身纵裂。",
+     "fix": "应重锤低击，不是重锤高击。",
+     "option_id": "G03-html-practice-html-q4-1867683ad625:option-1"
+    },
+    {
+     "text": "宜采用重锤低击或低锤重打，减小冲击峰值、保桩身完整。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "重锤低击/低锤重打，规范落锤方式，得分。",
+     "option_id": "G03-html-practice-html-q4-1867683ad625:option-2"
+    },
+    {
+     "text": "宜采用轻锤高击，靠高频率轻打把桩逐步打入。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "觉得轻打不伤桩。",
+     "loss_reason": "轻锤高击有效贯入能量不足、桩头反复受冲击也易损。",
+     "fix": "应重锤低击或低锤重打。",
+     "option_id": "G03-html-practice-html-q4-1867683ad625:option-3"
+    },
+    {
+     "text": "落锤方式对桩身完整并无影响，按机械默认落距施打即可。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "以为落锤方式无所谓。",
+     "loss_reason": "落锤方式直接影响桩头/桩身完整，须控制。",
+     "fix": "宜重锤低击或低锤重打。",
+     "option_id": "G03-html-practice-html-q4-1867683ad625:option-4"
+    }
+   ],
+   "model_answer": "宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
+   "rule_group": "锤击方式·条件维",
+   "content_sha256": "8037deab608d708c84821674bfd6ff6a27dd08ceddcc71e815be33b68e6e22d3",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-hammer-drop-mode",
+    "skeleton_id": "g03-skel-重锤低击真题",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2017:第26题",
+    "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "8037deab608d708c84821674bfd6ff6a27dd08ceddcc71e815be33b68e6e22d3",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "锤击落锤方式。真题 exam:2017:第26题官答 BD=重锤低击/低锤重打,解析同口径;教材本包无此条,真题锚独立成立且与2026教材无冲突。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q5-6742026d87de",
+   "surface_id": "practice.html",
+   "stem": "静力压桩施工与终止沉桩控制，下列作答正确的是？",
+   "options": [
+    {
+     "text": "试压桩不应少于3根；可边压边挖以便随时纠偏纠斜；终止沉桩一律以最大压桩力控制为准。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得边压边挖能纠偏、压力控制最直观。",
+     "loss_reason": "边压边挖破坏土体，且终止标准摩擦桩应以标高为主，答混。",
+     "fix": "不得边压边挖；摩擦桩以标高为主、端承桩以压力为主。",
+     "option_id": "G03-html-practice-html-q5-6742026d87de:option-1"
+    },
+    {
+     "text": "试验桩设1根即可；终止沉桩摩擦桩以压力为主、端承桩以标高为主控制。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "根数记少、终止标准配反。",
+     "loss_reason": "试压桩≥3根；终止标准摩擦↔端承互换错误。",
+     "fix": "试压桩≥3根；摩擦看标高、端承看压力。",
+     "option_id": "G03-html-practice-html-q5-6742026d87de:option-2"
+    },
+    {
+     "text": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "试压桩根数、不得边压边挖、终止标准按桩型，三项齐，得分。",
+     "option_id": "G03-html-practice-html-q5-6742026d87de:option-3"
+    },
+    {
+     "text": "只要压桩力大于机架配重即可终止，无须另行设置试压桩加以验证。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只盯压桩力。",
+     "loss_reason": "漏试压桩要求；最大压桩力还应小于机架配重×0.9。",
+     "fix": "补试压桩≥3根，压桩力<(机架+配重)×0.9。",
+     "option_id": "G03-html-practice-html-q5-6742026d87de:option-4"
+    }
+   ],
+   "model_answer": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
+   "rule_group": "静压·终止·主体维",
+   "content_sha256": "bcbe6c54b91e29c1e38a1cc99b5ca442eeb6d46bb7f2a07b2530f741464878d7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-static-press-termination",
+    "skeleton_id": "g03-skel-静压终止标高压力",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_091_0166:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "bcbe6c54b91e29c1e38a1cc99b5ca442eeb6d46bb7f2a07b2530f741464878d7",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "静压终止标准。核心判分眼(摩擦桩标高为主/端承桩压力为主)教材0166⑧a逐字;干扰项1为主辅对调。辅助采分句'试压桩≥3根/不得边压边挖'教材0165静压①③逐字为真(第一手核对),其候选点0165:1本轮已进q5 TOP_K=5候选,核心眼仍签0166:0。沿用重裁 SIGNABLE(带拆锚记录)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q6-f235160114d8",
+   "surface_id": "practice.html",
+   "stem": "泥浆护壁回转钻成孔灌注桩的施工流程，选出完整、不漏关键节点的作答。",
+   "options": [
+    {
+     "text": "平整放线→钻机成孔→下钢筋笼→浇筑水下混凝土→成桩，成孔后即可直接下笼。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "觉得成孔完就能下笼。",
+     "loss_reason": "漏清孔（除沉渣）和埋护筒，沉渣超标、孔口坍塌。",
+     "fix": "成孔后必须清孔、成孔前须埋护筒。",
+     "option_id": "G03-html-practice-html-q6-f235160114d8:option-1"
+    },
+    {
+     "text": "平整放线→埋设护筒→钻机成孔→清孔→下钢筋笼→水下浇筑混凝土→成桩。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "护筒、清孔两个易漏节点都在，流程完整，得分。",
+     "option_id": "G03-html-practice-html-q6-f235160114d8:option-2"
+    },
+    {
+     "text": "平整放线→埋护筒→成孔→下钢筋笼→清孔→浇筑→成桩，先下笼后清孔。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "以为清孔可放到下笼后。",
+     "loss_reason": "清孔应在下钢筋笼前完成，顺序颠倒。",
+     "fix": "成孔→清孔→下钢筋笼→浇筑。",
+     "option_id": "G03-html-practice-html-q6-f235160114d8:option-3"
+    },
+    {
+     "text": "泥浆护壁仅需成孔与浇筑两步，其余节点按干作业成孔方式处理。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "把流程压成两步。",
+     "loss_reason": "漏护筒/清孔/下笼多个采分节点。",
+     "fix": "按完整流程逐节点写，别压缩。",
+     "option_id": "G03-html-practice-html-q6-f235160114d8:option-4"
+    }
+   ],
+   "model_answer": "场地平整→放线→泥浆池→埋设护筒→钻机就位→成孔→清孔→下钢筋笼→水下浇筑→成桩。",
+   "rule_group": "泥浆护壁流程·程序维",
+   "content_sha256": "d8cae98945c18ae36304cdddf9ba7b6184735d21b37279866a344324475c27b8",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-slurry-wall-process",
+    "skeleton_id": "g03-skel-护壁流程护筒清孔",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_091_0168:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "d8cae98945c18ae36304cdddf9ba7b6184735d21b37279866a344324475c27b8",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "泥浆护壁成孔流程。教材0168完整流程逐字支撑正确项(护筒/清孔两易漏节点齐)。工单(沿用):正确项省略下笼后二次清孔节点;干扰项2'先下笼后清孔'指完全跳过首次清孔仍确误,但与二次清孔工序有表述混淆风险。备用位可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q7-0c0075bd0b2e",
+   "surface_id": "practice.html",
+   "stem": "灌注桩孔底沉渣厚度按桩型控制，选出数值正确的作答。",
+   "options": [
+    {
+     "text": "各类灌注桩孔底沉渣一律控制在≤200mm，按统一限值管理便于施工。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "图省事记一个数。",
+     "loss_reason": "各桩型套同一标准，端承桩持力层最敏感应≤50mm。",
+     "fix": "端承≤50、摩擦≤100、抗拔≤200，分档控制。",
+     "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-1"
+    },
+    {
+     "text": "端承型桩≤200mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤50mm，按此分档控制。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "数字对上了但配反。",
+     "loss_reason": "端承与抗拔数值互换错误。",
+     "fix": "端承最严≤50、抗拔最松≤200。",
+     "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-2"
+    },
+    {
+     "text": "端承型桩≤50mm、摩擦型桩≤100mm、抗拔及抗水平受荷桩≤200mm。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三档数值按桩型写全，端承最严，得分。",
+     "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-3"
+    },
+    {
+     "text": "孔底沉渣厚度只要肉眼看不出明显淤积，即可不必逐桩量测控制。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭观感。",
+     "loss_reason": "须按桩型量测控制，不能凭观感。",
+     "fix": "端承≤50/摩擦≤100/抗拔≤200mm。",
+     "option_id": "G03-html-practice-html-q7-0c0075bd0b2e:option-4"
+    }
+   ],
+   "model_answer": "端承型≤50mm、摩擦型≤100mm、抗拔及抗水平≤200mm。",
+   "rule_group": "孔底沉渣·条件维",
+   "content_sha256": "a989804be9ad6b4850b31d62315a4a8990acc021867fbcb59dd81f586520b3b2",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-sediment-thickness",
+    "skeleton_id": "g03-skel-沉渣50-100-200",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_091_0169:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "a989804be9ad6b4850b31d62315a4a8990acc021867fbcb59dd81f586520b3b2",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "孔底沉渣三档。教材0169逐字(端承≤50/摩擦≤100/抗拔抗水平≤200mm)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q8-a8a5bec0b9cc",
+   "surface_id": "practice.html",
+   "stem": "某水下灌注桩方案：灌注时桩顶混凝土面超过设计标高500mm即停灌。选出对该做法的正确判断与改正。",
+   "options": [
+    {
+     "text": "妥当。桩顶混凝土面超过设计标高500mm已留有余量，凿除桩头浮浆后即可满足设计标高要求。",
+     "is_correct": false,
+     "source_error_code": "E05",
+     "temptation": "觉得超了就行、500有余量。",
+     "loss_reason": "未指出不妥，超灌不足、浮浆凿除后桩顶会低于设计标高。",
+     "fix": "应判不妥，超灌高度应高于设计桩顶标高1m以上。",
+     "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-1"
+    },
+    {
+     "text": "不妥。水下混凝土超灌高度应高于设计桩顶标高1m以上，凿除浮浆后桩头才达标。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "指出不妥+写准高于设计桩顶标高1m以上+点出凿浮浆，三段齐，得分。注：2016年官答曾用0.8~1.0m口径，现行教材以1m以上为准。",
+     "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-2"
+    },
+    {
+     "text": "不妥，应适当加大超灌高度，但具体超灌多少可结合现场浮浆情况确定。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "指出了不妥却不敢写数。",
+     "loss_reason": "正确做法漏写1m以上这一具体数值，阅卷不给该分。",
+     "fix": "补写超灌高度应高于设计桩顶标高1m以上。",
+     "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-3"
+    },
+    {
+     "text": "不妥。水下灌注桩顶混凝土面应比设计标高超灌0.8~1.0m，凿除浮浆后桩头才达标。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "老真题官答就是0.8~1.0m，背得熟。",
+     "loss_reason": "这是2016年官答旧口径，现行教材要求高于设计桩顶标高1m以上，0.8m达不到下限。",
+     "fix": "按现行教材写：超灌高度应高于设计桩顶标高1m以上。",
+     "option_id": "G03-html-practice-html-q8-a8a5bec0b9cc:option-4"
+    }
+   ],
+   "model_answer": "不妥。水下混凝土超灌高度应高于设计桩顶标高1m以上，凿除浮浆后桩头混凝土才达标。",
+   "rule_group": "超灌纠错·记录计算维",
+   "content_sha256": "5f86f6c16cc339f469e7e34a61cee1f76ecc5a2686002fb8ec0f8fa9764cfd63",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-overcast-height-2026",
+    "skeleton_id": "g03-skel-超灌纠错500mm",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_091_0169:1",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "5f86f6c16cc339f469e7e34a61cee1f76ecc5a2686002fb8ec0f8fa9764cfd63",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "超灌纠错(2026-07-20 冲突修正后新裁)。教材 page91 chunk 0169 ⑧逐字'水下混凝土超灌高度应高于设计桩顶标高 1m 以上，充盈系数不应小于 1'。正确项已改为2026教材口径'高于设计桩顶标高1m以上';2016案例1官答0.8~1.0m旧口径降级为M08干扰项并在解析注明新旧口径(authority-ladder 教材>历史官答,owner-delegated 仲裁)。锚为拆锚修复后的独立超灌采分点(候选rank3,repair_note在编译库)。前轮NO-GO病灶已治,SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q9-3dfec01f94ce",
+   "surface_id": "practice.html",
+   "stem": "沉管灌注桩除单打法外还有哪些工法？成桩关键步骤是什么？选出正确作答。",
+   "options": [
+    {
+     "text": "工法还包括长螺旋法与旋挖法；沉管到位后一次浇满再拔管即可成桩。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把别的成孔法当沉管工法。",
+     "loss_reason": "长螺旋/旋挖不是沉管工法，且漏边振边拔续浇。",
+     "fix": "沉管工法=单打/复打/反插；须边振边拔续浇。",
+     "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-1"
+    },
+    {
+     "text": "单打法之外别无其他工法；拔管时应快速上拔以免混凝土发生离析。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为只有单打。",
+     "loss_reason": "漏复打、反插两工法，快速拔管易缩颈断桩。",
+     "fix": "补复打/反插；边振边拔、控制拔管速度。",
+     "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-2"
+    },
+    {
+     "text": "工法还包括复打法、反插法；边振边拔管边继续浇筑→下钢筋笼继续浇筑→成桩。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "复打/反插补全，边振边拔续浇关键步点到，得分。",
+     "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-3"
+    },
+    {
+     "text": "工法还包括复打法与反插法；先将套管整体全部拔出完毕后再下钢筋笼浇筑混凝土成桩。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "工法补对了但步骤颠倒。",
+     "loss_reason": "应边振边拔边浇，先拔完管再浇会离析缩颈。",
+     "fix": "边振边拔管边继续浇筑，别先拔完再浇。",
+     "option_id": "G03-html-practice-html-q9-3dfec01f94ce:option-4"
+    }
+   ],
+   "model_answer": "工法还包括复打法、反插法；成桩边振（锤击）边拔管并继续浇筑、下钢筋笼继续浇筑、成桩。",
+   "rule_group": "沉管成桩·程序维",
+   "content_sha256": "f0318a4e1fd9341103dbc4344d036f4062bc4c11c86bc9d5448d96a60dc6626c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-immersed-tube-methods",
+    "skeleton_id": "g03-skel-沉管复打反插续浇",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_092_0171:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "f0318a4e1fd9341103dbc4344d036f4062bc4c11c86bc9d5448d96a60dc6626c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "沉管工法+成桩步骤。教材0171逐字+exam:2022:第(三)题官答双证(复打法/反插法;边振边拔→下笼继续浇→成桩)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q10-bd097c720984",
+   "surface_id": "practice.html",
+   "stem": "人工挖孔灌注桩的开挖间距与顺序，选出符合规范的作答。",
+   "options": [
+    {
+     "text": "桩距<2.5m时应间隔开挖并浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "间隔开挖、≥5m、先中间后周边三项齐，得分。",
+     "option_id": "G03-html-practice-html-q10-bd097c720984:option-1"
+    },
+    {
+     "text": "相邻各桩可以同时开挖以加快施工进度，待本批桩身浇筑完成后再依次开挖下一批桩孔。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "想同时挖加快进度。",
+     "loss_reason": "相邻同时挖易塌孔伤人，应间隔开挖、间距≥5m。",
+     "fix": "间隔开挖、相邻最小≥5m。",
+     "option_id": "G03-html-practice-html-q10-bd097c720984:option-2"
+    },
+    {
+     "text": "挖土宜先周边后中间，扩底时应先扩大底部再开挖上部圆柱段。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "顺序凭感觉。",
+     "loss_reason": "挖土应先中间后周边，扩底应先挖圆柱再扩底，全反。",
+     "fix": "先中间后周边；先挖圆柱再扩底。",
+     "option_id": "G03-html-practice-html-q10-bd097c720984:option-3"
+    },
+    {
+     "text": "只要护壁施工到位，相邻桩间距不受限制，紧挨着开挖也可以。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为护壁到位就无间距要求。",
+     "loss_reason": "漏最小间距≥5m的硬约束。",
+     "fix": "相邻桩最小间距≥5m、间隔开挖。",
+     "option_id": "G03-html-practice-html-q10-bd097c720984:option-4"
+    }
+   ],
+   "model_answer": "桩距小于2.5m时应间隔开挖浇筑、相邻桩最小间距≥5m；挖土先中间后周边。",
+   "rule_group": "人工挖孔·程序维",
+   "content_sha256": "8857d0d93936716a44a6c79bcbdcf483f58ce7640b05221c32d8d80e15e41311",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-manual-dug-pile-spacing",
+    "skeleton_id": "g03-skel-挖孔间隔5m先中后周",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_092_0172:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "8857d0d93936716a44a6c79bcbdcf483f58ce7640b05221c32d8d80e15e41311",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "人工挖孔间距顺序。教材0172逐字(<2.5m间隔开挖浇筑/最小≥5m/先中间后周边)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q11-66c7323d8d73",
+   "surface_id": "practice.html",
+   "stem": "灌注桩桩底后注浆的终止控制，选出正确作答。",
+   "options": [
+    {
+     "text": "以注浆压力作为唯一的主控指标，压力一旦达到设计值即行终止，不再计量注浆总量。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得压力最直观。",
+     "loss_reason": "应以注浆量为主控，单看压力可能量不足。",
+     "fix": "以注浆量为主控，兼顾压力条件。",
+     "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-1"
+    },
+    {
+     "text": "注浆总量达到设计值的50%即可终止注浆，以节约水泥浆液用量。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记了个偏小的比例。",
+     "loss_reason": "比例记错，应≥80%且压力大于设计值。",
+     "fix": "注浆量≥80%且压力>设计值，或总量达设计。",
+     "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-2"
+    },
+    {
+     "text": "注浆至桩底出现返浆冒浆为止，凭现场返浆情况判断终止时机。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭返浆手感。",
+     "loss_reason": "须按注浆量/压力量化控制。",
+     "fix": "以注浆量为主控：总量达设计或≥80%且压力>设计。",
+     "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-3"
+    },
+    {
+     "text": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且压力大于设计值时终止。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "量为主、双条件写全，得分。",
+     "option_id": "G03-html-practice-html-q11-66c7323d8d73:option-4"
+    }
+   ],
+   "model_answer": "以注浆量为主控：注浆总量达设计值，或注浆量≥80%且注浆压力大于设计值时可终止。",
+   "rule_group": "桩底注浆·条件维",
+   "content_sha256": "a82a5e71d5fdbd3fbc4c84170af7cda01176a190ccc0e65207f5e67fb6dac15c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-post-grouting-control",
+    "skeleton_id": "g03-skel-注浆量主控80",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_092_0170:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "a82a5e71d5fdbd3fbc4c84170af7cda01176a190ccc0e65207f5e67fb6dac15c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "桩底注浆终止控制。教材0170逐字(以注浆量为主;总量达设计 或 ≥80%且压力>设计值)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q12-81340bfc439c",
+   "surface_id": "practice.html",
+   "stem": "桩基检测方法与检测目的的匹配，选出正确作答。",
+   "options": [
+    {
+     "text": "桩身承载力采用低应变法测定，方法快速经济且适用于各类桩型。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "以为低应变啥都能测。",
+     "loss_reason": "低应变只判完整性、给不出承载力，方法目的错配。",
+     "fix": "承载力用静载或高应变，低应变测完整性。",
+     "option_id": "G03-html-practice-html-q12-81340bfc439c:option-1"
+    },
+    {
+     "text": "完整性缺陷采用静载试验测定，直接加载即可判断桩身有无破损。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "以为加载就能看缺陷。",
+     "loss_reason": "静载测承载力，完整性缺陷用低应变/声波透射/钻芯。",
+     "fix": "缺陷用低应变/声波透射，承载力才用静载。",
+     "option_id": "G03-html-practice-html-q12-81340bfc439c:option-2"
+    },
+    {
+     "text": "各类检测方法均可任意选取，只要能出具检测报告即可，方法与目的之间无须一一对应。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "以为有报告就行。",
+     "loss_reason": "方法必须对应目的，否则结论无效。",
+     "fix": "按目的选方法：承载力静载/高应变、持力层钻芯、缺陷低应变声波透射。",
+     "option_id": "G03-html-practice-html-q12-81340bfc439c:option-3"
+    },
+    {
+     "text": "承载力用静载或高应变；持力层岩性用钻芯法；完整性缺陷用低应变或声波透射法。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "方法对着目的选，甲级承载力必静载，得分。",
+     "option_id": "G03-html-practice-html-q12-81340bfc439c:option-4"
+    }
+   ],
+   "model_answer": "承载力用静载或高应变；桩端持力层岩性用钻芯法；桩身完整性缺陷用低应变或声波透射；试验桩定单桩极限承载力。",
+   "rule_group": "检测方法适用·主体维",
+   "content_sha256": "9adbd00a70e38f11b829f77cc997f6b7cbf8baf1f99fd012b832dce5982bb14c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-pile-testing-eyes",
+    "skeleton_id": "g03-skel-方法目的匹配",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_092_0173:0",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "9adbd00a70e38f11b829f77cc997f6b7cbf8baf1f99fd012b832dce5982bb14c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "检测方法-目的匹配。教材0173方法汇总五连全覆盖+0174逐字+exam:2021:第14题(钻芯法=A)旁证。jury issue#1(高应变也可判完整性)为工单级非fatal——选项未写'只能',配对法与教材口径一致。三件套 anchor。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q13-e3d20b4a2a14",
+   "surface_id": "practice.html",
+   "stem": "桩身完整性分类Ⅰ–Ⅳ类，选出对Ⅱ、Ⅲ类描述正确的作答。",
+   "options": [
+    {
+     "text": "Ⅱ类有轻微缺陷但不影响桩身结构承载力；Ⅲ类有明显缺陷、影响承载力。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "Ⅱ/Ⅲ分界在影不影响承载力，答对，得分。",
+     "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-1"
+    },
+    {
+     "text": "Ⅱ类有明显缺陷、明显影响桩身承载力；Ⅲ类仅有轻微缺陷、不影响承载力。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "Ⅱ、Ⅲ描述整体配反。",
+     "loss_reason": "Ⅱ轻微不影响、Ⅲ明显影响，互换错误。",
+     "fix": "Ⅱ轻微不影响承载力、Ⅲ明显影响承载力。",
+     "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-2"
+    },
+    {
+     "text": "Ⅱ类即判为不合格桩、须直接报废处理；Ⅲ类可照常投入正常使用。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为Ⅱ类就废。",
+     "loss_reason": "Ⅱ类不影响承载力可用，处置判断错。",
+     "fix": "Ⅱ类可用（不影响承载力），Ⅲ/Ⅳ才需处理。",
+     "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-3"
+    },
+    {
+     "text": "完整性只需分合格与不合格两类，无须再细分为Ⅰ至Ⅳ四个等级。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "图省事分两类。",
+     "loss_reason": "漏Ⅰ–Ⅳ四类分级采分点。",
+     "fix": "按Ⅰ完整/Ⅱ轻微/Ⅲ明显/Ⅳ严重四类。",
+     "option_id": "G03-html-practice-html-q13-e3d20b4a2a14:option-4"
+    }
+   ],
+   "model_answer": "Ⅰ类完整；Ⅱ类有轻微缺陷、不影响承载力；Ⅲ类有明显缺陷、影响承载力；Ⅳ类严重缺陷。",
+   "rule_group": "完整性分类·条件维",
+   "content_sha256": "6d1735d5e0d597dea4bc97c19d49af2ade961e571e4ff7231a92f305a815e36a",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-pile-testing-eyes",
+    "skeleton_id": "g03-skel-完整性II-III分界",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A413030_093_0174:1",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6d1735d5e0d597dea4bc97c19d49af2ade961e571e4ff7231a92f305a815e36a",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "完整性Ⅱ/Ⅲ分界。教材0174:1逐字(Ⅱ轻微不影响/Ⅲ明显影响承载力)。三件套 immediate_confirm,第2独立skeleton。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q14-2880cbbb0da6",
+   "surface_id": "practice.html",
+   "stem": "钻芯法检测的钻孔数量随桩径如何确定？选出正确作答。",
+   "options": [
+    {
+     "text": "桩径<1.2m钻1~2孔、1.2~1.6m钻2孔、>1.6m钻3孔；孔位距桩中心(0.15~0.25)D。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三档孔数+孔位写全，粗桩多孔有代表性，得分。",
+     "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-1"
+    },
+    {
+     "text": "无论桩径大小，钻芯法每桩均只钻取1孔即可，以一根芯样的检测结果代表整根桩身质量。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "图省事每桩1孔。",
+     "loss_reason": "粗桩1孔代表性不足，须按桩径分档增孔。",
+     "fix": "<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔。",
+     "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-2"
+    },
+    {
+     "text": "桩径<1.2m钻3孔、1.2~1.6m钻2孔、>1.6m钻1孔，桩径越细钻孔数越多。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "孔数与桩径关系记反。",
+     "loss_reason": "应桩越粗孔越多，方向反了。",
+     "fix": "细桩少孔、粗桩多孔：1~2/2/3孔。",
+     "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-3"
+    },
+    {
+     "text": "钻芯孔数由检测单位视现场取样需要自行确定，只要能满足取样即可，不按桩径分档控制。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "以为随意定。",
+     "loss_reason": "孔数按桩径规范确定，非随意。",
+     "fix": "按桩径<1.2m/1.2~1.6m/>1.6m对应1~2/2/3孔。",
+     "option_id": "G03-html-practice-html-q14-2880cbbb0da6:option-4"
+    }
+   ],
+   "model_answer": "桩径<1.2m为1~2孔、1.2~1.6m为2孔、>1.6m为3孔；孔位距桩中心(0.15~0.25)D。",
+   "rule_group": "钻芯孔数·条件维",
+   "content_sha256": "3b6cb344d9f5b2da5c2c1b6d591e45e648b90176e8316baab3c5c0405b7a5f68",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-pile-testing-eyes",
+    "skeleton_id": "g03-skel-钻芯孔数分档",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A413030_093_0174:2",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "3b6cb344d9f5b2da5c2c1b6d591e45e648b90176e8316baab3c5c0405b7a5f68",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "钻芯孔数分档。教材0174:2逐字+数值复核(<1.2m为1~2孔/1.2~1.6m为2孔/>1.6m为3孔,孔位0.15~0.25D)。三件套 d1_probe,第3独立skeleton。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G03-html-practice-html-q15-cf892847c628",
+   "surface_id": "practice.html",
+   "stem": "某甲级泥浆护壁灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③成孔坍孔因运气不好、防治为加强管理。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "作答基本正确：超灌500mm已经达标，20%抽检180根也属合规，坍孔归因于运气不好也情有可原，可判给分。",
+     "is_correct": false,
+     "source_error_code": "E05",
+     "temptation": "只看有没有作答、没核对采分点。",
+     "loss_reason": "三处全错还判对，超灌不足、甲级应30%、坍孔归因空话。",
+     "fix": "三处都要改：超灌1m以上、30%·270根、坍孔按泥浆/水头/护筒/进尺找原因加具体防治。",
+     "option_id": "G03-html-practice-html-q15-cf892847c628:option-1"
+    },
+    {
+     "text": "只有完整性抽检比例这一处有误、应改为30%，其余超灌500mm达标与坍孔归因运气两处均无问题，可予以保留。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓到抽检一处就收手。",
+     "loss_reason": "漏诊超灌不足与坍孔口号化两处失分。",
+     "fix": "超灌改1m以上、坍孔写泥浆比重/水头/护筒/进尺具体成因加防治，不止改抽检。",
+     "option_id": "G03-html-practice-html-q15-cf892847c628:option-2"
+    },
+    {
+     "text": "三处都不妥：超灌应高于设计桩顶标高1m以上；甲级完整性≥30%即900×30%=270根；坍孔从泥浆比重、水头、护筒埋深、进尺找原因并补具体防治。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "超灌、抽检、坍孔三处全揪出并补写采分句，这就是会写答案。",
+     "option_id": "G03-html-practice-html-q15-cf892847c628:option-3"
+    },
+    {
+     "text": "坍孔成因已经写到位、无须再作改动，主要问题在超灌不足，只需改成超灌0.8~1.0m，完整性抽检仍按20%执行即可。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "超灌0.8~1.0m是背过的老官答口径。",
+     "loss_reason": "坍孔归因运气是空话未提泥浆/水头/护筒/进尺；0.8~1.0m是2016官答旧口径，现行教材要求1m以上；甲级抽检也不是20%。",
+     "fix": "坍孔写具体成因加防治；超灌1m以上；甲级抽检30%且≥20根。",
+     "option_id": "G03-html-practice-html-q15-cf892847c628:option-4"
+    }
+   ],
+   "model_answer": "三处都失分：超灌应高于设计桩顶标高1m以上；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；坍孔应从泥浆比重不够、水头高度不足、护筒埋置太浅、进尺过快等找原因，防治写优质泥浆、升高护筒增大水头、控制进尺。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "902848ff3e59a32072353b4564ac145b98552f7caba6612d27c4fe338c9e0d25",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
+   "authoring_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
+   "decision": {
+    "fact_id": "g03-fact-pile-diagnosis-composite",
+    "skeleton_id": "g03-skel-诊断超灌抽检坍孔",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413030_091_0169:1",
+    "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "902848ff3e59a32072353b4564ac145b98552f7caba6612d27c4fe338c9e0d25",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "复合诊断末题(2026-07-20 双病灶修复后新裁)。①超灌:正确项改2026教材口径'高于设计桩顶标高1m以上',主锚即该教材逐字采分点(候选rank1);0.8~1.0m旧口径降级为E08干扰项内错误成分并在解析点破。②甲级完整性≥30%且≥20根,900×30%=270根,exam:2016官答逐字支持、教材无冲突(前轮已裁无病)。③前轮预制桩'断裂五因'拼装错误已整段替换为泥浆护壁灌注桩坍孔病谱,教材 page71 chunk 1A434000_071_0110 '原因分析'六条逐字支撑(泥浆比重/水头/护筒埋深/进尺等,已按S02同法补独立采分点 kc:1A434000_071_0110:2+repair_note;该点rank7未进本题TOP_K=5候选,单锚按G01-q15先例取首要判分眼超灌教材点)。场景已改'甲级泥浆护壁灌注桩',病谱-场景自洽。前轮三重阻断全部解除,SIGNABLE。工单:正确项偏长(诊断题固有,同G01-q15口径)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

@@ -8,7 +8,7 @@
 </head>
 <body>
 <x-dc>
-<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 追问AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
@@ -129,7 +129,7 @@
         <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
       </div>
       <div style="padding:0 16px 24px;">
-        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？追问AI（已带题目）</button>
       </div>
     </div>
     </sc-if>
@@ -186,7 +186,7 @@
         <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
         <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
           <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
-          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">追问AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
           <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
         </div>
         <div style="flex:none;padding:0 16px;">
@@ -231,7 +231,7 @@
 /* ░░░ 母版骨架逻辑：随堂练 ░░░
    改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
    每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
-   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。 */
+   多选题 tag 含“多选”。判分/解析/追问AI 机制已封装好。 */
 class Component extends DCLogic {
   // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
   //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
@@ -547,7 +547,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("Q01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWViZWI2MzE4MmU2IiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MDJhM2VhMWY2MDciLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTc5YzA5MTVhMzZjOCIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWJmYjZiYzNmODBjIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYjMyYzFmNzRiMmIyIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImM1NmU0ZjIyNzVjMTdkYzI1YmNjYjUzMTk2YjA5NWEyODg0Zjk0MzczYjUyZmI1Mjk5MzYxOTlhOWEzYTA2NTIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("Q01")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWViZWI2MzE4MmU2IiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MDJhM2VhMWY2MDciLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTc5YzA5MTVhMzZjOCIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWJmYjZiYzNmODBjIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYjMyYzFmNzRiMmIyIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImViMTU2ZTVjNDBlNGU2N2I3MTJiNTM0MDExZmRhMWZiNTY3MzY0OGMzMTJlYmY1MDliNTBlMTYwZDkwYjYzMWUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
@@ -608,7 +608,7 @@ class Component extends DCLogic {
     this.__dtOverlayLoading();
     let response,data;
     try{
-      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"Q01",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWViZWI2MzE4MmU2IiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MDJhM2VhMWY2MDciLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTc5YzA5MTVhMzZjOCIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWJmYjZiYzNmODBjIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYjMyYzFmNzRiMmIyIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImM1NmU0ZjIyNzVjMTdkYzI1YmNjYjUzMTk2YjA5NWEyODg0Zjk0MzczYjUyZmI1Mjk5MzYxOTlhOWEzYTA2NTIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"Q01",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtOWViZWI2MzE4MmU2IiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MDJhM2VhMWY2MDciLCJRMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLTc5YzA5MTVhMzZjOCIsIlEwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNWJmYjZiYzNmODBjIiwiUTAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtYjMyYzFmNzRiMmIyIl0sInBhY2tfaWQiOiJRMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImViMTU2ZTVjNDBlNGU2N2I3MTJiNTM0MDExZmRhMWZiNTY3MzY0OGMzMTJlYmY1MDliNTBlMTYwZDkwYjYzMWUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiY2JjNzM3ZDFkNjU3ZDRhODgzMGI5MDk2OWM5OTIzZDIyNzI2NjE5OTliNWJmZWYxMmMxOTIzNmRhYWQwNjE2MyIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
       data=await response.json().catch(function(){ return {}; });
     }catch(_){
       this.__dtRound.state='failed';

@@ -1,1173 +1,1164 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "G01",
-  "source_pack_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
-  "source_bundle_sha256": "a5012eda41a4467f7f89653e08957fabb8f6a78a11777456712a9de92499ef30",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 15,
-  "eligible_count": 8,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "G01-html-practice-html-q1-aba98d47b38a",
-      "surface_id": "practice.html",
-      "stem": "某基坑开挖深度 4m，场地为软土、地下水丰富。问降水方案怎么选，选出最完整、能得分的作答。",
-      "options": [
-        {
-          "text": "场地地下水丰富，宜采用集水明排：沿坑底开挖排水沟并设集水井，借重力汇水后抽排，经济适用。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "一见地下水就想到最常见的集水明排。",
-          "loss_reason": "深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。",
-          "fix": "深度>3m 应改井点降水，集水明排仅≤3m 软土。",
-          "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-1"
-        },
-        {
-          "text": "不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得管井出水大、万能。",
-          "loss_reason": "管井要求渗透系数较大（砂砾），软土/填土/黏土不宜；且未按深度分流。",
-          "fix": "先按深度分流用井点，再按渗透系数与土质选井点类型。",
-          "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-2"
-        },
-        {
-          "text": "深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "先按深度分流定井点，再补综合因素与周边保护，判据链完整。",
-          "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-3"
-        },
-        {
-          "text": "作答写明已采取降水措施、将水位降至开挖面以下即可，具体方法不必在方案中明确。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "图省事、笼统写降水。",
-          "loss_reason": "没有可判分的方法与依据，采分点全落空。",
-          "fix": "写明>3m 井点降水+综合因素+周边保护+承压水验算。",
-          "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-4"
-        }
-      ],
-      "model_answer": "深度>3m 应井点降水；综合地质水文环境支护，危及周边截水回灌、有承压水验算突涌。",
-      "rule_group": "降水分流·条件维",
-      "content_sha256": "04a229b31afdad655b48854a74a53dbaafdc58c2e218bab56b7bee7da75436eb",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q1",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-dewater-scheme-selection",
-        "skeleton_id": "g01-skel-降水方案深度分流",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_082_0154:0",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "04a229b31afdad655b48854a74a53dbaafdc58c2e218bab56b7bee7da75436eb",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "降水方案选择三原则: 深度≤3m且软土→集水明排; 深度>3m→井点降水; 危及周边→截水/回灌; 承压水→验算突涌。正确项'深度>3m井点降水+综合地质水文环境支护'直引 kc:082_0154:0。工单: 正确项恒居第三位且偏完整(template artifact)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q2-20fc8c298c2f",
-      "surface_id": "practice.html",
-      "stem": "某基坑降水深度约 8m，场地上部为填土层。按降水深度与土质选井点，选出能得分的作答。",
-      "options": [
-        {
-          "text": "宜选轻型井点，其构造简单、布置方便，单级布设即可满足本 8m 基坑的降水深度要求，较为稳妥。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "轻型最常见、构造简单，顺手就选。",
-          "loss_reason": "轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。",
-          "fix": "8m 超轻型单级，应选喷射井点(8~20m)。",
-          "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-1"
-        },
-        {
-          "text": "应选用降水管井，管井单井出水量大、对深度不敏感，用于 8m 填土基坑降水效率最高。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为管井深度大、出水多就通用。",
-          "loss_reason": "管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。",
-          "fix": "填土不宜管井；按深度 8m 选喷射井点。",
-          "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-2"
-        },
-        {
-          "text": "深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "逐条卡深度与土质排除，落到喷射并回判 8m∈8~20m，判据完整。",
-          "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-3"
-        },
-        {
-          "text": "可采用集水明排，沿坑底挖排水沟并设集水井将地下水引流抽走，明排亦可满足 8m 基坑降水。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "明排看着简单便宜。",
-          "loss_reason": "明排只适用≤3m 且软土；8m 深坑必须井点降水。",
-          "fix": "深 8m 用井点（喷射），不是集水明排。",
-          "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-4"
-        }
-      ],
-      "model_answer": "排除集水明排(>3m)、轻型(≤6m)、管井(填土不宜)，宜选喷射井点(降水深度 8~20m)。",
-      "rule_group": "井点选型·计算表达维",
-      "content_sha256": "7b8669b572cefba393366be8d5042721733a7936e5ab372ae61509e0dc8099dd",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q2",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-jet-wellpoint-depth",
-        "skeleton_id": "g01-skel-井点选型8m填土喷射",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_082_0155:1",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "7b8669b572cefba393366be8d5042721733a7936e5ab372ae61509e0dc8099dd",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "喷射井点降水深度8~20m、适用碎石土黄土。正确项'深8m超轻型≤6m、填土不宜管井→喷射(8~20m覆盖)'的核心采分句直引 kc:082_0155:1。轻型排除由 :0 支撑但答案正锚为喷射参数。工单: template artifact。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q3-413c0fb7959f",
-      "surface_id": "practice.html",
-      "stem": "关于轻型井点的降水深度，选出表述正确、能得分的作答。",
-      "options": [
-        {
-          "text": "轻型井点单级降水深度≤6m，需要更深时采用多级轻型井点，可达 6~10m。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分清单级≤6m 与多级 6~10m，数字与条件都齐。",
-          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-1"
-        },
-        {
-          "text": "轻型井点降水深度 8~20m，适用于较深基坑，是深层降水的主力方法。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把轻型和喷射的深度记混。",
-          "loss_reason": "8~20m 是喷射井点的范围，轻型单级≤6m。",
-          "fix": "轻型单级≤6m、多级 6~10m；8~20m 是喷射。",
-          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-2"
-        },
-        {
-          "text": "轻型井点降水深度不受限制，加长井管即可任意加深，深基坑也能一级到位。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为加管就能无限加深。",
-          "loss_reason": "轻型受真空吸程限制，单级≤6m，不是不受限。",
-          "fix": "单级≤6m，更深需多级或改喷射/真空。",
-          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-3"
-        },
-        {
-          "text": "轻型井点降水深度>6m 且要求渗透系数>1e-6、管径≥200mm，用于大渗透系数土层。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把真空降水井管的参数安到轻型头上。",
-          "loss_reason": ">6m·渗透系数>1e-6·管径≥200 是真空降水井管的条件。",
-          "fix": "轻型单级≤6m；>6m 大渗透用真空降水井管。",
-          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-4"
-        }
-      ],
-      "model_answer": "轻型井点降水深度单级≤6m，多级可达 6~10m。",
-      "rule_group": "轻型井点·条件维",
-      "content_sha256": "d7aa05db605f1de2293449343cd755e4559d07442743e818b28336a6d553b281",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q3",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-light-wellpoint-depth",
-        "skeleton_id": "g01-skel-轻型井点单级多级深度",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_082_0155:0",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "d7aa05db605f1de2293449343cd755e4559d07442743e818b28336a6d553b281",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "轻型井点降水深度≤6m、多级轻型井点可达6~10m。正确项'单级≤6m、多级6~10m'逐字直引 kc:082_0155:0。工单: 正确项居首位(template artifact)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q4-1ec0542e7a80",
-      "surface_id": "practice.html",
-      "stem": "下列降水方法中，不宜用于填土、黏土等渗透系数较小土层的是（真题口径）。选出正确作答。",
-      "options": [
-        {
-          "text": "降水管井——它属重力排水、要求渗透系数较大的砂砾层，填土黏土渗透系数小不宜用。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出管井要砂砾、填土黏土不宜，正是真题采分句。",
-          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-1"
-        },
-        {
-          "text": "轻型井点——轻型井点靠真空抽吸，只能用于砂砾等大渗透土层，填土黏土一律不能用。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把不宜填土误安到轻型头上。",
-          "loss_reason": "轻型井点适用渗透系数 1e-7~2e-4 的土层，恰能用于粉细砂等小渗透土，不是它。",
-          "fix": "不宜用于填土的是降水管井，不是轻型井点。",
-          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-2"
-        },
-        {
-          "text": "喷射井点——喷射井点降水深度大，只适合砂砾，遇到填土黏土就会淤堵不能使用。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得深层方法都挑砂砾。",
-          "loss_reason": "题问的是不宜用于填土的降水管井；喷射不是标准答案。",
-          "fix": "标准答案是降水管井；喷射按深度 8~20m 选用。",
-          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-3"
-        },
-        {
-          "text": "集水明排——明排只在浅坑用，遇到填土黏土会塌沟，所以填土基坑不宜集水明排。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "把明排的深度限制当成土质限制。",
-          "loss_reason": "题眼是渗透系数较小土层不宜用的降水方法=管井，不是明排。",
-          "fix": "答降水管井：填土黏土渗透系数小不宜用管井。",
-          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-4"
-        }
-      ],
-      "model_answer": "降水管井——要求渗透系数较大（砂砾层），填土/黏土渗透系数小、出水量不足，不宜用管井。",
-      "rule_group": "管井适用·真题陷阱",
-      "content_sha256": "8a80d15df2ba77896b51bbea3e71fc4d41bc5f12dc795a9fd9cd66a0752eacf0",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q4",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-tube-well-not-for-fill",
-        "skeleton_id": "g01-skel-管井不宜填土真题",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2019:第7题",
-        "source_sha256": "7ab8880432906b5da5e35ce0a733ef6b2e80de6e3decce528f70ace005eff150",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "8a80d15df2ba77896b51bbea3e71fc4d41bc5f12dc795a9fd9cd66a0752eacf0",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "真题 exam:2019:第7题='不宜用于填土土质的降水方法是→B 降水管井, 不宜用于渗透系数较小的填土、黏土层'逐字。正确项'降水管井要砂砾、填土黏土不宜'即真题采分句。工单: 正确项居首位(template artifact)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q5-aa952f9b7a3b",
-      "surface_id": "practice.html",
-      "stem": "降水管井最适用于下列哪种情况？选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "以填土、淤泥质黏土为主的软弱土层，用管井降水见效最快、周边沉降也最小。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为管井万能、软土也行。",
-          "loss_reason": "填土黏土渗透系数小、出水不足，正是管井不宜用的土层。",
-          "fix": "管井宜用于砂砾大渗透土层，软黏土不宜。",
-          "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-1"
-        },
-        {
-          "text": "渗透系数较大的砂砾、砂卵石层，出水量大，宜用降水管井降水。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "抓住渗透系数较大→管井这一条件采分句。",
-          "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-2"
-        },
-        {
-          "text": "承压水导致坑底突涌的隔水层坑底，直接打管井把承压水抽干就能防突涌。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "把管井当防突涌手段。",
-          "loss_reason": "防突涌是验算+钻孔减压/水平封底隔渗，不是笼统打管井；题问适用土层。",
-          "fix": "管井按渗透系数选；防突涌另用减压/封底隔渗。",
-          "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-3"
-        },
-        {
-          "text": "任何深度、任何土质的基坑都可用管井，只要井管够深、水泵够大就能可靠降水。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "用设备强就行的常识替代规范。",
-          "loss_reason": "管井有渗透系数要求，填土黏土不宜，不能一概而论。",
-          "fix": "管井适用渗透系数较大砂砾层，不是任何土质。",
-          "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-4"
-        }
-      ],
-      "model_answer": "渗透系数较大的砂砾层（如砂卵石、砂砾）宜用管井井点。",
-      "rule_group": "管井适用·条件维",
-      "content_sha256": "e3adeb62dca419e0085597fd6401cc2050c5710646d5f9c4bfc5a0253c8c3891",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q5",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e3adeb62dca419e0085597fd6401cc2050c5710646d5f9c4bfc5a0253c8c3891",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q6-238c5a5593f7",
-      "surface_id": "practice.html",
-      "stem": "深基坑坑底为隔水层、其下存在承压水，有坑底突涌风险。防止坑底突涌应采取的措施是？选出正确作答。",
-      "options": [
-        {
-          "text": "设置井点回灌，把抽出的水回灌到坑外维持水位平衡，就能压住坑底不发生突涌。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "回灌也跟水有关，容易误当防突涌。",
-          "loss_reason": "回灌的职能是维持周边水位、防地面沉降，不能降低坑底承压水头。",
-          "fix": "防突涌用钻孔减压/水平封底隔渗；回灌是防沉降。",
-          "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-1"
-        },
-        {
-          "text": "加密集水明排，沿坑底多挖排水沟、多设集水井把坑内的水尽快排走即可防突涌。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为把坑内水排干净就不突涌。",
-          "loss_reason": "突涌来自坑底以下承压水头，明排排的是坑内积水，压不住承压水。",
-          "fix": "针对承压水头，用钻孔减压/水平封底隔渗。",
-          "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-2"
-        },
-        {
-          "text": "直接加大井点降水强度，把整个场地地下水位一次性抽到最低，承压水自然不会顶破坑底。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "用抽得狠就行的常识替代规范。",
-          "loss_reason": "承压含水层需专门减压井，盲目加大普通降水既不经济也未必降承压水头。",
-          "fix": "验算后钻孔减压、水平封底隔渗，针对承压水头处置。",
-          "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-3"
-        },
-        {
-          "text": "验算坑底突涌，必要时钻孔减压降低承压水头，或做水平封底隔渗隔断承压水。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "验算+钻孔减压+水平封底隔渗，正是防突涌采分句。",
-          "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-4"
-        }
-      ],
-      "model_answer": "验算坑底突涌，采取钻孔减压、水平封底隔渗（降低承压水头/隔断渗流）。",
-      "rule_group": "承压水突涌·后果维",
-      "content_sha256": "04fddc6cdd707b16235b67652e2ae21a6a343bd531e528a06d5767c8a9b20bab",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q6",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "04fddc6cdd707b16235b67652e2ae21a6a343bd531e528a06d5767c8a9b20bab",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q7-c46c37fb0728",
-      "surface_id": "practice.html",
-      "stem": "关于井点回灌的作用，选出表述正确、能得分的作答。",
-      "options": [
-        {
-          "text": "回灌把水补进坑底承压含水层，抬高坑内水压顶住坑底，是防止坑底突涌的主要措施。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把回灌和防突涌搅在一起。",
-          "loss_reason": "防突涌是钻孔减压/水平封底隔渗；回灌是防周边沉降，职能不同。",
-          "fix": "回灌防周边沉降；防突涌用减压/封底隔渗。",
-          "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-1"
-        },
-        {
-          "text": "回灌就是把基坑内积水重新抽回坑里循环使用，主要目的是节约用水、减少排水量。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "望文生义把回灌当循环用水。",
-          "loss_reason": "回灌是往坑外含水层注水维持周边水位，不是坑内循环节水。",
-          "fix": "回灌注水于坑外、维持周边水位、防沉降。",
-          "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-2"
-        },
-        {
-          "text": "回灌用于加快坑内降水速度，通过注水扰动含水层让井点出水更快、工期更短。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为回灌帮着降水。",
-          "loss_reason": "回灌是抵消降水影响、护周边，反向注水，不加快降水。",
-          "fix": "回灌维持周边水位防沉降，非加速降水。",
-          "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-3"
-        },
-        {
-          "text": "回灌向坑外注水维持水位平衡，防止降水引起的周边地面与建筑沉降。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点明回灌职能=维持水位、防周边沉降，与减压/封底分开。",
-          "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-4"
-        }
-      ],
-      "model_answer": "回灌向坑外注水维持地下水位平衡，防止降水引起周边地面与建筑沉降；不用于防坑底突涌。",
-      "rule_group": "回灌职能·后果维",
-      "content_sha256": "afc0b450242cde9723c82774823d95bc72a691f6863490806c3f94d003b5356b",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q7",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "afc0b450242cde9723c82774823d95bc72a691f6863490806c3f94d003b5356b",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q8-237586f0918b",
-      "surface_id": "practice.html",
-      "stem": "下列深基坑挖土方案中，属于无支护开挖方案的是。选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "盆式开挖——先挖中间成盆、四周留土护壁，靠留土自稳，属于无支护开挖方案。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "盆式留土听着像不用支护。",
-          "loss_reason": "盆式仍需支护结构，留土只是开挖顺序，不等于无支护。",
-          "fix": "无支护只有放坡；盆式属有支护方案。",
-          "option_id": "G01-html-practice-html-q8-237586f0918b:option-1"
-        },
-        {
-          "text": "逆作法——自上而下先做结构再挖土，用已成结构当支撑，所以不需要另设支护是无支护。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "逆作用结构撑易误判无支护。",
-          "loss_reason": "逆作法以支护/结构承担侧压，属有支护方案。",
-          "fix": "逆作法需支护；无支护方案是放坡。",
-          "option_id": "G01-html-practice-html-q8-237586f0918b:option-2"
-        },
-        {
-          "text": "放坡挖土——靠边坡自身稳定、不设支护结构，是唯一的无支护挖土方案。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点明放坡=无支护，且其余三种需支护，采分到位。",
-          "option_id": "G01-html-practice-html-q8-237586f0918b:option-3"
-        },
-        {
-          "text": "中心岛式——中间先挖成岛、四周斜坡下挖，中心岛提供反压，属无支护开挖方案。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "中心岛有斜坡字样易混放坡。",
-          "loss_reason": "中心岛式仍配支护结构挖周边，不是无支护。",
-          "fix": "无支护=放坡；中心岛属有支护方案。",
-          "option_id": "G01-html-practice-html-q8-237586f0918b:option-4"
-        }
-      ],
-      "model_answer": "放坡挖土是无支护方案；中心岛式、盆式、逆作法均需支护。",
-      "rule_group": "无支护方案·后果维",
-      "content_sha256": "2e08253732bb31c9a500430d2ba8a6e45214373e4bd46e0254316db3b1c6de56",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q8",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "2e08253732bb31c9a500430d2ba8a6e45214373e4bd46e0254316db3b1c6de56",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q9-2a2749517ef5",
-      "surface_id": "practice.html",
-      "stem": "深基坑分层开挖，每层厚度宜控制在多少？选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "为加快进度可一次开挖到设计坑底，只要坡度放缓、四周有支护就不必分层。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "图快想一次到底。",
-          "loss_reason": "深基坑必须分层开挖、每层≤3m，一次到底易失稳。",
-          "fix": "分层开挖、每层厚度宜≤3m。",
-          "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-1"
-        },
-        {
-          "text": "深基坑应分层开挖，每层厚度宜控制在 3m 以内，一层挖完稳定后再挖下一层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分层≤3m 且逐层下挖，数字与做法都对。",
-          "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-2"
-        },
-        {
-          "text": "深基坑分层开挖，每层厚度宜控制在 5m 以内，深度大时可放宽到 6~8m 一层。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记成了更大的数字。",
-          "loss_reason": "每层厚度宜≤3m，5m/6~8m 超限。",
-          "fix": "每层厚度宜≤3m。",
-          "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-3"
-        },
-        {
-          "text": "分层厚度按机械臂长确定即可，挖机能挖多深就分多厚，没有固定的规范限值。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "用按设备的常识替代规范。",
-          "loss_reason": "规范给出每层宜≤3m 的限值，不是随设备定。",
-          "fix": "每层厚度宜≤3m，有明确限值。",
-          "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-4"
-        }
-      ],
-      "model_answer": "深基坑分层开挖，每层厚度宜控制在 3m 以内。",
-      "rule_group": "分层开挖·条件维",
-      "content_sha256": "72fedc9fbea91b2c7af71c2d8c963e7be5c331fbd6c4331594cbcb0217028d97",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q9",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-deep-excavation-earthwork",
-        "skeleton_id": "g01-skel-分层厚度3m",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_084_0157:0",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "72fedc9fbea91b2c7af71c2d8c963e7be5c331fbd6c4331594cbcb0217028d97",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "深基坑分层开挖每层厚度宜≤3m, 直引 kc:084_0157:0。三件套 anchor(深基坑土方开挖 fact, chunk 084_0157 采分点:0)。工单: 正确项居第二位。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q10-80da5c905a97",
-      "surface_id": "practice.html",
-      "stem": "基坑挖至接近基底时对预留土层的处理，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "应预留土层由人工挖除：人工挖土留 150~300mm、机械挖土留 200~300mm，保护基底原状土。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "人工/机械预留数值+人工挖除+护基底，采分完整。",
-          "option_id": "G01-html-practice-html-q10-80da5c905a97:option-1"
-        },
-        {
-          "text": "宜以机械直接开挖至设计基底标高，随后即刻浇筑垫层封闭基底，无需预留土层、也无需安排人工清底。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "觉得机械挖到位省事。",
-          "loss_reason": "机械直挖到基底会扰动原状土；漏了预留土层与人工挖除采分。",
-          "fix": "预留 150~300/200~300mm 人工挖除，护基底。",
-          "option_id": "G01-html-practice-html-q10-80da5c905a97:option-2"
-        },
-        {
-          "text": "应预留土层且厚度取 500~800mm：预留越厚对基底原状土的保护越充分，最后统一采用机械快速清除即可。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为留厚更保险、机械更快。",
-          "loss_reason": "预留 150~300/机械 200~300mm，且应人工挖除；数值与做法都错。",
-          "fix": "人工 150~300、机械 200~300mm，人工挖除。",
-          "option_id": "G01-html-practice-html-q10-80da5c905a97:option-3"
-        },
-        {
-          "text": "预留土层厚度不必作严格控制，关键在于挖至基底后立即浇筑垫层，垫层浇筑即可补偿基底扰动影响。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为浇垫层就能补救扰动。",
-          "loss_reason": "预留是为避免扰动原状土，数值有规定、须人工挖除，不是无所谓。",
-          "fix": "按人工 150~300/机械 200~300mm 预留、人工挖除。",
-          "option_id": "G01-html-practice-html-q10-80da5c905a97:option-4"
-        }
-      ],
-      "model_answer": "预留土层：人工挖土预留 150~300mm、机械挖土预留 200~300mm，由人工挖除，保护基底原状土。",
-      "rule_group": "预留土层·条件维",
-      "content_sha256": "fe37ab4fbb19feac520ee391295915b09b99b74d70277bea25fec471925f7274",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q10",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-deep-excavation-earthwork",
-        "skeleton_id": "g01-skel-预留土层数值",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A413000_084_0157:1",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fe37ab4fbb19feac520ee391295915b09b99b74d70277bea25fec471925f7274",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "预留土层: 人工挖土150~300mm/机械挖土200~300mm由人工挖除, 直引 kc:084_0157:1。三件套 immediate_confirm(同深基坑土方开挖 fact, 第2独立 skeleton)。工单: 正确项居首位。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q11-80b3b9adfcbb",
-      "surface_id": "practice.html",
-      "stem": "地下水位以下挖土时的降水控制，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "把地下水位降到坑底标高即可开挖，见到坑底不出水就可以停泵、转入基础施工。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为降到坑底不冒水就行。",
-          "loss_reason": "应降至坑底以下 500mm 以上，且不能中途停降水。",
-          "fix": "降至坑底下≥500mm，持续到基础完成。",
-          "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-1"
-        },
-        {
-          "text": "地下水位应降至坑底以下 500mm 以上，且降水应持续到基础施工完成，保证干作业。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "降至坑底下 500mm+持续到基础完成，两句采分都在。",
-          "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-2"
-        },
-        {
-          "text": "水位降至坑底以下 500mm 后即可停止降水，基础施工阶段依靠已浇筑的垫层阻挡渗水，不必继续抽排。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "抓到 500mm 却漏了持续。",
-          "loss_reason": "中途停降水水会回涨，必须持续到基础施工完成。",
-          "fix": "降至坑底下 500mm 且持续到基础完成。",
-          "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-3"
-        },
-        {
-          "text": "降水深度按经验降到坑底以下 2~3m 最保险，一直抽到主体结构封顶再停最稳妥。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为降越深、抽越久越保险。",
-          "loss_reason": "规范要求坑底以下≥500mm、持续到基础完成即可，过度降水不经济且加剧周边沉降。",
-          "fix": "坑底下≥500mm、持续到基础完成，不是越深越久。",
-          "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-4"
-        }
-      ],
-      "model_answer": "水位应降至坑底以下 500mm 以上，且降水持续到基础施工完成。",
-      "rule_group": "水位控制·条件维",
-      "content_sha256": "5ead147c3bf089f1dddac0920b5b7d8f4a4f4091cce6d61ab461aae77f8e16a7",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q11",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-deep-excavation-earthwork",
-        "skeleton_id": "g01-skel-水位降至坑底500",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A413000_084_0157:2",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "5ead147c3bf089f1dddac0920b5b7d8f4a4f4091cce6d61ab461aae77f8e16a7",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "地下水位以下挖土: 水位降至坑底以下500mm以上且降水持续到基础施工完成, 直引 kc:084_0157:2。三件套 d1_probe(同深基坑土方开挖 fact, 第3独立 skeleton)。工单: 正确项居第二位。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q12-a328b40bbf22",
-      "surface_id": "practice.html",
-      "stem": "关于土方开挖控制，选出表述完整、能得分的作答。",
-      "options": [
-        {
-          "text": "只要严禁超挖、挖到设计标高就行，软土高差和支护、降水设施属另一工序不必一起写。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "抓到严禁超挖就以为够了。",
-          "loss_reason": "漏了软土高差≤1m 与不损坏支护/降水设施/工程桩两处采分。",
-          "fix": "补软土高差≤1m 与不损护两句。",
-          "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-1"
-        },
-        {
-          "text": "适当超挖 200~300mm 再回填夯实反而使基底更密实，超挖后垫层加厚即可不影响质量。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为超挖回填能补救。",
-          "loss_reason": "必须与设计工况一致、严禁超挖，超挖会扰动基底、损伤支护。",
-          "fix": "严禁超挖，与设计工况一致。",
-          "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-2"
-        },
-        {
-          "text": "软土基坑相邻高差控制在 3m 以内即可，只要分块开挖、放坡到位就不会失稳。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把高差限值记大了。",
-          "loss_reason": "软土基坑高差应≤1m，3m 超限。",
-          "fix": "软土基坑高差≤1m。",
-          "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-3"
-        },
-        {
-          "text": "开挖须与设计工况一致、严禁超挖；软土基坑高差≤1m；不得损坏支护、降水设施、工程桩。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "严禁超挖+软土高差≤1m+不损护，三句齐。",
-          "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-4"
-        }
-      ],
-      "model_answer": "开挖必须与设计工况一致、严禁超挖；软土基坑高差≤1m；不得损坏支护结构、降水设施、工程桩。",
-      "rule_group": "严禁超挖·后果维",
-      "content_sha256": "0fe749f3ed54aec5ca5c04e2d683c0b4e08dd65dc68b27d7cb90dd3c35c0791a",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q12",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "0fe749f3ed54aec5ca5c04e2d683c0b4e08dd65dc68b27d7cb90dd3c35c0791a",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q13-433011598330",
-      "surface_id": "practice.html",
-      "stem": "问如何选择基坑降水方案，选出层次完整、能得分的作答。",
-      "options": [
-        {
-          "text": "凭工程经验直接选定一种最常用的降水方法（如轻型井点）并布置到位，能把地下水位降下去即视为方案合格。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "图省事直接上一种方法。",
-          "loss_reason": "缺综合因素、深度分流、周边与承压水各层采分。",
-          "fix": "按综合→分流→选型→周边→承压水分层写。",
-          "option_id": "G01-html-practice-html-q13-433011598330:option-1"
-        },
-        {
-          "text": "先计算基坑涌水量，再套用公式确定井点管数量与间距，把降水方案写成一道完整的涌水量计算题即可得分。",
-          "is_correct": false,
-          "source_error_code": "M05",
-          "temptation": "以为降水方案就是算涌水量。",
-          "loss_reason": "选型是按深度/渗透系数/土质匹配方法，不是只算涌水量。",
-          "fix": "按深度分流+参数选型+周边+承压水综合作答。",
-          "option_id": "G01-html-practice-html-q13-433011598330:option-2"
-        },
-        {
-          "text": "综合考虑地质水文环境支护，按深度分流(≤3m明排/>3m井点)，按参数选井点，危及周边截水回灌，承压水验算突涌。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "四层按序铺开、每层可判分，正是采分链。",
-          "option_id": "G01-html-practice-html-q13-433011598330:option-3"
-        },
-        {
-          "text": "将集水明排、井点降水、截水帷幕与井点回灌全部列入方案，覆盖的方法越全越保险，各项措施无须逐一对应工况进行匹配筛选。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为方法堆满就得分。",
-          "loss_reason": "堆方法不分工况=概念混淆；应按深度/参数匹配、周边有需要才截水回灌。",
-          "fix": "按工况匹配方法，非无差别堆叠。",
-          "option_id": "G01-html-practice-html-q13-433011598330:option-4"
-        }
-      ],
-      "model_answer": "综合考虑地质水文环境支护→按深度分流→按降水深度与渗透系数选井点→危及周边截水回灌→承压水验算突涌。",
-      "rule_group": "降水综合·记录表达维",
-      "content_sha256": "e7a2b9adc43c751d507c144e9861b626fc44891107dc89866134df1e98ba4793",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q13",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e7a2b9adc43c751d507c144e9861b626fc44891107dc89866134df1e98ba4793",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q14-02fcad3650e9",
-      "surface_id": "practice.html",
-      "stem": "某深基坑开挖深度 8m，按分层开挖要求，选出正确、能得分的作答。",
-      "options": [
-        {
-          "text": "分层开挖、每层≤3m，可分 3、3、2 三层，一层挖完稳定后再挖下一层。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分层数与每层≤3m、逐层下挖都对。",
-          "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-1"
-        },
-        {
-          "text": "分成上下两层各挖 4m，两层都在限值附近、能减少倒运次数，效率最高。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为 4m 差不多、层数少更快。",
-          "loss_reason": "每层≤3m，4m 已超限。",
-          "fix": "每层≤3m，8m 宜分三层(3+3+2)。",
-          "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-2"
-        },
-        {
-          "text": "一次挖到 8m 坑底，四周放大放坡角就能自稳，深基坑也可不分层一次成型。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "以为放缓坡就能一次到底。",
-          "loss_reason": "深基坑须分层开挖、每层≤3m，一次到底易失稳。",
-          "fix": "分层开挖，每层≤3m。",
-          "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-3"
-        },
-        {
-          "text": "分层厚度随意，只要最后总深度到 8m 即可，各层薄厚不影响坑壁稳定。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为总深对就行。",
-          "loss_reason": "每层有≤3m 限值，逐层稳定才安全。",
-          "fix": "每层≤3m、逐层挖并稳定。",
-          "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-4"
-        }
-      ],
-      "model_answer": "分层开挖、每层≤3m，如分为 3、3、2 三层，逐层挖完稳定后再挖下一层。",
-      "rule_group": "分层实操·程序维",
-      "content_sha256": "7e93574b7971fe6a42a20ad7562badfa5714f10a52eb28197ac01a292078fca5",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q14",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "7e93574b7971fe6a42a20ad7562badfa5714f10a52eb28197ac01a292078fca5",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "G01-html-practice-html-q15-ad73198f0e59",
-      "surface_id": "practice.html",
-      "stem": "某学生对填土层、深 6m、坑底有承压水的基坑降水开挖方案作答：①用降水管井；②承压水靠井点回灌控制；③分层开挖每层 5m。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "该方案基本合理，仅分层 5m 略偏大、调整为 4m 即可，管井降水与回灌控制承压水的用法均无问题。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "只盯着一处、放过了张冠李戴的两处。",
-          "loss_reason": "漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。",
-          "fix": "三处都要改：喷射/多级轻型、减压封底、分层≤3m。",
-          "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-1"
-        },
-        {
-          "text": "三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "逐条揪错并给正确方法/数值，正是判断纠错三段式。",
-          "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-2"
-        },
-        {
-          "text": "只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。",
-          "is_correct": false,
-          "source_error_code": "E10",
-          "temptation": "以为加大抽水能治突涌。",
-          "loss_reason": "填土不宜管井、分层5m超限也错；防突涌是减压/封底不是加大抽水。",
-          "fix": "改喷射/多级轻型、分层≤3m、减压封底防突涌。",
-          "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-3"
-        },
-        {
-          "text": "把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "用明排简单的常识替代规范。",
-          "loss_reason": "深 6m 不能用明排；回灌当防突涌、分层5m 也未纠。",
-          "fix": "深6m 用喷射/多级轻型、分层≤3m、减压封底防突涌。",
-          "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-4"
-        }
-      ],
-      "model_answer": "①填土不宜管井，应按深度选轻型(多级)/喷射；②回灌防沉降不防突涌，应验算突涌+钻孔减压/水平封底隔渗；③分层应≤3m。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "768b6854dcb914ad9f12ab8a000f08bd8297a3e6dd3bf5f2a9bd63481f22ac03",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q15",
-      "authoring_sha256": "1fe8c91fb17e218fd63213c163024ed7a018a65eeb451d57f56f8348c8d92389",
-      "decision": {
-        "fact_id": "g01-fact-dewater-diagnosis-composite",
-        "skeleton_id": "g01-skel-降水诊断三处纠错",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A413000_082_0155:0",
-        "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "768b6854dcb914ad9f12ab8a000f08bd8297a3e6dd3bf5f2a9bd63481f22ac03",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T18:15:25+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "复合诊断末题(深6m填土+承压水): ①填土不宜管井应改喷射/多级轻型 ②回灌防沉降不防突涌应验算+减压/封底 ③分层5m超应≤3m。首要采分眼prong①'改多级轻型(6m∈6~10m)'直引本体 kc:082_0155:0(优于外延 033_0055 与真空 083_0156)。②③另有本体采分点(083_0156:2 回灌 / 084_0157:0 分层)支撑但单锚取井点选型本体。工单: 正确项偏长(诊断题固有)+居第二位。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "G01",
+ "source_pack_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
+ "source_bundle_sha256": "73f886e1a6e11ba7f0886cfeb0a7290e2d6c53667d0c82d26b53bcba89a5a086",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 15,
+ "eligible_count": 8,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令); 逐题引文回 _G01_compiled_source.json / _G01_exam_evidence.json 核对; anchor 均为该题机器候选(零编造); 数值锚(降水深度/分层/预留/水位)全核; 待 fable 对抗核验。",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "G01-html-practice-html-q1-aba98d47b38a",
+   "surface_id": "practice.html",
+   "stem": "某基坑开挖深度 4m，场地为软土、地下水丰富。问降水方案怎么选，选出最完整、能得分的作答。",
+   "options": [
+    {
+     "text": "场地地下水丰富，宜采用集水明排：沿坑底开挖排水沟并设集水井，借重力汇水后抽排，经济适用。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "一见地下水就想到最常见的集水明排。",
+     "loss_reason": "深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。",
+     "fix": "深度>3m 应改井点降水，集水明排仅≤3m 软土。",
+     "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-1"
+    },
+    {
+     "text": "不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得管井出水大、万能。",
+     "loss_reason": "管井要求渗透系数较大（砂砾），软土/填土/黏土不宜；且未按深度分流。",
+     "fix": "先按深度分流用井点，再按渗透系数与土质选井点类型。",
+     "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-2"
+    },
+    {
+     "text": "深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "先按深度分流定井点，再补综合因素与周边保护，判据链完整。",
+     "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-3"
+    },
+    {
+     "text": "作答写明已采取降水措施、将水位降至开挖面以下即可，具体方法不必在方案中明确。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "图省事、笼统写降水。",
+     "loss_reason": "没有可判分的方法与依据，采分点全落空。",
+     "fix": "写明>3m 井点降水+综合因素+周边保护+承压水验算。",
+     "option_id": "G01-html-practice-html-q1-aba98d47b38a:option-4"
+    }
+   ],
+   "model_answer": "深度>3m 应井点降水；综合地质水文环境支护，危及周边截水回灌、有承压水验算突涌。",
+   "rule_group": "降水分流·条件维",
+   "content_sha256": "512854184f39e7e4561306a9b79263663612ec8366ca8568716c481644a00116",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q1",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-dewater-scheme-selection",
+    "skeleton_id": "g01-skel-降水方案深度分流",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_082_0154:0",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "512854184f39e7e4561306a9b79263663612ec8366ca8568716c481644a00116",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "降水方案选择三原则: 深度≤3m且软土→集水明排; 深度>3m→井点降水; 危及周边→截水/回灌; 承压水→验算突涌。正确项'深度>3m井点降水+综合地质水文环境支护'直引 kc:082_0154:0。工单: 正确项恒居第三位且偏完整(template artifact)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q2-20fc8c298c2f",
+   "surface_id": "practice.html",
+   "stem": "某基坑降水深度约 8m，场地上部为填土层。按降水深度与土质选井点，选出能得分的作答。",
+   "options": [
+    {
+     "text": "宜选轻型井点，其构造简单、布置方便，单级布设即可满足本 8m 基坑的降水深度要求，较为稳妥。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "轻型最常见、构造简单，顺手就选。",
+     "loss_reason": "轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。",
+     "fix": "8m 超轻型单级，应选喷射井点(8~20m)。",
+     "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-1"
+    },
+    {
+     "text": "应选用降水管井，管井单井出水量大、对深度不敏感，用于 8m 填土基坑降水效率最高。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为管井深度大、出水多就通用。",
+     "loss_reason": "管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。",
+     "fix": "填土不宜管井；按深度 8m 选喷射井点。",
+     "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-2"
+    },
+    {
+     "text": "深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "逐条卡深度与土质排除，落到喷射并回判 8m∈8~20m，判据完整。",
+     "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-3"
+    },
+    {
+     "text": "可采用集水明排，沿坑底挖排水沟并设集水井将地下水引流抽走，明排亦可满足 8m 基坑降水。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "明排看着简单便宜。",
+     "loss_reason": "明排只适用≤3m 且软土；8m 深坑必须井点降水。",
+     "fix": "深 8m 用井点（喷射），不是集水明排。",
+     "option_id": "G01-html-practice-html-q2-20fc8c298c2f:option-4"
+    }
+   ],
+   "model_answer": "排除集水明排(>3m)、轻型(≤6m)、管井(填土不宜)，宜选喷射井点(降水深度 8~20m)。",
+   "rule_group": "井点选型·计算表达维",
+   "content_sha256": "8d3a9dfccd6fcec957c9bd88d56874bc6f591c2c04bd38984c6a8421ba557ec4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q2",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-jet-wellpoint-depth",
+    "skeleton_id": "g01-skel-井点选型8m填土喷射",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_082_0155:1",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "8d3a9dfccd6fcec957c9bd88d56874bc6f591c2c04bd38984c6a8421ba557ec4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "喷射井点降水深度8~20m、适用碎石土黄土。正确项'深8m超轻型≤6m、填土不宜管井→喷射(8~20m覆盖)'的核心采分句直引 kc:082_0155:1。轻型排除由 :0 支撑但答案正锚为喷射参数。工单: template artifact。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q3-413c0fb7959f",
+   "surface_id": "practice.html",
+   "stem": "关于轻型井点的降水深度，选出表述正确、能得分的作答。",
+   "options": [
+    {
+     "text": "轻型井点单级降水深度≤6m，需要更深时采用多级轻型井点，可达 6~10m。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分清单级≤6m 与多级 6~10m，数字与条件都齐。",
+     "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-1"
+    },
+    {
+     "text": "轻型井点降水深度 8~20m，适用于较深基坑，是深层降水的主力方法。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把轻型和喷射的深度记混。",
+     "loss_reason": "8~20m 是喷射井点的范围，轻型单级≤6m。",
+     "fix": "轻型单级≤6m、多级 6~10m；8~20m 是喷射。",
+     "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-2"
+    },
+    {
+     "text": "轻型井点降水深度不受限制，加长井管即可任意加深，深基坑也能一级到位。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为加管就能无限加深。",
+     "loss_reason": "轻型受真空吸程限制，单级≤6m，不是不受限。",
+     "fix": "单级≤6m，更深需多级或改喷射/真空。",
+     "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-3"
+    },
+    {
+     "text": "轻型井点降水深度>6m 且要求渗透系数>1e-6、管径≥200mm，用于大渗透系数土层。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把真空降水井管的参数安到轻型头上。",
+     "loss_reason": ">6m·渗透系数>1e-6·管径≥200 是真空降水井管的条件。",
+     "fix": "轻型单级≤6m；>6m 大渗透用真空降水井管。",
+     "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-4"
+    }
+   ],
+   "model_answer": "轻型井点降水深度单级≤6m，多级可达 6~10m。",
+   "rule_group": "轻型井点·条件维",
+   "content_sha256": "8c75e0dc1f540025ac8af734e0f7d1f553e5de8e10cb877a3f8646d9a95fae7c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q3",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-light-wellpoint-depth",
+    "skeleton_id": "g01-skel-轻型井点单级多级深度",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_082_0155:0",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "8c75e0dc1f540025ac8af734e0f7d1f553e5de8e10cb877a3f8646d9a95fae7c",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "轻型井点降水深度≤6m、多级轻型井点可达6~10m。正确项'单级≤6m、多级6~10m'逐字直引 kc:082_0155:0。工单: 正确项居首位(template artifact)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q4-1ec0542e7a80",
+   "surface_id": "practice.html",
+   "stem": "下列降水方法中，不宜用于填土、黏土等渗透系数较小土层的是（真题口径）。选出正确作答。",
+   "options": [
+    {
+     "text": "降水管井——它属重力排水、要求渗透系数较大的砂砾层，填土黏土渗透系数小不宜用。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点出管井要砂砾、填土黏土不宜，正是真题采分句。",
+     "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-1"
+    },
+    {
+     "text": "轻型井点——轻型井点靠真空抽吸，只能用于砂砾等大渗透土层，填土黏土一律不能用。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把不宜填土误安到轻型头上。",
+     "loss_reason": "轻型井点适用渗透系数 1e-7~2e-4 的土层，恰能用于粉细砂等小渗透土，不是它。",
+     "fix": "不宜用于填土的是降水管井，不是轻型井点。",
+     "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-2"
+    },
+    {
+     "text": "喷射井点——喷射井点降水深度大，只适合砂砾，遇到填土黏土就会淤堵不能使用。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得深层方法都挑砂砾。",
+     "loss_reason": "题问的是不宜用于填土的降水管井；喷射不是标准答案。",
+     "fix": "标准答案是降水管井；喷射按深度 8~20m 选用。",
+     "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-3"
+    },
+    {
+     "text": "集水明排——明排只在浅坑用，遇到填土黏土会塌沟，所以填土基坑不宜集水明排。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "把明排的深度限制当成土质限制。",
+     "loss_reason": "题眼是渗透系数较小土层不宜用的降水方法=管井，不是明排。",
+     "fix": "答降水管井：填土黏土渗透系数小不宜用管井。",
+     "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-4"
+    }
+   ],
+   "model_answer": "降水管井——要求渗透系数较大（砂砾层），填土/黏土渗透系数小、出水量不足，不宜用管井。",
+   "rule_group": "管井适用·真题陷阱",
+   "content_sha256": "79849ebe3d2833c74e05d7cd5e89dd2de829b2c23298deb78f0ec1d387755c70",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q4",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-tube-well-not-for-fill",
+    "skeleton_id": "g01-skel-管井不宜填土真题",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2019:第7题",
+    "source_sha256": "7ab8880432906b5da5e35ce0a733ef6b2e80de6e3decce528f70ace005eff150",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "79849ebe3d2833c74e05d7cd5e89dd2de829b2c23298deb78f0ec1d387755c70",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "真题 exam:2019:第7题='不宜用于填土土质的降水方法是→B 降水管井, 不宜用于渗透系数较小的填土、黏土层'逐字。正确项'降水管井要砂砾、填土黏土不宜'即真题采分句。工单: 正确项居首位(template artifact)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q5-aa952f9b7a3b",
+   "surface_id": "practice.html",
+   "stem": "降水管井最适用于下列哪种情况？选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "以填土、淤泥质黏土为主的软弱土层，用管井降水见效最快、周边沉降也最小。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为管井万能、软土也行。",
+     "loss_reason": "填土黏土渗透系数小、出水不足，正是管井不宜用的土层。",
+     "fix": "管井宜用于砂砾大渗透土层，软黏土不宜。",
+     "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-1"
+    },
+    {
+     "text": "渗透系数较大的砂砾、砂卵石层，出水量大，宜用降水管井降水。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "抓住渗透系数较大→管井这一条件采分句。",
+     "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-2"
+    },
+    {
+     "text": "承压水导致坑底突涌的隔水层坑底，直接打管井把承压水抽干就能防突涌。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "把管井当防突涌手段。",
+     "loss_reason": "防突涌是验算+钻孔减压/水平封底隔渗，不是笼统打管井；题问适用土层。",
+     "fix": "管井按渗透系数选；防突涌另用减压/封底隔渗。",
+     "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-3"
+    },
+    {
+     "text": "任何深度、任何土质的基坑都可用管井，只要井管够深、水泵够大就能可靠降水。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "用设备强就行的常识替代规范。",
+     "loss_reason": "管井有渗透系数要求，填土黏土不宜，不能一概而论。",
+     "fix": "管井适用渗透系数较大砂砾层，不是任何土质。",
+     "option_id": "G01-html-practice-html-q5-aa952f9b7a3b:option-4"
+    }
+   ],
+   "model_answer": "渗透系数较大的砂砾层（如砂卵石、砂砾）宜用管井井点。",
+   "rule_group": "管井适用·条件维",
+   "content_sha256": "18ed0aee55dcc173d7b2a83d3b7ece198d61e21f57c678c20c0a268d6798917e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q5",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "18ed0aee55dcc173d7b2a83d3b7ece198d61e21f57c678c20c0a268d6798917e",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q6-238c5a5593f7",
+   "surface_id": "practice.html",
+   "stem": "深基坑坑底为隔水层、其下存在承压水，有坑底突涌风险。防止坑底突涌应采取的措施是？选出正确作答。",
+   "options": [
+    {
+     "text": "设置井点回灌，把抽出的水回灌到坑外维持水位平衡，就能压住坑底不发生突涌。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "回灌也跟水有关，容易误当防突涌。",
+     "loss_reason": "回灌的职能是维持周边水位、防地面沉降，不能降低坑底承压水头。",
+     "fix": "防突涌用钻孔减压/水平封底隔渗；回灌是防沉降。",
+     "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-1"
+    },
+    {
+     "text": "加密集水明排，沿坑底多挖排水沟、多设集水井把坑内的水尽快排走即可防突涌。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为把坑内水排干净就不突涌。",
+     "loss_reason": "突涌来自坑底以下承压水头，明排排的是坑内积水，压不住承压水。",
+     "fix": "针对承压水头，用钻孔减压/水平封底隔渗。",
+     "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-2"
+    },
+    {
+     "text": "直接加大井点降水强度，把整个场地地下水位一次性抽到最低，承压水自然不会顶破坑底。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "用抽得狠就行的常识替代规范。",
+     "loss_reason": "承压含水层需专门减压井，盲目加大普通降水既不经济也未必降承压水头。",
+     "fix": "验算后钻孔减压、水平封底隔渗，针对承压水头处置。",
+     "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-3"
+    },
+    {
+     "text": "验算坑底突涌，必要时钻孔减压降低承压水头，或做水平封底隔渗隔断承压水。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "验算+钻孔减压+水平封底隔渗，正是防突涌采分句。",
+     "option_id": "G01-html-practice-html-q6-238c5a5593f7:option-4"
+    }
+   ],
+   "model_answer": "验算坑底突涌，采取钻孔减压、水平封底隔渗（降低承压水头/隔断渗流）。",
+   "rule_group": "承压水突涌·后果维",
+   "content_sha256": "8c6f29a63fc46da2d9e0eb896afab0c73c379bfacb4c98fa42e7f2f7ca853f75",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q6",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "8c6f29a63fc46da2d9e0eb896afab0c73c379bfacb4c98fa42e7f2f7ca853f75",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q7-c46c37fb0728",
+   "surface_id": "practice.html",
+   "stem": "关于井点回灌的作用，选出表述正确、能得分的作答。",
+   "options": [
+    {
+     "text": "回灌把水补进坑底承压含水层，抬高坑内水压顶住坑底，是防止坑底突涌的主要措施。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把回灌和防突涌搅在一起。",
+     "loss_reason": "防突涌是钻孔减压/水平封底隔渗；回灌是防周边沉降，职能不同。",
+     "fix": "回灌防周边沉降；防突涌用减压/封底隔渗。",
+     "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-1"
+    },
+    {
+     "text": "回灌就是把基坑内积水重新抽回坑里循环使用，主要目的是节约用水、减少排水量。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "望文生义把回灌当循环用水。",
+     "loss_reason": "回灌是往坑外含水层注水维持周边水位，不是坑内循环节水。",
+     "fix": "回灌注水于坑外、维持周边水位、防沉降。",
+     "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-2"
+    },
+    {
+     "text": "回灌用于加快坑内降水速度，通过注水扰动含水层让井点出水更快、工期更短。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为回灌帮着降水。",
+     "loss_reason": "回灌是抵消降水影响、护周边，反向注水，不加快降水。",
+     "fix": "回灌维持周边水位防沉降，非加速降水。",
+     "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-3"
+    },
+    {
+     "text": "回灌向坑外注水维持水位平衡，防止降水引起的周边地面与建筑沉降。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点明回灌职能=维持水位、防周边沉降，与减压/封底分开。",
+     "option_id": "G01-html-practice-html-q7-c46c37fb0728:option-4"
+    }
+   ],
+   "model_answer": "回灌向坑外注水维持地下水位平衡，防止降水引起周边地面与建筑沉降；不用于防坑底突涌。",
+   "rule_group": "回灌职能·后果维",
+   "content_sha256": "9145ca592fd8ce4c0a813d1b4d3d256cf3f9a5ec98f4de9be9f3a2497334b552",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q7",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "9145ca592fd8ce4c0a813d1b4d3d256cf3f9a5ec98f4de9be9f3a2497334b552",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q8-237586f0918b",
+   "surface_id": "practice.html",
+   "stem": "下列深基坑挖土方案中，属于无支护开挖方案的是。选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "盆式开挖——先挖中间成盆、四周留土护壁，靠留土自稳，属于无支护开挖方案。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "盆式留土听着像不用支护。",
+     "loss_reason": "盆式仍需支护结构，留土只是开挖顺序，不等于无支护。",
+     "fix": "无支护只有放坡；盆式属有支护方案。",
+     "option_id": "G01-html-practice-html-q8-237586f0918b:option-1"
+    },
+    {
+     "text": "逆作法——自上而下先做结构再挖土，用已成结构当支撑，所以不需要另设支护是无支护。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "逆作用结构撑易误判无支护。",
+     "loss_reason": "逆作法以支护/结构承担侧压，属有支护方案。",
+     "fix": "逆作法需支护；无支护方案是放坡。",
+     "option_id": "G01-html-practice-html-q8-237586f0918b:option-2"
+    },
+    {
+     "text": "放坡挖土——靠边坡自身稳定、不设支护结构，是唯一的无支护挖土方案。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点明放坡=无支护，且其余三种需支护，采分到位。",
+     "option_id": "G01-html-practice-html-q8-237586f0918b:option-3"
+    },
+    {
+     "text": "中心岛式——中间先挖成岛、四周斜坡下挖，中心岛提供反压，属无支护开挖方案。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "中心岛有斜坡字样易混放坡。",
+     "loss_reason": "中心岛式仍配支护结构挖周边，不是无支护。",
+     "fix": "无支护=放坡；中心岛属有支护方案。",
+     "option_id": "G01-html-practice-html-q8-237586f0918b:option-4"
+    }
+   ],
+   "model_answer": "放坡挖土是无支护方案；中心岛式、盆式、逆作法均需支护。",
+   "rule_group": "无支护方案·后果维",
+   "content_sha256": "9213351d8ad0a17535e61d6be4aef336bfbe06eacc7e8e2a5d14cae23b9082b6",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q8",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "9213351d8ad0a17535e61d6be4aef336bfbe06eacc7e8e2a5d14cae23b9082b6",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q9-2a2749517ef5",
+   "surface_id": "practice.html",
+   "stem": "深基坑分层开挖，每层厚度宜控制在多少？选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "为加快进度可一次开挖到设计坑底，只要坡度放缓、四周有支护就不必分层。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "图快想一次到底。",
+     "loss_reason": "深基坑必须分层开挖、每层≤3m，一次到底易失稳。",
+     "fix": "分层开挖、每层厚度宜≤3m。",
+     "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-1"
+    },
+    {
+     "text": "深基坑应分层开挖，每层厚度宜控制在 3m 以内，一层挖完稳定后再挖下一层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分层≤3m 且逐层下挖，数字与做法都对。",
+     "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-2"
+    },
+    {
+     "text": "深基坑分层开挖，每层厚度宜控制在 5m 以内，深度大时可放宽到 6~8m 一层。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记成了更大的数字。",
+     "loss_reason": "每层厚度宜≤3m，5m/6~8m 超限。",
+     "fix": "每层厚度宜≤3m。",
+     "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-3"
+    },
+    {
+     "text": "分层厚度按机械臂长确定即可，挖机能挖多深就分多厚，没有固定的规范限值。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "用按设备的常识替代规范。",
+     "loss_reason": "规范给出每层宜≤3m 的限值，不是随设备定。",
+     "fix": "每层厚度宜≤3m，有明确限值。",
+     "option_id": "G01-html-practice-html-q9-2a2749517ef5:option-4"
+    }
+   ],
+   "model_answer": "深基坑分层开挖，每层厚度宜控制在 3m 以内。",
+   "rule_group": "分层开挖·条件维",
+   "content_sha256": "6e88f6156d808a915fa3025a375125e15e0e08f45f0f22496d12c5e4d796b4a1",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q9",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-deep-excavation-earthwork",
+    "skeleton_id": "g01-skel-分层厚度3m",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_084_0157:0",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6e88f6156d808a915fa3025a375125e15e0e08f45f0f22496d12c5e4d796b4a1",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "深基坑分层开挖每层厚度宜≤3m, 直引 kc:084_0157:0。三件套 anchor(深基坑土方开挖 fact, chunk 084_0157 采分点:0)。工单: 正确项居第二位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q10-80da5c905a97",
+   "surface_id": "practice.html",
+   "stem": "基坑挖至接近基底时对预留土层的处理，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "应预留土层由人工挖除：人工挖土留 150~300mm、机械挖土留 200~300mm，保护基底原状土。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "人工/机械预留数值+人工挖除+护基底，采分完整。",
+     "option_id": "G01-html-practice-html-q10-80da5c905a97:option-1"
+    },
+    {
+     "text": "宜以机械直接开挖至设计基底标高，随后即刻浇筑垫层封闭基底，无需预留土层、也无需安排人工清底。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "觉得机械挖到位省事。",
+     "loss_reason": "机械直挖到基底会扰动原状土；漏了预留土层与人工挖除采分。",
+     "fix": "预留 150~300/200~300mm 人工挖除，护基底。",
+     "option_id": "G01-html-practice-html-q10-80da5c905a97:option-2"
+    },
+    {
+     "text": "应预留土层且厚度取 500~800mm：预留越厚对基底原状土的保护越充分，最后统一采用机械快速清除即可。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为留厚更保险、机械更快。",
+     "loss_reason": "预留 150~300/机械 200~300mm，且应人工挖除；数值与做法都错。",
+     "fix": "人工 150~300、机械 200~300mm，人工挖除。",
+     "option_id": "G01-html-practice-html-q10-80da5c905a97:option-3"
+    },
+    {
+     "text": "预留土层厚度不必作严格控制，关键在于挖至基底后立即浇筑垫层，垫层浇筑即可补偿基底扰动影响。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为浇垫层就能补救扰动。",
+     "loss_reason": "预留是为避免扰动原状土，数值有规定、须人工挖除，不是无所谓。",
+     "fix": "按人工 150~300/机械 200~300mm 预留、人工挖除。",
+     "option_id": "G01-html-practice-html-q10-80da5c905a97:option-4"
+    }
+   ],
+   "model_answer": "预留土层：人工挖土预留 150~300mm、机械挖土预留 200~300mm，由人工挖除，保护基底原状土。",
+   "rule_group": "预留土层·条件维",
+   "content_sha256": "2a4b6781a17dfe13455ffb9481f2fde339fa29be7981adb090c7f73831a662c9",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q10",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-deep-excavation-earthwork",
+    "skeleton_id": "g01-skel-预留土层数值",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A413000_084_0157:1",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "2a4b6781a17dfe13455ffb9481f2fde339fa29be7981adb090c7f73831a662c9",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "预留土层: 人工挖土150~300mm/机械挖土200~300mm由人工挖除, 直引 kc:084_0157:1。三件套 immediate_confirm(同深基坑土方开挖 fact, 第2独立 skeleton)。工单: 正确项居首位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q11-80b3b9adfcbb",
+   "surface_id": "practice.html",
+   "stem": "地下水位以下挖土时的降水控制，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "把地下水位降到坑底标高即可开挖，见到坑底不出水就可以停泵、转入基础施工。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为降到坑底不冒水就行。",
+     "loss_reason": "应降至坑底以下 500mm 以上，且不能中途停降水。",
+     "fix": "降至坑底下≥500mm，持续到基础完成。",
+     "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-1"
+    },
+    {
+     "text": "地下水位应降至坑底以下 500mm 以上，且降水应持续到基础施工完成，保证干作业。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "降至坑底下 500mm+持续到基础完成，两句采分都在。",
+     "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-2"
+    },
+    {
+     "text": "水位降至坑底以下 500mm 后即可停止降水，基础施工阶段依靠已浇筑的垫层阻挡渗水，不必继续抽排。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "抓到 500mm 却漏了持续。",
+     "loss_reason": "中途停降水水会回涨，必须持续到基础施工完成。",
+     "fix": "降至坑底下 500mm 且持续到基础完成。",
+     "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-3"
+    },
+    {
+     "text": "降水深度按经验降到坑底以下 2~3m 最保险，一直抽到主体结构封顶再停最稳妥。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为降越深、抽越久越保险。",
+     "loss_reason": "规范要求坑底以下≥500mm、持续到基础完成即可，过度降水不经济且加剧周边沉降。",
+     "fix": "坑底下≥500mm、持续到基础完成，不是越深越久。",
+     "option_id": "G01-html-practice-html-q11-80b3b9adfcbb:option-4"
+    }
+   ],
+   "model_answer": "水位应降至坑底以下 500mm 以上，且降水持续到基础施工完成。",
+   "rule_group": "水位控制·条件维",
+   "content_sha256": "63dc633e58c1e4e97676a83755e83333ede17e7e031f9f65f319de5bd58f2cc1",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q11",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-deep-excavation-earthwork",
+    "skeleton_id": "g01-skel-水位降至坑底500",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A413000_084_0157:2",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "63dc633e58c1e4e97676a83755e83333ede17e7e031f9f65f319de5bd58f2cc1",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "地下水位以下挖土: 水位降至坑底以下500mm以上且降水持续到基础施工完成, 直引 kc:084_0157:2。三件套 d1_probe(同深基坑土方开挖 fact, 第3独立 skeleton)。工单: 正确项居第二位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q12-a328b40bbf22",
+   "surface_id": "practice.html",
+   "stem": "关于土方开挖控制，选出表述完整、能得分的作答。",
+   "options": [
+    {
+     "text": "只要严禁超挖、挖到设计标高就行，软土高差和支护、降水设施属另一工序不必一起写。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓到严禁超挖就以为够了。",
+     "loss_reason": "漏了软土高差≤1m 与不损坏支护/降水设施/工程桩两处采分。",
+     "fix": "补软土高差≤1m 与不损护两句。",
+     "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-1"
+    },
+    {
+     "text": "适当超挖 200~300mm 再回填夯实反而使基底更密实，超挖后垫层加厚即可不影响质量。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为超挖回填能补救。",
+     "loss_reason": "必须与设计工况一致、严禁超挖，超挖会扰动基底、损伤支护。",
+     "fix": "严禁超挖，与设计工况一致。",
+     "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-2"
+    },
+    {
+     "text": "软土基坑相邻高差控制在 3m 以内即可，只要分块开挖、放坡到位就不会失稳。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把高差限值记大了。",
+     "loss_reason": "软土基坑高差应≤1m，3m 超限。",
+     "fix": "软土基坑高差≤1m。",
+     "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-3"
+    },
+    {
+     "text": "开挖须与设计工况一致、严禁超挖；软土基坑高差≤1m；不得损坏支护、降水设施、工程桩。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "严禁超挖+软土高差≤1m+不损护，三句齐。",
+     "option_id": "G01-html-practice-html-q12-a328b40bbf22:option-4"
+    }
+   ],
+   "model_answer": "开挖必须与设计工况一致、严禁超挖；软土基坑高差≤1m；不得损坏支护结构、降水设施、工程桩。",
+   "rule_group": "严禁超挖·后果维",
+   "content_sha256": "26f5933da0f0dc395975623c6d65ff0de984b19c5a829f0e2ad1ac2b98667b9c",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q12",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "26f5933da0f0dc395975623c6d65ff0de984b19c5a829f0e2ad1ac2b98667b9c",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q13-433011598330",
+   "surface_id": "practice.html",
+   "stem": "问如何选择基坑降水方案，选出层次完整、能得分的作答。",
+   "options": [
+    {
+     "text": "凭工程经验直接选定一种最常用的降水方法（如轻型井点）并布置到位，能把地下水位降下去即视为方案合格。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "图省事直接上一种方法。",
+     "loss_reason": "缺综合因素、深度分流、周边与承压水各层采分。",
+     "fix": "按综合→分流→选型→周边→承压水分层写。",
+     "option_id": "G01-html-practice-html-q13-433011598330:option-1"
+    },
+    {
+     "text": "先计算基坑涌水量，再套用公式确定井点管数量与间距，把降水方案写成一道完整的涌水量计算题即可得分。",
+     "is_correct": false,
+     "source_error_code": "M05",
+     "temptation": "以为降水方案就是算涌水量。",
+     "loss_reason": "选型是按深度/渗透系数/土质匹配方法，不是只算涌水量。",
+     "fix": "按深度分流+参数选型+周边+承压水综合作答。",
+     "option_id": "G01-html-practice-html-q13-433011598330:option-2"
+    },
+    {
+     "text": "综合考虑地质水文环境支护，按深度分流(≤3m明排/>3m井点)，按参数选井点，危及周边截水回灌，承压水验算突涌。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "四层按序铺开、每层可判分，正是采分链。",
+     "option_id": "G01-html-practice-html-q13-433011598330:option-3"
+    },
+    {
+     "text": "将集水明排、井点降水、截水帷幕与井点回灌全部列入方案，覆盖的方法越全越保险，各项措施无须逐一对应工况进行匹配筛选。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为方法堆满就得分。",
+     "loss_reason": "堆方法不分工况=概念混淆；应按深度/参数匹配、周边有需要才截水回灌。",
+     "fix": "按工况匹配方法，非无差别堆叠。",
+     "option_id": "G01-html-practice-html-q13-433011598330:option-4"
+    }
+   ],
+   "model_answer": "综合考虑地质水文环境支护→按深度分流→按降水深度与渗透系数选井点→危及周边截水回灌→承压水验算突涌。",
+   "rule_group": "降水综合·记录表达维",
+   "content_sha256": "57c12ad0332d6b836ace249a08ae71861111a186e8b864dc3d5161f5dfecf2c4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q13",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "57c12ad0332d6b836ace249a08ae71861111a186e8b864dc3d5161f5dfecf2c4",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q14-02fcad3650e9",
+   "surface_id": "practice.html",
+   "stem": "某深基坑开挖深度 8m，按分层开挖要求，选出正确、能得分的作答。",
+   "options": [
+    {
+     "text": "分层开挖、每层≤3m，可分 3、3、2 三层，一层挖完稳定后再挖下一层。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分层数与每层≤3m、逐层下挖都对。",
+     "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-1"
+    },
+    {
+     "text": "分成上下两层各挖 4m，两层都在限值附近、能减少倒运次数，效率最高。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为 4m 差不多、层数少更快。",
+     "loss_reason": "每层≤3m，4m 已超限。",
+     "fix": "每层≤3m，8m 宜分三层(3+3+2)。",
+     "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-2"
+    },
+    {
+     "text": "一次挖到 8m 坑底，四周放大放坡角就能自稳，深基坑也可不分层一次成型。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "以为放缓坡就能一次到底。",
+     "loss_reason": "深基坑须分层开挖、每层≤3m，一次到底易失稳。",
+     "fix": "分层开挖，每层≤3m。",
+     "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-3"
+    },
+    {
+     "text": "分层厚度随意，只要最后总深度到 8m 即可，各层薄厚不影响坑壁稳定。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为总深对就行。",
+     "loss_reason": "每层有≤3m 限值，逐层稳定才安全。",
+     "fix": "每层≤3m、逐层挖并稳定。",
+     "option_id": "G01-html-practice-html-q14-02fcad3650e9:option-4"
+    }
+   ],
+   "model_answer": "分层开挖、每层≤3m，如分为 3、3、2 三层，逐层挖完稳定后再挖下一层。",
+   "rule_group": "分层实操·程序维",
+   "content_sha256": "394c76afeb2cbe6253a95d96bebed7d489d80170af36a7118d56f03fe66d6ea0",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q14",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "394c76afeb2cbe6253a95d96bebed7d489d80170af36a7118d56f03fe66d6ea0",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "G01-html-practice-html-q15-ad73198f0e59",
+   "surface_id": "practice.html",
+   "stem": "某学生对填土层、深 6m、坑底有承压水的基坑降水开挖方案作答：①用降水管井；②承压水靠井点回灌控制；③分层开挖每层 5m。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "该方案基本合理，仅分层 5m 略偏大、调整为 4m 即可，管井降水与回灌控制承压水的用法均无问题。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "只盯着一处、放过了张冠李戴的两处。",
+     "loss_reason": "漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。",
+     "fix": "三处都要改：喷射/多级轻型、减压封底、分层≤3m。",
+     "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-1"
+    },
+    {
+     "text": "三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "逐条揪错并给正确方法/数值，正是判断纠错三段式。",
+     "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-2"
+    },
+    {
+     "text": "只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。",
+     "is_correct": false,
+     "source_error_code": "E10",
+     "temptation": "以为加大抽水能治突涌。",
+     "loss_reason": "填土不宜管井、分层5m超限也错；防突涌是减压/封底不是加大抽水。",
+     "fix": "改喷射/多级轻型、分层≤3m、减压封底防突涌。",
+     "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-3"
+    },
+    {
+     "text": "把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "用明排简单的常识替代规范。",
+     "loss_reason": "深 6m 不能用明排；回灌当防突涌、分层5m 也未纠。",
+     "fix": "深6m 用喷射/多级轻型、分层≤3m、减压封底防突涌。",
+     "option_id": "G01-html-practice-html-q15-ad73198f0e59:option-4"
+    }
+   ],
+   "model_answer": "①填土不宜管井，应按深度选轻型(多级)/喷射；②回灌防沉降不防突涌，应验算突涌+钻孔减压/水平封底隔渗；③分层应≤3m。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "6b3ec9f62340903691c48b19f36660d5f93eea79d80a969a2ec82255de9f45e4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q15",
+   "authoring_sha256": "d300498bdc1b40d35ab6a165a2594a987dd916a4d451391f1512a87e4f33a5c4",
+   "decision": {
+    "fact_id": "g01-fact-dewater-diagnosis-composite",
+    "skeleton_id": "g01-skel-降水诊断三处纠错",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A413000_082_0155:0",
+    "source_sha256": "2142f306a9d1fb52bb9d4af2681d57c7beeb1ab96bc6ad85acbe9777f9a48557",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6b3ec9f62340903691c48b19f36660d5f93eea79d80a969a2ec82255de9f45e4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "复合诊断末题(深6m填土+承压水): ①填土不宜管井应改喷射/多级轻型 ②回灌防沉降不防突涌应验算+减压/封底 ③分层5m超应≤3m。首要采分眼prong①'改多级轻型(6m∈6~10m)'直引本体 kc:082_0155:0(优于外延 033_0055 与真空 083_0156)。②③另有本体采分点(083_0156:2 回灌 / 084_0157:0 分层)支撑但单锚取井点选型本体。工单: 正确项偏长(诊断题固有)+居第二位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

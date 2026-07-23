@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S01",
   "source_pack_sha256": "13429caa1bd32a20f6708c393980b39566a92425793a2d15e9f841689edf2b13",
-  "source_bundle_sha256": "49de2e60ad47766972fd4b8afcecb43ff4252faa2b2ce1a369994a97ebbf16c2",
+  "source_bundle_sha256": "fc67a9be7ec301e840d6993e10c064ad7c68847e06a6fe091cb6ab884a96825b",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -31,13 +31,13 @@
         "S01-html-practice-html-q4-389eeeae4e0f",
         "S01-html-practice-html-q15-d99a0723feac"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDUzY2VlNTQ2MmVlIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03MjhjOGQ3YTNkM2IiLCJTMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWUwYzNiMzQ2ODk4ZiIsIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzg5ZWVlYWU0ZTBmIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZDk5YTA3MjNmZWFjIl0sInBhY2tfaWQiOiJTMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjAzYzIzNDlmMmYyMjY0ZmFkZWVlMGUzZjNjZDZhNGQ4NzBkNDQzNGFiMzA5ZjQ3M2Y5YmNmYjMyZDJlZTI5YjkiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNGVhN2VkNTVhZDk2YTYwYjRmNDFiNmZiNTFjMDU4MWYyNTU5MDdjZGNmOGY5NGE0NWU3ZTQ1ZDgwNDMwOTNmZCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "7b8b2d7e45f4abf8354f8755a0942bfa63ef498e47da04cc006779927fcb281d"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMDUzY2VlNTQ2MmVlIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi03MjhjOGQ3YTNkM2IiLCJTMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWUwYzNiMzQ2ODk4ZiIsIlMwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMzg5ZWVlYWU0ZTBmIiwiUzAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZDk5YTA3MjNmZWFjIl0sInBhY2tfaWQiOiJTMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjI4MzRjYjA2YmI1OTE0OGJiZmEyOGEzM2ZjZjJlMWJhNWQzYzU2MzIyNWIwMDExNmQwMzk2NTc1ZjhjNTc3NzkiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNGVhN2VkNTVhZDk2YTYwYjRmNDFiNmZiNTFjMDU4MWYyNTU5MDdjZGNmOGY5NGE0NWU3ZTQ1ZDgwNDMwOTNmZCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "b6d5618ce7c1e229ffff904e8c0df06a2982b0918175b6a3aec97d47edc25d9b"
     },
     {
       "surface_id": "practice2.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -63,13 +63,13 @@
         "S01-html-practice2-html-q12-135565c63ff2",
         "S01-html-practice2-html-q15-4acb6ec051d4"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExLTdkMDdiYWJlNGEzZCIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEyLWE0MDQ4NDgzMWI0NSIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEzLTg2OGMwNjZlMjEwOSIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXE0LTZjOWE0ZjdkMjg4NiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExNS00YWNiNmVjMDUxZDQiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiMGQ2MzZkOGJhMDAwZjczYTkzYmQ3OTZkNDY3NzM0YzgxYTlkNzdhMDRkNTI5YjFjMzJjMTA3OTdhZjI0OTkzYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI0ZWE3ZWQ1NWFkOTZhNjBiNGY0MWI2ZmI1MWMwNTgxZjI1NTkwN2NkY2Y4Zjk0YTQ1ZTdlNDVkODA0MzA5M2ZkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMi5odG1sIn0",
-      "published_practice_sha256": "577d76174cea1a29c07f57f9f1a45777901a6e96eacc17f8fb3f03003dd166bd"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExLTdkMDdiYWJlNGEzZCIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEyLWE0MDQ4NDgzMWI0NSIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXEzLTg2OGMwNjZlMjEwOSIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXE0LTZjOWE0ZjdkMjg4NiIsIlMwMS1odG1sLXByYWN0aWNlMi1odG1sLXExNS00YWNiNmVjMDUxZDQiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiYmY3Mjc3NTgyNTA4ZGY5MmYzZTE4NTNmZWU1ZjUzOThmNWNjOWY5OGM0OTM2OWRkNDdiYTgxYjdjZDg5MTIxMSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI0ZWE3ZWQ1NWFkOTZhNjBiNGY0MWI2ZmI1MWMwNTgxZjI1NTkwN2NkY2Y4Zjk0YTQ1ZTdlNDVkODA0MzA5M2ZkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMi5odG1sIn0",
+      "published_practice_sha256": "8e514b0d94fed98a2e1084c3384ed1a39e8ba49c7dbb75a5bbad65b19cfebbee"
     },
     {
       "surface_id": "practice3.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -93,8 +93,8 @@
         "S01-html-practice3-html-q4-7fbcc8d360eb",
         "S01-html-practice3-html-q14-a5ffd07b57d0"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExLWYzMTFkZGM5MTc1OSIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEyLTE4YWM4NDdlYjkzMiIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEzLWFmZTQ2OGUwODkxZCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXE0LTdmYmNjOGQzNjBlYiIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExNC1hNWZmZDA3YjU3ZDAiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNzc3NWExMTJkYTczNjVlNjk4NWI1MzA4YmYyNjU3N2M1NmM3ZjM0MGQzNTE5YTY4MGMyYjExZjA1ZjNjN2YzYSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI0ZWE3ZWQ1NWFkOTZhNjBiNGY0MWI2ZmI1MWMwNTgxZjI1NTkwN2NkY2Y4Zjk0YTQ1ZTdlNDVkODA0MzA5M2ZkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMy5odG1sIn0",
-      "published_practice_sha256": "75b3cd698b325027680c979432693ba12b8c9e2d093713a8c1daf3179b6c8e55"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExLWYzMTFkZGM5MTc1OSIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEyLTE4YWM4NDdlYjkzMiIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXEzLWFmZTQ2OGUwODkxZCIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXE0LTdmYmNjOGQzNjBlYiIsIlMwMS1odG1sLXByYWN0aWNlMy1odG1sLXExNC1hNWZmZDA3YjU3ZDAiXSwicGFja19pZCI6IlMwMSIsInByb2plY3Rpb25fZGlnZXN0IjoiNTg0NzQxYzZkZGFhZDFlMGQ1M2I3NzkwOTczM2UxYzI1YTRiODQ2Y2NjZDlmNTVlMzBlYjYyYjMyMWQ3NGE2OCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI0ZWE3ZWQ1NWFkOTZhNjBiNGY0MWI2ZmI1MWMwNTgxZjI1NTkwN2NkY2Y4Zjk0YTQ1ZTdlNDVkODA0MzA5M2ZkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlMy5odG1sIn0",
+      "published_practice_sha256": "bd92c678b733b61e647f3ba4d461798bc37cc7804ce19fae5e9d08f89212092d"
     }
   ],
   "items": [
@@ -149,27 +149,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q1",
       "source_anchor": "kc:1A436000_009_0012:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "s01-fact-luodi-50m-lunzheng-gate",
       "skeleton_id": "s01-skel-40m编案不论证",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "85e305f4dad9b9c1a8a84ddc722e973bb9a81c7dffe033c2a26d77d1f7e82457",
+      "content_sha256": "c7b1877d657745eb5b750a825313d43a662378a5dfbae4ef2951d4c2de500b2b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "85e305f4dad9b9c1a8a84ddc722e973bb9a81c7dffe033c2a26d77d1f7e82457",
+        "reviewed_content_sha256": "c7b1877d657745eb5b750a825313d43a662378a5dfbae4ef2951d4c2de500b2b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -179,7 +179,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "落地脚手架50m及以上属超一定规模须专家论证(教材直引,2026-07-20修复statement截断后); 24m起编专项方案半边靠 kc:1A436000_008_0011:0(同为本题机器候选)。40m=编案不论证。"
+        "note": "落地脚手架50m及以上属超一定规模须专家论证(教材直引,2026-07-20修复statement截断后); 24m起编专项方案半边靠 kc:1A436000_008_0011:0(同为本题机器候选)。40m=编案不论证。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -362,27 +362,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q2",
       "source_anchor": "kc:1A436000_009_0012:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "s01-fact-mbzj-lunzheng-8m18m",
       "skeleton_id": "s01-skel-模板支撑四阈值任一",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8b4bee75f335519d2f8f301d892a82652fdcb9177a581704ab376e0bd7fdcd3b",
+      "content_sha256": "90f9eada4134476dfe44de330a3a46674be83b9f16a8252e360a4325a9149b72",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8b4bee75f335519d2f8f301d892a82652fdcb9177a581704ab376e0bd7fdcd3b",
+        "reviewed_content_sha256": "90f9eada4134476dfe44de330a3a46674be83b9f16a8252e360a4325a9149b72",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -392,7 +392,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "模板支撑高≥8m/跨≥18m/总荷载≥15kN/m²/线荷载≥20kN/m任一即超一定规模须论证, 教材直引。"
+        "note": "模板支撑高≥8m/跨≥18m/总荷载≥15kN/m²/线荷载≥20kN/m任一即超一定规模须论证, 教材直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -541,27 +541,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q3",
       "source_anchor": "kc:1A436000_008_0011:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "s01-fact-weida-bianan-thresholds",
       "skeleton_id": "s01-skel-编案门3m5m24m10kN",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "00792d47a157e2486b300b9c4d215c6e093b4e8ef141a467eae117942c3fc726",
+      "content_sha256": "6689f7e9da159abe28eeb7272595b262e9980b6f11693333873f63b2194771f1",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "00792d47a157e2486b300b9c4d215c6e093b4e8ef141a467eae117942c3fc726",
+        "reviewed_content_sha256": "6689f7e9da159abe28eeb7272595b262e9980b6f11693333873f63b2194771f1",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -571,7 +571,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "危大编案门=基坑≥3m/模板支架≥5m/落地脚手架≥24m/吊装单件≥10kN, 教材直引。"
+        "note": "危大编案门=基坑≥3m/模板支架≥5m/落地脚手架≥24m/吊装单件≥10kN, 教材直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -703,27 +703,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q4",
       "source_anchor": "kc:1A413030_099_0187:1",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "s01-fact-chaimu-fendang-75",
       "skeleton_id": "s01-skel-梁6m跨75",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "781f75b77b0498b77c5c89487429f050d8fe962b2a3c78c8009541fa75149254",
+      "content_sha256": "a55ead5d90791642d8c14483307f71034791da33c6d3844b8e8c1e7936c91e1d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "781f75b77b0498b77c5c89487429f050d8fe962b2a3c78c8009541fa75149254",
+        "reviewed_content_sha256": "a55ead5d90791642d8c14483307f71034791da33c6d3844b8e8c1e7936c91e1d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -733,7 +733,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "表3.4-1: 梁拱壳跨≤8m须达75%。6m梁→75%。教材表格逐字(2026-07-20补抽分档采分点后)。"
+        "note": "表3.4-1: 梁拱壳跨≤8m须达75%。6m梁→75%。教材表格逐字(2026-07-20补抽分档采分点后)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -899,17 +899,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d9a01afe172b51d68c37068c0e266ef1e6104273ac16541ada944409b53c2013",
+      "content_sha256": "fd4e354629ff1769f070664a8b1a3feb9ec2416feba54bd420edcf845d420c42",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "d9a01afe172b51d68c37068c0e266ef1e6104273ac16541ada944409b53c2013",
+        "reviewed_content_sha256": "fd4e354629ff1769f070664a8b1a3feb9ec2416feba54bd420edcf845d420c42",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1083,17 +1083,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f05ac7382fd395a8f45b86ccc05ad800291cd5d1cfa66fd7138e638f72c3117e",
+      "content_sha256": "f2f4d6c007e74f0f96cd479c578e51a4233160b5128757fb0f6dee194a088988",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f05ac7382fd395a8f45b86ccc05ad800291cd5d1cfa66fd7138e638f72c3117e",
+        "reviewed_content_sha256": "f2f4d6c007e74f0f96cd479c578e51a4233160b5128757fb0f6dee194a088988",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1250,17 +1250,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "511f54ff0df91026ecaa934ba9faafa41f0979703af2e1e3c4d025971eb99a61",
+      "content_sha256": "fb6c0b1df0c285567231135a183e800ff2f298ef053b05b559d3dec649d8d302",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "511f54ff0df91026ecaa934ba9faafa41f0979703af2e1e3c4d025971eb99a61",
+        "reviewed_content_sha256": "fb6c0b1df0c285567231135a183e800ff2f298ef053b05b559d3dec649d8d302",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1553,17 +1553,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8f43be58b45c9d081e384955544d66d8371f2702707105e17486368b102fae68",
+      "content_sha256": "486f44d70bbab57c4d8bdd407cfbaa485e41c35ddb27eba5c9cd00d70928c7ca",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8f43be58b45c9d081e384955544d66d8371f2702707105e17486368b102fae68",
+        "reviewed_content_sha256": "486f44d70bbab57c4d8bdd407cfbaa485e41c35ddb27eba5c9cd00d70928c7ca",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1737,17 +1737,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7bcb8a76ee3d3069a4242f65e1e890c1b0ea9a0b06b083353ceec0452bfa069f",
+      "content_sha256": "8cdbe0bd58792dcaacac6ad33867dc15a7b2598f8fb0357c4647d3c9411d2c7f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "7bcb8a76ee3d3069a4242f65e1e890c1b0ea9a0b06b083353ceec0452bfa069f",
+        "reviewed_content_sha256": "8cdbe0bd58792dcaacac6ad33867dc15a7b2598f8fb0357c4647d3c9411d2c7f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1870,17 +1870,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6499d22ee99cfb3271d446f8b21fa428fd1b6539dfcaf7bf9b17db32810e0681",
+      "content_sha256": "f399a75021378e637c1862ef953b52c97bd4619545079b5295d525a5ec5ee424",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6499d22ee99cfb3271d446f8b21fa428fd1b6539dfcaf7bf9b17db32810e0681",
+        "reviewed_content_sha256": "f399a75021378e637c1862ef953b52c97bd4619545079b5295d525a5ec5ee424",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2071,17 +2071,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "baa33c9db83f7887c724e6ed749852b2ad9bc4e796b926f3c0eba1445d5358dd",
+      "content_sha256": "acbdad96b662169bad4acff64d2c10917f64f10efd3fc751dc3481cc7b3cbaa7",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "baa33c9db83f7887c724e6ed749852b2ad9bc4e796b926f3c0eba1445d5358dd",
+        "reviewed_content_sha256": "acbdad96b662169bad4acff64d2c10917f64f10efd3fc751dc3481cc7b3cbaa7",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2255,17 +2255,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8e60587d1812cba67619601aa0ac6358eda58d688aef9069d75625e84c375c90",
+      "content_sha256": "d03c1486a38bfec32a0282cb7c97d061e22af5c7d5624ec039dc34ff973eb253",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8e60587d1812cba67619601aa0ac6358eda58d688aef9069d75625e84c375c90",
+        "reviewed_content_sha256": "d03c1486a38bfec32a0282cb7c97d061e22af5c7d5624ec039dc34ff973eb253",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2388,17 +2388,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "764e20debde42d5ec2f39d58a51ee3cdd01309d53d4b43342a3e46bfcd05615a",
+      "content_sha256": "d12b8e4a97c48cbf5847f04fd5c7953898b648c974908b2d4f0d7d97b3eb2005",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "764e20debde42d5ec2f39d58a51ee3cdd01309d53d4b43342a3e46bfcd05615a",
+        "reviewed_content_sha256": "d12b8e4a97c48cbf5847f04fd5c7953898b648c974908b2d4f0d7d97b3eb2005",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2572,27 +2572,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q15",
       "source_anchor": "kc:1A413030_099_0187:1",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bc2630ad11f905c851d1ec47309e6c14005b7410687103b3854249c29a60bf02",
+      "source_html_sha256": "5f4739c476b69ffe6d8234abe25afa3b04daf0915c7252ca6d5e18ef6b38716c",
       "fact_id": "s01-fact-scoring-diagnosis-up",
       "skeleton_id": "s01-skel-诊断16m论证门加分档100",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e2c9318a953ddf863b63b1077b7c37273383f67094cb9698168467037dbc3001",
+      "content_sha256": "885a92fddf6316d3dd0f1b746b0b652d1b5b1b0d40854af15a64300e5a4e01b5",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "e2c9318a953ddf863b63b1077b7c37273383f67094cb9698168467037dbc3001",
+        "reviewed_content_sha256": "885a92fddf6316d3dd0f1b746b0b652d1b5b1b0d40854af15a64300e5a4e01b5",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2602,7 +2602,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "诊断末题: 底模一律75%错(跨>8m及悬臂须100%, 表3.4-1直引); 16m≥8m论证门半边靠 kc:1A436000_009_0012:0(同为本题机器候选)。复合诊断单锚溯源足(S02 q17先例)。"
+        "note": "诊断末题: 底模一律75%错(跨>8m及悬臂须100%, 表3.4-1直引); 16m≥8m论证门半边靠 kc:1A436000_009_0012:0(同为本题机器候选)。复合诊断单锚溯源足(S02 q17先例)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2717,27 +2717,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q1",
       "source_anchor": "kc:1A436000_112_0185:4",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-dianban-50-200",
       "skeleton_id": "s01-skel-垫板30x150违规",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f77106d2cc7d689e4f13cca368bb5918354c0acc5dcbb5f06dbf891965a60fa3",
+      "content_sha256": "b8995b1d8ce1f57e12abf835e03201112f438f3d63ee65908e73aa09924f777e",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "f77106d2cc7d689e4f13cca368bb5918354c0acc5dcbb5f06dbf891965a60fa3",
+        "reviewed_content_sha256": "b8995b1d8ce1f57e12abf835e03201112f438f3d63ee65908e73aa09924f777e",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2747,7 +2747,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "垫板厚≥50mm/宽≥200mm/长≥2跨, 教材1A436000_112_0185(1)逐字; 实测30/150违规。原步距2m判分眼教材无源已改题(T2仲裁)。"
+        "note": "垫板厚≥50mm/宽≥200mm/长≥2跨, 教材1A436000_112_0185(1)逐字; 实测30/150违规。原步距2m判分眼教材无源已改题(T2仲裁)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2913,27 +2913,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q2",
       "source_anchor": "kc:1A436000_112_0185:2",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-saodigan-200mm",
       "skeleton_id": "s01-skel-扫地杆350颠倒",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1657497f0227775e9b314505c494e8c43142fae1be9c52e875cbee6a20efcfb6",
+      "content_sha256": "47cc40c58685d1e2e783d369c2ee51a30a04b0c91a46ea58424e4b3094765096",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "1657497f0227775e9b314505c494e8c43142fae1be9c52e875cbee6a20efcfb6",
+        "reviewed_content_sha256": "47cc40c58685d1e2e783d369c2ee51a30a04b0c91a46ea58424e4b3094765096",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2943,7 +2943,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "纵向扫地杆距底端≤200mm+横向在纵向下方, 教材直引; 350mm+颠倒双违规。"
+        "note": "纵向扫地杆距底端≤200mm+横向在纵向下方, 教材直引; 350mm+颠倒双违规。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3109,27 +3109,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q3",
       "source_anchor": "kc:1A436000_005_0006:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-free-height-2step-4m",
       "skeleton_id": "s01-skel-自由高5m超4m",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8e01246bc13ccc3d275cfc72c7cf314aa8dbcd4bbc0790533cbe4210aa74b976",
+      "content_sha256": "28a22c5a296e393c225261edce7fc8565bbd15396df6fb7b80393f0a925b409a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8e01246bc13ccc3d275cfc72c7cf314aa8dbcd4bbc0790533cbe4210aa74b976",
+        "reviewed_content_sha256": "28a22c5a296e393c225261edce7fc8565bbd15396df6fb7b80393f0a925b409a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3139,7 +3139,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "一次搭设≤最上层连墙件2步且自由高≤4m, 教材直引; 5m违规。"
+        "note": "一次搭设≤最上层连墙件2步且自由高≤4m, 教材直引; 5m违规。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3322,27 +3322,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q4",
       "source_anchor": "kc:1A413030_121_0229:1",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-lianqiangjian-rigid",
       "skeleton_id": "s01-skel-柔性钢筋违规",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "905784e37d6733791f0ec159b00a7bb3564e8241a85ba95631a09524b55de2e6",
+      "content_sha256": "9d5209b040340908c451a811a1c643646f3c261c46b49a1f4c02540227bd9f44",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "905784e37d6733791f0ec159b00a7bb3564e8241a85ba95631a09524b55de2e6",
+        "reviewed_content_sha256": "9d5209b040340908c451a811a1c643646f3c261c46b49a1f4c02540227bd9f44",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3352,7 +3352,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "连墙件应采用能承受压力和拉力的刚性构件(教材直引); 仅用钢筋柔性拉接违规。"
+        "note": "连墙件应采用能承受压力和拉力的刚性构件(教材直引); 仅用钢筋柔性拉接违规。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3518,17 +3518,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3f8f850082106528a14c8f819850ba0c187df32e1dbc6b9acd44730f1469f317",
+      "content_sha256": "ced57b8083b1d88a33055a281889a0a4b25ece406de85f1724546704cb6dc7c8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3f8f850082106528a14c8f819850ba0c187df32e1dbc6b9acd44730f1469f317",
+        "reviewed_content_sha256": "ced57b8083b1d88a33055a281889a0a4b25ece406de85f1724546704cb6dc7c8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3668,17 +3668,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "44da731969d0b75603ce083cbcc1a28abce3a8b0be1474b7e06b993f071918cd",
+      "content_sha256": "da0de4fd1026400e3fef036b4bbc90fb4d6c74ceac41855d139244686b9b1d7b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "44da731969d0b75603ce083cbcc1a28abce3a8b0be1474b7e06b993f071918cd",
+        "reviewed_content_sha256": "da0de4fd1026400e3fef036b4bbc90fb4d6c74ceac41855d139244686b9b1d7b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3903,17 +3903,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "87beb28412cd28793b6be1f7cffb6eb1c9f5c955a8682f0e76dc08472dc91d03",
+      "content_sha256": "a11f2e9db28e20df09078817650cd1111fd900c481badbd67414c08746c5bae2",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "87beb28412cd28793b6be1f7cffb6eb1c9f5c955a8682f0e76dc08472dc91d03",
+        "reviewed_content_sha256": "a11f2e9db28e20df09078817650cd1111fd900c481badbd67414c08746c5bae2",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -4104,17 +4104,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e635ac6df548f9b130208ecdac7852d2f19faee73b9949a9b25f7fd4aba42d88",
+      "content_sha256": "31a9039aa0ca994244e725106f6bbb16257ccee1dca80f950e47d8280dd2ead1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e635ac6df548f9b130208ecdac7852d2f19faee73b9949a9b25f7fd4aba42d88",
+        "reviewed_content_sha256": "31a9039aa0ca994244e725106f6bbb16257ccee1dca80f950e47d8280dd2ead1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -4254,17 +4254,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "130445b020f9f8d465b42560686bc32578520c916f7c30c795fa90c945ad7321",
+      "content_sha256": "a4a0428b98ee67d2993efe231e08c65ffad3e319a7f299659dc660cab4e8f3a4",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "130445b020f9f8d465b42560686bc32578520c916f7c30c795fa90c945ad7321",
+        "reviewed_content_sha256": "a4a0428b98ee67d2993efe231e08c65ffad3e319a7f299659dc660cab4e8f3a4",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -4404,17 +4404,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "135c91498e070c075b9d55b9f8137cefd19a0266911ef1ccfbcc87fdf918066c",
+      "content_sha256": "c8ddcc5e6b2ccee76353992270729f4304d641109cb4c692bc61f370edb398b1",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "135c91498e070c075b9d55b9f8137cefd19a0266911ef1ccfbcc87fdf918066c",
+        "reviewed_content_sha256": "c8ddcc5e6b2ccee76353992270729f4304d641109cb4c692bc61f370edb398b1",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -4605,27 +4605,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q11",
       "source_anchor": "kc:1A436000_006_0007:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-chaichu-order",
       "skeleton_id": "s01-skel-拆除总顺序口诀",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8edd0a208521aeb01cf9e06b66fcfedbd67cec97bf1f8f669c6f83571b38ca98",
+      "content_sha256": "b1848de17eee0f2f9d1aed30e7d10f517a7d93edf9815a2bf575b38bf7b1857b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8edd0a208521aeb01cf9e06b66fcfedbd67cec97bf1f8f669c6f83571b38ca98",
+        "reviewed_content_sha256": "b1848de17eee0f2f9d1aed30e7d10f517a7d93edf9815a2bf575b38bf7b1857b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -4635,7 +4635,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "拆除总顺序=自上而下·先外后内·逐层同步·严禁交叉, 教材直引。三联immediate_confirm。"
+        "note": "拆除总顺序=自上而下·先外后内·逐层同步·严禁交叉, 教材直引。三联immediate_confirm。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -4920,27 +4920,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q12",
       "source_anchor": "kc:1A436000_006_0007:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-chaichu-order",
       "skeleton_id": "s01-skel-连墙件随层拆时机",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7ba594cc8aba5cd30f2f3ad2c9b9aa3b7f0d4094872ed5b2b0dab3ebced0f79d",
+      "content_sha256": "c0dc2ac73ea01b9309a480c48c0e34b9b45f0e5d921e22a246cf06394eff7499",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7ba594cc8aba5cd30f2f3ad2c9b9aa3b7f0d4094872ed5b2b0dab3ebced0f79d",
+        "reviewed_content_sha256": "c0dc2ac73ea01b9309a480c48c0e34b9b45f0e5d921e22a246cf06394eff7499",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -4950,7 +4950,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "连墙件随架体逐层同步拆/严禁先整层拆/悬臂段超2步临时拉结, 教材直引。三联d1_probe, skeleton与anchor/confirm互异。"
+        "note": "连墙件随架体逐层同步拆/严禁先整层拆/悬臂段超2步临时拉结, 教材直引。三联d1_probe, skeleton与anchor/confirm互异。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -5235,17 +5235,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "40721213df4cdf348a9980bcb3257e0046e4fdb8924fdbcff90d1b8b5a248510",
+      "content_sha256": "70381c700b832234d138e5ae17cdd542332a54d3ec42ca4e1f89c252c6846eae",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "40721213df4cdf348a9980bcb3257e0046e4fdb8924fdbcff90d1b8b5a248510",
+        "reviewed_content_sha256": "70381c700b832234d138e5ae17cdd542332a54d3ec42ca4e1f89c252c6846eae",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -5402,27 +5402,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q15",
       "source_anchor": "kc:1A436000_006_0007:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "72dd1c0db3f9b4dde5dc2241cfe632d913dbdde14622c9591503b60e687c54f9",
+      "source_html_sha256": "7085ec428f69c86efbf1c8cf3376b305cadc52260fa7d7a5b27db3755f7836c9",
       "fact_id": "s01-fact-chaichu-order",
       "skeleton_id": "s01-skel-诊断拆除方向加随层拆",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "be29d30e9473470d89bcbbe5601a866ec853e63370756e4bfb70eb7f92550faf",
+      "content_sha256": "e759f150ad41818e6ea42fdc55dd7121f02a7cdb329a3cf3abfe4cef298f845c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "be29d30e9473470d89bcbbe5601a866ec853e63370756e4bfb70eb7f92550faf",
+        "reviewed_content_sha256": "e759f150ad41818e6ea42fdc55dd7121f02a7cdb329a3cf3abfe4cef298f845c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -5432,7 +5432,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "诊断末题: 自上而下按步逐层/先外后内/连墙件随层同步严禁整层拆/悬臂超2步拉结, 教材1A436000_006_0007逐字。三联anchor。"
+        "note": "诊断末题: 自上而下按步逐层/先外后内/连墙件随层同步严禁整层拆/悬臂超2步拉结, 教材1A436000_006_0007逐字。三联anchor。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -5547,27 +5547,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q1",
       "source_anchor": "kc:1A436000_107_0174:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "s01-fact-mbzj-baozheng-items",
       "skeleton_id": "s01-skel-保证项目6项",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b6fff4f856fcf233c0c0329a68619404de24db6215d23accceae4a1fa5d0966b",
+      "content_sha256": "24df757e8f66475ab09f536e8e642cfe2164d791bf66c33fe4ec90f081513bd2",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b6fff4f856fcf233c0c0329a68619404de24db6215d23accceae4a1fa5d0966b",
+        "reviewed_content_sha256": "24df757e8f66475ab09f536e8e642cfe2164d791bf66c33fe4ec90f081513bd2",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -5577,7 +5577,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "模板支架保证项目=方案/基础/构造/稳定/荷载/交底与验收, 教材直引。"
+        "note": "模板支架保证项目=方案/基础/构造/稳定/荷载/交底与验收, 教材直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -5845,27 +5845,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q2",
       "source_anchor": "kc:1A436000_107_0174:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "s01-fact-zhijiachaichu-yiban",
       "skeleton_id": "s01-skel-支架拆除归一般",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "65d3d1d1821f31fde47b67890c1aa63143cb99c19d40cd5cf935ef42a2b6462c",
+      "content_sha256": "d2926622756cc62f1735f4d56039f9b76c0a3b7000ee15014a1c98f239643f15",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "65d3d1d1821f31fde47b67890c1aa63143cb99c19d40cd5cf935ef42a2b6462c",
+        "reviewed_content_sha256": "d2926622756cc62f1735f4d56039f9b76c0a3b7000ee15014a1c98f239643f15",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -5875,7 +5875,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "支架拆除属一般项目, 教材直引(同锚不同skeleton)。"
+        "note": "支架拆除属一般项目, 教材直引(同锚不同skeleton)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -6143,27 +6143,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q3",
       "source_anchor": "kc:1A436000_006_0008:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "s01-fact-yanshou-4elements",
       "skeleton_id": "s01-skel-验收四要素",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "02a94526966a7fd7ce5e7809bf1fd895ceb5d4a664e0b59546614c1311677e09",
+      "content_sha256": "ffb95556a91b615b285aa4468641cb99d1a72782ea51c40b0b0446129ecfd268",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "02a94526966a7fd7ce5e7809bf1fd895ceb5d4a664e0b59546614c1311677e09",
+        "reviewed_content_sha256": "ffb95556a91b615b285aa4468641cb99d1a72782ea51c40b0b0446129ecfd268",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -6173,7 +6173,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "验收四要素=材料/支承固定/搭设质量/技术资料, 教材直引。"
+        "note": "验收四要素=材料/支承固定/搭设质量/技术资料, 教材直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -6305,27 +6305,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q4",
       "source_anchor": "kc:1A436000_113_0186:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "s01-fact-jiancha-5nodes-6m",
       "skeleton_id": "s01-skel-支撑架6m一查",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a8c3af0b02b6ca22da88c9802dc0ee343a030269d55ec68fa5439991b00afe6a",
+      "content_sha256": "42d725f7a397c241d14b00aa8272d405833ffe14934b1383edba8e39f18aec52",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a8c3af0b02b6ca22da88c9802dc0ee343a030269d55ec68fa5439991b00afe6a",
+        "reviewed_content_sha256": "42d725f7a397c241d14b00aa8272d405833ffe14934b1383edba8e39f18aec52",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -6335,7 +6335,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "五阶段检查节点, 支撑架每2~4步或≤6m, 教材1A436000_113_0186逐字。"
+        "note": "五阶段检查节点, 支撑架每2~4步或≤6m, 教材1A436000_113_0186逐字。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -6586,17 +6586,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dd1d6de52c10aecabd0ac9d3e9fcf2f0e99bfefdd03c91be75059121676e8f6c",
+      "content_sha256": "35df67d88e0c3027243fdd1e3fc446eba88792c8093040637b30557091c8093d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "dd1d6de52c10aecabd0ac9d3e9fcf2f0e99bfefdd03c91be75059121676e8f6c",
+        "reviewed_content_sha256": "35df67d88e0c3027243fdd1e3fc446eba88792c8093040637b30557091c8093d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -6770,17 +6770,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "471cf231b1fbf7608c81b48afcab2ee85bb1f5df778b99814be3ba4562a08508",
+      "content_sha256": "97d68d817da09531c8d2dbb641200cd5623a4364f1435f4daee8d2d3190322ad",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "471cf231b1fbf7608c81b48afcab2ee85bb1f5df778b99814be3ba4562a08508",
+        "reviewed_content_sha256": "97d68d817da09531c8d2dbb641200cd5623a4364f1435f4daee8d2d3190322ad",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -6954,17 +6954,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "87ddb3f131db32891ebfc667505f6dbb215357d79529d74aff2364b6b4316d51",
+      "content_sha256": "c4aa5f7edb23ad0a9e6880ab171a226900fe48fba5c64686052f71c20ae882b6",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "87ddb3f131db32891ebfc667505f6dbb215357d79529d74aff2364b6b4316d51",
+        "reviewed_content_sha256": "c4aa5f7edb23ad0a9e6880ab171a226900fe48fba5c64686052f71c20ae882b6",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -7138,17 +7138,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a9ef38331ec015b0765772e569051e3663965c8fd1e5f6f94932dee9d3a5ac6d",
+      "content_sha256": "47a4b37296a7a5edf15a2458cc535abac2204679184b1a9c8dac2ee757006d61",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "a9ef38331ec015b0765772e569051e3663965c8fd1e5f6f94932dee9d3a5ac6d",
+        "reviewed_content_sha256": "47a4b37296a7a5edf15a2458cc535abac2204679184b1a9c8dac2ee757006d61",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -7407,17 +7407,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "984942f97991138dcb02f6dbdc19e075735e2ad0e979a950f0dfe5dfae32cdd0",
+      "content_sha256": "b7d0451eea98f3f457f624dd49624c433f810ceeae903f1e036c91a04cbf46a4",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "984942f97991138dcb02f6dbdc19e075735e2ad0e979a950f0dfe5dfae32cdd0",
+        "reviewed_content_sha256": "b7d0451eea98f3f457f624dd49624c433f810ceeae903f1e036c91a04cbf46a4",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -7676,17 +7676,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "276e999086686b459bdacfb139550e80706d2871b2fc90f13a68dbfbd2143cb5",
+      "content_sha256": "3df29305d4bdbc82a32661d48272f035760d9f481ef513df9475e2edb1fe831f",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "276e999086686b459bdacfb139550e80706d2871b2fc90f13a68dbfbd2143cb5",
+        "reviewed_content_sha256": "3df29305d4bdbc82a32661d48272f035760d9f481ef513df9475e2edb1fe831f",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -7894,17 +7894,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9ca66abce4bc32c6a0fddb34568b2e6a0b2852344813bef4ade72919139dd07d",
+      "content_sha256": "50d560a2876c4e3378f7df4091a1872427b2bdb74655970aeda5ab9fd959108b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9ca66abce4bc32c6a0fddb34568b2e6a0b2852344813bef4ade72919139dd07d",
+        "reviewed_content_sha256": "50d560a2876c4e3378f7df4091a1872427b2bdb74655970aeda5ab9fd959108b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -8078,17 +8078,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d1f7082123b5e773e007bd83d6ff4576e0f650bfcd6a1c8acf2c04d3f100b606",
+      "content_sha256": "623cd4f60cb6c186edc059f038345e9cda2cae5dce9b00da98e06f41425a6bc8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "d1f7082123b5e773e007bd83d6ff4576e0f650bfcd6a1c8acf2c04d3f100b606",
+        "reviewed_content_sha256": "623cd4f60cb6c186edc059f038345e9cda2cae5dce9b00da98e06f41425a6bc8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -8228,27 +8228,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q14",
       "source_anchor": "kc:1A436000_107_0174:0",
       "source_sha256": "8e4aedb0d5a010ac4f29ddca1650bae8bfb8dc04c5503b6da12ea536f14cde9a",
-      "source_html_sha256": "bd65906feb2dad50593bb7a5dcf7a5baccf317fe209293c3634e102cf01f67f1",
+      "source_html_sha256": "27264c98e0ab1d34750a143e46338f66b1530f5ca43a912d11842fb8c45bd399",
       "fact_id": "s01-fact-scoring-diagnosis-down",
       "skeleton_id": "s01-skel-诊断归类加卸料平台",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "91bfb5ab7054407fef4be49028e937bd8823b7960501cbf831cc688c081df08e",
+      "content_sha256": "b393bc37f4089c9fb4370f0405659cb8fc92f5725d1c45c961118977d7e5f561",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "91bfb5ab7054407fef4be49028e937bd8823b7960501cbf831cc688c081df08e",
+        "reviewed_content_sha256": "b393bc37f4089c9fb4370f0405659cb8fc92f5725d1c45c961118977d7e5f561",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:50:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -8258,7 +8258,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "诊断末题: 支架拆除归一般项目(直引); 卸料平台严禁固定作业脚手架半边靠 kc:1A436000_006_0007:1(教材1A436000_006_0007(8)逐字, 同为本题机器候选)。复合诊断单锚溯源足。"
+        "note": "诊断末题: 支架拆除归一般项目(直引); 卸料平台严禁固定作业脚手架半边靠 kc:1A436000_006_0007:1(教材1A436000_006_0007(8)逐字, 同为本题机器候选)。复合诊断单锚溯源足。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -8323,5 +8323,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "8640b6f004a75cf1f2a5c2eb7b066a7d138b9d0871a66cf2377b7a70f74f0281"
+  "published_lesson_sha256": "4ee9885377f9e43ce5c82e14e1c0d7e8d11788513a47e02479b9f4d023a22de6"
 }

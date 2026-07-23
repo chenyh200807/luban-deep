@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "D12",
   "source_pack_sha256": "701c192b8452c27afb6af58d3c7054eeda3e8a2a4f2ef0526df840650a01b8fc",
-  "source_bundle_sha256": "99834e4e6ebcb1f5f850fb282cfdbd47bf75611501821d820c5990a27bf49847",
+  "source_bundle_sha256": "29eeeee3751006ae11eb4f0af5f86963be4ea56aa144345d5af584f43afe6e4d",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -34,8 +34,8 @@
         "D12-html-practice-html-q15-2935ec938cfd",
         "D12-html-practice-html-q16-300386be76cf"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjQ0NjM5ZGRiZjY4IiwiRDEyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YmEyYjdkYWFmM2MiLCJEMTItaHRtbC1wcmFjdGljZS1odG1sLXEzLTI2NDcyN2NhYjdkOSIsIkQxMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODY5MDA2MmFkYzJlIiwiRDEyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMzAwMzg2YmU3NmNmIl0sInBhY2tfaWQiOiJEMTIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImRmZDllNzNkMzEyZjA0MmQwOWE3MmFhZGFkNzQ1N2ViMjExZGRmNGI0OGU3MDIzOWRhMGRjYjQ4NzYwYzM3OGEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOTkzNjM4NDYwNDhmZDFjZDE4OTQzOTdlZjE1NDdhM2M0MmJiZWZmODZiOGJmMjIyMzIwODM5NGQ5YTBiMDRhZCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "3f5f9192aed6fd858db47e5d0307463af6b8536c6ec8ded59c1534f140cb84e3"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkQxMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjQ0NjM5ZGRiZjY4IiwiRDEyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YmEyYjdkYWFmM2MiLCJEMTItaHRtbC1wcmFjdGljZS1odG1sLXEzLTI2NDcyN2NhYjdkOSIsIkQxMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtODY5MDA2MmFkYzJlIiwiRDEyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMzAwMzg2YmU3NmNmIl0sInBhY2tfaWQiOiJEMTIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjYwOTMyZGVmMzJjMjczNTI2NzdmNjU0YzBmNWNkMjQxMjQ5ZTQ1NzA2OWNiZGUxOGNlODdmZDFjMTM4NmMzOWEiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiOTkzNjM4NDYwNDhmZDFjZDE4OTQzOTdlZjE1NDdhM2M0MmJiZWZmODZiOGJmMjIyMzIwODM5NGQ5YTBiMDRhZCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "bf7d04a3973fc8fccdf73fb2716ececfbb1804ab8c4ad9676102169dc195d84e"
     }
   ],
   "items": [
@@ -90,27 +90,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q1",
       "source_anchor": "kc:1A413030_144_0279:0",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-facing-panel-material-classification",
       "skeleton_id": "d12-skel-饰面板六类分类",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8253d86324544eb40cd1e9e7bb76f808a43ee6ea8db43c2c55d94edfc776661c",
+      "content_sha256": "5f62faa0b120e11c4cf48681d30644124ad218bedeede39c4fe4b798a319357c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8253d86324544eb40cd1e9e7bb76f808a43ee6ea8db43c2c55d94edfc776661c",
+        "reviewed_content_sha256": "5f62faa0b120e11c4cf48681d30644124ad218bedeede39c4fe4b798a319357c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -120,7 +120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "饰面板按面层材料分石材、瓷板、金属、木质、玻璃、塑料六类, 教材 kc:1A413030_144_0279:0 逐字直引。工单: 正确项恒非首位(此题在option-3)、六类正确项相对最完整=template 倾向, 记 template_leakage note。"
+        "note": "饰面板按面层材料分石材、瓷板、金属、木质、玻璃、塑料六类, 教材 kc:1A413030_144_0279:0 逐字直引。工单: 正确项恒非首位(此题在option-3)、六类正确项相对最完整=template 倾向, 记 template_leakage note。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -303,27 +303,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q2",
       "source_anchor": "kc:1A413030_144_0279:3",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-stone-panel-three-methods",
       "skeleton_id": "d12-skel-石材三法配套",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a527960569b069ec8ac61be117260d087c89df146b77232e2bfa55cea1ac44c6",
+      "content_sha256": "b0e91bd3f49a9a79f21e1bf3b913199d2477c06e5f0b6578ee57e6412dd0585b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a527960569b069ec8ac61be117260d087c89df146b77232e2bfa55cea1ac44c6",
+        "reviewed_content_sha256": "b0e91bd3f49a9a79f21e1bf3b913199d2477c06e5f0b6578ee57e6412dd0585b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -333,7 +333,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "墙柱面石材分干挂(短槽/背槽/背栓)/干粘/湿贴三法, 干挂工厂加工挂件+六面防护, 湿贴铲除背网, 教材 kc:1A413030_144_0279:3 逐字直引。与 q3 共享同一采分点:3(方法与薄型块材同段), 各取语义半, 均真实。"
+        "note": "墙柱面石材分干挂(短槽/背槽/背栓)/干粘/湿贴三法, 干挂工厂加工挂件+六面防护, 湿贴铲除背网, 教材 kc:1A413030_144_0279:3 逐字直引。与 q3 共享同一采分点:3(方法与薄型块材同段), 各取语义半, 均真实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -669,27 +669,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q3",
       "source_anchor": "kc:1A413030_144_0279:3",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-thin-block-paste-threshold",
       "skeleton_id": "d12-skel-薄型块材粘贴门槛",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "32f03d0479c9b00f4b3b7647f4e50417cc88b681b76ce23761171e28180d7c6d",
+      "content_sha256": "a9cd28f0c5ca7a645bdea753f4b01d856669fe7b8bb65435877742db1814c8ce",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "32f03d0479c9b00f4b3b7647f4e50417cc88b681b76ce23761171e28180d7c6d",
+        "reviewed_content_sha256": "a9cd28f0c5ca7a645bdea753f4b01d856669fe7b8bb65435877742db1814c8ce",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -699,7 +699,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "薄型小规格块材(≤10mm厚,<40cm边长)可粘贴、粘贴厚8~10mm、超规格改干挂, 教材 kc:1A413030_144_0279:3 逐字直引。工单: 干扰项 M08 用饰面砖粘结剂3~8mm 混石材粘贴厚8~10mm=同包 kc:...145_0280:1 真值对撞, 数值门槛忠实。"
+        "note": "薄型小规格块材(≤10mm厚,<40cm边长)可粘贴、粘贴厚8~10mm、超规格改干挂, 教材 kc:1A413030_144_0279:3 逐字直引。工单: 干扰项 M08 用饰面砖粘结剂3~8mm 混石材粘贴厚8~10mm=同包 kc:...145_0280:1 真值对撞, 数值门槛忠实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -916,27 +916,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q4",
       "source_anchor": "kc:1A413030_144_0279:1",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-construction-prep-checks",
       "skeleton_id": "d12-skel-施工准备三检",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "167fdf545e2925d331bd3583f1840ea41d2f6aa20e6f3e5e26adc1ae9548cf6c",
+      "content_sha256": "2c8d12a23ff4b3cf4af2b13f1ef10ca6c26233825d44806e5bfb330931a2a71b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "167fdf545e2925d331bd3583f1840ea41d2f6aa20e6f3e5e26adc1ae9548cf6c",
+        "reviewed_content_sha256": "2c8d12a23ff4b3cf4af2b13f1ef10ca6c26233825d44806e5bfb330931a2a71b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -946,7 +946,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "施工准备: 后置埋件拉拔力检验合格、湿作业法石板防碱封闭、金属饰面板防雷接通, 教材 kc:1A413030_144_0279:1 逐字直引。工单: 干扰项防酸/防辐射系防碱同音干扰, 教材口径为防碱。"
+        "note": "施工准备: 后置埋件拉拔力检验合格、湿作业法石板防碱封闭、金属饰面板防雷接通, 教材 kc:1A413030_144_0279:1 逐字直引。工单: 干扰项防酸/防辐射系防碱同音干扰, 教材口径为防碱。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1163,17 +1163,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "274ff2bd2871816f1f597d8ebe8aceb4f3a3ff843effea56fa8407720a4ec042",
+      "content_sha256": "bdb77be3df48f9582d031479d625c41d246452f27eeaab927e3b449813f61a4d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "274ff2bd2871816f1f597d8ebe8aceb4f3a3ff843effea56fa8407720a4ec042",
+        "reviewed_content_sha256": "bdb77be3df48f9582d031479d625c41d246452f27eeaab927e3b449813f61a4d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1330,17 +1330,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9b0ad3fa8b06c745bc2b371530ae8f69649c4fc41f9565f408c044590e579d81",
+      "content_sha256": "f03cdf534a18e48464d8bd49870b45c7c1260924988c31bce79530647f1559cc",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "9b0ad3fa8b06c745bc2b371530ae8f69649c4fc41f9565f408c044590e579d81",
+        "reviewed_content_sha256": "f03cdf534a18e48464d8bd49870b45c7c1260924988c31bce79530647f1559cc",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1480,27 +1480,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q7",
       "source_anchor": "kc:1A413030_145_0280:1",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-tile-paste-craft",
       "skeleton_id": "d12-skel-粘结剂厚度调整",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "79080b983fe9538c11f53746eb9ce5cd865820a1af897c58b75a03650aac7a1b",
+      "content_sha256": "c5932ad627f11466ef4fb753cf928cd55c276eb9beed961510e38eb0d078c6ad",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "79080b983fe9538c11f53746eb9ce5cd865820a1af897c58b75a03650aac7a1b",
+        "reviewed_content_sha256": "c5932ad627f11466ef4fb753cf928cd55c276eb9beed961510e38eb0d078c6ad",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1510,7 +1510,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "饰面砖粘结剂厚度3~8mm、调整期内可微调、超时严禁振动, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 anchor(饰面砖粘贴工艺 fact)。"
+        "note": "饰面砖粘结剂厚度3~8mm、调整期内可微调、超时严禁振动, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 anchor(饰面砖粘贴工艺 fact)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1693,27 +1693,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q8",
       "source_anchor": "kc:1A413030_145_0280:1",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-tile-paste-craft",
       "skeleton_id": "d12-skel-排版填缝顺序",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7a0cbf304b1b945699ba1230e20fbdb91631fbbff2c39dd131563e1081926e2d",
+      "content_sha256": "f54ff4de022a16422a9ccbd035241db509b07a1c10ea406f0935b3e4881e69cb",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7a0cbf304b1b945699ba1230e20fbdb91631fbbff2c39dd131563e1081926e2d",
+        "reviewed_content_sha256": "f54ff4de022a16422a9ccbd035241db509b07a1c10ea406f0935b3e4881e69cb",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1723,7 +1723,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "粘贴前排砖、分格、弹线(总体排版策划); 填缝先水平缝后垂直缝, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 immediate_confirm(同饰面砖粘贴工艺 fact, 独立 skeleton)。"
+        "note": "粘贴前排砖、分格、弹线(总体排版策划); 填缝先水平缝后垂直缝, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 immediate_confirm(同饰面砖粘贴工艺 fact, 独立 skeleton)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1974,17 +1974,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "817f6e843565e1912bfadb4b9703d4af74d4032b7222998a73c21dee7b3f7eef",
+      "content_sha256": "78aadd6b7e006fb53e3b81dc711277f688d0c1a89eb8cd7cb404dc19e5d9f05a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "817f6e843565e1912bfadb4b9703d4af74d4032b7222998a73c21dee7b3f7eef",
+        "reviewed_content_sha256": "78aadd6b7e006fb53e3b81dc711277f688d0c1a89eb8cd7cb404dc19e5d9f05a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2158,17 +2158,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "93dc69048236cf7d5dca186c8001546d45e8ad13f4c10333d74ea8054b73946b",
+      "content_sha256": "69e3df6f4ba65570ed41a7de818dbb774bb549c70b0a4cce473e06401d61f607",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "93dc69048236cf7d5dca186c8001546d45e8ad13f4c10333d74ea8054b73946b",
+        "reviewed_content_sha256": "69e3df6f4ba65570ed41a7de818dbb774bb549c70b0a4cce473e06401d61f607",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2444,17 +2444,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "68c39ba73dc436225d26418807dba9720c460ecd34295bd1a33afda84cfd42d8",
+      "content_sha256": "852880fae0cf3ed4fe5846b258c7273c8475f69c57bf148a0ccd1e4d2633e508",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "68c39ba73dc436225d26418807dba9720c460ecd34295bd1a33afda84cfd42d8",
+        "reviewed_content_sha256": "852880fae0cf3ed4fe5846b258c7273c8475f69c57bf148a0ccd1e4d2633e508",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2594,17 +2594,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d3ed5f532eca05927b37a44ee895c7f7f143878e761ec1da5df5abcbdc6da67a",
+      "content_sha256": "82aaf0105116156bc37a5661bfdfb100365c4bae88318608429380b6bc701380",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "d3ed5f532eca05927b37a44ee895c7f7f143878e761ec1da5df5abcbdc6da67a",
+        "reviewed_content_sha256": "82aaf0105116156bc37a5661bfdfb100365c4bae88318608429380b6bc701380",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2761,17 +2761,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e88fc45f2246c4769b6c79db5fd0226bac153cfae4db29eaee9dee5869ce8897",
+      "content_sha256": "37641032a69b252b603fe879b9d3ce819525d6d8c95d0309a765fc92144b10b2",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e88fc45f2246c4769b6c79db5fd0226bac153cfae4db29eaee9dee5869ce8897",
+        "reviewed_content_sha256": "37641032a69b252b603fe879b9d3ce819525d6d8c95d0309a765fc92144b10b2",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2962,17 +2962,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "27929f69ae201a257681969c437309acbaa8f310d37dc0916b17e36c68f49698",
+      "content_sha256": "a9fc6305f80140d8c8be0009e099b9646e208c5449b6ffbed2067845bfb76dd8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "27929f69ae201a257681969c437309acbaa8f310d37dc0916b17e36c68f49698",
+        "reviewed_content_sha256": "a9fc6305f80140d8c8be0009e099b9646e208c5449b6ffbed2067845bfb76dd8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3316,27 +3316,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q15",
       "source_anchor": "kc:1A413030_145_0280:1",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-tile-paste-craft",
       "skeleton_id": "d12-skel-三段式纠错20mm",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "07b25bd0e98ef93901009003c08c48dfc594d16e249c8d18e108366f62a26a13",
+      "content_sha256": "3aada62dc0f1462525b50b2b6b2693b1249010d82f8bfb72ca7f9ff1905e618b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "07b25bd0e98ef93901009003c08c48dfc594d16e249c8d18e108366f62a26a13",
+        "reviewed_content_sha256": "3aada62dc0f1462525b50b2b6b2693b1249010d82f8bfb72ca7f9ff1905e618b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3346,7 +3346,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "三段式判错纠正: 粘结剂随抹灰抹厚20mm 不妥, 饰面砖粘结剂厚度应3~8mm(非抹灰层)、超时严禁振动, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 d1_probe(同饰面砖粘贴工艺 fact, 第3独立 skeleton)。工单: 正确项偏长。"
+        "note": "三段式判错纠正: 粘结剂随抹灰抹厚20mm 不妥, 饰面砖粘结剂厚度应3~8mm(非抹灰层)、超时严禁振动, 教材 kc:1A413030_145_0280:1 逐字直引。三件套 d1_probe(同饰面砖粘贴工艺 fact, 第3独立 skeleton)。工单: 正确项偏长。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3529,27 +3529,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D12/P40_D12.practice.dc.html#Q16",
       "source_anchor": "kc:1A434000_078_0123:0",
       "source_sha256": "5136aad639b1ab00b67f8cbc5134081c359b9dbe793f31d24612a4647c5ee70f",
-      "source_html_sha256": "1728627b063a3de739ddfbcabb69b4c555bf8c8346938a8f545e5b053058c847",
+      "source_html_sha256": "4418ec0752b8bcdd5854766761c96fc362802d7220265dbaea0f0e6c4d132ae8",
       "fact_id": "d12-fact-tile-hollowing-five-points",
       "skeleton_id": "d12-skel-空鼓诊断补五要点",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3d2123fc51bb6470130851b7a263d5f5c96986e352ec499a82e654243f2662cb",
+      "content_sha256": "e07b86932533a3846db18470ebf7cc9717deab4c5500f7a23f92b02d4dd03ca8",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3d2123fc51bb6470130851b7a263d5f5c96986e352ec499a82e654243f2662cb",
+        "reviewed_content_sha256": "e07b86932533a3846db18470ebf7cc9717deab4c5500f7a23f92b02d4dd03ca8",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:59+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3559,7 +3559,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "空鼓防治五要点(基层清理/水泥基粘结/界面剂+背砂/伸缩缝/养护), 教材 kc:1A434000_078_0123:0 逐字直引, 正确项 option-2 补写句与源五点逐字一致。⚠️工单(provenance-borrow): 此为地面空鼓真锚(leaf 1A434000-B011, tier=full)借力外墙饰面砖空鼓诊断; compiled_source note 明示'编译库内无饰面砖板专门空鼓防治锚, 墙面砖空鼓防治原理同源借力'。锚真实存在且五要点逐字支撑正确项, 非编造锚; 记借力工单待编译库补外墙饰面砖专门空鼓锚后回锚。q16 系固定投影面(presentation_order index15)必须签 anchor, 其两候选均为该借力锚, 取:0(五点陈述)优于 ca(问句)。"
+        "note": "空鼓防治五要点(基层清理/水泥基粘结/界面剂+背砂/伸缩缝/养护), 教材 kc:1A434000_078_0123:0 逐字直引, 正确项 option-2 补写句与源五点逐字一致。⚠️工单(provenance-borrow): 此为地面空鼓真锚(leaf 1A434000-B011, tier=full)借力外墙饰面砖空鼓诊断; compiled_source note 明示'编译库内无饰面砖板专门空鼓防治锚, 墙面砖空鼓防治原理同源借力'。锚真实存在且五要点逐字支撑正确项, 非编造锚; 记借力工单待编译库补外墙饰面砖专门空鼓锚后回锚。q16 系固定投影面(presentation_order index15)必须签 anchor, 其两候选均为该借力锚, 取:0(五点陈述)优于 ca(问句)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3641,5 +3641,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "f9b960b51e9467df70b4c35172885b6c54d2a5811b79f3bcc7c0a370906e7447"
+  "published_lesson_sha256": "ade77771aa215fe2f01c54be765f50886a1467fd1b2afd91a8d5e7ed490635bc"
 }

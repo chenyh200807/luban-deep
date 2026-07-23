@@ -1,1139 +1,1130 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "D11",
-  "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
-  "source_bundle_sha256": "b804ec12bc74915ea8deef602e96c215eb246adcff5a445c4febafe6a85b2090",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 14,
-  "eligible_count": 11,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "D11-html-practice-html-q1-d0bd92b31f8e",
-      "surface_id": "practice.html",
-      "stem": "内墙一般抹灰，某处抹灰总厚度达到 38mm。关于是否采取加强措施，选出正确且能得分的作答。",
-      "options": [
-        {
-          "text": "抹灰总厚度超过 50mm 才需要加强，38mm 尚未到 50mm，可正常一次抹灰不必加强。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "凭印象觉得更厚（50mm）才加强。",
-          "loss_reason": "加强阈值是 35mm 不是 50mm，规范数字记错就漏了加强这一步。",
-          "fix": "总厚≥35mm 即须加强，38mm 已达。",
-          "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-1"
-        },
-        {
-          "text": "抹灰总厚度≥35mm 即应采取加强措施，38mm 已达标准，应分层抹灰并设加强网。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "阈值 35mm + 加强做法（分层+挂网）齐全，换个厚度数也不会错。",
-          "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-2"
-        },
-        {
-          "text": "抹灰厚度偏大时应采取分层抹灰等加强处理，具体厚度阈值不必在作答中写明。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "知道要加强，但嫌记数字麻烦。",
-          "loss_reason": "漏了“≥35mm”这个关键阈值，采分点落不到数字上。",
-          "fix": "写明总厚≥35mm 须加强，并给出分层+挂网。",
-          "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-3"
-        },
-        {
-          "text": "只要将每一遍抹灰厚度控制在 8mm 以内薄涂，总厚度多大均不必再加强。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把单遍薄抹当成免加强的理由。",
-          "loss_reason": "混淆了单遍控制与总厚加强——总厚到 35mm 仍须加强。",
-          "fix": "总厚≥35mm 一律加强，与单遍厚薄无关。",
-          "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-4"
-        }
-      ],
-      "model_answer": "抹灰总厚度≥35mm 时应采取加强措施（分层抹灰、设加强网）；38mm 已达阈值，须加强。",
-      "rule_group": "控厚度·条件维",
-      "content_sha256": "5990dc11218ea9e637a53be5610a660646bbcad0d8e76b813c4e4fc9b91a5be3",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q1",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-plaster-thickness-reinforce",
-        "skeleton_id": "d11-skel-总厚35加强判定",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A422000_042_0068:0",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "5990dc11218ea9e637a53be5610a660646bbcad0d8e76b813c4e4fc9b91a5be3",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q2-157be6f8e0ed",
-      "surface_id": "practice.html",
-      "stem": "内墙普通抹灰与高级抹灰的抹灰层平均总厚度上限，选出正确作答。",
-      "options": [
-        {
-          "text": "内墙普通抹灰层平均总厚度不大于 25mm，高级抹灰层平均总厚度不大于 30mm。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "两个数都往上记大了一档。",
-          "loss_reason": "20/25 记成了 25/30，规范数值整体记高。",
-          "fix": "普通≤20mm、高级≤25mm。",
-          "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-1"
-        },
-        {
-          "text": "这里的 20mm、25mm 指底层、中层、面层每一单层的厚度上限。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把“平均总厚度”理解成单层厚度。",
-          "loss_reason": "题问的是抹灰层平均总厚度，不是底/中/面单层。",
-          "fix": "是抹灰层平均总厚度，非底中面单层。",
-          "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-2"
-        },
-        {
-          "text": "内墙普通抹灰层平均总厚度不大于 20mm，高级抹灰层平均总厚度不大于 25mm。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "普通 20、高级 25，对象与数值一一对应，不对调。",
-          "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-3"
-        },
-        {
-          "text": "内墙普通抹灰层平均总厚度不大于 25mm，高级抹灰层平均总厚度不大于 20mm。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "数值都见过，顺手把两档对调了。",
-          "loss_reason": "普通/高级对象与数值张冠李戴。",
-          "fix": "普通≤20、高级≤25，别把两档对调。",
-          "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-4"
-        }
-      ],
-      "model_answer": "内墙普通抹灰层平均总厚度≤20mm；高级抹灰层≤25mm。",
-      "rule_group": "控厚度·条件维",
-      "content_sha256": "b738083aab8268f8a4c7d9338df40dbcc358142b81527b053540bb62f68bcbd6",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q2",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-plaster-layer-thickness",
-        "skeleton_id": "d11-skel-普通高级层厚数值",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2023:第26题",
-        "source_sha256": "bb833e208f4e1c22d21809bfbef9466eecb358f5496fddd8a5c68e89bdd38934",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "b738083aab8268f8a4c7d9338df40dbcc358142b81527b053540bb62f68bcbd6",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q3-1991f820d89e",
-      "surface_id": "practice.html",
-      "stem": "框架填充墙，混凝土柱与砖砌体交接处抹灰。为防止交接处开裂，选出正确作答。",
-      "options": [
-        {
-          "text": "将交接处抹灰找平压实并适当延长养护时间即可，不必再做专门防裂处理。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为找平+养护就能防裂。",
-          "loss_reason": "漏了“设加强网”这个核心措施，采分点遗漏。",
-          "fix": "交接处必须设加强网跨越接缝。",
-          "option_id": "D11-html-practice-html-q3-1991f820d89e:option-1"
-        },
-        {
-          "text": "只有抹灰总厚超过 50mm 的交接处才设加强网，一般交接处不用设。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把“设加强网”和厚度阈值绑死。",
-          "loss_reason": "不同材料基体交接处一律设网，与总厚阈值是两条独立要求。",
-          "fix": "不同材料基体交接处均应设加强网。",
-          "option_id": "D11-html-practice-html-q3-1991f820d89e:option-2"
-        },
-        {
-          "text": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "抓住“不同材料基体交接处设加强网跨缝”这一核心措施。",
-          "option_id": "D11-html-practice-html-q3-1991f820d89e:option-3"
-        },
-        {
-          "text": "交接处可用饰面砖等面层直接覆盖处理，抹灰层本身无需防裂措施。",
-          "is_correct": false,
-          "source_error_code": "E11",
-          "temptation": "拿饰面遮盖当防裂手段。",
-          "loss_reason": "混淆饰面与抹灰防裂，措施张冠李戴。",
-          "fix": "应设加强网防裂，不是靠贴砖遮盖。",
-          "option_id": "D11-html-practice-html-q3-1991f820d89e:option-4"
-        }
-      ],
-      "model_answer": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
-      "rule_group": "交接防裂·条件维",
-      "content_sha256": "86ff9d7cfbc49c6d9dcd35dbb1a7f6baa56c3d08042a46c71d92754a67c07ec4",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q3",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-column-infill-mesh",
-        "skeleton_id": "d11-skel-柱填充墙交接设网",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2024:第14页",
-        "source_sha256": "bb833e208f4e1c22d21809bfbef9466eecb358f5496fddd8a5c68e89bdd38934",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "86ff9d7cfbc49c6d9dcd35dbb1a7f6baa56c3d08042a46c71d92754a67c07ec4",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q4-97aa7bdee8b7",
-      "surface_id": "practice.html",
-      "stem": "不同材料基体交接处已设加强网。关于加强网与各基体的搭接宽度，选出能得分的作答。",
-      "options": [
-        {
-          "text": "加强网与各基体的搭接宽度均不应小于 100mm。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "关键词“与各基体搭接”+数值“不小于100mm”都在。",
-          "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-1"
-        },
-        {
-          "text": "加强网与各基体之间的搭接宽度均不应小于 50mm。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "50mm 是最常见的设错值。",
-          "loss_reason": "50mm 不够，规范是不小于 100mm。",
-          "fix": "搭接宽度不应小于 100mm。",
-          "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-2"
-        },
-        {
-          "text": "加强网与各基体的搭接宽度不小于 80mm 即可。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "80 接近 100，容易当成合格。",
-          "loss_reason": "数值不足，规范定的是 100mm。",
-          "fix": "不小于 100mm，80mm 不达标。",
-          "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-3"
-        },
-        {
-          "text": "加强网与各基体应有足够搭接宽度，具体数值结合现场条件确定。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "知道要搭接却不肯给数字。",
-          "loss_reason": "漏了“不小于 100mm”这个关键数值。",
-          "fix": "写明搭接宽度≥100mm。",
-          "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-4"
-        }
-      ],
-      "model_answer": "加强网与各基体的搭接宽度不应小于 100mm。",
-      "rule_group": "交接防裂·条件维",
-      "content_sha256": "3c09061595fb04bd364139f63f9771a22c8bcd1641284b5147d71ea52664ccb7",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q4",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-mesh-overlap-100",
-        "skeleton_id": "d11-skel-加强网搭接宽度",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A422000_043_0069:0",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "3c09061595fb04bd364139f63f9771a22c8bcd1641284b5147d71ea52664ccb7",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q5-1b514bb621b0",
-      "surface_id": "practice.html",
-      "stem": "混凝土/抹灰基层准备涂刷溶剂型涂料。关于基层含水率上限，选出正确作答。",
-      "options": [
-        {
-          "text": "混凝土或抹灰基层用溶剂型涂料时，含水率不得大于 10%。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把乳液型的 10% 安到溶剂型头上。",
-          "loss_reason": "对象与数值错配，10% 是乳液型的上限。",
-          "fix": "溶剂型≤8%，10% 是乳液型。",
-          "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-1"
-        },
-        {
-          "text": "用溶剂型涂料的混凝土或抹灰基层，含水率不得大于 12%。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "和木材的 12% 混了。",
-          "loss_reason": "12% 是木材基层，不是溶剂型。",
-          "fix": "溶剂型≤8%。",
-          "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-2"
-        },
-        {
-          "text": "溶剂型涂料施工前基层保持干燥即可，含水率无需限定具体数值。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "图省事不写数字。",
-          "loss_reason": "漏了 8% 这个关键上限值。",
-          "fix": "写明溶剂型≤8%。",
-          "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-3"
-        },
-        {
-          "text": "混凝土或抹灰基层用溶剂型涂料时，含水率不得大于 8%。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "对象“溶剂型”+数值 8% 对应准确。",
-          "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-4"
-        }
-      ],
-      "model_answer": "用溶剂型涂料时，混凝土/抹灰基层含水率不得大于 8%。",
-      "rule_group": "控含水率·条件维",
-      "content_sha256": "ff95640043d16aec3e38a2b424d64f23b40460ad875b20aaa247748df3600d16",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q5",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-substrate-moisture-limits",
-        "skeleton_id": "d11-skel-溶剂型含水率阈值直问",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A422000_043_0069:1",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "ff95640043d16aec3e38a2b424d64f23b40460ad875b20aaa247748df3600d16",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q6-5f46149bfe85",
-      "surface_id": "practice.html",
-      "stem": "基层准备涂刷乳液型涂料。关于基层含水率上限，选出正确作答。",
-      "options": [
-        {
-          "text": "乳液型涂料基层含水率不得大于 12%。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "和木材 12% 混。",
-          "loss_reason": "12% 是木材基层。",
-          "fix": "乳液型≤10%。",
-          "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-1"
-        },
-        {
-          "text": "用乳液型涂料时，基层含水率不得大于 10%。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "对象“乳液型”+数值 10% 对应准确。",
-          "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-2"
-        },
-        {
-          "text": "乳液型涂料对基层含水率不敏感，无需设定含水率上限。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为乳液型对含水率不敏感。",
-          "loss_reason": "漏了乳液型 10% 这个上限。",
-          "fix": "乳液型≤10% 仍有明确上限。",
-          "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-3"
-        },
-        {
-          "text": "乳液型涂料基层含水率不得大于 8%。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把溶剂型的 8% 安到乳液型。",
-          "loss_reason": "8% 是溶剂型上限，对象错配。",
-          "fix": "乳液型≤10%。",
-          "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-4"
-        }
-      ],
-      "model_answer": "用乳液型涂料时，基层含水率不得大于 10%。",
-      "rule_group": "控含水率·条件维",
-      "content_sha256": "ae4c0f43f400399cb24d3dedf0c5f3ba2735cb0229c8598c98d8ca5a713dbb6f",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q6",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-substrate-moisture-limits",
-        "skeleton_id": "d11-skel-乳液型含水率阈值直问",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A422000_043_0069:1",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "ae4c0f43f400399cb24d3dedf0c5f3ba2735cb0229c8598c98d8ca5a713dbb6f",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T09:53:26+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T09:53:26+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "乳液型涂料基层含水率≤10%,教材含水率三档卡逐字核对(8%/10%/12%),2023第2题真题印证10%为正确做法。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q7-ab7a6f9f45d1",
-      "surface_id": "practice.html",
-      "stem": "木材基层准备做后续涂饰。关于木材基层含水率上限，选出正确作答。",
-      "options": [
-        {
-          "text": "木材基层含水率不得大于 8%。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "顺手用了溶剂型的 8%。",
-          "loss_reason": "8% 是溶剂型涂料基层，不是木材。",
-          "fix": "木材基层≤12%。",
-          "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-1"
-        },
-        {
-          "text": "木材基层含水率与涂料统一按 8% 控制。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "想一刀切统一一个数。",
-          "loss_reason": "木材单列的 12% 被漏掉。",
-          "fix": "木材基层≤12% 单独列出。",
-          "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-2"
-        },
-        {
-          "text": "木材基层含水率不得大于 12%。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "木材基层单列 12%，与涂料对象分开记。",
-          "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-3"
-        },
-        {
-          "text": "木材基层含水率不得大于 10%。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "用了乳液型的 10%。",
-          "loss_reason": "10% 是乳液型，木材是 12%。",
-          "fix": "木材基层≤12%。",
-          "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-4"
-        }
-      ],
-      "model_answer": "木材基层含水率不得大于 12%。",
-      "rule_group": "控含水率·条件维",
-      "content_sha256": "13dc421ae4ae8d62bfad391f0002b47676e9275abd1e7381048b8c458153a0e9",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q7",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-substrate-moisture-limits",
-        "skeleton_id": "d11-skel-木材含水率阈值直问",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A422000_043_0069:1",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "13dc421ae4ae8d62bfad391f0002b47676e9275abd1e7381048b8c458153a0e9",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T09:53:26+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T09:53:26+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "木材基层含水率≤12%,同卡逐字核对;干扰项8%/10%错配对象判错正确。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q8-40aafe4f8af3",
-      "surface_id": "practice.html",
-      "stem": "冬期室内一般抹灰施工。关于环境温度，选出能得分的作答。",
-      "options": [
-        {
-          "text": "室内抹灰环境温度不低于 10℃ 才能施工。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为越高越保险。",
-          "loss_reason": "10℃ 偏高，规范下限是 5℃。",
-          "fix": "下限是 5℃。",
-          "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-1"
-        },
-        {
-          "text": "室内抹灰环境温度一般不应低于 5℃。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "温度下限 5℃，冬期抹灰的判分眼。",
-          "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-2"
-        },
-        {
-          "text": "室内抹灰环境温度不低于 0℃ 即可施工。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "觉得只要不结冰（0℃）就行。",
-          "loss_reason": "0℃ 偏低，规范是不低于 5℃；低于 5℃ 砂浆冻胀空鼓。",
-          "fix": "室内抹灰温度不应低于 5℃，不是 0℃。",
-          "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-3"
-        },
-        {
-          "text": "环境温度满足施工条件即可，无需限定具体数值。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "凭感觉，不写温度值。",
-          "loss_reason": "漏了 5℃ 这个关键下限。",
-          "fix": "写明室内抹灰温度不低于 5℃。",
-          "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-4"
-        }
-      ],
-      "model_answer": "室内抹灰环境温度一般不应低于 5℃。",
-      "rule_group": "控环境·条件维",
-      "content_sha256": "98b541a883b2d06a22881189b3ff6ff4d8b84194761f048626de0ee81a825ce9",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q8",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "98b541a883b2d06a22881189b3ff6ff4d8b84194761f048626de0ee81a825ce9",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q11-ef5eb4fd5ea3",
-      "surface_id": "practice.html",
-      "stem": "某外墙外保温工程采用“薄抹灰”做法。判断其与一般（装饰）抹灰工序的关系，选出正确作答。",
-      "options": [
-        {
-          "text": "外保温薄抹灰是外墙外保温系统的构造层，不属于一般抹灰工序，不能套用一般抹灰的总厚 35 加强等要求。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点明 territory：薄抹灰属外保温系统，不套一般抹灰采分点。",
-          "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-1"
-        },
-        {
-          "text": "薄抹灰与一般抹灰属同一工序，不同材料基体交接处同样按设加强网、与各基体搭接 100mm 的要求处理。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "硬把本体规则套到薄抹灰上。",
-          "loss_reason": "territory 混淆，把外保温系统当抹灰本体。",
-          "fix": "薄抹灰属外保温系统，不套一般抹灰采分点。",
-          "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-2"
-        },
-        {
-          "text": "薄抹灰本质上就是抹得较薄的一般抹灰，其厚度按内墙普通抹灰平均总厚度≤20mm 的要求控制即可。",
-          "is_correct": false,
-          "source_error_code": "E11",
-          "temptation": "望文生义，把“薄抹灰”当薄的一般抹灰。",
-          "loss_reason": "把外保温构造层当一般抹灰，迁移失败。",
-          "fix": "薄抹灰属外保温系统构造层，非一般抹灰。",
-          "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-3"
-        },
-        {
-          "text": "无需将薄抹灰与一般抹灰刻意区分，两者做法基本相同，可按同一套要求组织施工与验收。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "含糊过去不作区分。",
-          "loss_reason": "未指出薄抹灰是外保温构造层这一关键区分。",
-          "fix": "须指出薄抹灰属外保温系统构造层。",
-          "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-4"
-        }
-      ],
-      "model_answer": "外保温薄抹灰是外墙外保温系统的构造层（抹面胶浆+玻纤网），不属于一般/装饰抹灰工序，不能套用一般抹灰的厚度/加强要求。",
-      "rule_group": "概念边界·迁移",
-      "content_sha256": "cd3b04463841dc03b03d8375e4a5d33e98a930da5be7127b7b0be0194f4ef0ba",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q11",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "cd3b04463841dc03b03d8375e4a5d33e98a930da5be7127b7b0be0194f4ef0ba",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q12-2f979fe3cbdc",
-      "surface_id": "practice.html",
-      "stem": "关于涂饰工程与抹灰等湿作业的先后顺序，选出正确作答。",
-      "options": [
-        {
-          "text": "为缩短工期，涂饰工程可与抹灰等湿作业同时穿插进行。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "抢工期想同步干。",
-          "loss_reason": "涂饰应在湿作业后，穿插=程序顺序错误。",
-          "fix": "涂饰在抹灰等湿作业完成后进行。",
-          "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-1"
-        },
-        {
-          "text": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "湿作业在前、涂饰在后，工序顺序正确。",
-          "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-2"
-        },
-        {
-          "text": "涂饰工程的安排不受限制，与抹灰等湿作业无先后顺序要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为工序没先后。",
-          "loss_reason": "漏了涂饰须在湿作业后这一顺序要求。",
-          "fix": "涂饰应在抹灰等湿作业完成后。",
-          "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-3"
-        },
-        {
-          "text": "应先完成涂饰工程，再进行抹灰找平，最后统一收口。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "把先后顺序整个颠倒。",
-          "loss_reason": "抹灰在前、涂饰在后，顺序反了。",
-          "fix": "抹灰湿作业在前，涂饰在后。",
-          "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-4"
-        }
-      ],
-      "model_answer": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
-      "rule_group": "工序衔接·程序维",
-      "content_sha256": "417508cea3624fd89680d90dea7fe21119393504ab287c7f6dc59f8c32d1cc57",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q12",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "417508cea3624fd89680d90dea7fe21119393504ab287c7f6dc59f8c32d1cc57",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q13-46f470a28169",
-      "surface_id": "practice.html",
-      "stem": "某技术交底写“基层含水率统一控制在 10% 以内即可涂饰”。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "未分对象——溶剂型应≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型超标，应按对象分别控制。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "指出“未分对象”并补齐 8/10/12 三个上限。",
-          "option_id": "D11-html-practice-html-q13-46f470a28169:option-1"
-        },
-        {
-          "text": "统一按 10% 控制并无不妥——溶剂型、乳液型、木材基层的含水率只要均不超过 10%，即可满足涂饰施工要求。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "10 看着居中，误以为通用。",
-          "loss_reason": "溶剂型 8% 被放宽到 10%，且未分对象。",
-          "fix": "分对象：溶剂型8、乳液型10、木材12。",
-          "option_id": "D11-html-practice-html-q13-46f470a28169:option-2"
-        },
-        {
-          "text": "含水率并非本条技术交底的重点，只需把交接处设加强网等防裂要求补写清楚即为完整作答。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "避重就轻只写会的。",
-          "loss_reason": "整维漏掉含水率控制。",
-          "fix": "含水率分对象 8/10/12 必须写全。",
-          "option_id": "D11-html-practice-html-q13-46f470a28169:option-3"
-        },
-        {
-          "text": "该句的问题在于数值取低了，应将含水率上限统一修改为 12%，各类基层均按 12% 控制。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "抓到要改，却改错了方向。",
-          "loss_reason": "仍未分对象，且溶剂型/乳液型被放到 12% 超标。",
-          "fix": "分对象 8/10/12，不是统一 12。",
-          "option_id": "D11-html-practice-html-q13-46f470a28169:option-4"
-        }
-      ],
-      "model_answer": "含水率须分对象：溶剂型≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型偏高、未分对象。",
-      "rule_group": "含水率诊断·计算表达维",
-      "content_sha256": "9bb25144625952258cdfa5f99ef8c4661729b0ddf36b0c3ba810660bcc35d468",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q13",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-substrate-moisture-limits",
-        "skeleton_id": "d11-skel-含水率统一值纠错诊断",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A422000_043_0069:1",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "9bb25144625952258cdfa5f99ef8c4661729b0ddf36b0c3ba810660bcc35d468",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q14-14be1a245a0b",
-      "surface_id": "practice.html",
-      "stem": "某技术交底写“不同材料基体交接处设加强网，与各基体搭接 50mm”。选出正确的指错与改正。",
-      "options": [
-        {
-          "text": "该交底中设加强网与搭接 50mm 的写法均符合规范要求，既无需指错，也无需另行补写改正。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "以为 50mm 够用。",
-          "loss_reason": "50<100，不合规。",
-          "fix": "搭接宽度应≥100mm。",
-          "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-1"
-        },
-        {
-          "text": "设加强网的做法本身欠妥，应将其取消，改为在交接处预留伸缩缝处理裂缝问题。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "纠错方向跑偏。",
-          "loss_reason": "否定了本来正确的“设加强网”措施。",
-          "fix": "保留加强网，把搭接改到≥100mm。",
-          "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-2"
-        },
-        {
-          "text": "搭接 50mm 确实偏小，应将搭接宽度加大到 80mm 方可满足要求。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "知道要加大，却没加到位。",
-          "loss_reason": "80mm 仍小于 100mm。",
-          "fix": "搭接宽度不小于 100mm。",
-          "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-3"
-        },
-        {
-          "text": "设加强网正确，但搭接 50mm 不妥——加强网与各基体的搭接宽度不应小于 100mm。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "肯定设网这一步，只纠搭接数值到≥100mm。",
-          "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-4"
-        }
-      ],
-      "model_answer": "设加强网正确，但搭接 50mm 不妥——加强网与各基体搭接宽度不应小于 100mm。",
-      "rule_group": "交接搭接诊断·计算表达维",
-      "content_sha256": "763781c0b93deefb5a33efa7cc4b54f0f1f6b66fd463a3e3ad6fa97a8fdb03b5",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q14",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-mesh-overlap-100",
-        "skeleton_id": "d11-skel-搭接50指错改正",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A422000_043_0069:0",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "763781c0b93deefb5a33efa7cc4b54f0f1f6b66fd463a3e3ad6fa97a8fdb03b5",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "交底'搭接50mm'指错→不应小于100mm,教材加强网搭接卡逐字核对('加强网与各基体的搭接宽度不应小于100mm');2023真题第26题C选项以50mm设错同向印证;干扰项80mm仍<100(M08复算)/取消加强网(E07,否定正确措施)方向无误。三件套:与q4(anchor,搭接宽度数值)、新q16(d1,铺设判定)同fact异骨架。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q15-cd860a8acf74",
-      "surface_id": "practice.html",
-      "stem": "某学生答“抹灰要控制好含水率、做好养护、按规范施工保证质量”。就抹灰质量控制要求，选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "该作答已完整覆盖抹灰质量控制的各项要点——控制含水率、做好养护、按规范施工层层到位，属于可以直接得分的规范答法，无需再补写。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "口号听着挺全面。",
-          "loss_reason": "没有任一可判分的数值/部位，口号化趋近 0 分。",
-          "fix": "逐条补数值与部位，别用口号。",
-          "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-1"
-        },
-        {
-          "text": "原作答大方向正确，只是略有遗漏——在现有内容基础上再补一句“控制好厚度”，整段作答就达到了本考点完整的得分要求。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为补一句就够。",
-          "loss_reason": "仍缺数值、含水率对象、耐水腻子等多维采分点。",
-          "fix": "五控数值/部位逐条补全。",
-          "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-2"
-        },
-        {
-          "text": "作答的主要问题在“做好养护”这一句表述不当，将其改成“加强人员管理”，其余内容保持不变，即可满足判分要求并顺利得分。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "用一个口号换另一个口号。",
-          "loss_reason": "仍是口号，没有具体采分动作。",
-          "fix": "写具体数值与部位，不是换口号。",
-          "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-3"
-        },
-        {
-          "text": "全是口号无采分点——应补：含水率 8/10/12 分对象、总厚 35 加强层厚 20/25、交接搭接≥100mm、室内≥5℃、厨卫地下室耐水腻子。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "把口号换成可上答题纸的五句采分句，这就是“会写答案”。",
-          "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-4"
-        }
-      ],
-      "model_answer": "全是口号、无可判分数值/部位；应补：含水率 8/10/12 分对象、总厚 35 加强+层厚 20/25、交接搭接≥100mm、室内温度≥5℃、厨卫地下室耐水腻子。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "47a68241d4edfb505138112903d068b513218211c729bd700df095bb8634a100",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q15",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-substrate-moisture-limits",
-        "skeleton_id": "d11-skel-抹灰质量综合诊断补写",
-        "probe_role": "anchor",
-        "source_anchor": "exam:2023:第26题",
-        "source_sha256": "bb833e208f4e1c22d21809bfbef9466eecb358f5496fddd8a5c68e89bdd38934",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "47a68241d4edfb505138112903d068b513218211c729bd700df095bb8634a100",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-18T19:31:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "D11-html-practice-html-q16-005de8b5592f",
-      "surface_id": "practice.html",
-      "stem": "不同材料基体交接处抹灰设置加强网，下列哪种铺设做法满足搭接要求？",
-      "options": [
-        {
-          "text": "加强网跨缝铺设，与两侧基体各搭接120mm，固定牢靠后再进行抹灰作业。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "每侧120mm≥100mm，两侧都够宽，这样铺才算数。",
-          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-1"
-        },
-        {
-          "text": "加强网跨缝铺设，与两侧基体各搭接90mm，同时加密固定点以弥补搭接宽度的不足。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "90离100不远，加密固定像是能补。",
-          "loss_reason": "90mm小于100mm下限，固定点再密也替代不了搭接宽度。",
-          "fix": "每侧搭接补足到不小于100mm。",
-          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-2"
-        },
-        {
-          "text": "加强网整幅铺贴在交接缝一侧的基体上，另一侧依靠抹灰砂浆自身的粘结强度过渡。",
-          "is_correct": false,
-          "source_error_code": "E06",
-          "temptation": "整幅铺一侧省事又平整。",
-          "loss_reason": "网没有跨缝，另一侧搭接为零，交接处照样开裂。",
-          "fix": "网必须跨缝，两侧各搭接≥100mm。",
-          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-3"
-        },
-        {
-          "text": "加强网跨缝铺设，两侧搭接宽度合计不小于100mm，各侧的分配宽度可以灵活掌握。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「合计100」听着像同一条规定。",
-          "loss_reason": "口径错了——是与各基体的搭接均不小于100mm，不是两侧合计。",
-          "fix": "改成每侧各不小于100mm。",
-          "option_id": "D11-html-practice-html-q16-005de8b5592f:option-4"
-        }
-      ],
-      "model_answer": "加强网与各基体的搭接宽度不应小于100mm——跨缝铺设且每侧均不小于100mm（如各120mm）才合格。",
-      "rule_group": "交接防裂·应用维",
-      "content_sha256": "02f3b9c8a04bde367966e9e07d196a52efd3c17a0459ec3886d1fd01d6edf58a",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q16",
-      "authoring_sha256": "d0798dd58a8b89be8ccaaa9a6dd0812aae1285c4f5075293c076cce3f0f119e5",
-      "decision": {
-        "fact_id": "d11-fact-mesh-overlap-100",
-        "skeleton_id": "d11-skel-搭接铺设两侧判定",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A422000_043_0069:0",
-        "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "02f3b9c8a04bde367966e9e07d196a52efd3c17a0459ec3886d1fd01d6edf58a",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-              "signed_at": "2026-07-21T14:32:39+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "routeB新产。铺设做法判定:每侧各120mm≥100mm为唯一合格项(数值复算:120≥100真;90<100假;单侧铺另一侧0假;'合计100'口径错=与各基体均≥100mm)。教材同卡逐字核对。skeleton与q4(数值直问)/q14(指错改正)互异=场景应用判定维。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "D11",
+ "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
+ "source_bundle_sha256": "e7eb2b6767ae8ab0adf51a4fd854400b02e103871cd704732ecb2ce493137707",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 14,
+ "eligible_count": 11,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "main-control adjudication 2026-07-21 (routeB-batch1 8-gap): 新变体逐题锚回编译源原文逐字核对+数值复算;同fact三件套skeleton互异断言;异源subagent对抗核验过闸后方发布。",
-    "campaign": "routeB-batch1 8-gap 2026-07-21",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "D11-html-practice-html-q1-d0bd92b31f8e",
+   "surface_id": "practice.html",
+   "stem": "内墙一般抹灰，某处抹灰总厚度达到 38mm。关于是否采取加强措施，选出正确且能得分的作答。",
+   "options": [
+    {
+     "text": "抹灰总厚度超过 50mm 才需要加强，38mm 尚未到 50mm，可正常一次抹灰不必加强。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "凭印象觉得更厚（50mm）才加强。",
+     "loss_reason": "加强阈值是 35mm 不是 50mm，规范数字记错就漏了加强这一步。",
+     "fix": "总厚≥35mm 即须加强，38mm 已达。",
+     "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-1"
+    },
+    {
+     "text": "抹灰总厚度≥35mm 即应采取加强措施，38mm 已达标准，应分层抹灰并设加强网。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "阈值 35mm + 加强做法（分层+挂网）齐全，换个厚度数也不会错。",
+     "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-2"
+    },
+    {
+     "text": "抹灰厚度偏大时应采取分层抹灰等加强处理，具体厚度阈值不必在作答中写明。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道要加强，但嫌记数字麻烦。",
+     "loss_reason": "漏了“≥35mm”这个关键阈值，采分点落不到数字上。",
+     "fix": "写明总厚≥35mm 须加强，并给出分层+挂网。",
+     "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-3"
+    },
+    {
+     "text": "只要将每一遍抹灰厚度控制在 8mm 以内薄涂，总厚度多大均不必再加强。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把单遍薄抹当成免加强的理由。",
+     "loss_reason": "混淆了单遍控制与总厚加强——总厚到 35mm 仍须加强。",
+     "fix": "总厚≥35mm 一律加强，与单遍厚薄无关。",
+     "option_id": "D11-html-practice-html-q1-d0bd92b31f8e:option-4"
+    }
+   ],
+   "model_answer": "抹灰总厚度≥35mm 时应采取加强措施（分层抹灰、设加强网）；38mm 已达阈值，须加强。",
+   "rule_group": "控厚度·条件维",
+   "content_sha256": "e234494286cfc85e7c8712430398bee140e031c32887984c2500b1d6a00177b1",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q1",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-plaster-thickness-reinforce",
+    "skeleton_id": "d11-skel-总厚35加强判定",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A422000_042_0068:0",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "e234494286cfc85e7c8712430398bee140e031c32887984c2500b1d6a00177b1",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "抹灰总厚度≥35mm 应采取加强措施(本题38mm), 教材 kc:...042_0068:0 直引。工单: '分层并设加强网'固定组合为教学扩写; 正确项首位+最长模板泄漏。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q2-157be6f8e0ed",
+   "surface_id": "practice.html",
+   "stem": "内墙普通抹灰与高级抹灰的抹灰层平均总厚度上限，选出正确作答。",
+   "options": [
+    {
+     "text": "内墙普通抹灰层平均总厚度不大于 25mm，高级抹灰层平均总厚度不大于 30mm。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "两个数都往上记大了一档。",
+     "loss_reason": "20/25 记成了 25/30，规范数值整体记高。",
+     "fix": "普通≤20mm、高级≤25mm。",
+     "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-1"
+    },
+    {
+     "text": "这里的 20mm、25mm 指底层、中层、面层每一单层的厚度上限。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把“平均总厚度”理解成单层厚度。",
+     "loss_reason": "题问的是抹灰层平均总厚度，不是底/中/面单层。",
+     "fix": "是抹灰层平均总厚度，非底中面单层。",
+     "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-2"
+    },
+    {
+     "text": "内墙普通抹灰层平均总厚度不大于 20mm，高级抹灰层平均总厚度不大于 25mm。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "普通 20、高级 25，对象与数值一一对应，不对调。",
+     "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-3"
+    },
+    {
+     "text": "内墙普通抹灰层平均总厚度不大于 25mm，高级抹灰层平均总厚度不大于 20mm。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "数值都见过，顺手把两档对调了。",
+     "loss_reason": "普通/高级对象与数值张冠李戴。",
+     "fix": "普通≤20、高级≤25，别把两档对调。",
+     "option_id": "D11-html-practice-html-q2-157be6f8e0ed:option-4"
+    }
+   ],
+   "model_answer": "内墙普通抹灰层平均总厚度≤20mm；高级抹灰层≤25mm。",
+   "rule_group": "控厚度·条件维",
+   "content_sha256": "b2f5ecf3244cbf52c797c881e1260fb9a6d54d49056596993bee95b7da122f7e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q2",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-plaster-layer-thickness",
+    "skeleton_id": "d11-skel-普通高级层厚数值",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2023:第26题",
+    "source_sha256": "bb833e208f4e1c22d21809bfbef9466eecb358f5496fddd8a5c68e89bdd38934",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b2f5ecf3244cbf52c797c881e1260fb9a6d54d49056596993bee95b7da122f7e",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "普通抹灰≤20mm/高级≤25mm, 真题 exam:2023:第26题 逐项支持。工单: 干扰项机械换数。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q3-1991f820d89e",
+   "surface_id": "practice.html",
+   "stem": "框架填充墙，混凝土柱与砖砌体交接处抹灰。为防止交接处开裂，选出正确作答。",
+   "options": [
+    {
+     "text": "将交接处抹灰找平压实并适当延长养护时间即可，不必再做专门防裂处理。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为找平+养护就能防裂。",
+     "loss_reason": "漏了“设加强网”这个核心措施，采分点遗漏。",
+     "fix": "交接处必须设加强网跨越接缝。",
+     "option_id": "D11-html-practice-html-q3-1991f820d89e:option-1"
+    },
+    {
+     "text": "只有抹灰总厚超过 50mm 的交接处才设加强网，一般交接处不用设。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把“设加强网”和厚度阈值绑死。",
+     "loss_reason": "不同材料基体交接处一律设网，与总厚阈值是两条独立要求。",
+     "fix": "不同材料基体交接处均应设加强网。",
+     "option_id": "D11-html-practice-html-q3-1991f820d89e:option-2"
+    },
+    {
+     "text": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "抓住“不同材料基体交接处设加强网跨缝”这一核心措施。",
+     "option_id": "D11-html-practice-html-q3-1991f820d89e:option-3"
+    },
+    {
+     "text": "交接处可用饰面砖等面层直接覆盖处理，抹灰层本身无需防裂措施。",
+     "is_correct": false,
+     "source_error_code": "E11",
+     "temptation": "拿饰面遮盖当防裂手段。",
+     "loss_reason": "混淆饰面与抹灰防裂，措施张冠李戴。",
+     "fix": "应设加强网防裂，不是靠贴砖遮盖。",
+     "option_id": "D11-html-practice-html-q3-1991f820d89e:option-4"
+    }
+   ],
+   "model_answer": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
+   "rule_group": "交接防裂·条件维",
+   "content_sha256": "00bca5eb98e8b46df39794a8c6c55ab0f63913af84dc57f404ea48e9f3c05c15",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q3",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-column-infill-mesh",
+    "skeleton_id": "d11-skel-柱填充墙交接设网",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2024:第14页",
+    "source_sha256": "bb833e208f4e1c22d21809bfbef9466eecb358f5496fddd8a5c68e89bdd38934",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "00bca5eb98e8b46df39794a8c6c55ab0f63913af84dc57f404ea48e9f3c05c15",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "柱与填充墙接触面应设加强网片, 真题 exam:2024:第14页 逐字直引。'分摊差动位移'为解释性扩写不改措施。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q4-97aa7bdee8b7",
+   "surface_id": "practice.html",
+   "stem": "不同材料基体交接处已设加强网。关于加强网与各基体的搭接宽度，选出能得分的作答。",
+   "options": [
+    {
+     "text": "加强网与各基体的搭接宽度均不应小于 100mm。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "关键词“与各基体搭接”+数值“不小于100mm”都在。",
+     "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-1"
+    },
+    {
+     "text": "加强网与各基体之间的搭接宽度均不应小于 50mm。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "50mm 是最常见的设错值。",
+     "loss_reason": "50mm 不够，规范是不小于 100mm。",
+     "fix": "搭接宽度不应小于 100mm。",
+     "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-2"
+    },
+    {
+     "text": "加强网与各基体的搭接宽度不小于 80mm 即可。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "80 接近 100，容易当成合格。",
+     "loss_reason": "数值不足，规范定的是 100mm。",
+     "fix": "不小于 100mm，80mm 不达标。",
+     "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-3"
+    },
+    {
+     "text": "加强网与各基体应有足够搭接宽度，具体数值结合现场条件确定。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "知道要搭接却不肯给数字。",
+     "loss_reason": "漏了“不小于 100mm”这个关键数值。",
+     "fix": "写明搭接宽度≥100mm。",
+     "option_id": "D11-html-practice-html-q4-97aa7bdee8b7:option-4"
+    }
+   ],
+   "model_answer": "加强网与各基体的搭接宽度不应小于 100mm。",
+   "rule_group": "交接防裂·条件维",
+   "content_sha256": "a08ffc266948b7df24a6d841bbd1ec4f24d6c3b2c3143f70efbc42d13ff62a19",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q4",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-mesh-overlap-100",
+    "skeleton_id": "d11-skel-加强网搭接宽度",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A422000_043_0069:0",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "a08ffc266948b7df24a6d841bbd1ec4f24d6c3b2c3143f70efbc42d13ff62a19",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "加强网与各基体搭接宽度≥100mm, 教材 kc:...043_0069:0 直引, 对象方向数值完整。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q5-1b514bb621b0",
+   "surface_id": "practice.html",
+   "stem": "混凝土/抹灰基层准备涂刷溶剂型涂料。关于基层含水率上限，选出正确作答。",
+   "options": [
+    {
+     "text": "混凝土或抹灰基层用溶剂型涂料时，含水率不得大于 10%。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把乳液型的 10% 安到溶剂型头上。",
+     "loss_reason": "对象与数值错配，10% 是乳液型的上限。",
+     "fix": "溶剂型≤8%，10% 是乳液型。",
+     "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-1"
+    },
+    {
+     "text": "用溶剂型涂料的混凝土或抹灰基层，含水率不得大于 12%。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "和木材的 12% 混了。",
+     "loss_reason": "12% 是木材基层，不是溶剂型。",
+     "fix": "溶剂型≤8%。",
+     "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-2"
+    },
+    {
+     "text": "溶剂型涂料施工前基层保持干燥即可，含水率无需限定具体数值。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "图省事不写数字。",
+     "loss_reason": "漏了 8% 这个关键上限值。",
+     "fix": "写明溶剂型≤8%。",
+     "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-3"
+    },
+    {
+     "text": "混凝土或抹灰基层用溶剂型涂料时，含水率不得大于 8%。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "对象“溶剂型”+数值 8% 对应准确。",
+     "option_id": "D11-html-practice-html-q5-1b514bb621b0:option-4"
+    }
+   ],
+   "model_answer": "用溶剂型涂料时，混凝土/抹灰基层含水率不得大于 8%。",
+   "rule_group": "控含水率·条件维",
+   "content_sha256": "79318bf0f4ab543a1112b18bfc3b1a1c910b440bb72c26689decbab973eb21a5",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q5",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-substrate-moisture-limits",
+    "skeleton_id": "d11-skel-溶剂型含水率阈值直问",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A422000_043_0069:1",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "79318bf0f4ab543a1112b18bfc3b1a1c910b440bb72c26689decbab973eb21a5",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "混凝土/抹灰基层用溶剂型涂料含水率≤8%(题干保留必要条件), 教材 kc:...043_0069:1 直引。三联 immediate_confirm(同含水率分对象 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q6-5f46149bfe85",
+   "surface_id": "practice.html",
+   "stem": "基层准备涂刷乳液型涂料。关于基层含水率上限，选出正确作答。",
+   "options": [
+    {
+     "text": "乳液型涂料基层含水率不得大于 12%。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "和木材 12% 混。",
+     "loss_reason": "12% 是木材基层。",
+     "fix": "乳液型≤10%。",
+     "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-1"
+    },
+    {
+     "text": "用乳液型涂料时，基层含水率不得大于 10%。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "对象“乳液型”+数值 10% 对应准确。",
+     "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-2"
+    },
+    {
+     "text": "乳液型涂料对基层含水率不敏感，无需设定含水率上限。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为乳液型对含水率不敏感。",
+     "loss_reason": "漏了乳液型 10% 这个上限。",
+     "fix": "乳液型≤10% 仍有明确上限。",
+     "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-3"
+    },
+    {
+     "text": "乳液型涂料基层含水率不得大于 8%。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把溶剂型的 8% 安到乳液型。",
+     "loss_reason": "8% 是溶剂型上限，对象错配。",
+     "fix": "乳液型≤10%。",
+     "option_id": "D11-html-practice-html-q6-5f46149bfe85:option-4"
+    }
+   ],
+   "model_answer": "用乳液型涂料时，基层含水率不得大于 10%。",
+   "rule_group": "控含水率·条件维",
+   "content_sha256": "6f36e0468ef7c736b79247647840312313331f405464cb6ba801427d6ec54088",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q6",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-substrate-moisture-limits",
+    "skeleton_id": "d11-skel-乳液型含水率阈值直问",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A422000_043_0069:1",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6f36e0468ef7c736b79247647840312313331f405464cb6ba801427d6ec54088",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "乳液型涂料基层含水率≤10%,教材含水率三档卡逐字核对(8%/10%/12%),2023第2题真题印证10%为正确做法。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q7-ab7a6f9f45d1",
+   "surface_id": "practice.html",
+   "stem": "木材基层准备做后续涂饰。关于木材基层含水率上限，选出正确作答。",
+   "options": [
+    {
+     "text": "木材基层含水率不得大于 8%。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "顺手用了溶剂型的 8%。",
+     "loss_reason": "8% 是溶剂型涂料基层，不是木材。",
+     "fix": "木材基层≤12%。",
+     "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-1"
+    },
+    {
+     "text": "木材基层含水率与涂料统一按 8% 控制。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "想一刀切统一一个数。",
+     "loss_reason": "木材单列的 12% 被漏掉。",
+     "fix": "木材基层≤12% 单独列出。",
+     "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-2"
+    },
+    {
+     "text": "木材基层含水率不得大于 12%。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "木材基层单列 12%，与涂料对象分开记。",
+     "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-3"
+    },
+    {
+     "text": "木材基层含水率不得大于 10%。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "用了乳液型的 10%。",
+     "loss_reason": "10% 是乳液型，木材是 12%。",
+     "fix": "木材基层≤12%。",
+     "option_id": "D11-html-practice-html-q7-ab7a6f9f45d1:option-4"
+    }
+   ],
+   "model_answer": "木材基层含水率不得大于 12%。",
+   "rule_group": "控含水率·条件维",
+   "content_sha256": "db478f947d0bf55f0efb75147c3e127df5b5107537c5dd8c0b30b1a0b3c726c9",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q7",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-substrate-moisture-limits",
+    "skeleton_id": "d11-skel-木材含水率阈值直问",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A422000_043_0069:1",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "db478f947d0bf55f0efb75147c3e127df5b5107537c5dd8c0b30b1a0b3c726c9",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "木材基层含水率≤12%,同卡逐字核对;干扰项8%/10%错配对象判错正确。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q8-40aafe4f8af3",
+   "surface_id": "practice.html",
+   "stem": "冬期室内一般抹灰施工。关于环境温度，选出能得分的作答。",
+   "options": [
+    {
+     "text": "室内抹灰环境温度不低于 10℃ 才能施工。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为越高越保险。",
+     "loss_reason": "10℃ 偏高，规范下限是 5℃。",
+     "fix": "下限是 5℃。",
+     "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-1"
+    },
+    {
+     "text": "室内抹灰环境温度一般不应低于 5℃。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "温度下限 5℃，冬期抹灰的判分眼。",
+     "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-2"
+    },
+    {
+     "text": "室内抹灰环境温度不低于 0℃ 即可施工。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "觉得只要不结冰（0℃）就行。",
+     "loss_reason": "0℃ 偏低，规范是不低于 5℃；低于 5℃ 砂浆冻胀空鼓。",
+     "fix": "室内抹灰温度不应低于 5℃，不是 0℃。",
+     "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-3"
+    },
+    {
+     "text": "环境温度满足施工条件即可，无需限定具体数值。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "凭感觉，不写温度值。",
+     "loss_reason": "漏了 5℃ 这个关键下限。",
+     "fix": "写明室内抹灰温度不低于 5℃。",
+     "option_id": "D11-html-practice-html-q8-40aafe4f8af3:option-4"
+    }
+   ],
+   "model_answer": "室内抹灰环境温度一般不应低于 5℃。",
+   "rule_group": "控环境·条件维",
+   "content_sha256": "7e3df4548a3798e34e860ce65bd04cb32582eb9a722e304a491f2173862a1409",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q8",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "7e3df4548a3798e34e860ce65bd04cb32582eb9a722e304a491f2173862a1409",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q11-ef5eb4fd5ea3",
+   "surface_id": "practice.html",
+   "stem": "某外墙外保温工程采用“薄抹灰”做法。判断其与一般（装饰）抹灰工序的关系，选出正确作答。",
+   "options": [
+    {
+     "text": "外保温薄抹灰是外墙外保温系统的构造层，不属于一般抹灰工序，不能套用一般抹灰的总厚 35 加强等要求。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点明 territory：薄抹灰属外保温系统，不套一般抹灰采分点。",
+     "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-1"
+    },
+    {
+     "text": "薄抹灰与一般抹灰属同一工序，不同材料基体交接处同样按设加强网、与各基体搭接 100mm 的要求处理。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "硬把本体规则套到薄抹灰上。",
+     "loss_reason": "territory 混淆，把外保温系统当抹灰本体。",
+     "fix": "薄抹灰属外保温系统，不套一般抹灰采分点。",
+     "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-2"
+    },
+    {
+     "text": "薄抹灰本质上就是抹得较薄的一般抹灰，其厚度按内墙普通抹灰平均总厚度≤20mm 的要求控制即可。",
+     "is_correct": false,
+     "source_error_code": "E11",
+     "temptation": "望文生义，把“薄抹灰”当薄的一般抹灰。",
+     "loss_reason": "把外保温构造层当一般抹灰，迁移失败。",
+     "fix": "薄抹灰属外保温系统构造层，非一般抹灰。",
+     "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-3"
+    },
+    {
+     "text": "无需将薄抹灰与一般抹灰刻意区分，两者做法基本相同，可按同一套要求组织施工与验收。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "含糊过去不作区分。",
+     "loss_reason": "未指出薄抹灰是外保温构造层这一关键区分。",
+     "fix": "须指出薄抹灰属外保温系统构造层。",
+     "option_id": "D11-html-practice-html-q11-ef5eb4fd5ea3:option-4"
+    }
+   ],
+   "model_answer": "外保温薄抹灰是外墙外保温系统的构造层（抹面胶浆+玻纤网），不属于一般/装饰抹灰工序，不能套用一般抹灰的厚度/加强要求。",
+   "rule_group": "概念边界·迁移",
+   "content_sha256": "a3c054ead2cb7ac9e40b01e986cebd5d52e43ff488e7f3f78446a3b0939173b4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q11",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "a3c054ead2cb7ac9e40b01e986cebd5d52e43ff488e7f3f78446a3b0939173b4",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q12-2f979fe3cbdc",
+   "surface_id": "practice.html",
+   "stem": "关于涂饰工程与抹灰等湿作业的先后顺序，选出正确作答。",
+   "options": [
+    {
+     "text": "为缩短工期，涂饰工程可与抹灰等湿作业同时穿插进行。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "抢工期想同步干。",
+     "loss_reason": "涂饰应在湿作业后，穿插=程序顺序错误。",
+     "fix": "涂饰在抹灰等湿作业完成后进行。",
+     "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-1"
+    },
+    {
+     "text": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "湿作业在前、涂饰在后，工序顺序正确。",
+     "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-2"
+    },
+    {
+     "text": "涂饰工程的安排不受限制，与抹灰等湿作业无先后顺序要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为工序没先后。",
+     "loss_reason": "漏了涂饰须在湿作业后这一顺序要求。",
+     "fix": "涂饰应在抹灰等湿作业完成后。",
+     "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-3"
+    },
+    {
+     "text": "应先完成涂饰工程，再进行抹灰找平，最后统一收口。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "把先后顺序整个颠倒。",
+     "loss_reason": "抹灰在前、涂饰在后，顺序反了。",
+     "fix": "抹灰湿作业在前，涂饰在后。",
+     "option_id": "D11-html-practice-html-q12-2f979fe3cbdc:option-4"
+    }
+   ],
+   "model_answer": "涂饰工程应在抹灰、吊顶、地面等湿作业完成后进行。",
+   "rule_group": "工序衔接·程序维",
+   "content_sha256": "fc961f6728fa18c7736dc03c7843e2ef7b5c9087ad3292e8e94609a6388f6d82",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q12",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "fc961f6728fa18c7736dc03c7843e2ef7b5c9087ad3292e8e94609a6388f6d82",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q13-46f470a28169",
+   "surface_id": "practice.html",
+   "stem": "某技术交底写“基层含水率统一控制在 10% 以内即可涂饰”。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "未分对象——溶剂型应≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型超标，应按对象分别控制。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "指出“未分对象”并补齐 8/10/12 三个上限。",
+     "option_id": "D11-html-practice-html-q13-46f470a28169:option-1"
+    },
+    {
+     "text": "统一按 10% 控制并无不妥——溶剂型、乳液型、木材基层的含水率只要均不超过 10%，即可满足涂饰施工要求。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "10 看着居中，误以为通用。",
+     "loss_reason": "溶剂型 8% 被放宽到 10%，且未分对象。",
+     "fix": "分对象：溶剂型8、乳液型10、木材12。",
+     "option_id": "D11-html-practice-html-q13-46f470a28169:option-2"
+    },
+    {
+     "text": "含水率并非本条技术交底的重点，只需把交接处设加强网等防裂要求补写清楚即为完整作答。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "避重就轻只写会的。",
+     "loss_reason": "整维漏掉含水率控制。",
+     "fix": "含水率分对象 8/10/12 必须写全。",
+     "option_id": "D11-html-practice-html-q13-46f470a28169:option-3"
+    },
+    {
+     "text": "该句的问题在于数值取低了，应将含水率上限统一修改为 12%，各类基层均按 12% 控制。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "抓到要改，却改错了方向。",
+     "loss_reason": "仍未分对象，且溶剂型/乳液型被放到 12% 超标。",
+     "fix": "分对象 8/10/12，不是统一 12。",
+     "option_id": "D11-html-practice-html-q13-46f470a28169:option-4"
+    }
+   ],
+   "model_answer": "含水率须分对象：溶剂型≤8%、乳液型≤10%、木材≤12%；统一 10% 对溶剂型偏高、未分对象。",
+   "rule_group": "含水率诊断·计算表达维",
+   "content_sha256": "048f357a32eabc394758963e90bd0b95a362b47237c259ce119bd3bbd57ac71b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q13",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-substrate-moisture-limits",
+    "skeleton_id": "d11-skel-含水率统一值纠错诊断",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A422000_043_0069:1",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "048f357a32eabc394758963e90bd0b95a362b47237c259ce119bd3bbd57ac71b",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "统一10%会放宽溶剂型8%上限, 应8/10/12分对象控制, 教材 kc:...043_0069:1 完整支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q14-14be1a245a0b",
+   "surface_id": "practice.html",
+   "stem": "某技术交底写“不同材料基体交接处设加强网，与各基体搭接 50mm”。选出正确的指错与改正。",
+   "options": [
+    {
+     "text": "该交底中设加强网与搭接 50mm 的写法均符合规范要求，既无需指错，也无需另行补写改正。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "以为 50mm 够用。",
+     "loss_reason": "50<100，不合规。",
+     "fix": "搭接宽度应≥100mm。",
+     "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-1"
+    },
+    {
+     "text": "设加强网的做法本身欠妥，应将其取消，改为在交接处预留伸缩缝处理裂缝问题。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "纠错方向跑偏。",
+     "loss_reason": "否定了本来正确的“设加强网”措施。",
+     "fix": "保留加强网，把搭接改到≥100mm。",
+     "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-2"
+    },
+    {
+     "text": "搭接 50mm 确实偏小，应将搭接宽度加大到 80mm 方可满足要求。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "知道要加大，却没加到位。",
+     "loss_reason": "80mm 仍小于 100mm。",
+     "fix": "搭接宽度不小于 100mm。",
+     "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-3"
+    },
+    {
+     "text": "设加强网正确，但搭接 50mm 不妥——加强网与各基体的搭接宽度不应小于 100mm。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "肯定设网这一步，只纠搭接数值到≥100mm。",
+     "option_id": "D11-html-practice-html-q14-14be1a245a0b:option-4"
+    }
+   ],
+   "model_answer": "设加强网正确，但搭接 50mm 不妥——加强网与各基体搭接宽度不应小于 100mm。",
+   "rule_group": "交接搭接诊断·计算表达维",
+   "content_sha256": "d4ed2f8e481d96393f1f52dd1ab10523e22ca4fb1a831fdee3b8a4df8f951cdc",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q14",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-mesh-overlap-100",
+    "skeleton_id": "d11-skel-搭接50指错改正",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A422000_043_0069:0",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "d4ed2f8e481d96393f1f52dd1ab10523e22ca4fb1a831fdee3b8a4df8f951cdc",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "交底'搭接50mm'指错→不应小于100mm,教材加强网搭接卡逐字核对('加强网与各基体的搭接宽度不应小于100mm');2023真题第26题C选项以50mm设错同向印证;干扰项80mm仍<100(M08复算)/取消加强网(E07,否定正确措施)方向无误。三件套:与q4(anchor,搭接宽度数值)、新q16(d1,铺设判定)同fact异骨架。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q15-cd860a8acf74",
+   "surface_id": "practice.html",
+   "stem": "某学生答“抹灰要控制好含水率、做好养护、按规范施工保证质量”。就抹灰质量控制要求，选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "该作答已完整覆盖抹灰质量控制的各项要点——控制含水率、做好养护、按规范施工层层到位，属于可以直接得分的规范答法，无需再补写。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "口号听着挺全面。",
+     "loss_reason": "没有任一可判分的数值/部位，口号化趋近 0 分。",
+     "fix": "逐条补数值与部位，别用口号。",
+     "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-1"
+    },
+    {
+     "text": "原作答大方向正确，只是略有遗漏——在现有内容基础上再补一句“控制好厚度”，整段作答就达到了本考点完整的得分要求。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为补一句就够。",
+     "loss_reason": "仍缺数值、含水率对象、耐水腻子等多维采分点。",
+     "fix": "五控数值/部位逐条补全。",
+     "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-2"
+    },
+    {
+     "text": "作答的主要问题在“做好养护”这一句表述不当，将其改成“加强人员管理”，其余内容保持不变，即可满足判分要求并顺利得分。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "用一个口号换另一个口号。",
+     "loss_reason": "仍是口号，没有具体采分动作。",
+     "fix": "写具体数值与部位，不是换口号。",
+     "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-3"
+    },
+    {
+     "text": "全是口号无采分点——应补：含水率 8/10/12 分对象、总厚 35 加强层厚 20/25、交接搭接≥100mm、室内≥5℃、厨卫地下室耐水腻子。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "把口号换成可上答题纸的五句采分句，这就是“会写答案”。",
+     "option_id": "D11-html-practice-html-q15-cd860a8acf74:option-4"
+    }
+   ],
+   "model_answer": "全是口号、无可判分数值/部位；应补：含水率 8/10/12 分对象、总厚 35 加强+层厚 20/25、交接搭接≥100mm、室内温度≥5℃、厨卫地下室耐水腻子。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "d6b339b699cb95dae38f2cde2eb01d0cdad095145eb08fdb2a5fe785bbd70996",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q15",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-substrate-moisture-limits",
+    "skeleton_id": "d11-skel-抹灰质量综合诊断补写",
+    "probe_role": "anchor",
+    "source_anchor": "exam:2023:第26题",
+    "source_sha256": "bb833e208f4e1c22d21809bfbef9466eecb358f5496fddd8a5c68e89bdd38934",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "d6b339b699cb95dae38f2cde2eb01d0cdad095145eb08fdb2a5fe785bbd70996",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "复合五组事实全有包内原文: 8/10/12(kc:...043_0069:1)/耐水腻子厨卫(kc:...043_0069:2)/地下室(真题耐水腻子题ABE)/35加强+20/25+100搭接+5℃(本锚 exam:2023:第26题)。Codex FATAL 系复合题血统误判(失效模式#4, 且漏看地下室真题证据)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-21 routeB批1 file级re-stamp:同surface追加新题致source_html_sha256变化,本题题干/选项/答案/事实锚逐字节未动(机械断言),仅重钉reviewed_content_sha256。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "D11-html-practice-html-q16-005de8b5592f",
+   "surface_id": "practice.html",
+   "stem": "不同材料基体交接处抹灰设置加强网，下列哪种铺设做法满足搭接要求？",
+   "options": [
+    {
+     "text": "加强网跨缝铺设，与两侧基体各搭接120mm，固定牢靠后再进行抹灰作业。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "每侧120mm≥100mm，两侧都够宽，这样铺才算数。",
+     "option_id": "D11-html-practice-html-q16-005de8b5592f:option-1"
+    },
+    {
+     "text": "加强网跨缝铺设，与两侧基体各搭接90mm，同时加密固定点以弥补搭接宽度的不足。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "90离100不远，加密固定像是能补。",
+     "loss_reason": "90mm小于100mm下限，固定点再密也替代不了搭接宽度。",
+     "fix": "每侧搭接补足到不小于100mm。",
+     "option_id": "D11-html-practice-html-q16-005de8b5592f:option-2"
+    },
+    {
+     "text": "加强网整幅铺贴在交接缝一侧的基体上，另一侧依靠抹灰砂浆自身的粘结强度过渡。",
+     "is_correct": false,
+     "source_error_code": "E06",
+     "temptation": "整幅铺一侧省事又平整。",
+     "loss_reason": "网没有跨缝，另一侧搭接为零，交接处照样开裂。",
+     "fix": "网必须跨缝，两侧各搭接≥100mm。",
+     "option_id": "D11-html-practice-html-q16-005de8b5592f:option-3"
+    },
+    {
+     "text": "加强网跨缝铺设，两侧搭接宽度合计不小于100mm，各侧的分配宽度可以灵活掌握。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「合计100」听着像同一条规定。",
+     "loss_reason": "口径错了——是与各基体的搭接均不小于100mm，不是两侧合计。",
+     "fix": "改成每侧各不小于100mm。",
+     "option_id": "D11-html-practice-html-q16-005de8b5592f:option-4"
+    }
+   ],
+   "model_answer": "加强网与各基体的搭接宽度不应小于100mm——跨缝铺设且每侧均不小于100mm（如各120mm）才合格。",
+   "rule_group": "交接防裂·应用维",
+   "content_sha256": "6790e3c861e1e0fd425fc406d5f5b505c4509bfad44e3fc460051383e7eb7ddb",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q16",
+   "authoring_sha256": "0943bd86007bff3628d556983fbf268fec152ca76dc6bc6951f74b53ea9b786e",
+   "decision": {
+    "fact_id": "d11-fact-mesh-overlap-100",
+    "skeleton_id": "d11-skel-搭接铺设两侧判定",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A422000_043_0069:0",
+    "source_sha256": "6d8b110e8f943fd3f630968c3e6740e14e5abeaca09d5d0bc50ad9256f9fb2b5",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6790e3c861e1e0fd425fc406d5f5b505c4509bfad44e3fc460051383e7eb7ddb",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "routeB新产。铺设做法判定:每侧各120mm≥100mm为唯一合格项(数值复算:120≥100真;90<100假;单侧铺另一侧0假;'合计100'口径错=与各基体均≥100mm)。教材同卡逐字核对。skeleton与q4(数值直问)/q14(指错改正)互异=场景应用判定维。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

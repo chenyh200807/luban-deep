@@ -1,5 +1,5 @@
 const DEEPTUTOR_SUBPACKAGE_ROOT = "packageDeeptutor";
-const HOST_HOME_URL = "/pages/freeCourse/freeCourse";
+const LEARNING_HOME_URL = "/packageDeeptutor/pages/learn/learn";
 
 function decodeParam(value) {
   const raw = String(value || "").trim();
@@ -25,19 +25,6 @@ function isTruthyParam(value) {
   return normalized === "1" || normalized === "true" || normalized === "yes";
 }
 
-function hasExplicitEntryIntent(options) {
-  if (!options || typeof options !== "object") {
-    return false;
-  }
-  return Boolean(
-    options.entrySource ||
-      options.entry_source ||
-      options.source ||
-      options.returnTo ||
-      options.authenticated
-  );
-}
-
 function sanitizePackageUrl(value) {
   var url = String(value || "").trim();
   if (url.indexOf("/packageDeeptutor/") !== 0) {
@@ -47,14 +34,11 @@ function sanitizePackageUrl(value) {
 }
 
 function buildDeeptutorTargetUrl(entrySource, returnTo, authenticated) {
+  var target = sanitizePackageUrl(returnTo) || LEARNING_HOME_URL;
   if (authenticated) {
-    return (
-      sanitizePackageUrl(returnTo) ||
-      "/packageDeeptutor/pages/chat/chat?entry_source=" +
-        encodeURIComponent(String(entrySource || "").trim())
-    );
+    return target;
   }
-  return buildDeeptutorLoginUrl(entrySource, returnTo);
+  return buildDeeptutorLoginUrl(entrySource, target);
 }
 
 function scheduleAfterReady(task) {
@@ -73,7 +57,6 @@ Page({
   },
 
   onLoad(options) {
-    this._hasEntryIntent = hasExplicitEntryIntent(options);
     this._entrySource = decodeParam(
       options && (options.entrySource || options.entry_source || options.source)
     );
@@ -108,16 +91,6 @@ Page({
           (err && err.errMsg) || "鲁班AI智考入口暂时无法打开，请稍后重试",
       });
     };
-    if (!this._hasEntryIntent) {
-      scheduleAfterReady(() => {
-        wx.reLaunch({
-          url: HOST_HOME_URL,
-          fail: handleFailure,
-        });
-      });
-      return;
-    }
-
     const routeToTarget = () => {
       scheduleAfterReady(() => {
         wx.redirectTo({

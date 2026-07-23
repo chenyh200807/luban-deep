@@ -36,8 +36,7 @@
 .lr-brand-seal { width: 56rpx; height: 56rpx; border-radius: 15rpx; }
 .lr-brand-logo { width: 34rpx; height: 34rpx; }
 .lr-brand-name { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); letter-spacing: 1rpx; }
-.lr-topbar-dots { display: flex; gap: 7rpx; padding: 10rpx 16rpx; border-radius: 999rpx; background: rgba(150, 145, 126, 0.12); }
-.lr-dot { width: 7rpx; height: 7rpx; border-radius: 50%; background: var(--pk-t1); }
+.lr-host-home { padding: 10rpx 16rpx; border-radius: 999rpx; background: rgba(150, 145, 126, 0.12); font-size: 22rpx; font-weight: 700; color: var(--pk-t2); }
 
 /* ── 滚动区(设计:padding 16px 14px 0,列 gap 10px) ── */
 .lr-scroll { flex: 1; overflow: hidden; }

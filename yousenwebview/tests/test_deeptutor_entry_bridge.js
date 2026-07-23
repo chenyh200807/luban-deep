@@ -102,7 +102,23 @@ function loadBridgePage() {
 var tests = [];
 
 tests.push(function () {
-  return run("bridge direct launch without entry intent returns to host home", async function () {
+  return run("Deeptutor bridge remains a registered host route", function () {
+    var appConfig = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "../app.json"), "utf8"),
+    );
+    assert(
+      appConfig.pages && appConfig.pages.indexOf("pages/deeptutorEntry/deeptutorEntry") >= 0,
+      "Deeptutor bridge should remain registered for cross-home navigation",
+    );
+    assert(
+      appConfig.preloadRule && appConfig.preloadRule["pages/deeptutorEntry/deeptutorEntry"],
+      "app launch bridge should preload the Deeptutor subpackage",
+    );
+  });
+});
+
+tests.push(function () {
+  return run("bridge direct launch without entry intent enters Learning through login", async function () {
     var setup = loadBridgePage();
 
     setup.page.onLoad({});
@@ -110,18 +126,20 @@ tests.push(function () {
     await waitForTick();
 
     assert(
-      setup.loadSubpackageCalls.length === 0,
-      "direct bridge launch should not load deeptutor subpackage without entry intent",
+      setup.loadSubpackageCalls.length === 1,
+      "direct bridge launch should load deeptutor subpackage",
     );
     assert(
-      setup.redirectCalls.length === 0,
-      "direct bridge launch should not redirect into deeptutor package without entry intent",
+      setup.redirectCalls.length === 1,
+      "direct bridge launch should redirect into deeptutor package",
     );
-    assert(setup.reLaunchCalls.length === 1, "direct bridge launch should reLaunch once");
     assert(
-      setup.reLaunchCalls[0] &&
-        setup.reLaunchCalls[0].url === "/pages/freeCourse/freeCourse",
-      "direct bridge launch should return to host home",
+      setup.redirectCalls[0] &&
+        setup.redirectCalls[0].url.indexOf("/packageDeeptutor/pages/login/login?entrySource=") === 0 &&
+        setup.redirectCalls[0].url.indexOf(
+          encodeURIComponent("/packageDeeptutor/pages/learn/learn"),
+        ) > 0,
+      "direct bridge launch should preserve Learning as the post-login target",
     );
   });
 });
@@ -184,8 +202,8 @@ tests.push(function () {
 
     assert(
       setup.redirectCalls[0] &&
-        setup.redirectCalls[0].url.indexOf("/packageDeeptutor/pages/chat/chat?entry_source=") === 0,
-      "authenticated bridge should sanitize returnTo and fallback to deeptutor chat",
+        setup.redirectCalls[0].url === "/packageDeeptutor/pages/learn/learn",
+      "authenticated bridge should sanitize returnTo and fallback to Learning",
     );
   });
 });

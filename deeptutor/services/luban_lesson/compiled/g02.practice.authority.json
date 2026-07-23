@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "G02",
   "source_pack_sha256": "c7439e8e1907c65d489879e883d865e136c8f45d633c0aaa92916561f749aecc",
-  "source_bundle_sha256": "5cf6ded368c39dfcc0fe7c87c63419b246da0b305e56afd591d78a6ed90467f9",
+  "source_bundle_sha256": "b21f290a4b0ffe2c2d3d87a183a0a6321562506bbb3cb526e077fa7247d3b305",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -40,8 +40,8 @@
         "G02-html-practice-html-q16-1b6787678428",
         "G02-html-practice-html-q17-34f224888892"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItYzE4MjAxZGM2ZjQ4IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy0wOTJjYzcwOWVjM2QiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LWU4YzEyYmFhOWViZCIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtZDA3MTZmMDU0NGMyIiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMWI2Nzg3Njc4NDI4Il0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjFkMDQ2MjgxZjg1ZDZiNDY2MmQ3Mjg2NDYwNWYzOTk0MGRjMWQ5Y2NiZjBhZjI4YTJhNGVkM2NhNWZhYzliMjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMTM2MWQyMmMzNzRmMDllODk2ZTdmYTIyYTI2YTE2MTI0NjdmZTc3YzdhOGY2NmJlNjUyMDk0ZDNkNmFmZGM1ZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "1fbf6dc10b3c3a5fb6d024bed10aed049dd9484edfdb916a4a5e7f0b45736319"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTItYzE4MjAxZGM2ZjQ4IiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMy0wOTJjYzcwOWVjM2QiLCJHMDItaHRtbC1wcmFjdGljZS1odG1sLXE0LWU4YzEyYmFhOWViZCIsIkcwMi1odG1sLXByYWN0aWNlLWh0bWwtcTUtZDA3MTZmMDU0NGMyIiwiRzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtMWI2Nzg3Njc4NDI4Il0sInBhY2tfaWQiOiJHMDIiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImQ2MGVmOGY1ZGE2OTlhZGFmMWIwZDVkYTUxNzQ2YmNiMDBjMTc4YzA2ZmYwM2NkNGYwZTY1MDk3ZjE0MjdkNTkiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMTM2MWQyMmMzNzRmMDllODk2ZTdmYTIyYTI2YTE2MTI0NjdmZTc3YzdhOGY2NmJlNjUyMDk0ZDNkNmFmZGM1ZSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "49882d6b7aa3b064f04fb0f3a87990c2c796897efbe89016f60702154e6028ea"
     }
   ],
   "items": [
@@ -96,27 +96,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q2",
       "source_anchor": "kc:1A413000_085_0158:0",
       "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-fill-soil-selection",
       "skeleton_id": "g02-skel-填方土料禁用类",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "66a4caec7a6c8521166a69e1ec8806ba00a58ff0d0eebf01b39b477dad31e5e6",
+      "content_sha256": "85090dd7b3547e34c56c58670f0aa90777831bebcf2754e34c5c7d673d1fc216",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "66a4caec7a6c8521166a69e1ec8806ba00a58ff0d0eebf01b39b477dad31e5e6",
+        "reviewed_content_sha256": "85090dd7b3547e34c56c58670f0aa90777831bebcf2754e34c5c7d673d1fc216",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -126,7 +126,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "填方土料不得用淤泥/淤泥质土/有机质>5%/含水量不符压实的黏性土, 教材 kc:...085_0158:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "填方土料不得用淤泥/淤泥质土/有机质>5%/含水量不符压实的黏性土, 教材 kc:...085_0158:0 直引。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -292,27 +292,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q3",
       "source_anchor": "exam:2016:第8题",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-fill-start-position",
       "skeleton_id": "g02-skel-最低处起填分层",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a3f4837c32ad913e764c58e7c8737c532d297502a31cc9b8ae52b5facaa2cfb0",
+      "content_sha256": "dbbcfa8da7a504aae5aa5fcac87f02336ecea4920909120d9538810c619bac02",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a3f4837c32ad913e764c58e7c8737c532d297502a31cc9b8ae52b5facaa2cfb0",
+        "reviewed_content_sha256": "dbbcfa8da7a504aae5aa5fcac87f02336ecea4920909120d9538810c619bac02",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -322,7 +322,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "填土从场地最低处开始由下而上整宽度分层铺填, 真题 exam:2016:第8题 直接支持(B为真选项)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "填土从场地最低处开始由下而上整宽度分层铺填, 真题 exam:2016:第8题 直接支持(B为真选项)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -539,27 +539,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q4",
       "source_anchor": "exam:2016:第8题",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-symmetric-backfill",
       "skeleton_id": "g02-skel-两侧对称均衡回填",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8c8aab4632b846545c1c99f55948a6dd14a7579a729b88a8dbc16df992d54553",
+      "content_sha256": "bef25c77db8db2433d7bda7f64bfc89a9167e693d013c112da9a7b0b18bbc0f3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8c8aab4632b846545c1c99f55948a6dd14a7579a729b88a8dbc16df992d54553",
+        "reviewed_content_sha256": "bef25c77db8db2433d7bda7f64bfc89a9167e693d013c112da9a7b0b18bbc0f3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -569,7 +569,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "基础两侧应相对对称均衡回填避免单侧受力偏移, 真题 exam:2016:第8题 逐字含‘C.应在相对两侧对称回填’(真选项)。Codex FATAL 系 threshold0.25 召回空(缺口非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "基础两侧应相对对称均衡回填避免单侧受力偏移, 真题 exam:2016:第8题 逐字含‘C.应在相对两侧对称回填’(真选项)。Codex FATAL 系 threshold0.25 召回空(缺口非血统断)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -786,27 +786,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q5",
       "source_anchor": "exam:2016:第8题",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-loose-layer-thickness",
       "skeleton_id": "g02-skel-虚铺厚度按夯实机具",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ee3c3ccf3af0308727347a69828564ab4f8a66ec1eb83d19c160ad0740e1bac2",
+      "content_sha256": "4158dc32ad5419b0395acf5dda3c2a733bf0347a6a5fcf4d85df87f6c6a4e664",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "ee3c3ccf3af0308727347a69828564ab4f8a66ec1eb83d19c160ad0740e1bac2",
+        "reviewed_content_sha256": "4158dc32ad5419b0395acf5dda3c2a733bf0347a6a5fcf4d85df87f6c6a4e664",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -816,7 +816,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "每层虚铺厚度按夯实机具(夯击能)确定而非含水量, 真题 exam:2016:第8题 支持(D‘按含水量’为错项)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "每层虚铺厚度按夯实机具(夯击能)确定而非含水量, 真题 exam:2016:第8题 支持(D‘按含水量’为错项)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -982,27 +982,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q6",
       "source_anchor": "exam:2018:案例分析(三)问题2",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-振动压实分层厚度遍数",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dd2f3139ddc93766b5ef799add64568c0080053568ded67eb10f4487493f8d0d",
+      "content_sha256": "4e6874385188f2f82206e2a8998582fd878cb416295030cdce1ebdb0e183f2f4",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "dd2f3139ddc93766b5ef799add64568c0080053568ded67eb10f4487493f8d0d",
+        "reviewed_content_sha256": "4e6874385188f2f82206e2a8998582fd878cb416295030cdce1ebdb0e183f2f4",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1012,7 +1012,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "振动压实机分层厚度250-350mm每层压实3-4遍, 真题 exam:2018:案例(三)问题2 直引(铺填>400mm不妥→250-350)。三联 immediate_confirm(同振动压实回填 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "振动压实机分层厚度250-350mm每层压实3-4遍, 真题 exam:2018:案例(三)问题2 直引(铺填>400mm不妥→250-350)。三联 immediate_confirm(同振动压实回填 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1331,27 +1331,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q7",
       "source_anchor": "kc:1A413000_085_0158:2",
       "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-平碾参数档",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "aef9e4ecf8e4f060578704608aeeea964042ffa9a2efc9d2c081834faa45c591",
+      "content_sha256": "7254d08544e3c731310e35b69ca65a515e95ae7043f368df0484345cafdd5c69",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "aef9e4ecf8e4f060578704608aeeea964042ffa9a2efc9d2c081834faa45c591",
+        "reviewed_content_sha256": "7254d08544e3c731310e35b69ca65a515e95ae7043f368df0484345cafdd5c69",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1361,7 +1361,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "平碾250~300mm/6~8遍,教材填土压实参数表逐字核对;干扰项250-350/3-4为振动压实机档判错正确。"
+        "note": "平碾250~300mm/6~8遍,教材填土压实参数表逐字核对;干扰项250-350/3-4为振动压实机档判错正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1680,27 +1680,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q8",
       "source_anchor": "exam:2020:第29题",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-逐层合格程序",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4d6e76ef62e0defc007514e146da89ffe86660c61be580abd3b3279841ad9619",
+      "content_sha256": "52fa5ce57f9894ee614e59f1144d5a5ac758244bf68faf170297f2098ec8f5f0",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "4d6e76ef62e0defc007514e146da89ffe86660c61be580abd3b3279841ad9619",
+        "reviewed_content_sha256": "52fa5ce57f9894ee614e59f1144d5a5ac758244bf68faf170297f2098ec8f5f0",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1710,7 +1710,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "下层压实系数试验合格后进行上层施工,2020真题C(ACE)逐字核对。"
+        "note": "下层压实系数试验合格后进行上层施工,2020真题C(ACE)逐字核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1825,27 +1825,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q9",
       "source_anchor": "exam:2019:第16题",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-fill-soil-selection",
       "skeleton_id": "g02-skel-含水率密实度机理",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "878d6fa12c6e055883eeefc8e1851d3ec976a2fc52107d086fbee5d5722e4ecb",
+      "content_sha256": "da31394022004a2e901ba170395251166b95ee20d5406595adf7dc10a37b9be1",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "878d6fa12c6e055883eeefc8e1851d3ec976a2fc52107d086fbee5d5722e4ecb",
+        "reviewed_content_sha256": "da31394022004a2e901ba170395251166b95ee20d5406595adf7dc10a37b9be1",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1855,7 +1855,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "含水率过大或过小均致密实度不足,2019真题A逐字核对;对应选料卡'含水量不符合压实要求'禁用判据的机理。"
+        "note": "含水率过大或过小均致密实度不足,2019真题A逐字核对;对应选料卡'含水量不符合压实要求'禁用判据的机理。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1987,27 +1987,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q10",
       "source_anchor": "kc:1A434000_064_0095:0",
       "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-完工检验两项",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "33c4293817331300e82dc274c099c5e35a8e560b8977c30d08fe54269b7acdab",
+      "content_sha256": "0cc93bcc3b68131aac5199bb0431f5dfac7b20dd0719442b1f9ddea466abed94",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "33c4293817331300e82dc274c099c5e35a8e560b8977c30d08fe54269b7acdab",
+        "reviewed_content_sha256": "0cc93bcc3b68131aac5199bb0431f5dfac7b20dd0719442b1f9ddea466abed94",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2017,7 +2017,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "施工结束后进行标高及压实系数检验,教材逐字核对。"
+        "note": "施工结束后进行标高及压实系数检验,教材逐字核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2166,27 +2166,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q11",
       "source_anchor": "ca:1A434000_064_0095",
       "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-过程必查三项",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e81a9871b78531baaf1f71aaaf303912d70ef0d0de483a3e9b9133e38507d00a",
+      "content_sha256": "750638732a7b5beb18ef5bbee272bcb3c43516d531f9f43cd28b8f32bfebbe6c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "e81a9871b78531baaf1f71aaaf303912d70ef0d0de483a3e9b9133e38507d00a",
+        "reviewed_content_sha256": "750638732a7b5beb18ef5bbee272bcb3c43516d531f9f43cd28b8f32bfebbe6c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2196,7 +2196,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "必查=填筑厚度/含水量控制/压实系数,排水系统非必查,教材判分眼卡grading_keywords逐项核对。"
+        "note": "必查=填筑厚度/含水量控制/压实系数,排水系统非必查,教材判分眼卡grading_keywords逐项核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2345,27 +2345,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q12",
       "source_anchor": "exam:2018:案例分析(三)问题3",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-压实系数标准击实法",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dc14761b6f6e09cc07cf30e64ede7782e10da9cfe658eeb90e993fce2d47180a",
+      "content_sha256": "7b427c2ad264d37125c88dbcdc8bfcdf672702795717a5852e2a1f5f4664203a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "dc14761b6f6e09cc07cf30e64ede7782e10da9cfe658eeb90e993fce2d47180a",
+        "reviewed_content_sha256": "7b427c2ad264d37125c88dbcdc8bfcdf672702795717a5852e2a1f5f4664203a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2375,7 +2375,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "压实系数用标准击实法标定最大干密度逐层测定, 真题 exam:2018:案例(三)问题3 支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "压实系数用标准击实法标定最大干密度逐层测定, 真题 exam:2018:案例(三)问题3 支持。三联 d1_probe(同 fact, 第3独立 skeleton)。工单: longest-option。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2643,17 +2643,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fff2f5b530e80db9d5058ab07cc38a5da96ee308e02c67b7bafaa3207f8b9e97",
+      "content_sha256": "a2556235b707d48630bed65d5e0a2bca3ab5778e8dfc488845df83bbd754d1ae",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "fff2f5b530e80db9d5058ab07cc38a5da96ee308e02c67b7bafaa3207f8b9e97",
+        "reviewed_content_sha256": "a2556235b707d48630bed65d5e0a2bca3ab5778e8dfc488845df83bbd754d1ae",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2810,27 +2810,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q15",
       "source_anchor": "exam:2018:案例分析(三)问题2",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-fill-soil-selection",
       "skeleton_id": "g02-skel-建筑垃圾混入判断",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "261a66531dbfc59f618099af0b0651d1eaf936bedfb7f0258be91d047c4b7f84",
+      "content_sha256": "d1eff633b1ca37bdd1486a6841d9bc0a2a9e94ec26179a1ee431c8ce13c84f1d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "261a66531dbfc59f618099af0b0651d1eaf936bedfb7f0258be91d047c4b7f84",
+        "reviewed_content_sha256": "d1eff633b1ca37bdd1486a6841d9bc0a2a9e94ec26179a1ee431c8ce13c84f1d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2840,7 +2840,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "回填土料不得混建筑垃圾,2018真题不妥之处1官方答案逐字核对。补全surface anchor fact的confirm形态。"
+        "note": "回填土料不得混建筑垃圾,2018真题不妥之处1官方答案逐字核对。补全surface anchor fact的confirm形态。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3006,27 +3006,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q16",
       "source_anchor": "exam:2018:案例分析(三)问题2",
       "source_sha256": "32f572ca3e529126f98e839fe0718c083b4c0e142cd80b5786362684c1162047",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-振动压实回填诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "4d99a83d6d0754f2df70252c2d7da7fa3e3485d755990a077159a73c2d818043",
+      "content_sha256": "a1c0b9601592a30f20ebbaec7263caa8f311bed9c5ac17f55b35db8f829051bf",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "4d99a83d6d0754f2df70252c2d7da7fa3e3485d755990a077159a73c2d818043",
+        "reviewed_content_sha256": "a1c0b9601592a30f20ebbaec7263caa8f311bed9c5ac17f55b35db8f829051bf",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3036,7 +3036,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "振动压实回填纠错: ②③缺数值(应250-350mm/3-4遍)④应标准击实法非多层环刀①建筑垃圾未识别, 真题 exam:2018:案例(三)问题2 支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "振动压实回填纠错: ②③缺数值(应250-350mm/3-4遍)④应标准击实法非多层环刀①建筑垃圾未识别, 真题 exam:2018:案例(三)问题2 支持。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3168,27 +3168,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G02/P40_G02.practice.dc.html#Q17",
       "source_anchor": "ca:1A413000_085_0158",
       "source_sha256": "a6fb1bef269e7cf3da4ed9994442bb1dacad60247253120c5a0b98ed2f333dc0",
-      "source_html_sha256": "f40c6ed8d1a3d93272085f86eda4e1c58134d2948e251b4f9574747f514bed15",
+      "source_html_sha256": "b9ae058bf0b9f1c5f62f4e71d88cf91f69ca031fbaa2685cf1291be508f7011c",
       "fact_id": "g02-fact-vibratory-compaction-backfill",
       "skeleton_id": "g02-skel-四步采分句综合",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6fa25e613035e3b35070acc3396f20df991a9ab722308268afcaea519012fad4",
+      "content_sha256": "0bb34bf1829a84d67b6104f00856a31b52a9cf1595545230058a26b54acdfb09",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "6fa25e613035e3b35070acc3396f20df991a9ab722308268afcaea519012fad4",
+        "reviewed_content_sha256": "0bb34bf1829a84d67b6104f00856a31b52a9cf1595545230058a26b54acdfb09",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3198,7 +3198,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "四步采分句(选料禁用清单/最低处起对称分层/机具参数250-350·3-4/标高+压实系数·标准击实法),逐数值核对教材参数表+2018真题四处不妥官方答案;干扰项三错(统一送检/按含水量/冬期加厚)分别被2018不妥4/2016第8题D/2020第29题D证错。"
+        "note": "四步采分句(选料禁用清单/最低处起对称分层/机具参数250-350·3-4/标高+压实系数·标准击实法),逐数值核对教材参数表+2018真题四处不妥官方答案;干扰项三错(统一送检/按含水量/冬期加厚)分别被2018不妥4/2016第8题D/2020第29题D证错。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3348,5 +3348,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "f9c83cc49303fbf90f5af9ffb4bc9c609b2911552629c48af10b0cfb09e7ad75"
+  "published_lesson_sha256": "decf20c955a5baf13eb5c0f4018a05cefdf867f196729261ecd47cdeb7a902b7"
 }
