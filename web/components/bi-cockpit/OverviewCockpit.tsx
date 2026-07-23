@@ -73,13 +73,14 @@ export function OverviewCockpit({
   const kpis = cards.slice(0, 8)
   const costCard =
     cards.find(c => c.metricId === 'total_cost_usd') ?? cards.find(c => c.label.includes('成本'))
-  // 成本日趋势单源 = UsageLedger 逐日（daily_cost.series）；active-trend 的 cost 字段
-  // 在稀疏活动天下恒为 0，不能作为成本图数据源（2026-06-12 修复空图 bug）。
-  const costSeries = (overview?.dailyCostSeries ?? []).map(p => ({
-    label: p.label,
-    cost: Number(p.costUsd) || 0,
-  }))
-  const hasCostSeries = costSeries.some(p => p.cost > 0)
+  // 成本日趋势单源 = UsageLedger 逐日（daily_cost.series）；active-trend 不承载成本。
+  const costSeries = (overview?.dailyCostSeries ?? [])
+    .filter((p): p is typeof p & { costUsd: number } => p.costUsd !== null)
+    .map(p => ({
+      label: p.label,
+      cost: p.costUsd,
+    }))
+  const hasCostSeries = costSeries.length > 0
   const hasTrend = trend.length > 0
   const entrypoints: Datum[] = (overview?.entrypoints ?? []).map(item => ({
     name: item.label,

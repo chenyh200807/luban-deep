@@ -20,7 +20,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "a01.practice.authority.json",
-    "authority_sha256": "2f9dce98351cfde571415044f281c42213526ed4f3b16cb5b7b7e13182ab3442",
+    "authority_sha256": "fb5466cc2b57b7ad5cabe1cc240cc828edc5ef0ab7b06d0d901f2ed4959e291e",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -56,7 +56,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "a02.practice.authority.json",
-    "authority_sha256": "86d5110239c217fd88d275ad3ccf9cc9928f7b59b3657a88cefe1711a3b5e1df",
+    "authority_sha256": "cddcbfaf9980b6c0dca2460cf02ab99809fb8cf0d723999745a13c50b9b2c10d",
     "complete_fact_count": 4,
     "eligibility_status": "eligible",
     "eligible_question_count": 17,
@@ -92,7 +92,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "b02.practice.authority.json",
-    "authority_sha256": "71e50aa4e66498eb50935f2b381dd806364160debb665d95d13257313b686489",
+    "authority_sha256": "85108992a4a604fe2397a2a506b956625f7ccbc6cfcfa53139064dc8ce562ae3",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 12,
@@ -128,7 +128,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "c01.practice.authority.json",
-    "authority_sha256": "bd1b747cc9f1d4450eef06d442e15aae497701e52c467b76cbe1b43bcaba25ff",
+    "authority_sha256": "0934923cea4133f5c8e21506d06ef8e52aee304e629abcba57f912a616f8bcb9",
     "complete_fact_count": 3,
     "eligibility_status": "eligible",
     "eligible_question_count": 14,
@@ -164,7 +164,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "c02.practice.authority.json",
-    "authority_sha256": "1dad2fbbde1b6bf70d841f370761b9f51cc7b72b2b8c7f5e2f3287b91f1b3ba2",
+    "authority_sha256": "ff662bdf70c7ca8ae294a24503446cf75be0d51aebaf6d6f42251c1f8163301f",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -200,7 +200,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "c04.practice.authority.json",
-    "authority_sha256": "c125fcf210e1f1c0d27a35fa568d36297248f919900e49279b93d1ef2b69beb9",
+    "authority_sha256": "b8002d8ece5b0ed9fea063b569cf64ffefe4faa13a5dc3174106f0848cc7804a",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -236,7 +236,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "c05.practice.authority.json",
-    "authority_sha256": "749d246dc3208781b0a40965b030ce56cd709be6396daacd5ea1f89bd536f414",
+    "authority_sha256": "d97e58bb090f9ff0d11f310730d06a6dfeb79c56d8a63246483c0e77d7f363e2",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -273,7 +273,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "c06.practice.authority.json",
-    "authority_sha256": "732483a769873f29b32b10431afb8b9f68170a2875ca4b70b424b98610e96d5a",
+    "authority_sha256": "ab5f3b9be39f52fb35de5894dc38432ae2ef94e98fcdd4c913e3d04b263a0928",
     "complete_fact_count": 4,
     "eligibility_status": "eligible",
     "eligible_question_count": 17,
@@ -310,7 +310,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "c07.practice.authority.json",
-    "authority_sha256": "96631d15cd2cca6e4ee3ae4baf6859646147fa608a770369acc891c061759273",
+    "authority_sha256": "b8013b0954aacb596c73621ce02a663bfde094d13ecd62a85e41207c2ecdbb84",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -346,7 +346,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "d11.practice.authority.json",
-    "authority_sha256": "e44074b7f0bb7f9295c43357f26bf27d94fadbb0ec3fad18e5b45f47ae3e71ba",
+    "authority_sha256": "8537182da39ebfdc0b1b1a74f8ab8602fe5491388202cb7a42986f0de671b823",
     "complete_fact_count": 2,
     "eligibility_status": "eligible",
     "eligible_question_count": 11,
@@ -382,7 +382,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "d12.practice.authority.json",
-    "authority_sha256": "4958413817182294d3173dfb393fb1601bbf903bcc52cc081c626bab49cfaadb",
+    "authority_sha256": "4a85181944a9ded564d42472bb243a712a437e68bdb68615ad2d7a541864bba0",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -418,7 +418,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "d13.practice.authority.json",
-    "authority_sha256": "a1ce761ecb6ff37dc1da43cd5d5e295d56700d94154837cc40b151e71757f2cd",
+    "authority_sha256": "3173d5d56adcfd677d252da1a1f2f4680bce9e3cead57e7217089d9055765a34",
     "complete_fact_count": 2,
     "eligibility_status": "eligible",
     "eligible_question_count": 13,
@@ -454,7 +454,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "d14.practice.authority.json",
-    "authority_sha256": "deef5f32f715c7e4d91e86ff06ddee69821a6104c103d7d92261d12fe89a1dd7",
+    "authority_sha256": "d788ab11b4f49471223f97dbee76b057b20fdd9f7d8c3c54d7cd968b65c28ff8",
     "complete_fact_count": 2,
     "eligibility_status": "eligible",
     "eligible_question_count": 11,
@@ -514,7 +514,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "e05.practice.authority.json",
-    "authority_sha256": "8425c0e542ebe55fda0e5c6c84e08b160b4f11cd4557bf23e66fd01cd0242c2c",
+    "authority_sha256": "f75507ce3d7aae340ba25dc5e62e42d5099a1ac645f3aee94baf1c5f07927c8f",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -550,7 +550,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "f02.practice.authority.json",
-    "authority_sha256": "dc37addb53290a8b5bfa60c2654fb9ad7ba3a5f4823b8ae32b477fd328df7622",
+    "authority_sha256": "8eb714ccef379c4d9acdd431c6fa71e8191ad535ecf6856d3666ca93dfc2159f",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -586,7 +586,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "f03.practice.authority.json",
-    "authority_sha256": "7d7fb8a8cff4512fa9e788d9ab62c87f6b1671e30871f26798c785825554956c",
+    "authority_sha256": "9d62894ed1d0b8bb140882923d08953d96cb8e6589c2738134487b0913b91191",
     "complete_fact_count": 4,
     "eligibility_status": "eligible",
     "eligible_question_count": 17,
@@ -623,7 +623,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "f04.practice.authority.json",
-    "authority_sha256": "916cda467a888c67894e14849dd8b9c74726ab07403c0916309281b407582f6c",
+    "authority_sha256": "809233031f5db2218bba6ed7b50a3f63db0b0c439a829b8d548886f5287b2afb",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -660,7 +660,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "f05.practice.authority.json",
-    "authority_sha256": "a9efd5fd8b15b49bd7a64998858e6bffd97e98e3b4f5cf5489c9248fabb2d7f7",
+    "authority_sha256": "decd344eda6b0953f17b65095a5af2daa8039c029947be584d07550b7b5e3a46",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -696,7 +696,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "f16.practice.authority.json",
-    "authority_sha256": "59f4881ae693a638e740bc2a90bd46a330ca3fac52b5ddac0af00c213884cc31",
+    "authority_sha256": "0453424ee8571386b289c3aef769d2feac417c688646753536c5d7ff77c558b5",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -732,7 +732,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "g01.practice.authority.json",
-    "authority_sha256": "4e20c650f4fda8b0c0dc5cd9b5c6ccae8a9b78cf3bf8a9b46b02b8a1a3b20ac9",
+    "authority_sha256": "ac6a7554fb81710bef9b25b961392c53a775dc3049258b90c85f03fabbfedc66",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -768,7 +768,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "g02.practice.authority.json",
-    "authority_sha256": "ebb382fe2a3d5823875630bb538573bf5171164a60df1328f918e0fd27c23434",
+    "authority_sha256": "15a123bb1316b8d2422f0779808bf864c68713f2b72e26975f697f53ef1274f3",
     "complete_fact_count": 2,
     "eligibility_status": "eligible",
     "eligible_question_count": 14,
@@ -804,7 +804,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "g03.practice.authority.json",
-    "authority_sha256": "22a83f9c572a854f7c8d54b35c1c4d9cadfa189c2155d07c77eb0d18576dd5d4",
+    "authority_sha256": "a6238172e28cba5ab2bf7ea71311177b79345dc439198cab63b47f14e3c8f108",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 14,
@@ -840,7 +840,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "g04.practice.authority.json",
-    "authority_sha256": "3423bed4e06e060afc798a233519c5ab4d4eab4cc820d556c53e7d9b51d4ff6d",
+    "authority_sha256": "c7cc80bc2f201e22340e546030ad881d591ecd2f45110c7d367256698d18fe3e",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -876,7 +876,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "j01.practice.authority.json",
-    "authority_sha256": "a4f76f1aa12fb11f8fddb9bc035a03dc1611a5fa4969dc559319247da7550ebb",
+    "authority_sha256": "b9298574d8d9aa79c2b38a4a21a234233dd180278f6ff46bea2a93994d575638",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -912,7 +912,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "k01.practice.authority.json",
-    "authority_sha256": "d576a677b97ddcef256af74a19dd3ae395bdb0ff9c0d4d37350f2cc0450342e3",
+    "authority_sha256": "24914146ba9904e3446b18536e4fe23041577beb3bcd92af09b040215b0f0d37",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -948,7 +948,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "n01.practice.authority.json",
-    "authority_sha256": "a78da02c3cabfdcf6d07619365a3951c749cf7c75784f0e946441e4fec02988a",
+    "authority_sha256": "b152b799f246b3f7ab990cf664a69d495b69271b1e382c02154e354ce3f8e97b",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -984,7 +984,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "n02.practice.authority.json",
-    "authority_sha256": "a41074a836df06ce417128b73479e8ad827eded2f167f93448ece608f31f0195",
+    "authority_sha256": "8d8378772f2dc24505abf8cc41e7fd85b7fc7b615826e15b134a4978de18c96b",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -1020,7 +1020,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "n03.practice.authority.json",
-    "authority_sha256": "6ef9d12b89d0a30a2953e42848e0799be4cce9b95e312967440eb96a500c99c9",
+    "authority_sha256": "16871108ea3c26fcb1d2bbf59ddbe925823e3ed1a2d241ce75f78f21c349a414",
     "complete_fact_count": 2,
     "eligibility_status": "eligible",
     "eligible_question_count": 9,
@@ -1056,7 +1056,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "q01.practice.authority.json",
-    "authority_sha256": "e29c2a20a1c986be97a787ffca96682b02d34d916a106b34172339d9d8fdd9b8",
+    "authority_sha256": "09280020ba8d85fc54cc03ee5924fb92f2de638b95a459a9f46a5198fb342e28",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1092,7 +1092,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "q02.practice.authority.json",
-    "authority_sha256": "ad33658bccafb79ae446518b95efef55f4c272899faf381a3695e6a068359521",
+    "authority_sha256": "dce585eea131519f8f33837ab864efa4de2a440a7b89e5e7a611d02849936454",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 9,
@@ -1129,7 +1129,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "q03.practice.authority.json",
-    "authority_sha256": "0e3ea6a96f77833bb79f999fbb67177b432df9f60e4271f5256467e849e24a42",
+    "authority_sha256": "e2acdc9f3107174950f52ed2f6542560540345f0c9da7ef19af30a5c0f23ba44",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1166,7 +1166,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "r01.practice.authority.json",
-    "authority_sha256": "3e26be78d22874ad01fdccd5ef1da2741f732ac9ce25f5dc4c712783642cbfd6",
+    "authority_sha256": "a333f66defd2a84129558555f416499585657531b8ae054129a46530f8004886",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1202,7 +1202,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "s01.practice.authority.json",
-    "authority_sha256": "bb8774df177eace9a48b6c25fc77db0d4188439740785d4cdf33a01081a23960",
+    "authority_sha256": "845000d25f116f71b2d99b509e2df5e304fa069bf5ecb63dd03abb3409b1331c",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 17,
@@ -1238,7 +1238,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "s02.practice.authority.json",
-    "authority_sha256": "65f204a9a32f80feda747c3cff0c85de3a574adcc434de1dee19fe9329d3c10b",
+    "authority_sha256": "449b5b8df46fe140560d695ab73f2eed0b71aaabd28456062845432d75b9569e",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -1274,7 +1274,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "s05.practice.authority.json",
-    "authority_sha256": "f5f3879eaf5c494ccaf477a721cca73b7dcf0a1f157feaa35e0d3e538c8df3bd",
+    "authority_sha256": "1ae3c6c1062bc95deb126d93324b80a0be7b6b1be70e2531ef73fb98a535cefe",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 8,
@@ -1310,7 +1310,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "s06.practice.authority.json",
-    "authority_sha256": "20978c7510f3a1d5f3d3cdfe7e2e03c6e41e16f154cd4d9d2158173f0d88c8fb",
+    "authority_sha256": "a6d23da69b97b7aaa1aa879dfb611c6a898df05ffe0a9f8f52ec76a3d919c191",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1347,7 +1347,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "s07.practice.authority.json",
-    "authority_sha256": "9efa6115a10639470ebd997a8e41da8e66a33844f6193a283236e24f0aa97b3f",
+    "authority_sha256": "4e3d8054b8ab6162a9fc04a40f76201d0fcee16e6409497dd621c139be316cd3",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1384,7 +1384,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "x01.practice.authority.json",
-    "authority_sha256": "aa31a699f3a13fa278f6e2ea52d3db7a70aac8480c0aea22ccad3e1bc1f543b0",
+    "authority_sha256": "817bbb17000874e58974b5bdeb668a922e670de06b1bce69343f524dbba2544c",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1420,7 +1420,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "x02.practice.authority.json",
-    "authority_sha256": "e31849dd8e15a61d7c2c12d4cc50553679cc424944d9386ff2a58fc8f494db9a",
+    "authority_sha256": "2048263bc74796ce84475a721f53865695ffcd164eafc32ac3a71af20a4c35bb",
     "complete_fact_count": 1,
     "eligibility_status": "eligible",
     "eligible_question_count": 7,
@@ -1456,7 +1456,7 @@
    "practice": {
     "anchors_ready": true,
     "authority_path": "x03.practice.authority.json",
-    "authority_sha256": "2d1988ae6b32d253da9250e954d900f51935e0e8a6cf6c6fbc47f83ebc809540",
+    "authority_sha256": "1294241358b8465ebf727f5d310abe76873364ffb617a5d325870cdc6bcdcdac",
     "complete_fact_count": 3,
     "eligibility_status": "eligible",
     "eligible_question_count": 14,

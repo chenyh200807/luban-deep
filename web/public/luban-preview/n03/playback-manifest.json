@@ -1,0 +1,192 @@
+{
+  "episodes": [
+    {
+      "content_revision": "926f6fa070ca073c7a6f017bf59c9cbda0c9e61dee85117cd1fe0d07b5cec581",
+      "duration_ms": 214104,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "N03:lesson:1",
+      "sections": [
+        {
+          "end_ms": 19700,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "组织方式",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 41512,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "三参数",
+          "start_ms": 19700
+        },
+        {
+          "end_ms": 61212,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "三分类",
+          "start_ms": 41512
+        },
+        {
+          "end_ms": 78536,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "施工段",
+          "start_ms": 61212
+        },
+        {
+          "end_ms": 98596,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "判型",
+          "start_ms": 78536
+        },
+        {
+          "end_ms": 112776,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "概念口诀",
+          "start_ms": 98596
+        },
+        {
+          "end_ms": 140484,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 112776
+        },
+        {
+          "end_ms": 165504,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 140484
+        },
+        {
+          "end_ms": 190092,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 165504
+        },
+        {
+          "end_ms": 214104,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 190092
+        }
+      ]
+    },
+    {
+      "content_revision": "7b4d5351cbddd8a0a7bb53fc7cfcf611e7ba045915d40615c08798ce117338ea",
+      "duration_ms": 247100,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "N03:lesson:2",
+      "sections": [
+        {
+          "end_ms": 17180,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 36136,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "等节奏",
+          "start_ms": 17180
+        },
+        {
+          "end_ms": 58188,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "异节奏K",
+          "start_ms": 36136
+        },
+        {
+          "end_ms": 77600,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "大差法",
+          "start_ms": 58188
+        },
+        {
+          "end_ms": 98140,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "拆队",
+          "start_ms": 77600
+        },
+        {
+          "end_ms": 119664,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "算工期",
+          "start_ms": 98140
+        },
+        {
+          "end_ms": 139292,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "口诀",
+          "start_ms": 119664
+        },
+        {
+          "end_ms": 166520,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 139292
+        },
+        {
+          "end_ms": 192284,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 166520
+        },
+        {
+          "end_ms": 216728,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 192284
+        },
+        {
+          "end_ms": 247100,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 216728
+        }
+      ]
+    }
+  ],
+  "pack_id": "N03",
+  "schema_version": "luban_playback_manifest.v1"
+}

@@ -1817,7 +1817,7 @@ def test_billing_wechat_notify_grants_membership_purchase(
 
     monkeypatch.setattr(
         mobile_module.member_service,
-        "manual_membership_purchase",
+        "settled_membership_purchase",
         fake_purchase,
         raising=False,
     )
@@ -1829,9 +1829,14 @@ def test_billing_wechat_notify_grants_membership_purchase(
     assert response.json() == {"code": "SUCCESS", "message": "成功"}
     assert captured["user_id"] == "student_demo"
     assert captured["package_id"] == "vip"
-    assert captured["operator"] == "wechat_pay"
     assert captured["idempotency_key"] == "wechat_pay:420000000000"
     assert captured["amount_cny"] == 198
+    evidence = captured["settlement_evidence"]
+    assert isinstance(evidence, dict)
+    assert evidence["settlement_authority"] == "wechat_pay_notification"
+    assert evidence["provider_transaction_id"] == "420000000000"
+    assert evidence["provider_order_id"] == "dtw_order_1"
+    assert evidence["amount_minor"] == 19800
 
 
 def test_billing_checkout_rejects_unknown_channel(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -5611,6 +5616,25 @@ def test_auth_send_code_rate_limits_by_route_and_client_ip(monkeypatch: pytest.M
 
 
 def test_auth_verify_code_rate_limits_by_route_and_client_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    received: list[dict[str, str]] = []
+
+    def _verify_phone_code(
+        phone: str,
+        code: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, object]:
+        received.append(
+            {
+                "phone": phone,
+                "code": code,
+                "channel": channel,
+                "scene": scene,
+            }
+        )
+        return {"token": "ok"}
+
     monkeypatch.setattr(
         rate_limit_module,
         "_RATE_LIMIT_POLICY_OVERRIDES",
@@ -5624,13 +5648,18 @@ def test_auth_verify_code_rate_limits_by_route_and_client_ip(monkeypatch: pytest
     monkeypatch.setattr(
         mobile_module.member_service,
         "verify_phone_code",
-        lambda _phone, _code, password=None: {"token": "ok", "password": password},
+        _verify_phone_code,
     )
 
     with TestClient(_build_app()) as client:
         first = client.post(
             "/api/v1/auth/verify-code",
-            json={"phone": "13800000000", "code": "123456"},
+            json={
+                "phone": "13800000000",
+                "code": "123456",
+                "channel": "campaign_7",
+                "scene": "1047",
+            },
         )
         second = client.post(
             "/api/v1/auth/verify-code",
@@ -5640,6 +5669,14 @@ def test_auth_verify_code_rate_limits_by_route_and_client_ip(monkeypatch: pytest
     assert first.status_code == 200
     assert second.status_code == 429
     assert second.json()["detail"] == "Too many requests"
+    assert received == [
+        {
+            "phone": "13800000000",
+            "code": "123456",
+            "channel": "campaign_7",
+            "scene": "1047",
+        }
+    ]
 
 
 def test_auth_send_code_returns_503_when_sms_debug_fallback_is_forbidden(

@@ -32,22 +32,21 @@ export interface BiMetricCard {
 export interface BiTrendPoint {
   label: string
   active: number
-  cost: number
   successful: number
 }
 
 export interface BiBossDailyCostPoint {
   date: string
   label: string
-  costUsd: number
-  tokens: number
+  costUsd: number | null
+  tokens: number | null
   turns: number
 }
 
 export interface BiBossDailyCost {
-  todayUsd: number
-  windowTotalUsd: number
-  averageDailyUsd: number
+  todayUsd: number | null
+  windowTotalUsd: number | null
+  averageDailyUsd: number | null
   source: string
   series: BiBossDailyCostPoint[]
 }
@@ -281,8 +280,8 @@ export interface BiAiQualityPayload extends BiMetricDefinition {
 export interface BiUnitEconomicsPayload extends BiMetricDefinition {
   revenueStatus: string
   summary: string
-  windowTotalCostUsd: number
-  costPerEffectiveLearningUsd: number
+  windowTotalCostUsd: number | null
+  costPerEffectiveLearningUsd: number | null
   source: string
 }
 
@@ -860,7 +859,6 @@ function normalizeTrendPoint(item: unknown, fallbackLabel = ''): BiTrendPoint {
       fallbackLabel
     ),
     active: toNumber(record.active ?? record.active_learners ?? record.value ?? record.count, 0),
-    cost: toNumber(record.cost ?? record.cost_usd ?? record.amount ?? record.expense, 0),
     successful: toNumber(
       record.successful ?? record.success ?? record.success_rate ?? record.rate,
       0
@@ -1280,11 +1278,12 @@ function normalizeUnitEconomicsPayload(raw: unknown): BiUnitEconomicsPayload | u
     ...normalizeMetricDefinition(record, '单有效学习成本'),
     revenueStatus: toString(record.revenue_status ?? record.revenueStatus, ''),
     summary: toString(record.summary ?? record.description, ''),
-    windowTotalCostUsd: toNumber(record.window_total_cost_usd ?? record.windowTotalCostUsd, 0),
-    costPerEffectiveLearningUsd: toNumber(
-      record.cost_per_effective_learning_usd ?? record.costPerEffectiveLearningUsd,
-      0
-    ),
+    windowTotalCostUsd:
+      optionalNumber(record.window_total_cost_usd ?? record.windowTotalCostUsd) ?? null,
+    costPerEffectiveLearningUsd:
+      optionalNumber(
+        record.cost_per_effective_learning_usd ?? record.costPerEffectiveLearningUsd
+      ) ?? null,
     source: toString(record.source, ''),
   }
 }
@@ -1379,21 +1378,24 @@ function normalizeBossDailyCost(raw: unknown): BiBossDailyCost | undefined {
     return {
       date: toString(point.date ?? point.day ?? point.label, ''),
       label: toString(point.label ?? point.date ?? point.day, `Day ${index + 1}`),
-      costUsd: toNumber(point.cost_usd ?? point.costUsd ?? point.cost ?? point.amount, 0),
-      tokens: toNumber(point.tokens ?? point.total_tokens ?? point.totalTokens, 0),
+      costUsd: optionalNumber(point.cost_usd ?? point.costUsd ?? point.cost ?? point.amount) ?? null,
+      tokens:
+        optionalNumber(point.tokens ?? point.total_tokens ?? point.totalTokens) ?? null,
       turns: toNumber(point.turns ?? point.count ?? point.requests, 0),
     }
   })
   return {
-    todayUsd: toNumber(record.today_usd ?? record.todayUsd ?? record.today ?? record.cost_today, 0),
-    windowTotalUsd: toNumber(
-      record.window_total_usd ?? record.windowTotalUsd ?? record.total_usd ?? record.total,
-      0
-    ),
-    averageDailyUsd: toNumber(
-      record.average_daily_usd ?? record.averageDailyUsd ?? record.avg_daily_usd ?? record.average,
-      0
-    ),
+    todayUsd:
+      optionalNumber(record.today_usd ?? record.todayUsd ?? record.today ?? record.cost_today) ??
+      null,
+    windowTotalUsd:
+      optionalNumber(
+        record.window_total_usd ?? record.windowTotalUsd ?? record.total_usd ?? record.total
+      ) ?? null,
+    averageDailyUsd:
+      optionalNumber(
+        record.average_daily_usd ?? record.averageDailyUsd ?? record.avg_daily_usd ?? record.average
+      ) ?? null,
     source: toString(record.source ?? record.provider, ''),
     series,
   }
@@ -1615,24 +1617,6 @@ function buildBossActionQueue(data: BiWorkbenchData): BiBossActionItem[] {
   return queue
 }
 
-function buildBossDailyCost(data: BiWorkbenchData): BiBossDailyCost {
-  const series = data.trend.points.map(point => ({
-    date: point.label,
-    label: point.label,
-    costUsd: point.cost,
-    tokens: 0,
-    turns: point.successful,
-  }))
-  const windowTotalUsd = series.reduce((sum, point) => sum + point.costUsd, 0)
-  return {
-    todayUsd: series.length ? series[series.length - 1].costUsd : 0,
-    windowTotalUsd,
-    averageDailyUsd: series.length ? windowTotalUsd / series.length : 0,
-    source: 'active_trend_fallback',
-    series,
-  }
-}
-
 function buildBossHeroIssue(missingCoreModules: BiBossCoreModule[]): string {
   if (missingCoreModules.length === 0) {
     return ''
@@ -1650,7 +1634,6 @@ function buildBiBossWorkbench(
     kpis: buildBossKpis(data),
     actionQueue: buildBossActionQueue(data),
     heroIssue: buildBossHeroIssue(missingCoreModules),
-    dailyCost: buildBossDailyCost(data),
   }
 }
 
@@ -2716,6 +2699,53 @@ export interface BiLearningPracticeSummary {
   byTopic: BiLearningPrefRow[]
 }
 
+export interface BiMicrolessonPlaybackContent {
+  objectId: string
+  memberCount: number
+  playbackSessionCount: number
+  playCount: number
+  completedSessions: number
+  completionRate: number | null
+  totalActiveMs: number
+  avgActiveMs: number
+  progress25Sessions: number
+  progress50Sessions: number
+  progress75Sessions: number
+  progress90Sessions: number
+  maxReachedSectionIndex: number
+  maxContiguousWatchedSectionIndex: number
+  lastEventAtMs: number
+}
+
+export interface BiMicrolessonPlaybackSection {
+  objectId: string
+  sectionId: string
+  sectionIndex: number
+  sectionLabel: string
+  sectionGroup: string
+  memberCount: number
+  reachedSessionCount: number
+  watchedSessions: number
+  watchedRate: number | null
+  totalActiveMs: number
+  autoEntries: number
+  seekEntries: number
+  chipEntries: number
+}
+
+export interface BiMicrolessonPlaybackSummary {
+  available: boolean
+  timeSource: string
+  trustLevel: string
+  evidenceClass: string
+  masteryEligible: boolean
+  useBoundary: string
+  eventCount: number
+  playbackSessionCount: number
+  content: BiMicrolessonPlaybackContent[]
+  sections: BiMicrolessonPlaybackSection[]
+}
+
 export interface BiLearningPreferenceData {
   days: number
   demoIncluded: boolean
@@ -2727,6 +2757,7 @@ export interface BiLearningPreferenceData {
   submoduleInterest: BiLearningPrefRow[]
   contentTop: BiLearningPrefRow[]
   featureUsage: BiLearningPrefRow[]
+  playback: BiMicrolessonPlaybackSummary
   practice: BiLearningPracticeSummary
 }
 
@@ -2789,6 +2820,7 @@ export async function getBiLearningPreference(
   )
   const record = asRecord(raw)
   const practiceRecord = asRecord(firstRecord(raw, ['practice']))
+  const playbackRecord = asRecord(firstRecord(raw, ['playback']))
   return {
     days: toNumber(record.days, days),
     demoIncluded: record.demo_included === true || record.demoIncluded === true,
@@ -2806,6 +2838,102 @@ export async function getBiLearningPreference(
     featureUsage: firstArray(raw, ['feature_usage', 'featureUsage']).map((item, i) =>
       normalizeLearningPrefRow(item, `feature-${i + 1}`)
     ),
+    playback: {
+      available: playbackRecord.available === true,
+      timeSource: toString(
+        playbackRecord.time_source ?? playbackRecord.timeSource,
+        'player_active_time'
+      ),
+      trustLevel: toString(
+        playbackRecord.trust_level ?? playbackRecord.trustLevel,
+        'C'
+      ),
+      evidenceClass: toString(
+        playbackRecord.evidence_class ?? playbackRecord.evidenceClass,
+        'server_validated_client_playback_claim'
+      ),
+      masteryEligible:
+        playbackRecord.mastery_eligible === true ||
+        playbackRecord.masteryEligible === true,
+      useBoundary: toString(
+        playbackRecord.use_boundary ?? playbackRecord.useBoundary,
+        'product_interest_only'
+      ),
+      eventCount: toNumber(playbackRecord.event_count ?? playbackRecord.eventCount, 0),
+      playbackSessionCount: toNumber(
+        playbackRecord.playback_session_count ?? playbackRecord.playbackSessionCount,
+        0
+      ),
+      content: firstArray(playbackRecord, ['content']).map(item => {
+        const row = asRecord(item)
+        return {
+          objectId: toString(row.object_id ?? row.objectId, ''),
+          memberCount: toNumber(row.member_count ?? row.memberCount, 0),
+          playbackSessionCount: toNumber(
+            row.playback_session_count ?? row.playbackSessionCount,
+            0
+          ),
+          playCount: toNumber(row.play_count ?? row.playCount, 0),
+          completedSessions: toNumber(
+            row.completed_sessions ?? row.completedSessions,
+            0
+          ),
+          completionRate: nullableRate(row.completion_rate ?? row.completionRate),
+          totalActiveMs: toNumber(row.total_active_ms ?? row.totalActiveMs, 0),
+          avgActiveMs: toNumber(row.avg_active_ms ?? row.avgActiveMs, 0),
+          progress25Sessions: toNumber(
+            row.progress_25_sessions ?? row.progress25Sessions,
+            0
+          ),
+          progress50Sessions: toNumber(
+            row.progress_50_sessions ?? row.progress50Sessions,
+            0
+          ),
+          progress75Sessions: toNumber(
+            row.progress_75_sessions ?? row.progress75Sessions,
+            0
+          ),
+          progress90Sessions: toNumber(
+            row.progress_90_sessions ?? row.progress90Sessions,
+            0
+          ),
+          maxReachedSectionIndex: toNumber(
+            row.max_reached_section_index ?? row.maxReachedSectionIndex,
+            0
+          ),
+          maxContiguousWatchedSectionIndex: toNumber(
+            row.max_contiguous_watched_section_index ??
+              row.maxContiguousWatchedSectionIndex,
+            0
+          ),
+          lastEventAtMs: toNumber(row.last_event_at_ms ?? row.lastEventAtMs, 0),
+        }
+      }),
+      sections: firstArray(playbackRecord, ['sections']).map(item => {
+        const row = asRecord(item)
+        return {
+          objectId: toString(row.object_id ?? row.objectId, ''),
+          sectionId: toString(row.section_id ?? row.sectionId, ''),
+          sectionIndex: toNumber(row.section_index ?? row.sectionIndex, 0),
+          sectionLabel: toString(row.section_label ?? row.sectionLabel, ''),
+          sectionGroup: toString(row.section_group ?? row.sectionGroup, ''),
+          memberCount: toNumber(row.member_count ?? row.memberCount, 0),
+          reachedSessionCount: toNumber(
+            row.reached_session_count ?? row.reachedSessionCount,
+            0
+          ),
+          watchedSessions: toNumber(
+            row.watched_sessions ?? row.watchedSessions,
+            0
+          ),
+          watchedRate: nullableRate(row.watched_rate ?? row.watchedRate),
+          totalActiveMs: toNumber(row.total_active_ms ?? row.totalActiveMs, 0),
+          autoEntries: toNumber(row.auto_entries ?? row.autoEntries, 0),
+          seekEntries: toNumber(row.seek_entries ?? row.seekEntries, 0),
+          chipEntries: toNumber(row.chip_entries ?? row.chipEntries, 0),
+        }
+      }),
+    },
     practice: {
       answeredCount: toNumber(practiceRecord.answered_count ?? practiceRecord.answeredCount, 0),
       correctCount: toNumber(practiceRecord.correct_count ?? practiceRecord.correctCount, 0),

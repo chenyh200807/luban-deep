@@ -1,0 +1,95 @@
+{
+  "episodes": [
+    {
+      "content_revision": "053af2eeac4d43b2bae4d51fa10a8dee923d1b042a658441f4e7fbf7457c6cf5",
+      "duration_ms": 245048,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "S05:lesson:1",
+      "sections": [
+        {
+          "end_ms": 25676,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破口号",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 48064,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "供电树",
+          "start_ms": 25676
+        },
+        {
+          "end_ms": 71652,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "保护链",
+          "start_ms": 48064
+        },
+        {
+          "end_ms": 99848,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "一机一箱",
+          "start_ms": 71652
+        },
+        {
+          "end_ms": 135724,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "顺序参数",
+          "start_ms": 99848
+        },
+        {
+          "end_ms": 173328,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "答题纸",
+          "start_ms": 135724
+        },
+        {
+          "end_ms": 185828,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "收官",
+          "start_ms": 173328
+        },
+        {
+          "end_ms": 206816,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 185828
+        },
+        {
+          "end_ms": 227132,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 206816
+        },
+        {
+          "end_ms": 245048,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 227132
+        }
+      ]
+    }
+  ],
+  "pack_id": "S05",
+  "schema_version": "luban_playback_manifest.v1"
+}

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import time
 from pathlib import Path
+import sqlite3
+import time
 
 import pytest
 
@@ -65,6 +66,295 @@ def _record(store: SQLiteProductBehaviorStore, **overrides) -> None:
     }
     base.update(overrides)
     store.record_event(base)
+
+
+def _record_playback(
+    store: SQLiteProductBehaviorStore,
+    *,
+    event_id: str,
+    object_id: str,
+    section_id: str,
+    section_index: int,
+    action: str,
+    sequence: int,
+    playback_session_id: str,
+    active_ms: int = 0,
+    progress_pct: int = 0,
+    section_progress_pct: int = 0,
+    reason: str = "auto",
+    user_id: str = "u1",
+) -> dict[str, object]:
+    now_ms = int(time.time() * 1000)
+    section_start_ms = (section_index - 1) * 10_000
+    section_end_ms = section_start_ms + 10_000
+    return store.record_event(
+        {
+            "event_id": event_id,
+            "event_name": "microlesson_playback",
+            "event_version": 1,
+            "occurred_at_ms": now_ms + sequence,
+            "received_at_ms": now_ms + sequence,
+            "user_id": user_id,
+            "visit_id": playback_session_id,
+            "session_id": playback_session_id,
+            "turn_id": "",
+            "surface": "wechat_yousenwebview",
+            "module": "learning",
+            "section": section_id,
+            "action": action,
+            "properties_json": {
+                "visit_id": playback_session_id,
+                "module": "learning",
+                "section": section_id,
+                "action": action,
+                "object_type": "microlesson",
+                "object_id": object_id,
+                "duration_ms": active_ms,
+                "playback_session_id": playback_session_id,
+                "sequence": sequence,
+                "progress_pct": progress_pct,
+                "section_index": section_index,
+                "section_label": f"第{section_index}节",
+                "section_group": "讲解",
+                "section_start_ms": section_start_ms,
+                "section_end_ms": section_end_ms,
+                "from_position_ms": section_start_ms,
+                "to_position_ms": section_start_ms + active_ms,
+                "section_progress_pct": section_progress_pct,
+                "reason": reason,
+            },
+        }
+    )
+
+
+def test_playback_breakdown_separates_reached_from_watched_and_never_fills_gaps(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+
+    # 直接点第 7 节：第 7 节可以被真实到达/观看，但绝不能倒推 1-6 节已看。
+    _record_playback(
+        store,
+        event_id="jump-seek-7",
+        object_id="F16:lesson:1",
+        section_id="section-7",
+        section_index=7,
+        action="seek",
+        sequence=1,
+        playback_session_id="session-jump-7",
+        reason="chip",
+    )
+    _record_playback(
+        store,
+        event_id="jump-watch-7",
+        object_id="F16:lesson:1",
+        section_id="section-7",
+        section_index=7,
+        action="checkpoint",
+        sequence=2,
+        playback_session_id="session-jump-7",
+        active_ms=9_000,
+        progress_pct=95,
+        section_progress_pct=95,
+    )
+
+    # 顺序看完 1、2 节后只到达第 3 节：连续观看只能算到 2。
+    _record_playback(
+        store,
+        event_id="continuous-watch-1",
+        object_id="F16:lesson:2",
+        section_id="section-1",
+        section_index=1,
+        action="checkpoint",
+        sequence=1,
+        playback_session_id="session-contiguous",
+        active_ms=9_000,
+        progress_pct=30,
+        section_progress_pct=95,
+    )
+    _record_playback(
+        store,
+        event_id="continuous-watch-2",
+        object_id="F16:lesson:2",
+        section_id="section-2",
+        section_index=2,
+        action="checkpoint",
+        sequence=2,
+        playback_session_id="session-contiguous",
+        active_ms=9_000,
+        progress_pct=65,
+        section_progress_pct=92,
+    )
+    _record_playback(
+        store,
+        event_id="continuous-enter-3",
+        object_id="F16:lesson:2",
+        section_id="section-3",
+        section_index=3,
+        action="section_enter",
+        sequence=3,
+        playback_session_id="session-contiguous",
+        progress_pct=66,
+        reason="auto",
+    )
+
+    result = store.get_microlesson_playback_breakdown(days=7)
+
+    assert result["available"] is True
+    assert result["time_source"] == "player_active_time"
+    assert result["mastery_eligible"] is False
+    assert result["use_boundary"] == "product_interest_only"
+    assert result["event_count"] == 5
+    assert result["playback_session_count"] == 2
+    content = {row["object_id"]: row for row in result["content"]}
+    assert content["F16:lesson:1"]["max_reached_section_index"] == 7
+    assert (
+        content["F16:lesson:1"][
+            "max_contiguous_watched_section_index"
+        ]
+        == 0
+    )
+    assert content["F16:lesson:2"]["max_reached_section_index"] == 3
+    assert (
+        content["F16:lesson:2"][
+            "max_contiguous_watched_section_index"
+        ]
+        == 2
+    )
+
+    sections = {
+        (row["object_id"], row["section_index"]): row
+        for row in result["sections"]
+    }
+    assert set(index for object_id, index in sections if object_id == "F16:lesson:1") == {
+        7
+    }
+    assert sections[("F16:lesson:1", 7)]["reached_session_count"] == 1
+    assert sections[("F16:lesson:1", 7)]["watched_sessions"] == 1
+    assert sections[("F16:lesson:1", 7)]["chip_entries"] == 1
+    assert sections[("F16:lesson:2", 3)]["reached_session_count"] == 1
+    assert sections[("F16:lesson:2", 3)]["watched_sessions"] == 0
+    assert sections[("F16:lesson:2", 3)]["watched_rate"] == 0.0
+
+
+def test_playback_store_dedupes_same_user_session_sequence_even_with_new_event_id(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    common = {
+        "object_id": "F16:lesson:2",
+        "section_id": "section-1",
+        "section_index": 1,
+        "action": "checkpoint",
+        "sequence": 1,
+        "playback_session_id": "session-retry",
+        "active_ms": 1_000,
+        "progress_pct": 10,
+        "section_progress_pct": 20,
+    }
+
+    first = _record_playback(store, event_id="event-first", **common)
+    retry = _record_playback(store, event_id="event-retry", **common)
+
+    assert first["status"] == "accepted"
+    assert retry["status"] == "duplicate"
+    result = store.get_microlesson_playback_breakdown(days=7)
+    assert result["event_count"] == 1
+
+
+def test_playback_breakdown_uses_unique_section_coverage_not_replayed_time(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    for sequence in (1, 2):
+        _record_playback(
+            store,
+            event_id=f"repeat-half-{sequence}",
+            object_id="F16:lesson:1",
+            section_id="section-1",
+            section_index=1,
+            action="checkpoint",
+            sequence=sequence,
+            playback_session_id="session-repeat-half",
+            active_ms=5_000,
+            progress_pct=100,
+            section_progress_pct=100,
+        )
+
+    result = store.get_microlesson_playback_breakdown(days=7)
+
+    assert result["content"][0]["total_active_ms"] == 10_000
+    assert result["content"][0]["max_contiguous_watched_section_index"] == 0
+    assert result["sections"][0]["watched_sessions"] == 0
+    assert result["sections"][0]["watched_rate"] == 0.0
+
+
+def test_data_quality_snapshot_collapses_identity_groups_and_excludes_internal_ids(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    _record(
+        store,
+        event_id="legacy",
+        user_id="legacy-u1",
+        app_version="ignored-top-level",
+        properties_json={"app_version": "1.2.3", "platform": "ios"},
+    )
+    _record(
+        store,
+        event_id="canonical",
+        user_id="canonical-u1",
+        properties_json={"app_version": "1.2.3", "platform": "ios"},
+    )
+    _record(
+        store,
+        event_id="internal",
+        user_id="machine-uuid",
+        properties_json={"app_version": "1.2.3", "platform": "devtools"},
+    )
+
+    snapshot = store.get_data_quality_snapshot(
+        days=7,
+        identity_groups={
+            "member-1": ["legacy-u1", "canonical-u1"],
+            "internal": ["machine-uuid"],
+        },
+        exclude_user_ids=["machine-uuid"],
+    )
+
+    assert snapshot["available"] is True
+    assert snapshot["status"] == "ready"
+    assert snapshot["event_count"] == 2
+    assert snapshot["user_count"] == 1
+    assert snapshot["last_event_at_ms"] > 0
+    assert snapshot["coverage"]["release_id"]["coverage_rate"] == 0.0
+    assert snapshot["coverage"]["app_version"]["coverage_rate"] == 1.0
+    assert snapshot["coverage"]["platform"]["coverage_rate"] == 1.0
+
+
+def test_data_quality_snapshot_is_empty_or_degraded_without_version_evidence(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    assert store.get_data_quality_snapshot(days=7)["status"] == "empty"
+
+    _record(store, event_id="missing-metadata", user_id="u1")
+    snapshot = store.get_data_quality_snapshot(days=7)
+
+    assert snapshot["status"] == "degraded"
+    assert snapshot["event_count"] == 1
+    assert snapshot["user_count"] == 1
+    assert snapshot["coverage"]["app_version"]["populated_event_count"] == 0
+
+
+def test_data_quality_snapshot_reports_store_unavailability(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+
+    def fail_connect():
+        raise sqlite3.OperationalError("database unavailable")
+
+    monkeypatch.setattr(store, "_connect", fail_connect)
+    snapshot = store.get_data_quality_snapshot(days=7)
+
+    assert snapshot["available"] is False
+    assert snapshot["status"] == "unavailable"
+    assert snapshot["event_count"] == 0
 
 
 def test_engagement_breakdown_ranks_content_and_computes_repeat_rate(tmp_path: Path) -> None:

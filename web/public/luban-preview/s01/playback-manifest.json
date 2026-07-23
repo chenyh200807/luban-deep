@@ -1,0 +1,273 @@
+{
+  "episodes": [
+    {
+      "content_revision": "3e72f7fa12f6e35254ddcaa59a99eb5d6df3d6fa38632c94c31c9629e1753665",
+      "duration_ms": 237144,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "S01:lesson:1",
+      "sections": [
+        {
+          "end_ms": 18692,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 38224,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "编案门",
+          "start_ms": 18692
+        },
+        {
+          "end_ms": 66060,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "论证门",
+          "start_ms": 38224
+        },
+        {
+          "end_ms": 96776,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "拆模分档",
+          "start_ms": 66060
+        },
+        {
+          "end_ms": 115372,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "塌给你看",
+          "start_ms": 96776
+        },
+        {
+          "end_ms": 136776,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "口诀",
+          "start_ms": 115372
+        },
+        {
+          "end_ms": 161580,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 136776
+        },
+        {
+          "end_ms": 187872,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 161580
+        },
+        {
+          "end_ms": 215676,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 187872
+        },
+        {
+          "end_ms": 237144,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 215676
+        }
+      ]
+    },
+    {
+      "content_revision": "c56b80755eeb89554d1850398f1a21d70f000f776a60752784ab4f18bc73c4cd",
+      "duration_ms": 229992,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "S01:lesson:2",
+      "sections": [
+        {
+          "end_ms": 16076,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 41200,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "搭设违规",
+          "start_ms": 16076
+        },
+        {
+          "end_ms": 60756,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "连墙件",
+          "start_ms": 41200
+        },
+        {
+          "end_ms": 84296,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "剪刀撑",
+          "start_ms": 60756
+        },
+        {
+          "end_ms": 102412,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "倾覆",
+          "start_ms": 84296
+        },
+        {
+          "end_ms": 127296,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "拆除序",
+          "start_ms": 102412
+        },
+        {
+          "end_ms": 154452,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 127296
+        },
+        {
+          "end_ms": 180264,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 154452
+        },
+        {
+          "end_ms": 204348,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 180264
+        },
+        {
+          "end_ms": 229992,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 204348
+        }
+      ]
+    },
+    {
+      "content_revision": "a461584f9009f949cc1450e2b22c8b22a7f9aa2d64bd7eeb340db93fc8c4e668",
+      "duration_ms": 238560,
+      "episode_index": 3,
+      "lesson_file": "lesson3.html",
+      "object_id": "S01:lesson:3",
+      "sections": [
+        {
+          "end_ms": 18836,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 42184,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "保证/一般",
+          "start_ms": 18836
+        },
+        {
+          "end_ms": 63084,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "验收节点",
+          "start_ms": 42184
+        },
+        {
+          "end_ms": 89648,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "三类平台",
+          "start_ms": 63084
+        },
+        {
+          "end_ms": 111340,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "卸料禁令",
+          "start_ms": 89648
+        },
+        {
+          "end_ms": 129192,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "限用设备",
+          "start_ms": 111340
+        },
+        {
+          "end_ms": 155412,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 129192
+        },
+        {
+          "end_ms": 180960,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 155412
+        },
+        {
+          "end_ms": 218724,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 180960
+        },
+        {
+          "end_ms": 238560,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 218724
+        }
+      ]
+    }
+  ],
+  "pack_id": "S01",
+  "schema_version": "luban_playback_manifest.v1"
+}

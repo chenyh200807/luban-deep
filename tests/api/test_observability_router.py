@@ -161,6 +161,34 @@ def test_surface_event_router_rejects_unknown_event_name() -> None:
     assert "Unsupported event_name" in response.json()["detail"]
 
 
+def test_surface_event_router_rejects_playback_authority_bypass() -> None:
+    app = _build_app()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-forged-playback-1",
+                "surface": "wechat_yousenwebview",
+                "event_name": "microlesson_playback",
+                "session_id": "playback-session-forged",
+                "metadata": {
+                    "visit_id": "playback-session-forged",
+                    "module": "learning",
+                    "section": "s7",
+                    "action": "complete",
+                    "object_type": "microlesson",
+                    "object_id": "A01:lesson:1",
+                },
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "microlesson_playback requires the server-validated product path"
+    )
+
+
 def test_surface_event_router_persists_product_behavior_event(tmp_path) -> None:
     observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
     app = _build_app()
@@ -188,6 +216,68 @@ def test_surface_event_router_persists_product_behavior_event(tmp_path) -> None:
     assert response.json()["status"] == "accepted"
     summary = observability_module.get_product_behavior_store().get_member_behavior_summary("admin_demo")
     assert summary["learning_report_open_count_7d"] == 1
+
+
+def test_surface_event_router_uses_server_receipt_time_for_business_window(tmp_path) -> None:
+    observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
+    app = _build_app()
+    future_client_ms = int(time.time() * 1000) + 10 * 365 * 24 * 60 * 60 * 1000
+    before_request_ms = int(time.time() * 1000)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-future-client-clock",
+                "surface": "web",
+                "event_name": "module_viewed",
+                "collected_at_ms": future_client_ms,
+                "metadata": {
+                    "visit_id": "visit-clock-1",
+                    "module": "learning",
+                    "action": "view",
+                },
+            },
+        )
+    after_request_ms = int(time.time() * 1000)
+
+    assert response.status_code == 202
+    rows = observability_module.get_product_behavior_store().query_raw_events(
+        {"user_id": "admin_demo"},
+        limit=10,
+    )
+    assert len(rows) == 1
+    assert before_request_ms <= rows[0]["occurred_at_ms"] <= after_request_ms
+    assert rows[0]["occurred_at_ms"] == rows[0]["received_at_ms"]
+    assert rows[0]["occurred_at_ms"] != future_client_ms
+
+
+@pytest.mark.parametrize("duration_ms", [-1, 86_400_001, "NaN", "Infinity"])
+def test_surface_event_router_rejects_invalid_product_behavior_duration(
+    tmp_path,
+    duration_ms,
+) -> None:
+    observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
+    app = _build_app()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": f"evt-invalid-duration-{duration_ms}",
+                "surface": "web",
+                "event_name": "module_exited",
+                "metadata": {
+                    "visit_id": "visit-duration-1",
+                    "module": "learning",
+                    "action": "return",
+                    "duration_ms": duration_ms,
+                },
+            },
+        )
+
+    assert response.status_code == 400
+    assert "duration_ms" in response.json()["detail"]
 
 
 def test_surface_event_router_surfaces_product_behavior_persistence_failure(monkeypatch) -> None:

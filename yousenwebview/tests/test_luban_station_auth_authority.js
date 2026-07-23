@@ -128,6 +128,51 @@ function makePage(definition) {
   assert.strictEqual(stationOptions.suppressAuthRedirect, true);
   assert.strictEqual(stationPage.data.errorText, "", "expired station auth must redirect, not show a false content error");
 
+  let detailArgs = null;
+  let ticketArgs = null;
+  const episodePage = makePage(loadPage("pages/luban/station/station.js", {
+    "../../../utils/api": {
+      getLubanLessonDetail(packId, options) {
+        detailArgs = { packId, options };
+        return Promise.resolve({
+          card_url: "https://cards.example/d14/lesson2.html",
+          title: "第二集",
+          teaching_point_id: "D14:lesson:2",
+        });
+      },
+      issueLubanCardEntry(packId, episode, options) {
+        ticketArgs = { packId, episode, options };
+        return Promise.resolve({ entry_ticket: "episode-2-capability" });
+      },
+      unwrapResponse(value) { return value; },
+      describeRequestError(_error, fallback) { return fallback; },
+    },
+    "../../../utils/auth": { isLoggedIn: () => true },
+    "../../../utils/route": { lubanStation: (packId, episode) => "/packageDeeptutor/pages/luban/station/station?pack_id=" + packId + "&episode=" + episode },
+    "../../../utils/runtime": { redirectToLogin() {} },
+    "../../../utils/surface-telemetry": { trackProductBehavior() {} },
+    "../../../utils/helpers": { isDarkOr: function () { return false; }, isDark: function () { return false; }, vibrate: function () {}, syncTabBar: function () {} },
+  }));
+  episodePage.onLoad({ pack_id: "D14", episode: "2" });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.deepStrictEqual(
+    JSON.parse(JSON.stringify(detailArgs)),
+    {
+      packId: "D14",
+      options: { episode: 2, suppressAuthRedirect: true },
+    },
+    "detail read and ticket minting must use the same selected episode",
+  );
+  assert.strictEqual(ticketArgs.packId, "D14");
+  assert.strictEqual(ticketArgs.episode, 2, "episode 2 must mint an episode-2 capability");
+  assert.strictEqual(episodePage.data.teachingPointId, "D14:lesson:2");
+  assert(
+    episodePage.data.currentUrl.indexOf("#entry_ticket=episode-2-capability") >= 0,
+    "web-view must receive only the episode-bound ticket",
+  );
+
   console.log("PASS test_luban_station_auth_authority.js");
 })().catch(function (error) {
   console.error(error && error.stack ? error.stack : error);

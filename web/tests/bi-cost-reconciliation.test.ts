@@ -71,3 +71,33 @@ test('cost reconciliation normalizes dashscope official list price and net charg
   assert.equal(providers[0].amountDelta, -0.02)
   assert.equal(providers[0].tokenDelta, 200)
 })
+
+test('cost reconciliation preserves unavailable ledger values as null', () => {
+  const providers = normalizeBiCostReconciliation({
+    providers: {
+      dashscope: {
+        internal: {
+          status: 'error',
+          total_tokens: null,
+          currency_amounts: {},
+        },
+        official_usage: {
+          status: 'unconfigured',
+          total_tokens: null,
+          currency_amounts: {},
+        },
+        reconciliation: {
+          status: 'insufficient_evidence',
+          token_delta: null,
+        },
+      },
+    },
+  })
+
+  assert.equal(providers[0].internalStatus, 'error')
+  assert.equal(providers[0].reconciliationStatus, 'insufficient_evidence')
+  assert.equal(providers[0].totalTokens, null)
+  assert.equal(providers[0].officialTokens, null)
+  assert.equal(providers[0].tokenDelta, null)
+  assert.equal(providers[0].internalAmount, null)
+})

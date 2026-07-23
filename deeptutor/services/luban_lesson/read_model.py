@@ -511,6 +511,14 @@ def build_lesson_viewmodel(
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
         "content_sha256": str(pack.get("content_sha256") or ""),
+        # Episode identity comes from the published lesson sequence authority.
+        # Clients must emit this exact id instead of constructing aliases such
+        # as ``<pack>:tp:<index>``.
+        "teaching_point_id": f"{pack_id}:lesson:{episode_index}",
+        "lesson_file": (
+            selected_page.name if selected_page is not None else "lesson.html"
+        ),
+        "lesson_page_sha256": selected_lesson_sha,
         # card_hosted=manifest 确定性扫描(web/public/luban-preview/<id>/lesson.html 实存);
         # 非 hosted 站不发 URL——防 web-view 打开 404(部署探针实证 22/28 站无卡)
         "card_url": (

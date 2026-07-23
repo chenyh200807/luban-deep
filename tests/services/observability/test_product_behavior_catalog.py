@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from deeptutor.services.observability.product_behavior_catalog import (
+    PRODUCT_BEHAVIOR_DURATION_MAX_MS,
     PRODUCT_BEHAVIOR_EVENT_NAMES,
     validate_product_behavior_event,
 )
@@ -177,6 +178,53 @@ def test_validate_product_behavior_event_rejects_nested_forbidden_payload_fields
                 "action": "view",
                 "surface": "web",
                 "extra": {"complete_subjective_answer": "should not be stored"},
+            },
+        )
+
+
+def test_validate_product_behavior_event_accepts_bounded_duration_fields() -> None:
+    event = validate_product_behavior_event(
+        event_name="module_exited",
+        metadata={
+            "visit_id": "visit-u1-1",
+            "module": "learning",
+            "action": "return",
+            "surface": "web",
+            "duration_ms": str(PRODUCT_BEHAVIOR_DURATION_MAX_MS),
+            "visible_ms": 1_500.0,
+        },
+    )
+
+    assert event["duration_ms"] == PRODUCT_BEHAVIOR_DURATION_MAX_MS
+    assert event["visible_ms"] == 1_500
+
+
+@pytest.mark.parametrize(
+    ("field_name", "value"),
+    [
+        ("duration_ms", -1),
+        ("duration_ms", PRODUCT_BEHAVIOR_DURATION_MAX_MS + 1),
+        ("duration_ms", float("nan")),
+        ("duration_ms", float("inf")),
+        ("duration_ms", 1.5),
+        ("visible_ms", "-1"),
+        ("visible_ms", "NaN"),
+        ("visible_ms", True),
+    ],
+)
+def test_validate_product_behavior_event_rejects_invalid_duration_fields(
+    field_name: str,
+    value: object,
+) -> None:
+    with pytest.raises(ValueError, match=field_name):
+        validate_product_behavior_event(
+            event_name="module_exited",
+            metadata={
+                "visit_id": "visit-u1-1",
+                "module": "learning",
+                "action": "return",
+                "surface": "web",
+                field_name: value,
             },
         )
 

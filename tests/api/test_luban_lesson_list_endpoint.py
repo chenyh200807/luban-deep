@@ -73,28 +73,50 @@ def test_card_entry_is_bound_to_authenticated_user_and_hosted_pack(monkeypatch) 
     captured: dict[str, str] = {}
 
     class FakeStore:
-        async def issue_luban_card_entry_ticket(self, *, user_id: str, pack_id: str) -> str:
-            captured.update(user_id=user_id, pack_id=pack_id)
+        async def issue_luban_card_entry_ticket(
+            self, *, user_id: str, pack_id: str, resource_id: str
+        ) -> str:
+            captured.update(
+                user_id=user_id,
+                pack_id=pack_id,
+                resource_id=resource_id,
+            )
             return "card-capability"
 
     monkeypatch.setattr(
         luban_lesson,
         "build_lesson_viewmodel",
-        lambda pack_id: {"pack_id": str(pack_id).upper(), "card_url": "https://cards.example/f16/lesson.html"},
+        lambda pack_id, *, episode_index: {
+            "pack_id": str(pack_id).upper(),
+            "card_url": "https://cards.example/f16/lesson.html",
+            "teaching_point_id": f"F16:lesson:{episode_index}",
+        },
     )
     monkeypatch.setattr(luban_lesson, "get_sqlite_session_store", lambda: FakeStore())
 
     response = asyncio.run(
-        luban_lesson.issue_card_entry("f16", current_user=SimpleNamespace(user_id="student_real"))
+        luban_lesson.issue_card_entry(
+            "f16",
+            luban_lesson.CardEntryRequest(episode=2),
+            current_user=SimpleNamespace(user_id="student_real"),
+        )
     )
 
     assert response.entry_ticket == "card-capability"
     assert response.expires_in_seconds == 45 * 60
-    assert captured == {"user_id": "student_real", "pack_id": "F16"}
+    assert captured == {
+        "user_id": "student_real",
+        "pack_id": "F16",
+        "resource_id": "F16:lesson:2",
+    }
 
 
 def test_card_entry_fails_closed_when_no_hosted_card(monkeypatch) -> None:
-    monkeypatch.setattr(luban_lesson, "build_lesson_viewmodel", lambda _pack_id: {"pack_id": "F16", "card_url": ""})
+    monkeypatch.setattr(
+        luban_lesson,
+        "build_lesson_viewmodel",
+        lambda _pack_id, *, episode_index: {"pack_id": "F16", "card_url": ""},
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         asyncio.run(luban_lesson.issue_card_entry("f16", current_user=SimpleNamespace(user_id="student_real")))

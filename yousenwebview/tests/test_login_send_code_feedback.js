@@ -69,6 +69,9 @@ function loadPage(relativePath, overrides) {
           message: "验证码发送成功",
         });
       },
+      regAttribution: function () {
+        return { channel: "", scene: "" };
+      },
       describeRequestError: describeRequestErrorForTest,
     },
     (overrides && overrides.api) || {},
@@ -83,7 +86,11 @@ function loadPage(relativePath, overrides) {
     clearInterval: function () {},
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
-      if (request === "../../utils/auth") return { isLoggedIn: function () { return false; } };
+      if (request === "../../utils/auth")
+        return {
+          isLoggedIn: function () { return false; },
+          setToken: function () {},
+        };
       if (request === "../../utils/helpers") {
         return {
           getWindowInfo: function () {
@@ -226,6 +233,45 @@ function loadPage(relativePath, overrides) {
       assert(
         setup.page.data.errorMsg === "手机号身份存在冲突，请联系客服",
         pageFiles[i] + " should not describe identity conflicts as OTP mistakes",
+      );
+    }
+  });
+
+  await run("phone-code login should forward captured first-touch attribution", async function () {
+    for (var i = 0; i < pageFiles.length; i++) {
+      var verifyRequest = null;
+      var setup = loadPage(pageFiles[i], {
+        api: {
+          regAttribution: function () {
+            return { channel: "campaign_7", scene: "1047" };
+          },
+          request: function (requestOptions) {
+            verifyRequest = requestOptions;
+            return Promise.resolve({
+              token: "token_1",
+              expires_at: 1800000000,
+              user: { user_id: "qa_eval_sms_channel" },
+            });
+          },
+        },
+      });
+      setup.page.setData({ username: "18688888431", phoneCode: "123456" });
+
+      setup.page.verifyCode();
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        verifyRequest && verifyRequest.url === "/api/v1/auth/verify-code",
+        pageFiles[i] + " should use the canonical verify-code route",
+      );
+      assert(
+        verifyRequest && verifyRequest.data.channel === "campaign_7",
+        pageFiles[i] + " should forward the captured channel",
+      );
+      assert(
+        verifyRequest && verifyRequest.data.scene === "1047",
+        pageFiles[i] + " should forward the captured WeChat scene",
       );
     }
   });

@@ -1,0 +1,200 @@
+{
+  "episodes": [
+    {
+      "content_revision": "eac182be87b6b89c22b4e9b19affccd65168bbf505a555cbeb14b2695bc4c277",
+      "duration_ms": 244652,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "A02:lesson:1",
+      "sections": [
+        {
+          "end_ms": 19052,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 40144,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "进场验收",
+          "start_ms": 19052
+        },
+        {
+          "end_ms": 61668,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "复验触发",
+          "start_ms": 40144
+        },
+        {
+          "end_ms": 85832,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "钢筋复试",
+          "start_ms": 61668
+        },
+        {
+          "end_ms": 104068,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "水泥首检",
+          "start_ms": 85832
+        },
+        {
+          "end_ms": 126696,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "保温门窗",
+          "start_ms": 104068
+        },
+        {
+          "end_ms": 150932,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "见证取样",
+          "start_ms": 126696
+        },
+        {
+          "end_ms": 177056,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 150932
+        },
+        {
+          "end_ms": 196460,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 177056
+        },
+        {
+          "end_ms": 219992,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 196460
+        },
+        {
+          "end_ms": 244652,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 219992
+        }
+      ]
+    },
+    {
+      "content_revision": "f63bb318d8bad1cbbb26858bf058990ac5fb2dbc4190e5b1a406d981385b0f06",
+      "duration_ms": 233156,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "A02:lesson:2",
+      "sections": [
+        {
+          "end_ms": 15788,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 38152,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "隐蔽时机",
+          "start_ms": 15788
+        },
+        {
+          "end_ms": 58212,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "装饰隐蔽",
+          "start_ms": 38152
+        },
+        {
+          "end_ms": 75944,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "节能四项",
+          "start_ms": 58212
+        },
+        {
+          "end_ms": 99148,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "实体检验",
+          "start_ms": 75944
+        },
+        {
+          "end_ms": 120264,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "检验批扩大",
+          "start_ms": 99148
+        },
+        {
+          "end_ms": 139604,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "预制构件",
+          "start_ms": 120264
+        },
+        {
+          "end_ms": 164456,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 139604
+        },
+        {
+          "end_ms": 186236,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 164456
+        },
+        {
+          "end_ms": 208496,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 186236
+        },
+        {
+          "end_ms": 233156,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 208496
+        }
+      ]
+    }
+  ],
+  "pack_id": "A02",
+  "schema_version": "luban_playback_manifest.v1"
+}

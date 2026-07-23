@@ -1,0 +1,192 @@
+{
+  "episodes": [
+    {
+      "content_revision": "ccb08eda9c05e9169b9a43de3f0bd8fdece3a5aa5cf6de3858d42f132aed7204",
+      "duration_ms": 213720,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "F04:lesson:1",
+      "sections": [
+        {
+          "end_ms": 16628,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 34048,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "先细部",
+          "start_ms": 16628
+        },
+        {
+          "end_ms": 50580,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "阴阳角",
+          "start_ms": 34048
+        },
+        {
+          "end_ms": 66944,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "附加层",
+          "start_ms": 50580
+        },
+        {
+          "end_ms": 83476,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "管根套管",
+          "start_ms": 66944
+        },
+        {
+          "end_ms": 105408,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "口诀",
+          "start_ms": 83476
+        },
+        {
+          "end_ms": 132852,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 105408
+        },
+        {
+          "end_ms": 160800,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 132852
+        },
+        {
+          "end_ms": 185772,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 160800
+        },
+        {
+          "end_ms": 213720,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 185772
+        }
+      ]
+    },
+    {
+      "content_revision": "2e3727403932848da63078072145d2a4843ff949f2bcb418049cb1d7ea47f4bd",
+      "duration_ms": 240404,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "F04:lesson:2",
+      "sections": [
+        {
+          "end_ms": 17948,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 35200,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "泛水250",
+          "start_ms": 17948
+        },
+        {
+          "end_ms": 52884,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "附加层",
+          "start_ms": 35200
+        },
+        {
+          "end_ms": 70712,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "压顶坡",
+          "start_ms": 52884
+        },
+        {
+          "end_ms": 89764,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "收头",
+          "start_ms": 70712
+        },
+        {
+          "end_ms": 111360,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "檐口·落口",
+          "start_ms": 89764
+        },
+        {
+          "end_ms": 132116,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "口诀",
+          "start_ms": 111360
+        },
+        {
+          "end_ms": 155840,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 132116
+        },
+        {
+          "end_ms": 183428,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 155840
+        },
+        {
+          "end_ms": 208424,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 183428
+        },
+        {
+          "end_ms": 240404,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 208424
+        }
+      ]
+    }
+  ],
+  "pack_id": "F04",
+  "schema_version": "luban_playback_manifest.v1"
+}

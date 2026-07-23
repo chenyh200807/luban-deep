@@ -82,6 +82,10 @@ class CardEntryResponse(BaseModel):
     expires_in_seconds: int
 
 
+class CardEntryRequest(BaseModel):
+    episode: int = Field(default=1, ge=1, le=100)
+
+
 @router.get(
     "/lessons",
     dependencies=[
@@ -137,6 +141,7 @@ async def lesson_detail(
 )
 async def issue_card_entry(
     pack_id: str,
+    payload: CardEntryRequest | None = None,
     current_user: AuthContext = Depends(get_current_user),
 ) -> CardEntryResponse:
     """Bridge one authenticated station into its hosted H5 card.
@@ -147,7 +152,10 @@ async def issue_card_entry(
     with the authenticated user and the session store is its sole persistence.
     """
     try:
-        viewmodel = build_lesson_viewmodel(pack_id)
+        viewmodel = build_lesson_viewmodel(
+            pack_id,
+            episode_index=(payload or CardEntryRequest()).episode,
+        )
     except LessonNotAvailable as exc:
         raise HTTPException(status_code=404, detail="lesson not found") from exc
     if not str(viewmodel.get("card_url") or "").strip():
@@ -155,6 +163,7 @@ async def issue_card_entry(
     ticket = await get_sqlite_session_store().issue_luban_card_entry_ticket(
         user_id=current_user.user_id,
         pack_id=str(viewmodel.get("pack_id") or pack_id),
+        resource_id=str(viewmodel.get("teaching_point_id") or ""),
     )
     return CardEntryResponse(entry_ticket=ticket, expires_in_seconds=45 * 60)
 

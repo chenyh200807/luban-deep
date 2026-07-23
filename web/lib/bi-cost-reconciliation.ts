@@ -10,8 +10,8 @@ export interface BiCostReconciliationProvider {
   netOfficialAmount: number | null
   amountDelta: number | null
   tokenDelta: number | null
-  totalTokens: number
-  officialTokens: number
+  totalTokens: number | null
+  officialTokens: number | null
   warnings: string[]
 }
 
@@ -39,6 +39,12 @@ function toNumber(value: unknown, fallback = 0): number {
     if (Number.isFinite(parsed)) return parsed
   }
   return fallback
+}
+
+function nullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null
+  const parsed = toNumber(value, Number.NaN)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 function toArray(value: unknown): unknown[] {
@@ -110,12 +116,9 @@ function normalizeCostReconciliationProvider(
     officialAmount: amountForCurrency(officialAmounts, currency),
     netOfficialAmount: amountForCurrency(netOfficialAmounts, currency),
     amountDelta: amountForCurrency(amountDeltas, currency),
-    tokenDelta:
-      reconciliation.token_delta === undefined && reconciliation.tokenDelta === undefined
-        ? null
-        : toNumber(reconciliation.token_delta ?? reconciliation.tokenDelta, 0),
-    totalTokens: toNumber(internal.total_tokens ?? internal.totalTokens, 0),
-    officialTokens: toNumber(officialUsage.total_tokens ?? officialUsage.totalTokens, 0),
+    tokenDelta: nullableNumber(reconciliation.token_delta ?? reconciliation.tokenDelta),
+    totalTokens: nullableNumber(internal.total_tokens ?? internal.totalTokens),
+    officialTokens: nullableNumber(officialUsage.total_tokens ?? officialUsage.totalTokens),
     warnings: collectWarnings(reconciliation.warnings, provider.warnings),
   }
 }

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
 <style id="lz-fit-boot">.lz-card,.lz-fitwrap{zoom:var(--lz-fit,1);margin:0 auto;}body.luban-fs .lz-card{zoom:1!important;}</style><script>(function(){var r=document.documentElement;function f(){try{r.style.setProperty('--lz-fit',String(Math.min(window.innerWidth/390,2.0)))}catch(e){}}f();window.addEventListener('resize',f);window.addEventListener('orientationchange',f);})();</script>
+<script data-luban-playback-runtime src="../vendor/luban-playback-telemetry.js?v=e8c52e6654dd8fd1"></script>
 </head>
 <body>
 <audio data-luban-prewarm preload="auto" src="audio/down/b0.mp3?v=21fff317976ed384" aria-hidden="true" style="display:none"></audio>
@@ -468,7 +469,7 @@ class Component extends DCLogic {
   ];
   askPresets=["保证项和一般项咋分不混？","卸料平台为啥不能挂脚手架？","三类操作平台参数咋记？"];
 
-  componentDidMount(){
+  componentDidMount(){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.attach(this,{packId:"S01",manifestUrl:"playback-manifest.json"});
     this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
     var vp=document.querySelector('meta[name=viewport]');
     if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
@@ -481,7 +482,7 @@ class Component extends DCLogic {
     window.addEventListener('resize', this._onResize);
     window.addEventListener('orientationchange', this._onResize);
   }
-  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  componentWillUnmount(){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.detach(this,"component_unmount"); this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
   speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
   pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
   webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
@@ -492,19 +493,19 @@ class Component extends DCLogic {
   loop(ts){ if(this._dead)return;
     if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
       let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
-      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+      if(nt>=this.DUR){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.complete(this);nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
         let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
         if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
     else { this._last=null; }
     this._raf=requestAnimationFrame(this.loop);
   }
-  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+  toggle(){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.toggle(this); if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
     else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
       if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
       else { this.setSpeechPaused(true); } }
     if(this.state.fs)this.scheduleHide(); }
-  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
-  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  seek(e){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.seek(this,parseFloat(e.target.value),"scrub"); this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.seek(this,this.beats[i][1]+0.05,"section_jump"); this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
   fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
     if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
     try{ const el=this._phone||document.documentElement; let p;
@@ -515,8 +516,8 @@ class Component extends DCLogic {
   tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
   updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, 2.0); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }
   phoneRef(el){ if(el) this._phone=el; }
-  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
-  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  replay(){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.replay(this); this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){this.setSpeechPaused(true);window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.pause(this,"ask_open"); this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   setAsk(e){ this.setState({askText:e.target.value}); }
   preset(t){ this.setState({askText:t}); }

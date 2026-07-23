@@ -1,0 +1,184 @@
+{
+  "episodes": [
+    {
+      "content_revision": "5a2bc8d5a2113f11c7eee2c47eb39e3071678c1e779a65aafbd35252db40c0bf",
+      "duration_ms": 222408,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "D12:lesson:1",
+      "sections": [
+        {
+          "end_ms": 19316,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 33592,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "六类",
+          "start_ms": 19316
+        },
+        {
+          "end_ms": 56940,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "石材三法",
+          "start_ms": 33592
+        },
+        {
+          "end_ms": 75128,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "尺寸门槛",
+          "start_ms": 56940
+        },
+        {
+          "end_ms": 91588,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "施工准备",
+          "start_ms": 75128
+        },
+        {
+          "end_ms": 112368,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "复验",
+          "start_ms": 91588
+        },
+        {
+          "end_ms": 136788,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 112368
+        },
+        {
+          "end_ms": 164064,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 136788
+        },
+        {
+          "end_ms": 190884,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 164064
+        },
+        {
+          "end_ms": 222408,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 190884
+        }
+      ]
+    },
+    {
+      "content_revision": "21cc705f5faa52ec02abac04d39d194fc25f2ae923f531e9ee7d249bfd15e4ad",
+      "duration_ms": 236208,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "D12:lesson:2",
+      "sections": [
+        {
+          "end_ms": 17612,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 40456,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "粘贴工序",
+          "start_ms": 17612
+        },
+        {
+          "end_ms": 58572,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "满粘高度",
+          "start_ms": 40456
+        },
+        {
+          "end_ms": 75104,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "禁用工艺",
+          "start_ms": 58572
+        },
+        {
+          "end_ms": 101428,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "空鼓五要点",
+          "start_ms": 75104
+        },
+        {
+          "end_ms": 121008,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "浸砖序",
+          "start_ms": 101428
+        },
+        {
+          "end_ms": 151356,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 121008
+        },
+        {
+          "end_ms": 173616,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 151356
+        },
+        {
+          "end_ms": 204132,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 173616
+        },
+        {
+          "end_ms": 236208,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 204132
+        }
+      ]
+    }
+  ],
+  "pack_id": "D12",
+  "schema_version": "luban_playback_manifest.v1"
+}

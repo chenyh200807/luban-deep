@@ -1,0 +1,184 @@
+{
+  "episodes": [
+    {
+      "content_revision": "7c95094ce348b67be46e43ad760dcf04dcb57c8462b1078e47ded60129045b18",
+      "duration_ms": 223488,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "G01:lesson:1",
+      "sections": [
+        {
+          "end_ms": 16580,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 32776,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "按深度",
+          "start_ms": 16580
+        },
+        {
+          "end_ms": 53556,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "选井点",
+          "start_ms": 32776
+        },
+        {
+          "end_ms": 71000,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "管井",
+          "start_ms": 53556
+        },
+        {
+          "end_ms": 90076,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "截水回灌",
+          "start_ms": 71000
+        },
+        {
+          "end_ms": 110784,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "防突涌",
+          "start_ms": 90076
+        },
+        {
+          "end_ms": 139116,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 110784
+        },
+        {
+          "end_ms": 163680,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 139116
+        },
+        {
+          "end_ms": 189420,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 163680
+        },
+        {
+          "end_ms": 223488,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 189420
+        }
+      ]
+    },
+    {
+      "content_revision": "5259c6ab1b2505bfc5544a7774d32ebb62491ff9f211af0481e67c2794a10375",
+      "duration_ms": 208992,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "G01:lesson:2",
+      "sections": [
+        {
+          "end_ms": 16292,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 35680,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "选方案",
+          "start_ms": 16292
+        },
+        {
+          "end_ms": 49692,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "分层",
+          "start_ms": 35680
+        },
+        {
+          "end_ms": 66872,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "预留土层",
+          "start_ms": 49692
+        },
+        {
+          "end_ms": 83860,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "降水位",
+          "start_ms": 66872
+        },
+        {
+          "end_ms": 102864,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "严禁超挖",
+          "start_ms": 83860
+        },
+        {
+          "end_ms": 131052,
+          "group": "qa",
+          "id": "q0",
+          "index": 7,
+          "label": "问答",
+          "start_ms": 102864
+        },
+        {
+          "end_ms": 152280,
+          "group": "qa",
+          "id": "q1",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 131052
+        },
+        {
+          "end_ms": 177252,
+          "group": "qa",
+          "id": "q2",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 152280
+        },
+        {
+          "end_ms": 208992,
+          "group": "qa",
+          "id": "q3",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 177252
+        }
+      ]
+    }
+  ],
+  "pack_id": "G01",
+  "schema_version": "luban_playback_manifest.v1"
+}

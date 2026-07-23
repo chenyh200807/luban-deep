@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-22 - BI 新版上线判断被四套口径污染：渠道、行为、Turn 与财务 authority 收权
+
+- 问题：获客渠道全为 unknown；overview 永久声称行为数据 pending，但学习偏好已读到真实事件；overview 30 天 168 turns，而 capabilities/cost 使用 4,563 raw turns；收入永久 pending，成本又把 CNY/USD、自然月/滚动 30 天和低覆盖旧校准混在一起。
+- 根因：经营指标缺少统一的 population/grain/window/currency/readiness 契约。overview 已按注册会员收口，但能力、工具、知识、异常、成本仍各自读 raw context；行为 trust 和收入状态是硬编码镜像；UsageLedger 保存了币种却把裸金额合计后命名 USD；微信已验签的 provider settlement 又被人工会员 writer 覆写 provenance；推广物料未携 `ch`，历史来源已不可恢复。
+- 失败尝试 / 被否决方案：否决把 unknown 映射成 organic、用 `reg_scene` 猜 campaign、把 pending 改 ready、用 calibration factor 吸收漏 token、用固定汇率拼混币、拿全平台成本除真实会员 turns，以及按账号前缀作为唯一机器身份过滤；这些都会把未知包装成精确数字或再造一套 authority。
+- 成功修法：所有经营 Turn drilldown 共用 `BIService._load_business_context`，窗口统一按 turn.created_at；UsageLedger 增加 canonical turn-id scope 和币种 grain，经营成本只聚合同一真实会员 turn cohort，全平台/非 turn 调用另列。混币/未知币种 scalar fail-close；校准 v2 必须同 provider/API key/账期/币种、精确 token 窗口、90%-110% coverage 且新鲜，旧快照不应用。产品行为 store 输出 canonical quality snapshot，overview 动态消费版本/平台/真实会员覆盖；学习偏好共用 UUID machine/internal exclusion。渠道保留 first-touch authority，补 unlimited-code 显式 `scene=ch=...` 归一化，并把缺失定义为 `unattributed_not_organic`。收入 overview 复用 wallet-ledger revenue snapshot；微信支付与人工确认共用一个 purchase writer，但保留不同 settlement evidence。
+- 验证：专家组三条独立 root-cause 线先做生产只读证伪；扩大 Python 集 478 passed；经营 Turn/成本 cohort、混币、旧校准、行为 readiness、UUID machine 排除、收入 provenance 与支付合同均有回归。小程序渠道 9 assertions、行为覆盖和 pending queue 18 assertions 均 PASS；contract guard、双 contract index 与 diff check 通过。独立敌对 review 继续抓出并收口四处 authority 漂移：前端 metric registry 重新由 BI_METRICS 生成、capability/tool 成本删除 result-event 镜像并统一读 terminal turn scoped UsageLedger、收入最新切片发生截断时 fail closed 为 insufficient_evidence、terminal turn linkage 只要不足 100% 就在 overview/capability/tool/cost 全面禁止发布成本标量与日序列。历史获客 unknown、缺 turn_id usage、缺订单生命周期和缺币种旧事件保持 unknown，不做猜测回填。
+- 教训：BI 数字只有在「同人群、同粒度、同时间窗、同币种、同 authority 状态」同时成立时才可比较；unknown 是需要量化和治理的事实，不是需要美化的空值。
+
 ## 2026-07-18 - 五题完成后六步旅程停在 2/6，首页反复推荐同一练习
 
 - 问题：用户看完微课并完成五题后，学习首页仍显示 `2/6`，主任务继续是“集中练习”；dashboard/report 任一慢读失败时还会显示 `0/41`、生成 browse 练习 CTA，服务端逐题回执缺项则被客户端静默当成答错。

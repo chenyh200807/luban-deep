@@ -1,0 +1,200 @@
+{
+  "episodes": [
+    {
+      "content_revision": "9483fdf275a8548b34c611331f5f26cf84c1026807c92992c12833042134cf81",
+      "duration_ms": 235916,
+      "episode_index": 1,
+      "lesson_file": "lesson.html",
+      "object_id": "X01:lesson:1",
+      "sections": [
+        {
+          "end_ms": 18692,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 39280,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "图内容",
+          "start_ms": 18692
+        },
+        {
+          "end_ms": 62796,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "设计原则",
+          "start_ms": 39280
+        },
+        {
+          "end_ms": 80816,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "大门",
+          "start_ms": 62796
+        },
+        {
+          "end_ms": 101884,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "塔吊",
+          "start_ms": 80816
+        },
+        {
+          "end_ms": 123168,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "泵·梯",
+          "start_ms": 101884
+        },
+        {
+          "end_ms": 143612,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "口诀",
+          "start_ms": 123168
+        },
+        {
+          "end_ms": 167984,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 143612
+        },
+        {
+          "end_ms": 189980,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 167984
+        },
+        {
+          "end_ms": 211040,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 189980
+        },
+        {
+          "end_ms": 235916,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 211040
+        }
+      ]
+    },
+    {
+      "content_revision": "505fcabedfb0f90d36923dffb8eeb83caa834a145400756771f94d7f92c19717",
+      "duration_ms": 234164,
+      "episode_index": 2,
+      "lesson_file": "lesson2.html",
+      "object_id": "X01:lesson:2",
+      "sections": [
+        {
+          "end_ms": 17492,
+          "group": "lesson",
+          "id": "b0",
+          "index": 1,
+          "label": "破误区",
+          "start_ms": 0
+        },
+        {
+          "end_ms": 38440,
+          "group": "lesson",
+          "id": "b1",
+          "index": 2,
+          "label": "布置步骤",
+          "start_ms": 17492
+        },
+        {
+          "end_ms": 55980,
+          "group": "lesson",
+          "id": "b2",
+          "index": 3,
+          "label": "仓库",
+          "start_ms": 38440
+        },
+        {
+          "end_ms": 73040,
+          "group": "lesson",
+          "id": "b3",
+          "index": 4,
+          "label": "围挡",
+          "start_ms": 55980
+        },
+        {
+          "end_ms": 93724,
+          "group": "lesson",
+          "id": "b4",
+          "index": 5,
+          "label": "五牌一图",
+          "start_ms": 73040
+        },
+        {
+          "end_ms": 120504,
+          "group": "lesson",
+          "id": "b5",
+          "index": 6,
+          "label": "布置理由",
+          "start_ms": 93724
+        },
+        {
+          "end_ms": 137660,
+          "group": "lesson",
+          "id": "b6",
+          "index": 7,
+          "label": "口诀",
+          "start_ms": 120504
+        },
+        {
+          "end_ms": 163808,
+          "group": "qa",
+          "id": "q0",
+          "index": 8,
+          "label": "问答",
+          "start_ms": 137660
+        },
+        {
+          "end_ms": 188012,
+          "group": "qa",
+          "id": "q1",
+          "index": 9,
+          "label": "问答",
+          "start_ms": 163808
+        },
+        {
+          "end_ms": 210728,
+          "group": "qa",
+          "id": "q2",
+          "index": 10,
+          "label": "问答",
+          "start_ms": 188012
+        },
+        {
+          "end_ms": 234164,
+          "group": "qa",
+          "id": "q3",
+          "index": 11,
+          "label": "问答",
+          "start_ms": 210728
+        }
+      ]
+    }
+  ],
+  "pack_id": "X01",
+  "schema_version": "luban_playback_manifest.v1"
+}

@@ -1,20 +1,21 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import hashlib
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import secrets
 import tempfile
-import time
-import uuid
-from datetime import datetime, timezone
-from pathlib import Path
 from threading import Lock
+import time
 from typing import Any
+import uuid
 
 import bcrypt
+
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ _IDENTITY_METADATA_TEXT_FIELDS = (
     "eval_run_id",
 )
 _IDENTITY_METADATA_BOOL_FIELDS = ("is_internal_test", "is_test_account")
+_REG_CHANNEL_RE = re.compile(r"[^0-9A-Za-z_-]")
 _STORE_LOCK = Lock()
 _PRIMARY_USERS_FILE = Path("/app/data/user/external_auth/users.json")
 _LEGACY_USERS_FILE = Path("/root/luban/.storage/users.json")
@@ -247,6 +249,18 @@ def _normalize_identity_metadata(identity_metadata: dict[str, Any] | None) -> di
             normalized[field] = value
         elif str(value or "").strip().lower() in {"1", "true", "yes", "y"}:
             normalized[field] = True
+    reg_channel = _REG_CHANNEL_RE.sub(
+        "", str(identity_metadata.get("reg_channel") or "").strip()
+    )[:64]
+    if reg_channel:
+        normalized["reg_channel"] = reg_channel
+    reg_scene = "".join(
+        char
+        for char in str(identity_metadata.get("reg_scene") or "").strip()
+        if char.isdigit()
+    )[:8]
+    if reg_scene:
+        normalized["reg_scene"] = reg_scene
     return normalized
 
 

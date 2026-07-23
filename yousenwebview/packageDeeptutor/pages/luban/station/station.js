@@ -12,8 +12,9 @@
 // 白名单外事件名会被 ingest 拒收，故不用任务稿的 luban_* 自由名）：
 // - 站进入 = module_viewed（object_type=station, object_id=pack_id）
 // - 卡片打开 = learning_action_started（action=start_training,
-//   object_type=microlesson, object_id="<pack>:tp:<episode>" —— 带 episode 粒度）
-// - 停留时长 = module_viewed/module_exited（onShow/onHide 对，dwell 计时）
+//   object_type=microlesson, object_id=服务端 teaching_point_id）
+// - 页面停留 = module_viewed/module_exited；播放器时长由 H5 playback runtime 独立采集，
+//   两者不能互相冒充。
 const api = require("../../../utils/api");
 const helpers = require("../../../utils/helpers");
 const auth = require("../../../utils/auth");
@@ -45,6 +46,7 @@ Page({
     errorText: "",
     currentUrl: "",
     cardUrl: "",
+    teachingPointId: "",
   },
 
   onLoad(query) {
@@ -68,8 +70,8 @@ Page({
     this._loadDetail();
   },
 
-  // 停留时长信号(观看时长的唯一正解——完播率架构拿不到):onShow 起计,
-  // onHide/onUnload 结算 durationMs(trackModuleExit)。与 onLoad 的 station-enter
+  // 页面停留信号（不是播放器观看时长）：onShow 起计，onHide/onUnload 结算。
+  // 与 onLoad 的 station-enter
   // module_viewed(带 object_type=station 的进站漏斗事件)并存——此处是 dwell 计时对,
   // trackModuleView 的 __productBehaviorVisit 守卫保证同一页实例只起计一次。
   onShow() {
@@ -79,14 +81,14 @@ Page({
   onHide() {
     telemetry.trackModuleExit(this, {
       objectType: "microlesson",
-      objectId: this.data.packId + ":tp:" + this.data.episodeIndex,
+      objectId: this.data.teachingPointId,
     });
   },
 
   onUnload() {
     telemetry.trackModuleExit(this, {
       objectType: "microlesson",
-      objectId: this.data.packId + ":tp:" + this.data.episodeIndex,
+      objectId: this.data.teachingPointId,
     });
   },
 
@@ -122,15 +124,12 @@ Page({
 
   _showLessonCard() {
     this.setData({ currentUrl: this.data.cardUrl });
-    // 微课集打开(episode 粒度)。teaching_point_id 不在 lesson detail 响应内
-    // (后端仅在教学集列表派生 `<pack>:lesson:<index>`),故 object_id 用 tp 占位符
-    // 保留 episode 粒度——旧值 `<pack>:lesson` 把同 pack 多集压成一条,粒度丢失。
-    // 与 teaching-points 列表页 openEpisode 同构 object_id,可 join 成漏斗。
+    // 微课集打开直接消费 detail 的 canonical teaching_point_id。
     telemetry.trackProductBehavior("learning_action_started", {
       module: "learning",
       action: "start_training",
       objectType: "microlesson",
-      objectId: this.data.packId + ":tp:" + this.data.episodeIndex,
+      objectId: this.data.teachingPointId,
     });
   },
 
@@ -155,13 +154,18 @@ Page({
         }
         // web-view 无法安全取得小程序 Authorization header。这里由已认证的
         // 站点签发仅绑定本卡的短期凭据；H5 会马上从地址栏抹去，绝不写入缓存。
-        return api.issueLubanCardEntry(that.data.packId, { suppressAuthRedirect: true }).then(function (ticketResp) {
+        return api.issueLubanCardEntry(
+          that.data.packId,
+          that.data.episodeIndex,
+          { suppressAuthRedirect: true },
+        ).then(function (ticketResp) {
           var ticketBody = api.unwrapResponse(ticketResp) || {};
           var cardEntryUrl = appendCardEntryTicket(cardUrl, ticketBody.entry_ticket);
           if (!cardEntryUrl) throw new Error("CARD_ENTRY_UNAVAILABLE");
           that.setData({
             title: String(body.title || ""),
             cardUrl: cardEntryUrl,
+            teachingPointId: String(body.teaching_point_id || ""),
             loading: false,
             errorText: "",
           });

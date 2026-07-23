@@ -120,15 +120,30 @@ def test_luban_webview_capabilities_are_scoped_hashed_and_expire(tmp_path: Path)
     store = SQLiteSessionStore(tmp_path / "webview-capability.db")
 
     entry_ticket = asyncio.run(
-        store.issue_luban_card_entry_ticket(user_id="student_real", pack_id="f16")
+        store.issue_luban_card_entry_ticket(
+            user_id="student_real",
+            pack_id="f16",
+            resource_id="F16:lesson:2",
+        )
     )
     entry_access = asyncio.run(store.resolve_luban_card_entry_ticket(entry_ticket, pack_id="F16"))
     assert entry_access is not None
     assert entry_access["user_id"] == "student_real"
     assert entry_access["pack_id"] == "F16"
+    assert entry_access["resource_id"] == "F16:lesson:2"
     assert entry_access["turn_id"] == ""
     assert entry_access["expires_at"] > time.time()
     assert asyncio.run(store.resolve_luban_card_entry_ticket(entry_ticket, pack_id="D11")) is None
+    assert (
+        asyncio.run(
+            store.resolve_luban_card_entry_ticket(
+                entry_ticket,
+                pack_id="F16",
+                resource_id="F16:lesson:1",
+            )
+        )
+        is None
+    )
 
     stream_ticket = asyncio.run(
         store.issue_luban_turn_stream_ticket(

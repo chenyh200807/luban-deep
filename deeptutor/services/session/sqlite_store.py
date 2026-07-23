@@ -712,6 +712,7 @@ class SQLiteSessionStore:
                     ticket_kind TEXT NOT NULL,
                     user_id TEXT NOT NULL,
                     pack_id TEXT NOT NULL DEFAULT '',
+                    resource_id TEXT NOT NULL DEFAULT '',
                     turn_id TEXT NOT NULL DEFAULT '',
                     expires_at REAL NOT NULL,
                     created_at REAL NOT NULL
@@ -793,6 +794,17 @@ class SQLiteSessionStore:
                 # missing-field behavior (consumers canonicalize missing as
                 # public via _event_visibility).
                 conn.execute("ALTER TABLE turn_events ADD COLUMN visibility TEXT DEFAULT ''")
+            webview_ticket_columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(webview_access_tickets)"
+                ).fetchall()
+            }
+            if "resource_id" not in webview_ticket_columns:
+                conn.execute(
+                    "ALTER TABLE webview_access_tickets "
+                    "ADD COLUMN resource_id TEXT NOT NULL DEFAULT ''"
+                )
             conn.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_owner_updated_at
@@ -2360,12 +2372,14 @@ class SQLiteSessionStore:
         ticket_kind: str,
         user_id: str,
         pack_id: str = "",
+        resource_id: str = "",
         turn_id: str = "",
         ttl_seconds: float,
     ) -> str:
         normalized_kind = str(ticket_kind or "").strip()
         normalized_user = str(user_id or "").strip()
         normalized_pack = str(pack_id or "").strip().upper()
+        normalized_resource = str(resource_id or "").strip()
         normalized_turn = str(turn_id or "").strip()
         if not normalized_kind or not normalized_user:
             raise ValueError("webview access ticket requires kind and user_id")
@@ -2384,14 +2398,16 @@ class SQLiteSessionStore:
             conn.execute(
                 """
                 INSERT INTO webview_access_tickets (
-                    ticket_digest, ticket_kind, user_id, pack_id, turn_id, expires_at, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ticket_digest, ticket_kind, user_id, pack_id, resource_id,
+                    turn_id, expires_at, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     digest,
                     normalized_kind,
                     normalized_user,
                     normalized_pack,
+                    normalized_resource,
                     normalized_turn,
                     now + ttl,
                     now,
@@ -2406,17 +2422,20 @@ class SQLiteSessionStore:
         ticket: str,
         ticket_kind: str,
         pack_id: str = "",
+        resource_id: str = "",
     ) -> dict[str, Any] | None:
         raw_ticket = str(ticket or "").strip()
         normalized_kind = str(ticket_kind or "").strip()
         normalized_pack = str(pack_id or "").strip().upper()
+        normalized_resource = str(resource_id or "").strip()
         if not raw_ticket or not normalized_kind:
             return None
         digest = self._webview_ticket_digest(raw_ticket)
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT ticket_digest, ticket_kind, user_id, pack_id, turn_id, expires_at
+                SELECT ticket_digest, ticket_kind, user_id, pack_id, resource_id,
+                       turn_id, expires_at
                 FROM webview_access_tickets
                 WHERE ticket_digest = ? AND ticket_kind = ?
                 """,
@@ -2426,6 +2445,11 @@ class SQLiteSessionStore:
             return None
         if normalized_pack and str(row["pack_id"] or "").strip().upper() != normalized_pack:
             return None
+        if (
+            normalized_resource
+            and str(row["resource_id"] or "").strip() != normalized_resource
+        ):
+            return None
         # The indexed lookup is already exact; compare again so a future storage
         # refactor cannot accidentally turn this bearer capability into a prefix
         # match or a timing oracle.
@@ -2434,6 +2458,7 @@ class SQLiteSessionStore:
         return {
             "user_id": str(row["user_id"] or "").strip(),
             "pack_id": str(row["pack_id"] or "").strip().upper(),
+            "resource_id": str(row["resource_id"] or "").strip(),
             "turn_id": str(row["turn_id"] or "").strip(),
             "expires_at": float(row["expires_at"] or 0),
         }
@@ -2443,14 +2468,16 @@ class SQLiteSessionStore:
         *,
         user_id: str,
         pack_id: str,
+        resource_id: str = "",
         ttl_seconds: float = 45.0 * 60.0,
     ) -> str:
-        """Mint the only H5 bridge from an authenticated station into one pack."""
+        """Mint the only H5 bridge into one published teaching resource."""
         return await self._run(
             lambda: self._issue_webview_access_ticket_sync(
                 ticket_kind=_LUBAN_CARD_ENTRY_TICKET_KIND,
                 user_id=user_id,
                 pack_id=pack_id,
+                resource_id=resource_id,
                 ttl_seconds=ttl_seconds,
             )
         )
@@ -2460,12 +2487,14 @@ class SQLiteSessionStore:
         ticket: str,
         *,
         pack_id: str,
+        resource_id: str = "",
     ) -> dict[str, Any] | None:
         return await self._run_read(
             lambda: self._resolve_webview_access_ticket_sync(
                 ticket=ticket,
                 ticket_kind=_LUBAN_CARD_ENTRY_TICKET_KIND,
                 pack_id=pack_id,
+                resource_id=resource_id,
             )
         )
 

@@ -87,6 +87,8 @@ VARIANT_BANK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
 FONTS_CSS = HOST / "fonts" / "fonts.css"
 JWEIXIN_JS = HOST / "vendor" / "jweixin.js"
 TUTORBOT_SHEET_RUNTIME = HOST / "vendor" / "luban-tutorbot-sheet-runtime.js"
+PLAYBACK_RUNTIME = HOST / "vendor" / "luban-playback-telemetry.js"
+PLAYBACK_MANIFEST_SCHEMA = "luban_playback_manifest.v1"
 _TUTORBOT_SHEET_RUNTIME_SOURCES = (
     REPO / "yousenwebview" / "packageDeeptutor" / "utils" / "markdown.js",
     REPO / "yousenwebview" / "packageDeeptutor" / "utils" / "workflow-status.js",
@@ -360,6 +362,280 @@ def _ensure_tutorbot_sheet_runtime() -> str:
         staged.write_text(rendered, encoding="utf-8")
         staged.replace(TUTORBOT_SHEET_RUNTIME)
     return f'<script src="../vendor/luban-tutorbot-sheet-runtime.js?v={digest}"></script>'
+
+
+def _playback_runtime_tag() -> str:
+    if not PLAYBACK_RUNTIME.is_file():
+        raise TransformError(f"shared playback runtime missing: {PLAYBACK_RUNTIME}")
+    digest = _sha256(PLAYBACK_RUNTIME)[:16]
+    return (
+        '<script data-luban-playback-runtime '
+        f'src="../vendor/luban-playback-telemetry.js?v={digest}"></script>'
+    )
+
+
+_BEATS_RE = re.compile(r"\bbeats\s*=\s*(\[\[.*?\]\])\s*;", re.DOTALL)
+_DURATION_RE = re.compile(r"\bDUR\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*;")
+_LESSON_FILE_RE = re.compile(r"lesson(?P<episode>[1-9][0-9]*)?\.html")
+_PLAYBACK_HOOK_MARKER = "data-luban-playback-runtime"
+_PLAYBACK_RUNTIME_TAG_RE = re.compile(
+    r'<script data-luban-playback-runtime src="\.\./vendor/'
+    r'luban-playback-telemetry\.js\?v=[0-9a-f]{16}"></script>'
+)
+
+
+def _inject_playback_telemetry(text: str, pack_id: str) -> str:
+    """Inject the shared player observer at stable component transitions.
+
+    The component remains the sole playback-state writer.  This adapter only
+    observes its state transitions and forwards a privacy-whitelisted event;
+    it never owns timeline, section, completion, or learner state.
+    """
+    if _PLAYBACK_HOOK_MARKER in text:
+        text, runtime_tag_hits = _PLAYBACK_RUNTIME_TAG_RE.subn(
+            _playback_runtime_tag(), text
+        )
+        if runtime_tag_hits != 1:
+            raise TransformError(
+                "playback instrumentation drift: "
+                f"runtime tag={runtime_tag_hits} expected=1"
+            )
+        required = {
+            "playback runtime tag": 1,
+            "LubanPlaybackTelemetry.attach": 1,
+            "LubanPlaybackTelemetry.detach": 1,
+            "LubanPlaybackTelemetry.toggle": 1,
+            "LubanPlaybackTelemetry.seek": 2,
+            "LubanPlaybackTelemetry.complete": 1,
+            "LubanPlaybackTelemetry.pause": 1,
+        }
+        counts = {
+            "playback runtime tag": text.count(_PLAYBACK_HOOK_MARKER),
+            **{
+                marker: text.count(marker)
+                for marker in required
+                if marker != "playback runtime tag"
+            },
+        }
+        drift = [
+            f"{marker}={counts[marker]} expected={expected}"
+            for marker, expected in required.items()
+            if counts[marker] != expected
+        ]
+        if drift:
+            raise TransformError(
+                "playback instrumentation drift: " + ", ".join(drift)
+            )
+        return text
+    pack_id = str(pack_id or "").strip().upper()
+    if not re.fullmatch(r"[A-Z][A-Z0-9]{0,15}", pack_id):
+        raise TransformError(f"playback pack id invalid: {pack_id!r}")
+    text = _sub(
+        text,
+        "</head>",
+        _playback_runtime_tag() + "\n</head>",
+        "playback-runtime-tag",
+    )
+    text = _sub(
+        text,
+        "componentDidMount(){",
+        (
+            "componentDidMount(){"
+            "window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.attach(this,"
+            f'{{packId:"{pack_id}",manifestUrl:"playback-manifest.json"}});'
+        ),
+        "playback-attach",
+    )
+    text = _sub(
+        text,
+        "componentWillUnmount(){",
+        (
+            'componentWillUnmount(){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.detach('
+            'this,"component_unmount");'
+        ),
+        "playback-detach",
+    )
+    text = _sub(
+        text,
+        "toggle(){",
+        (
+            "toggle(){window.LubanPlaybackTelemetry&&"
+            "window.LubanPlaybackTelemetry.toggle(this);"
+        ),
+        "playback-toggle",
+    )
+    text = _sub(
+        text,
+        "seek(e){",
+        (
+            'seek(e){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.seek('
+            'this,parseFloat(e.target.value),"scrub");'
+        ),
+        "playback-seek",
+    )
+    text = _sub(
+        text,
+        "jump(i){",
+        (
+            'jump(i){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.seek('
+            'this,this.beats[i][1]+0.05,"section_jump");'
+        ),
+        "playback-section-jump",
+    )
+    text = _sub(
+        text,
+        "if(nt>=this.DUR){nt=this.DUR;",
+        (
+            "if(nt>=this.DUR){"
+            "window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.complete(this);"
+            "nt=this.DUR;"
+        ),
+        "playback-complete",
+    )
+    text, replay_hits = re.subn(
+        re.escape("replay(){"),
+        (
+            "replay(){window.LubanPlaybackTelemetry&&"
+            "window.LubanPlaybackTelemetry.replay(this);"
+        ),
+        text,
+    )
+    if replay_hits > 1:
+        raise TransformError(
+            f"anchor [playback-replay] expected <= 1 replacement, got {replay_hits}"
+        )
+    text = _sub(
+        text,
+        "openAsk(){",
+        (
+            'openAsk(){this.setSpeechPaused(true);'
+            'window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.pause('
+            'this,"ask_open");'
+        ),
+        "playback-ask-pause",
+    )
+    return text
+
+
+def _playback_episode(
+    pack_id: str, lesson_file: str, rendered_html: str
+) -> dict[str, object]:
+    lesson_match = _LESSON_FILE_RE.fullmatch(lesson_file)
+    if lesson_match is None:
+        raise TransformError(f"playback lesson filename invalid: {lesson_file}")
+    episode_index = int(lesson_match.group("episode") or "1")
+    beats_match = _BEATS_RE.search(rendered_html)
+    duration_match = _DURATION_RE.search(rendered_html)
+    if beats_match is None or duration_match is None:
+        raise TransformError(
+            f"playback manifest anchors missing: {pack_id}/{lesson_file}"
+        )
+    try:
+        raw_beats = json.loads(beats_match.group(1))
+    except (TypeError, ValueError) as exc:
+        raise TransformError(
+            f"playback beats are not deterministic JSON: {pack_id}/{lesson_file}"
+        ) from exc
+    if not isinstance(raw_beats, list) or not 2 <= len(raw_beats) <= 32:
+        raise TransformError(
+            f"playback beats count invalid: {pack_id}/{lesson_file}"
+        )
+    duration_ms = round(float(duration_match.group(1)) * 1000)
+    if duration_ms <= 0:
+        raise TransformError(
+            f"playback duration invalid: {pack_id}/{lesson_file}"
+        )
+    sections: list[dict[str, object]] = []
+    seen: set[str] = set()
+    previous_end = 0
+    for index, raw in enumerate(raw_beats):
+        if not isinstance(raw, list) or len(raw) != 4:
+            raise TransformError(
+                f"playback beat shape invalid: {pack_id}/{lesson_file}#{index}"
+            )
+        section_id = str(raw[0] or "")
+        label = str(raw[3] or "").strip()
+        if (
+            not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,31}", section_id)
+            or section_id in seen
+            or not label
+            or len(label) > 64
+        ):
+            raise TransformError(
+                f"playback beat identity invalid: {pack_id}/{lesson_file}#{index}"
+            )
+        try:
+            start_ms = round(float(raw[1]) * 1000)
+            end_ms = round(float(raw[2]) * 1000)
+        except (TypeError, ValueError) as exc:
+            raise TransformError(
+                f"playback beat timing invalid: {pack_id}/{lesson_file}#{index}"
+            ) from exc
+        if start_ms != previous_end or end_ms <= start_ms or end_ms > duration_ms:
+            raise TransformError(
+                f"playback beat timeline invalid: {pack_id}/{lesson_file}#{index}"
+            )
+        seen.add(section_id)
+        previous_end = end_ms
+        sections.append(
+            {
+                "id": section_id,
+                "index": index + 1,
+                "label": label,
+                "start_ms": start_ms,
+                "end_ms": end_ms,
+                "group": "qa" if section_id.lower().startswith("q") else "lesson",
+            }
+        )
+    if previous_end != duration_ms:
+        raise TransformError(
+            f"playback duration/beat mismatch: {pack_id}/{lesson_file}"
+        )
+    return {
+        "object_id": f"{pack_id}:lesson:{episode_index}",
+        "episode_index": episode_index,
+        "lesson_file": lesson_file,
+        "content_revision": hashlib.sha256(
+            rendered_html.encode("utf-8")
+        ).hexdigest(),
+        "duration_ms": duration_ms,
+        "sections": sections,
+    }
+
+
+def _playback_manifest(
+    pack_id: str, rendered_teach: dict[str, str]
+) -> dict[str, object]:
+    pack_id = str(pack_id or "").strip().upper()
+    invalid_files = [
+        lesson_file
+        for lesson_file in rendered_teach
+        if _LESSON_FILE_RE.fullmatch(lesson_file) is None
+    ]
+    if invalid_files:
+        raise TransformError(
+            f"playback lesson filenames invalid: {pack_id} {sorted(invalid_files)}"
+        )
+    episodes = [
+        _playback_episode(pack_id, lesson_file, rendered_teach[lesson_file])
+        for lesson_file in sorted(
+            rendered_teach,
+            key=lambda name: int(
+                _LESSON_FILE_RE.fullmatch(name).group("episode") or "1"  # type: ignore[union-attr]
+            ),
+        )
+    ]
+    expected = list(range(1, len(episodes) + 1))
+    actual = [int(episode["episode_index"]) for episode in episodes]
+    if actual != expected:
+        raise TransformError(
+            f"playback episode sequence invalid: {pack_id} got {actual}"
+        )
+    return {
+        "schema_version": PLAYBACK_MANIFEST_SCHEMA,
+        "pack_id": pack_id,
+        "episodes": episodes,
+    }
 
 # 用户进入讲懂卡就是明确播放意图：只预热首段 b0，缩短第一次点播放到出声；
 # 其余音频仍按讲解进度懒加载，避免一次下载整卡 5MB 左右的配音。
@@ -966,11 +1242,11 @@ def transform_teach(text: str, pack_id: str, *, sheet_runtime_tag: str | None = 
     # 锚定回灌重复套进去。卡内 askOpen 是唯一展示 authority，不把它分叉为
     # 小程序 native 聊天页。
     if "ctrlHidden:false" in text:
-        return text
+        return _inject_playback_telemetry(text, pack_id)
     # S07 安全事故成品使用另一套已自带双向全屏的母版（multiline `next` 版本）。
     # 不把旧单行母版的整套控制条再次套入；问答仍在同一张教学卡里。
     if "const next=!this.state.fs;" in text and "document.body.classList.toggle('luban-fs', next);" in text:
-        return text
+        return _inject_playback_telemetry(text, pack_id)
     # 1b. 普通态宽度自适应 + html/body 底色改为卡自身深墨（逐卡提取，fail-closed）
     bg_m = _CARD_BG_RE.search(text)
     if not bg_m:
@@ -1032,7 +1308,7 @@ def transform_teach(text: str, pack_id: str, *, sheet_runtime_tag: str | None = 
     # 13. 剥离无手势自动开播（N01 有 520ms auto-start）：移动端 audio.play() 无用户
     #     手势必被拒（CDP 实测 NotAllowedError）→ 首拍旁白必哑。统一回海报点击开播。
     text = _AUTOSTART_RE.sub("", text)
-    return text
+    return _inject_playback_telemetry(text, pack_id)
 
 
 def _inline_practice_tutorbot_ask_method(pack_id: str) -> str:
@@ -1598,6 +1874,7 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
         raise TransformError(f"finished pack incomplete: {src} missing {', '.join(missing)}")
     _validate_audio_assets(src)
     _ensure_tutorbot_sheet_runtime()
+    _playback_runtime_tag()
 
     # 先把所有页面变换成功，再写入托管目录；任一锚点失配不留下半张新卡。
     rendered_teach = {}
@@ -1636,6 +1913,7 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
             raise TransformError(
                 f"published page first audio missing: {hosted_name} -> {preload_path}"
             )
+    playback_manifest = _playback_manifest(station_id.upper(), rendered_teach)
 
     # 先在同一父目录组装完整纯派生树，再整体切换；任何变换/拷贝失败都不碰线上旧树。
     # 整树替换也会清掉 C02_progress_payment 等历史 IR 预览残留。
@@ -1646,6 +1924,15 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
         for hosted_name, text in rendered_teach.items():
             (staged / hosted_name).write_text(text, encoding="utf-8")
             written.append(hosted_name)
+
+        (staged / "playback-manifest.json").write_text(
+            json.dumps(
+                playback_manifest, ensure_ascii=False, indent=2, sort_keys=True
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        written.append("playback-manifest.json")
 
         for hosted_name, text in rendered_practice.items():
             (staged / hosted_name).write_text(text, encoding="utf-8")
@@ -1967,6 +2254,151 @@ def apply_shared_sheet_runtime_version_to_hosted() -> list[str]:
     return changed
 
 
+def apply_playback_telemetry_to_hosted() -> list[str]:
+    """Reconcile shared playback hooks + manifests from tracked hosted cards.
+
+    This mode is source-independent for existing cards: the tracked
+    ``lesson*.html`` pages remain the content input, while this publisher stays
+    the sole writer of telemetry hooks and the SHA-bound manifest projection.
+    Every registered pack is validated before any write, so one malformed
+    timeline cannot leave a partially reconciled corpus.
+    """
+    _playback_runtime_tag()
+    plans: list[
+        tuple[str, Path, dict[str, str], str, Path | None, str | None]
+    ] = []
+    for sid in sorted(STATIONS):
+        dst = HOST / sid
+        expected_files = set(STATIONS[sid].teach)
+        actual_files = {path.name for path in dst.glob("lesson*.html")}
+        if actual_files != expected_files:
+            raise TransformError(
+                f"playback hosted episode set mismatch: {sid} "
+                f"expected={sorted(expected_files)} actual={sorted(actual_files)}"
+            )
+        rendered = {
+            lesson_file: _inject_playback_telemetry(
+                (dst / lesson_file).read_text(encoding="utf-8"), sid.upper()
+            )
+            for lesson_file in expected_files
+        }
+        manifest_text = (
+            json.dumps(
+                _playback_manifest(sid.upper(), rendered),
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
+        authority_path = AUTHORITY_HOST / f"{sid}.practice.authority.json"
+        authority_text: str | None = None
+        if authority_path.is_file():
+            authority = json.loads(authority_path.read_text(encoding="utf-8"))
+            authority["published_lesson_sha256"] = hashlib.sha256(
+                rendered["lesson.html"].encode("utf-8")
+            ).hexdigest()
+            authority_text = (
+                json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+            )
+        plans.append(
+            (
+                sid,
+                dst,
+                rendered,
+                manifest_text,
+                authority_path if authority_path.is_file() else None,
+                authority_text,
+            )
+        )
+
+    changed: list[str] = []
+    for sid, dst, rendered, manifest_text, authority_path, authority_text in plans:
+        manifest_path = dst / "playback-manifest.json"
+        touched = any(
+            (dst / lesson_file).read_text(encoding="utf-8") != text
+            for lesson_file, text in rendered.items()
+        ) or (
+            not manifest_path.is_file()
+            or manifest_path.read_text(encoding="utf-8") != manifest_text
+        )
+        if authority_path is not None and authority_text is not None:
+            touched = (
+                touched
+                or authority_path.read_text(encoding="utf-8") != authority_text
+            )
+        if not touched:
+            continue
+
+        # A pack is one deployable projection. Build the complete replacement
+        # beside HOST first, then switch the directory in one rename. The
+        # authority receipt is staged on its own filesystem and atomically
+        # replaced only after the pack switch; a receipt failure restores the
+        # old pack, so runtime HTML and its SHA authority never split.
+        staged_pack = Path(
+            tempfile.mkdtemp(prefix=f".{sid}.playback-staging-", dir=HOST)
+        )
+        backup_pack = Path(
+            tempfile.mkdtemp(prefix=f".{sid}.playback-backup-", dir=HOST)
+        )
+        # Reserve a collision-free sibling name, then remove the placeholder
+        # so the old pack directory can be renamed there atomically.
+        backup_pack.rmdir()
+        staged_authority: Path | None = None
+        old_moved = False
+        new_active = False
+        committed = False
+        try:
+            shutil.copytree(dst, staged_pack, dirs_exist_ok=True)
+            for lesson_file, text in rendered.items():
+                (staged_pack / lesson_file).write_text(text, encoding="utf-8")
+            (staged_pack / "playback-manifest.json").write_text(
+                manifest_text, encoding="utf-8"
+            )
+
+            if authority_path is not None and authority_text is not None:
+                with tempfile.NamedTemporaryFile(
+                    mode="w",
+                    encoding="utf-8",
+                    prefix=f".{sid}.playback-authority-",
+                    suffix=".tmp",
+                    dir=authority_path.parent,
+                    delete=False,
+                ) as handle:
+                    handle.write(authority_text)
+                    staged_authority = Path(handle.name)
+
+            dst.rename(backup_pack)
+            old_moved = True
+            staged_pack.rename(dst)
+            new_active = True
+            if staged_authority is not None and authority_path is not None:
+                staged_authority.replace(authority_path)
+            committed = True
+            shutil.rmtree(backup_pack)
+            old_moved = False
+        except Exception:
+            if not committed:
+                if new_active and dst.exists():
+                    shutil.rmtree(dst)
+                    new_active = False
+                if old_moved and backup_pack.exists():
+                    backup_pack.rename(dst)
+                    old_moved = False
+            raise
+        finally:
+            if staged_pack.exists():
+                shutil.rmtree(staged_pack)
+            if backup_pack.exists():
+                shutil.rmtree(backup_pack)
+            if staged_authority is not None and staged_authority.exists():
+                staged_authority.unlink()
+        changed.append(sid)
+    if changed:
+        _refresh_pack_manifest()
+    return changed
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="发布注册的鲁班 finished 成品卡")
     parser.add_argument(
@@ -2015,12 +2447,19 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="用唯一自托管答疑 runtime 的 digest 调和全部托管页版本并刷新 receipt",
     )
+    parser.add_argument(
+        "--apply-playback-telemetry",
+        action="store_true",
+        help="从已托管 lesson*.html fail-closed 调和共享播放埋点与 SHA 绑定"
+        " playback-manifest.json，并刷新 lesson receipt/pack manifest",
+    )
     parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
     args = parser.parse_args(argv)
     if args.apply_width_fit:
         if (
             args.apply_reachability_gate
             or args.refresh_shared_sheet_runtime_version
+            or args.apply_playback_telemetry
             or args.practice_only
             or args.check
             or args.write_practice_audit_packet
@@ -2030,12 +2469,31 @@ def main(argv: list[str]) -> int:
         print(f"width-fit: reconciled {len(changed)} pack(s): {' '.join(changed)}")
         return 0
     if args.refresh_shared_sheet_runtime_version:
-        if args.apply_reachability_gate or args.practice_only or args.check or args.write_practice_audit_packet:
+        if (
+            args.apply_reachability_gate
+            or args.apply_playback_telemetry
+            or args.practice_only
+            or args.check
+            or args.write_practice_audit_packet
+        ):
             parser.error(
                 "--refresh-shared-sheet-runtime-version cannot combine with other modes"
             )
         changed = apply_shared_sheet_runtime_version_to_hosted()
         print(f"shared-sheet-runtime: reconciled {len(changed)} pack(s): {' '.join(changed)}")
+        return 0
+    if args.apply_playback_telemetry:
+        if (
+            args.apply_reachability_gate
+            or args.practice_only
+            or args.check
+            or args.write_practice_audit_packet
+        ):
+            parser.error(
+                "--apply-playback-telemetry cannot combine with other modes"
+            )
+        changed = apply_playback_telemetry_to_hosted()
+        print(f"playback-telemetry: reconciled {len(changed)} pack(s): {' '.join(changed)}")
         return 0
     if args.apply_reachability_gate:
         if args.practice_only or args.check or args.write_practice_audit_packet:

@@ -175,6 +175,7 @@ Page({
   openEpisode: function (event) {
     const dataset = (event && event.currentTarget && event.currentTarget.dataset) || {};
     const packId = String(dataset.packId || "").trim();
+    const teachingPointId = String(dataset.teachingPointId || "").trim();
     const index = Number(dataset.episode);
     if (!packId || !Number.isInteger(index) || index < 1) return;
     // 待开放集(免费引子上限之外):不跳转、不发播放埋点,只如实提示。
@@ -186,14 +187,13 @@ Page({
       if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "视频正在部署，请稍后再试", icon: "none" });
       return;
     }
-    // 选某集微课(episode 粒度)。dataset 只暴露 pack-id/episode(见 wxml 绑定),
-    // card.id(=teaching_point_id `<pack>:lesson:<idx>`)未进 dataset,故 object_id
-    // 用 tp 占位符,与 station 页 _showLessonCard 同构可 join 成「列表选集→进站开讲」漏斗。
+    // 选某集微课：object_id 直接消费 read_model 投影的 canonical
+    // teaching_point_id，禁止客户端再拼一套 ``:tp:`` alias。
     telemetry.trackProductBehavior("learning_action_started", {
       module: "learning",
       action: "open_detail",
       objectType: "microlesson",
-      objectId: packId + ":tp:" + index,
+      objectId: teachingPointId,
     });
     // 进站预热:station onLoad 会发同一 GET(requestStateGet dedupeInFlight 并流),
     // 把 detail 的 RTT 与页面导航并行。无状态不落缓存(本页章程:不缓存 episode 名单),

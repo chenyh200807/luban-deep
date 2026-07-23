@@ -8,20 +8,26 @@
 - 自校准：每个 model 的校准系数 = 官方金额 / 内账估算成本；校准后内账 ≈ 官方真值。
 - 漏 token：校准系数会自动吸收（真实单价被推高补偿），同时独立记录 token_coverage_ratio 提示漏记。
 
-货币：用户明确忽略换算，全部按 CNY 同口径比较。
+货币：官方账单与内账必须显式处于同一币种；混币或缺币种时禁止应用校准。
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import json
 import logging
-import threading
+import math
 from pathlib import Path
+import threading
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 _LOCK = threading.Lock()
 _EMPTY: dict[str, Any] = {"models": {}, "global": {}}
+CALIBRATION_SNAPSHOT_VERSION = 2
+DEFAULT_MAX_AGE_DAYS = 45
+MIN_TOKEN_COVERAGE_RATIO = 0.9
+MAX_TOKEN_COVERAGE_RATIO = 1.1
 
 
 def compute_calibration(
@@ -95,11 +101,90 @@ def apply_calibration(model: str, internal_cost: float, factors: dict[str, float
     return internal_cost * float(factor)
 
 
+def evaluate_calibration(
+    calibration: dict[str, Any],
+    *,
+    now: datetime | None = None,
+    max_age_days: int = DEFAULT_MAX_AGE_DAYS,
+) -> dict[str, Any]:
+    """判断快照能否参与成本计算；证据不足时一律 fail closed。"""
+    reasons: list[str] = []
+    try:
+        snapshot_version = int(calibration.get("snapshot_version") or 0)
+    except (TypeError, ValueError):
+        snapshot_version = 0
+    if snapshot_version != CALIBRATION_SNAPSHOT_VERSION:
+        reasons.append("unsupported_snapshot_version")
+    models = calibration.get("models")
+    if not isinstance(models, dict) or not models:
+        reasons.append("missing_model_calibration")
+    else:
+        for payload in models.values():
+            try:
+                factor = float(payload.get("calibration_factor"))
+            except (AttributeError, TypeError, ValueError):
+                reasons.append("invalid_model_calibration")
+                break
+            if not math.isfinite(factor) or factor <= 0 or not payload.get("currency"):
+                reasons.append("invalid_model_calibration")
+                break
+
+    refreshed_at = str(calibration.get("refreshed_at") or "").strip()
+    try:
+        refreshed = datetime.fromisoformat(refreshed_at.replace("Z", "+00:00"))
+        if refreshed.tzinfo is None:
+            refreshed = refreshed.replace(tzinfo=timezone.utc)
+        reference = now or datetime.now(timezone.utc)
+        if reference.tzinfo is None:
+            reference = reference.replace(tzinfo=timezone.utc)
+        age_seconds = (reference - refreshed).total_seconds()
+        if age_seconds < 0 or age_seconds > max_age_days * 86400:
+            reasons.append("stale_calibration")
+    except ValueError:
+        reasons.append("missing_or_invalid_refreshed_at")
+
+    scope = calibration.get("scope") or {}
+    if not isinstance(scope, dict) or scope.get("status") != "matched":
+        reasons.append("scope_not_matched")
+    else:
+        if scope.get("provider_name") != "dashscope":
+            reasons.append("provider_scope_mismatch")
+        if not scope.get("billing_cycle") or not scope.get("apikey_id"):
+            reasons.append("incomplete_account_scope")
+        if scope.get("currency_status") != "single_currency" or not scope.get("currency"):
+            reasons.append("ambiguous_currency_scope")
+        if scope.get("official_token_scope_status") != "exact":
+            reasons.append("official_token_scope_not_exact")
+
+    global_payload = calibration.get("global") or {}
+    ratio = global_payload.get("token_coverage_ratio")
+    if global_payload.get("token_coverage_status") != "ok" or ratio is None:
+        reasons.append("insufficient_token_coverage_evidence")
+    else:
+        try:
+            numeric_ratio = float(ratio)
+        except (TypeError, ValueError):
+            reasons.append("invalid_token_coverage_ratio")
+        else:
+            if not MIN_TOKEN_COVERAGE_RATIO <= numeric_ratio <= MAX_TOKEN_COVERAGE_RATIO:
+                reasons.append("token_coverage_out_of_range")
+
+    return {
+        "applicable": not reasons,
+        "status": "applicable" if not reasons else "insufficient_evidence",
+        "reasons": reasons,
+    }
+
+
 def factor_map(calibration: dict[str, Any]) -> dict[str, float]:
-    """从 compute_calibration 结果提取 {model: factor}，供 apply_calibration 用。"""
+    """仅从适用、同币种、同范围快照提取 {model: factor}。"""
+    if not evaluate_calibration(calibration).get("applicable"):
+        return {}
+    scope_currency = str((calibration.get("scope") or {}).get("currency") or "").upper()
     return {
         model: float(payload.get("calibration_factor") or 1.0)
         for model, payload in (calibration.get("models") or {}).items()
+        if str(payload.get("currency") or "").upper() == scope_currency
     }
 
 

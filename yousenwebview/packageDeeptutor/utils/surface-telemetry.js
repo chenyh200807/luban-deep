@@ -6,6 +6,7 @@ var PENDING_EVENTS_MAX = 20;
 var PENDING_EVENTS_STORAGE_KEY = "deeptutor_surface_telemetry_pending_v1";
 var pendingEvents = null;
 var inFlightEventIds = {};
+var runtimeMetadata = null;
 
 // 投递背压（2026-07-19）：旧实现每次 track 全量重放 pending 队列且失败无退避，
 // 网络故障时单次 track 放大成最多 21 个请求，吃满 wx.request 10 并发槽位，
@@ -242,9 +243,43 @@ function getOrCreateVisitId() {
   }
 }
 
+function getRuntimeMetadata() {
+  if (runtimeMetadata) return runtimeMetadata;
+  var appVersion = "";
+  var platform = "";
+  var envVersion = "";
+  var wechatVersion = "";
+  try {
+    if (typeof wx.getAccountInfoSync === "function") {
+      var accountInfo = wx.getAccountInfoSync() || {};
+      var miniProgram = accountInfo.miniProgram || {};
+      appVersion = String(miniProgram.version || "").trim();
+      envVersion = String(miniProgram.envVersion || "").trim();
+    }
+  } catch (_) {}
+  try {
+    if (typeof wx.getSystemInfoSync === "function") {
+      var systemInfo = wx.getSystemInfoSync() || {};
+      platform = String(systemInfo.platform || "").trim();
+      wechatVersion = String(systemInfo.version || "").trim();
+    }
+  } catch (_) {}
+  // app_version means the Mini Program release version only. envVersion and
+  // the WeChat client version are different facts and must never be folded
+  // into a fake application version merely to make coverage look healthy.
+  runtimeMetadata = {
+    appVersion: appVersion,
+    envVersion: envVersion,
+    wechatVersion: wechatVersion,
+    platform: platform,
+  };
+  return runtimeMetadata;
+}
+
 function trackProductBehavior(eventName, payload) {
   var data = payload && typeof payload === "object" ? payload : {};
   var visitId = data.visitId || getOrCreateVisitId();
+  var runtime = getRuntimeMetadata();
   track(eventName, {
     eventVersion: data.eventVersion || 1,
     sessionId: data.sessionId || "",
@@ -264,8 +299,10 @@ function trackProductBehavior(eventName, payload) {
       result: data.result || "",
       error_code: data.errorCode || "",
       release_id: data.releaseId || "",
-      app_version: data.appVersion || "",
-      platform: data.platform || "",
+      app_version: data.appVersion || runtime.appVersion,
+      env_version: data.envVersion || runtime.envVersion,
+      wechat_version: data.wechatVersion || runtime.wechatVersion,
+      platform: data.platform || runtime.platform,
       device_model: data.deviceModel || "",
       network_type: data.networkType || "",
       // spike 命门判别位：forward(学习轮当天轻练)/review(复习轮次日复测)。
