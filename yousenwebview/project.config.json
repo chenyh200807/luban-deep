@@ -61,8 +61,8 @@
       "list": [
         {
           "id": 0,
-          "name": "default learning entry",
-          "pathName": "pages/deeptutorEntry/deeptutorEntry",
+          "name": "host home",
+          "pathName": "pages/freeCourse/freeCourse",
           "query": "",
           "scene": null
         },
