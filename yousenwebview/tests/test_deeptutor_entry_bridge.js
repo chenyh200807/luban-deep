@@ -102,13 +102,13 @@ function loadBridgePage() {
 var tests = [];
 
 tests.push(function () {
-  return run("app launch page is the Deeptutor bridge", function () {
+  return run("Deeptutor bridge remains a registered host route", function () {
     var appConfig = JSON.parse(
       fs.readFileSync(path.join(__dirname, "../app.json"), "utf8"),
     );
     assert(
-      appConfig.pages && appConfig.pages[0] === "pages/deeptutorEntry/deeptutorEntry",
-      "app launch page should be the Deeptutor bridge",
+      appConfig.pages && appConfig.pages.indexOf("pages/deeptutorEntry/deeptutorEntry") >= 0,
+      "Deeptutor bridge should remain registered for cross-home navigation",
     );
     assert(
       appConfig.preloadRule && appConfig.preloadRule["pages/deeptutorEntry/deeptutorEntry"],

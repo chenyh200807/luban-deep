@@ -257,10 +257,11 @@ assert(
   "点跳过应弹确认并可写入「不再显示」本地标记",
 );
 assert(
-  freeCourseJs.indexOf("deeptutor_onboarding_dismissed") >= 0 &&
-    freeCourseJs.indexOf("getStorageSync") >= 0 &&
-    freeCourseJs.indexOf("openDeeptutorLogin") >= 0,
-  "首页入口读同一标记，已 dismiss 时跳过动效直接走原登录桥接",
+  freeCourseJs.indexOf("deeptutor_onboarding_dismissed") === -1 &&
+    freeCourseJs.indexOf("pages/onboarding/onboarding") === -1 &&
+    freeCourseJs.indexOf("openDeeptutorLogin") >= 0 &&
+    freeCourseJs.indexOf("/packageDeeptutor/pages/learn/learn") >= 0,
+  "首页鲁班入口不再按导学标记分流，始终经登录桥接进入学习页",
 );
 assert(
   freeCourseJs.indexOf("/images/icon/play_icon_02") === -1 &&
