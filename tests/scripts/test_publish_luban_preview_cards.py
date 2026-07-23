@@ -64,6 +64,20 @@ def test_registry_has_exact_40_finished_topics_and_canonical_variants() -> None:
                for station in _mod.STATIONS.values())
 
 
+def test_registered_followup_ai_copy_is_spelled_consistently_in_source_and_publish() -> None:
+    """The in-card action opens a contextual follow-up sheet, not a new AI entry."""
+    forbidden = "问" + "追AI"
+    source_pages = sorted(_mod.FINISHED.glob("**/*.html"))
+    published_pages = sorted(_mod.HOST.glob("*/lesson*.html")) + sorted(
+        _mod.HOST.glob("*/practice*.html")
+    )
+
+    assert source_pages
+    assert len(published_pages) == 117
+    for page in [*source_pages, *published_pages]:
+        assert forbidden not in page.read_text(encoding="utf-8"), page
+
+
 def test_new_finished_audio_sources_are_tracked_for_clean_clone_rebuilds() -> None:
     pack_dirs = ("P40_B02", "P40_D14", "P40_N02", "P40_N03")
     expected = sorted(

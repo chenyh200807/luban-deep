@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "Q03",
   "source_pack_sha256": "4e22a6697aeba00353186f44a8ea1568041734406eabbda632b1a7262303e8bc",
-  "source_bundle_sha256": "34177d2e6d599fc19c0ed4c388bb38b29fe3cbb0f6500fb81f90ef6647c3af18",
+  "source_bundle_sha256": "a2c1045437db1a9f438603c69f81fa03014cca57cfef7142a9ada27b6d41a6aa",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -33,8 +33,8 @@
         "Q03-html-practice-html-q7-69a4209c8a41",
         "Q03-html-practice-html-q16-5ca8e9bcfa1d"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMGZhY2M0ZjIxZTFmIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02YmY5NDVhNmQyM2QiLCJRMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwMmI4NjNmMGU1MiIsIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2I1Mjc3ODQzMDJkIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWNhOGU5YmNmYTFkIl0sInBhY2tfaWQiOiJRMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjZmY2I3YWVlM2ZiMDhkNWZkNzI3N2MzNjlhMTA0MzllZjdjMTdiZDIwMGZiYWY1NjA0N2M1YjQ2N2EwMDNmYmUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMzZhMTU0OGJhYjM4OTU5NDhjZWRmYjJiYzAxNzA5Y2Y4MDYwY2MwZTYyMzUxMzFhZmVkMGJiZTQ3MDBjYmM3MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "3ea0eb5a5b9e083647bd8ed2a1a5ee7a13b3e84544f68f2af23ed2fd9ee83aef"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMGZhY2M0ZjIxZTFmIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi02YmY5NDVhNmQyM2QiLCJRMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEwMmI4NjNmMGU1MiIsIlEwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtN2I1Mjc3ODQzMDJkIiwiUTAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtNWNhOGU5YmNmYTFkIl0sInBhY2tfaWQiOiJRMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjhiOWIzMmQ5ZGYwODZlNGYyNDk5YjVmZDNiYTJiNWRlMDlhYTU3MTc4OTcxZGRmOTc1NTQzZDI4ZWU5ODc0OTAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMzZhMTU0OGJhYjM4OTU5NDhjZWRmYjJiYzAxNzA5Y2Y4MDYwY2MwZTYyMzUxMzFhZmVkMGJiZTQ3MDBjYmM3MSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "ef0738e08c28ea36dc511491d782ab0ccc23d9adb7321b0c09aa4001d4036421"
     }
   ],
   "items": [
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q1",
       "source_anchor": "exam:2023:案例一",
       "source_sha256": "7e0e44e3e238fffd66d705d85fa50a1dbe052245010458d22c34612a06d75b38",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-concrete-surface-defect",
       "skeleton_id": "q03-skel-四缺陷对号命名",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2152963ac53ca808530086d88244cdbcb4aae7048e4653d87f65a1c83709fedb",
+      "content_sha256": "5b7743ed2c0a41b3223928c73f48eb32123840e3ce13cb065716fce94a7411ec",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "2152963ac53ca808530086d88244cdbcb4aae7048e4653d87f65a1c83709fedb",
+        "reviewed_content_sha256": "5b7743ed2c0a41b3223928c73f48eb32123840e3ce13cb065716fce94a7411ec",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "混凝土表面四缺陷对号命名(密布小凹点=麻面/钢筋外露=露筋/石子成堆缺砂浆=蜂窝/局部贯穿大洞=孔洞)。2023真题案例一问题2『图1-1麻面;图1-4露筋;图1-5孔洞;图1-6蜂窝』即对图命名题,逐字忠实。三件套 anchor(混凝土表面缺陷 fact)。放宽锚:教材chunk 072_0112未过0.12,真题案例一为唯一候选且直接对应命名任务。"
+        "note": "混凝土表面四缺陷对号命名(密布小凹点=麻面/钢筋外露=露筋/石子成堆缺砂浆=蜂窝/局部贯穿大洞=孔洞)。2023真题案例一问题2『图1-1麻面;图1-4露筋;图1-5孔洞;图1-6蜂窝』即对图命名题,逐字忠实。三件套 anchor(混凝土表面缺陷 fact)。放宽锚:教材chunk 072_0112未过0.12,真题案例一为唯一候选且直接对应命名任务。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -319,27 +319,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q2",
       "source_anchor": "kc:1A434000_072_0112:0",
       "source_sha256": "e4b40bef8685a0bc5fdab854164146292286678a63533dd26c389484a91dfaf6",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-mamian-cause",
       "skeleton_id": "q03-skel-麻面成因模板缺浆",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "afb86bc41592ddc36af355feb5a00250e296f021f9bcc536437005ba287d9b23",
+      "content_sha256": "5db7584f869cd1137079bce5a9130a72a83653076de603a372a013971182fe0c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "afb86bc41592ddc36af355feb5a00250e296f021f9bcc536437005ba287d9b23",
+        "reviewed_content_sha256": "5db7584f869cd1137079bce5a9130a72a83653076de603a372a013971182fe0c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -349,7 +349,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "麻面成因=模板不光滑/接缝漏浆/浇筑前未湿润/隔离剂涂刷不匀致表面缺浆。教材 kc:1A434000_072_0112:0 原因分析①模板表面不光滑接缝不严漏浆②木模板未充分湿润钢模板隔离剂涂刷不均匀,逐字直引。"
+        "note": "麻面成因=模板不光滑/接缝漏浆/浇筑前未湿润/隔离剂涂刷不匀致表面缺浆。教材 kc:1A434000_072_0112:0 原因分析①模板表面不光滑接缝不严漏浆②木模板未充分湿润钢模板隔离剂涂刷不均匀,逐字直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -532,27 +532,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q3",
       "source_anchor": "kc:1A434000_072_0112:0",
       "source_sha256": "e4b40bef8685a0bc5fdab854164146292286678a63533dd26c389484a91dfaf6",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-fengwo-kongdong-cause",
       "skeleton_id": "q03-skel-蜂窝孔洞成因离析漏振",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c5349e331ba105aa332985beefac6259e77418dff3fbe390c481cda5830649db",
+      "content_sha256": "7c755f2ae15ae6affce133cb5a0a4ea3b635978c2e6eeb7c1c6f46a9c01576b3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c5349e331ba105aa332985beefac6259e77418dff3fbe390c481cda5830649db",
+        "reviewed_content_sha256": "7c755f2ae15ae6affce133cb5a0a4ea3b635978c2e6eeb7c1c6f46a9c01576b3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -562,7 +562,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "蜂窝孔洞成因=自由倾落过高致离析/漏振欠振/钢筋过密下料困难未振实。教材 kc:1A434000_072_0112:0(表面缺陷chunk)原因分析含③局部配筋铁件过密+振捣不实/布料不当/避免离析,忠实覆盖蜂窝孔洞成因。放宽锚(0.141)已加倍核对:该chunk为麻面/露筋/蜂窝/孔洞统一成因段,教材权威。"
+        "note": "蜂窝孔洞成因=自由倾落过高致离析/漏振欠振/钢筋过密下料困难未振实。教材 kc:1A434000_072_0112:0(表面缺陷chunk)原因分析含③局部配筋铁件过密+振捣不实/布料不当/避免离析,忠实覆盖蜂窝孔洞成因。放宽锚(0.141)已加倍核对:该chunk为麻面/露筋/蜂窝/孔洞统一成因段,教材权威。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -745,27 +745,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q4",
       "source_anchor": "exam:2023:案例一",
       "source_sha256": "7e0e44e3e238fffd66d705d85fa50a1dbe052245010458d22c34612a06d75b38",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-kongdong-repair",
       "skeleton_id": "q03-skel-孔洞治理六步顺序",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ff269940432132598e3361ad9e29a396de56b6e37ebe31b4b271298cf3f4ded8",
+      "content_sha256": "d8b0c7b72083fa635f52e3e98d4a1d4e101d809d6ef588604c97126b736426a0",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "ff269940432132598e3361ad9e29a396de56b6e37ebe31b4b271298cf3f4ded8",
+        "reviewed_content_sha256": "d8b0c7b72083fa635f52e3e98d4a1d4e101d809d6ef588604c97126b736426a0",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -775,7 +775,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "孔洞治理工艺顺序=清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。2023真题案例一问题4六步答案逐字直引(match 0.743)。"
+        "note": "孔洞治理工艺顺序=清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。2023真题案例一问题4六步答案逐字直引(match 0.743)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -975,27 +975,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q5",
       "source_anchor": "exam:2023:案例一",
       "source_sha256": "7e0e44e3e238fffd66d705d85fa50a1dbe052245010458d22c34612a06d75b38",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-concrete-surface-defect",
       "skeleton_id": "q03-skel-孔洞修补材料养护",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b65e92f2a99f2e05cd4261888843664c29ca96861877583ea2875701d2f01e55",
+      "content_sha256": "1f3fa09214d7f4e777c0ff5d939ec0a5bc1c8ad1a954cdbbd67bf6880d0ff66a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b65e92f2a99f2e05cd4261888843664c29ca96861877583ea2875701d2f01e55",
+        "reviewed_content_sha256": "1f3fa09214d7f4e777c0ff5d939ec0a5bc1c8ad1a954cdbbd67bf6880d0ff66a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1005,7 +1005,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "孔洞修补材料养护=高一强度等级细石混凝土浇筑密实(不用普通砂浆)+保温保湿养护不少于7天。2023真题案例一问题4『(5)用高一强度等级的细石混凝土仔细浇筑密实;(6)保温保湿养护不少于7天』直引(0.675)。三件套 immediate_confirm(同混凝土表面缺陷 fact,独立skeleton)。"
+        "note": "孔洞修补材料养护=高一强度等级细石混凝土浇筑密实(不用普通砂浆)+保温保湿养护不少于7天。2023真题案例一问题4『(5)用高一强度等级的细石混凝土仔细浇筑密实;(6)保温保湿养护不少于7天』直引(0.675)。三件套 immediate_confirm(同混凝土表面缺陷 fact,独立skeleton)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1103,17 +1103,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "97206ba22f037ac2abb271281537e7de2fb77b36c11b9fb8d83ea2baac3ddbda",
+      "content_sha256": "0aa685bf1f7b195ae1efe00d8651a11170443d92eaec9a63c343e55f5243ec29",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "97206ba22f037ac2abb271281537e7de2fb77b36c11b9fb8d83ea2baac3ddbda",
+        "reviewed_content_sha256": "0aa685bf1f7b195ae1efe00d8651a11170443d92eaec9a63c343e55f5243ec29",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1338,27 +1338,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q7",
       "source_anchor": "exam:2022:第(三)题",
       "source_sha256": "7e0e44e3e238fffd66d705d85fa50a1dbe052245010458d22c34612a06d75b38",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-concrete-surface-defect",
       "skeleton_id": "q03-skel-拆模强度不足致缺陷",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0fe80c5db4af580ed5683979e0bca0ebf24ee6b7be91d127baaa404ebd6cbae2",
+      "content_sha256": "63c6a24e83b8e4398d0c0be9115facd8d8b67ae0ed52c680cfc0d89fa07df11f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "0fe80c5db4af580ed5683979e0bca0ebf24ee6b7be91d127baaa404ebd6cbae2",
+        "reviewed_content_sha256": "63c6a24e83b8e4398d0c0be9115facd8d8b67ae0ed52c680cfc0d89fa07df11f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1368,7 +1368,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "拆模找错=混凝土强度未达门槛提前拆模,构件承自重后出现麻面/蜂窝/孔洞/露筋,应达规定强度再拆。2022真题第(三)题『混凝土强度未达到拆模标准情况下进行部分模板拆除;拆模后发现梁底表面出现夹渣、麻面等质量缺陷』忠实支持(0.319,已加倍核对)。三件套 d1_probe(同fact,第3独立skeleton)。"
+        "note": "拆模找错=混凝土强度未达门槛提前拆模,构件承自重后出现麻面/蜂窝/孔洞/露筋,应达规定强度再拆。2022真题第(三)题『混凝土强度未达到拆模标准情况下进行部分模板拆除;拆模后发现梁底表面出现夹渣、麻面等质量缺陷』忠实支持(0.319,已加倍核对)。三件套 d1_probe(同fact,第3独立skeleton)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1500,17 +1500,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "31939a771475f95927fb06c263cc40223ad8a0da27d014406443b35171be7c81",
+      "content_sha256": "a10e637b9e45b80b6df4df123dfaa334c627020de56ef2ff8943c67e074a0bd2",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "31939a771475f95927fb06c263cc40223ad8a0da27d014406443b35171be7c81",
+        "reviewed_content_sha256": "a10e637b9e45b80b6df4df123dfaa334c627020de56ef2ff8943c67e074a0bd2",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1718,17 +1718,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "240e9fd6498b1cf23eea85ac328fd2d1abe3cabdbc6866e2837081d6769cfa8c",
+      "content_sha256": "1fd3b188efadf403babc40ed901d92da64502d03b23b50b37c4ed4355a678de8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "240e9fd6498b1cf23eea85ac328fd2d1abe3cabdbc6866e2837081d6769cfa8c",
+        "reviewed_content_sha256": "1fd3b188efadf403babc40ed901d92da64502d03b23b50b37c4ed4355a678de8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1868,17 +1868,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "068b585df18a67ee73691c62a670e447c963e250cdda7c5da562d98833f0ca33",
+      "content_sha256": "c5ee137dfff264ffcf862dd445aa0c7668ee8bc3fdaff6e3242e8fc7e75ea75b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "068b585df18a67ee73691c62a670e447c963e250cdda7c5da562d98833f0ca33",
+        "reviewed_content_sha256": "c5ee137dfff264ffcf862dd445aa0c7668ee8bc3fdaff6e3242e8fc7e75ea75b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2052,17 +2052,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "539d699ae5ae620cd19e2fa960ad6775dd4c24a8483d4f2f0d537ddbd66d6517",
+      "content_sha256": "54545d7b7b4befda463a61fd1c04dd7a6b319428e7a921be0b21611ecb682aa8",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "539d699ae5ae620cd19e2fa960ad6775dd4c24a8483d4f2f0d537ddbd66d6517",
+        "reviewed_content_sha256": "54545d7b7b4befda463a61fd1c04dd7a6b319428e7a921be0b21611ecb682aa8",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2219,17 +2219,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dd8971a231b6c10888ebc0d491f67cd6604158d742bd20b4c34365a3521cb3f1",
+      "content_sha256": "627791e51ab1059880402d0dc18bf78e3c12ba14ea88f24eda097e6773b06ea3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "dd8971a231b6c10888ebc0d491f67cd6604158d742bd20b4c34365a3521cb3f1",
+        "reviewed_content_sha256": "627791e51ab1059880402d0dc18bf78e3c12ba14ea88f24eda097e6773b06ea3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2437,17 +2437,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bb290ba8cdcb0147abcba353a8db4d448446faa8d023d48fe6562444c68b6a7e",
+      "content_sha256": "d5378c765709405288db430745db76ec15fefa4f752a0944cc3e8cb1575e4319",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "bb290ba8cdcb0147abcba353a8db4d448446faa8d023d48fe6562444c68b6a7e",
+        "reviewed_content_sha256": "d5378c765709405288db430745db76ec15fefa4f752a0944cc3e8cb1575e4319",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2621,17 +2621,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3d22ee1efb10625f39be8959f0a7e0bb12ec0b9a2dab8ce1af9a519101bd25de",
+      "content_sha256": "07f5b7d2167235a764306bc94dc7124fc7eca84465863a042cccc3406390efaf",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3d22ee1efb10625f39be8959f0a7e0bb12ec0b9a2dab8ce1af9a519101bd25de",
+        "reviewed_content_sha256": "07f5b7d2167235a764306bc94dc7124fc7eca84465863a042cccc3406390efaf",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2788,17 +2788,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f3413f9b8a65586b2fd3ccad6e86be4cc7a4f7d6b6a45f3d8f3a54365c1f7dd0",
+      "content_sha256": "0b725a65a0b6cfa79198a4aa34f104bd46cb9674efe9763f7904f00dbe258a87",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f3413f9b8a65586b2fd3ccad6e86be4cc7a4f7d6b6a45f3d8f3a54365c1f7dd0",
+        "reviewed_content_sha256": "0b725a65a0b6cfa79198a4aa34f104bd46cb9674efe9763f7904f00dbe258a87",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2955,27 +2955,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q16",
       "source_anchor": "ca:1A434000_074_0116",
       "source_sha256": "e4b40bef8685a0bc5fdab854164146292286678a63533dd26c389484a91dfaf6",
-      "source_html_sha256": "64a5546145b9fca922e633264b0d949891bac4b2bd04c4c600f0b230b17b65a4",
+      "source_html_sha256": "d2c8112091081c4cbcb0abb334b271d6f67fbdea10c7c44e6e51775d9347b73a",
       "fact_id": "q03-fact-defect-scoring-diagnosis",
       "skeleton_id": "q03-skel-采分诊断末题补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "06e45bbc2a67b211857ae3f42e42921528834aac41f5b173bfe84d97e964b621",
+      "content_sha256": "f0bccc805e6f4a5bdb374f4e2e30aab102f93b041bf16280e218eb9d5eb918bf",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "06e45bbc2a67b211857ae3f42e42921528834aac41f5b173bfe84d97e964b621",
+        "reviewed_content_sha256": "f0bccc805e6f4a5bdb374f4e2e30aab102f93b041bf16280e218eb9d5eb918bf",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:47:00+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2985,7 +2985,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "末题复合诊断(空鼓/渗漏/填充墙三条治标+对症补规范措施)。锚定其数值可核采分=填充墙2φ6@500+砌筑14d,教材 ca:1A434000_074_0116『柱或墙边应设置间距不大于500mm的2φ6钢筋;砌筑14d后进行』verbatim。工单:composite跨三缺陷无单锚全覆盖,空鼓子句溯 kc:1A434000_078_0123、渗漏子句溯 kc:1A434000_075_0117(均已在池内核对);正确项偏长(template artifact)。"
+        "note": "末题复合诊断(空鼓/渗漏/填充墙三条治标+对症补规范措施)。锚定其数值可核采分=填充墙2φ6@500+砌筑14d,教材 ca:1A434000_074_0116『柱或墙边应设置间距不大于500mm的2φ6钢筋;砌筑14d后进行』verbatim。工单:composite跨三缺陷无单锚全覆盖,空鼓子句溯 kc:1A434000_078_0123、渗漏子句溯 kc:1A434000_075_0117(均已在池内核对);正确项偏长(template artifact)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3050,5 +3050,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "abde681586ac950d54e8edd0f595ed665e2376d0e8d9218ec34140641c085970"
+  "published_lesson_sha256": "d14ce218416cd3140c4326fd14744dd24ff145bfe08c3f6dd45ea36d40ffbd76"
 }

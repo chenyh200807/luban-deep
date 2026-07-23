@@ -1,4 +1,4 @@
-// test_index_launch_home.js — regression checks for explicit host-home navigation
+// test_index_launch_home.js — regression checks for the Yousen host-home entry
 // Run: /Applications/Codex.app/Contents/Resources/node yousenwebview/tests/test_index_launch_home.js
 
 var fs = require("fs");
@@ -102,6 +102,69 @@ function loadIndexPage(storageSeed) {
   };
 }
 
+function loadFreeCourseEntry(entryEnabled) {
+  var source = fs.readFileSync(
+    path.join(__dirname, "../pages/freeCourse/freeCourse.js"),
+    "utf8",
+  );
+  var entryCalls = [];
+  var pageDef = null;
+  var sandbox = {
+    console: console,
+    Promise: Promise,
+    wx: {
+      showToast: function () {},
+    },
+    getApp: function () {
+      return {
+        openDeeptutorLogin: function (entrySource, returnTo, options) {
+          entryCalls.push({
+            entrySource: entrySource,
+            returnTo: returnTo,
+            options: options,
+          });
+          return true;
+        },
+      };
+    },
+    require: function (request) {
+      if (request === "../../utils/analytics") {
+        return { track: function () {} };
+      }
+      if (request === "../../api/baseApi") {
+        return {};
+      }
+      if (request === "../../utils/config") {
+        return { baseUrl3: "" };
+      }
+      if (request === "../../utils/function") {
+        return {};
+      }
+      throw new Error("unexpected require: " + request);
+    },
+    Page: function (definition) {
+      pageDef = definition;
+    },
+  };
+
+  vm.runInNewContext(source, sandbox, {
+    filename: "pages/freeCourse/freeCourse.js",
+  });
+
+  var page = {
+    data: {
+      deeptutorEntryConfig: { title: "鲁班AI智考", variant: "default" },
+    },
+    syncDeeptutorEntryState: function () {
+      return entryEnabled;
+    },
+    showDeeptutorEntryDisabledToast: function () {},
+  };
+  pageDef.navigateToShop.call(page, {});
+
+  return entryCalls;
+}
+
 run("cached launch redirect still works without explicit home intent", function () {
   var setup = loadIndexPage({
     yousen_launch_cache: {
@@ -154,14 +217,18 @@ run("chat home button should target index with explicit forceHome flag", functio
   );
 });
 
-run("devtools normal compile should launch from the host home authority", function () {
+run("devtools normal compile should launch from the Yousen host home", function () {
   var appConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, "../app.json"), "utf8"),
   );
 
   assert(
     appConfig.pages && appConfig.pages[0] === "pages/freeCourse/freeCourse",
-    "app.json first page should start from the host home instead of a launch wrapper",
+    "app.json first page should start from the Yousen host home",
+  );
+  assert(
+    appConfig.pages && appConfig.pages.indexOf("pages/deeptutorEntry/deeptutorEntry") >= 0,
+    "app config should retain the Deeptutor bridge as a reachable page",
   );
   assert(
     appConfig.lazyCodeLoading === "requiredComponents",
@@ -184,7 +251,7 @@ run("devtools normal compile should launch from the host home authority", functi
     );
     assert(
       current && current.pathName === "pages/freeCourse/freeCourse",
-      configPath + " should launch the host home directly for normal compile",
+      configPath + " should launch the Yousen host home for normal compile",
     );
     assert(
       current && current.query === "",
@@ -193,21 +260,43 @@ run("devtools normal compile should launch from the host home authority", functi
   });
 });
 
-run("freeCourse AI entry should use guarded cross-home navigation", function () {
+run("freeCourse Luban entry should delegate to the learning bridge", function () {
   var freeCourseSource = fs.readFileSync(
     path.join(__dirname, "../pages/freeCourse/freeCourse.js"),
     "utf8",
   );
 
-  // 2026-06-13 稳定性修订：入口仍先播导学动效，但宿主页必须先显式
-  // loadSubpackage；DevTools/真机在冷缓存下直接 navigateTo 分包页会偶发 fail。
   assert(
-    freeCourseSource.indexOf("_deeptutorNavLockUntil") >= 0 &&
-      freeCourseSource.indexOf("wx.loadSubpackage") >= 0 &&
-      freeCourseSource.indexOf("name: 'packageDeeptutor'") >= 0 &&
-      freeCourseSource.indexOf("pages/onboarding/onboarding") >= 0,
-    "freeCourse entry should preload packageDeeptutor before guarded onboarding navigation",
+    freeCourseSource.indexOf("app.openDeeptutorLogin(entrySource, returnTo") >= 0,
+    "freeCourse entry should delegate to the cross-home bridge",
   );
+  assert(
+    freeCourseSource.indexOf("/packageDeeptutor/pages/learn/learn") >= 0 &&
+      freeCourseSource.indexOf("pages/onboarding/onboarding") === -1 &&
+      freeCourseSource.indexOf("pages/chat/chat?entry_source=") === -1 &&
+      freeCourseSource.indexOf("_deeptutorNavLockUntil") === -1,
+    "freeCourse Luban entry should have one learning target and no local onboarding/chat decision",
+  );
+});
+
+run("freeCourse Luban click should target Learning, never chat", function () {
+  var entryCalls = loadFreeCourseEntry(true);
+
+  assert(entryCalls.length === 1, "enabled Luban entry should make exactly one bridge request");
+  assert(
+    entryCalls[0] && entryCalls[0].entrySource === "free_course_inline_entry",
+    "Luban entry should preserve its host entry source",
+  );
+  assert(
+    entryCalls[0] && entryCalls[0].returnTo === "/packageDeeptutor/pages/learn/learn",
+    "Luban entry should make Learning its only destination",
+  );
+});
+
+run("disabled freeCourse Luban entry must not navigate", function () {
+  var entryCalls = loadFreeCourseEntry(false);
+
+  assert(entryCalls.length === 0, "disabled entry must not bypass its availability guard");
 });
 
 if (fail) {

@@ -1,12 +1,12 @@
 {
   "pages": [
     "pages/freeCourse/freeCourse",
+    "pages/deeptutorEntry/deeptutorEntry",
     "pages/index/index",
     "pages/view/view",
     "pages/getpeople/getpeople",
     "pages/showqrcode/showqrcode",
     "pages/getphone/getphone",
-    "pages/deeptutorEntry/deeptutorEntry",
     "pages/freeCourseDetails/freeCourseDetails",
     "pages/freeCourseDetailsonline/freeCourseDetailsonline",
     "pages/text/text",
@@ -73,7 +73,7 @@
   "lazyCodeLoading": "requiredComponents",
   "__usePrivacyCheck__": true,
   "preloadRule": {
-    "pages/freeCourse/freeCourse": {
+    "pages/deeptutorEntry/deeptutorEntry": {
       "network": "all",
       "packages": [
         "packageDeeptutor"

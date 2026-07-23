@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "G03",
   "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
-  "source_bundle_sha256": "1dcd42a5a57ee741f53ec3bce57cef04bd0b73a3b8a06d69a8f610a435253118",
+  "source_bundle_sha256": "a07aa9d7600b7becfc8ab155f9792c53a46e0886cc26af0713cf16237a0c463a",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -40,8 +40,8 @@
         "G03-html-practice-html-q14-2880cbbb0da6",
         "G03-html-practice-html-q15-cf892847c628"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtY2Y4OTI4NDdjNjI4Il0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjJhODY1MGVmMzE2MmRjYjMzYjQ1OTUyNTA5NDVjN2FkNTlkNjQ1MzM0NWFlODJiOTBjZWFlZDc1YzA1YjNkY2MiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZWQ5ZWI2NWQ5Yjg4MTA1ZDQ2NzkwNjE3OGIwNDJhYTg0OTQ1ZDE3YmViNjhkYzQ4ODhlYWVlNjA0NzA3MTgxMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "666d505020a7188fe16391d243a0dd9c1f9837dd950af916acc7f3f055674280"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtYTUwNjlmYmU3MDgzIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04YzY5MWM1MjdhOGQiLCJHMDMtaHRtbC1wcmFjdGljZS1odG1sLXE0LTE4Njc2ODNhZDYyNSIsIkcwMy1odG1sLXByYWN0aWNlLWh0bWwtcTUtNjc0MjAyNmQ4N2RlIiwiRzAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtY2Y4OTI4NDdjNjI4Il0sInBhY2tfaWQiOiJHMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE4NmYwOGViYzhiYzFiMmQ3YTE3YmE1OThlYjMyNGRjYjM5Mjk0YzlhYzE5MjcxNjVhNDQxZWRmYmE3MGNhM2UiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZWQ5ZWI2NWQ5Yjg4MTA1ZDQ2NzkwNjE3OGIwNDJhYTg0OTQ1ZDE3YmViNjhkYzQ4ODhlYWVlNjA0NzA3MTgxMSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "a289ba97b53178e49681020d1adad923df05ac82658bd690c08b7d51adc04946"
     }
   ],
   "items": [
@@ -96,27 +96,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
       "source_anchor": "kc:1A413030_091_0167:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-bored-pile-typology",
       "skeleton_id": "g03-skel-成孔工法四类定性",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "81bcf71bc9783208fd422a7770a13250c8d68a15f6ad15ae99b2ffefe7cad689",
+      "content_sha256": "9d571a65afaf262e4532e13fd227abd2addd199abf5996568b35ccb51d245b38",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "81bcf71bc9783208fd422a7770a13250c8d68a15f6ad15ae99b2ffefe7cad689",
+        "reviewed_content_sha256": "9d571a65afaf262e4532e13fd227abd2addd199abf5996568b35ccb51d245b38",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -126,7 +126,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "灌注桩成孔工法四类定性。教材0167逐字'可分为泥浆护壁灌注桩、沉管灌注桩、长螺旋钻孔压灌桩和干作业（机械、人工）成孔灌注桩等'。正确项四类与教材一致;三干扰项(仅两类/按受力性状/照搬预制桩)确误。沿用 2026-07-20 sign_g03 重裁 SIGNABLE 结论。"
+        "note": "灌注桩成孔工法四类定性。教材0167逐字'可分为泥浆护壁灌注桩、沉管灌注桩、长螺旋钻孔压灌桩和干作业（机械、人工）成孔灌注桩等'。正确项四类与教材一致;三干扰项(仅两类/按受力性状/照搬预制桩)确误。沿用 2026-07-20 sign_g03 重裁 SIGNABLE 结论。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -258,27 +258,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
       "source_anchor": "kc:1A413030_090_0165:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-precast-strength-thresholds",
       "skeleton_id": "g03-skel-预制桩70-100吊运打",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7ea0b70b9f4d041726ecd5b38f617d9e3122adaaf928e6efc55270f47d60775e",
+      "content_sha256": "76937e4b33cea5d5c4a0252a2a808c9f299762ffd01c4bd524b0c4d9e7b7bcef",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7ea0b70b9f4d041726ecd5b38f617d9e3122adaaf928e6efc55270f47d60775e",
+        "reviewed_content_sha256": "76937e4b33cea5d5c4a0252a2a808c9f299762ffd01c4bd524b0c4d9e7b7bcef",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -288,7 +288,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "预制桩强度阈值。教材0165①②逐字:≥70%起吊/≥100%运输打桩/两点吊0.2L。数值三连全对;干扰项(70/100倒置、75/90、经验掌握)确误。沿用重裁 SIGNABLE。"
+        "note": "预制桩强度阈值。教材0165①②逐字:≥70%起吊/≥100%运输打桩/两点吊0.2L。数值三连全对;干扰项(70/100倒置、75/90、经验掌握)确误。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -471,27 +471,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
       "source_anchor": "exam:2017:第26题",
       "source_sha256": "521b0d294b4573293bba3d0f2f65f48739b2b496b44617be97a71581bab2cfec",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-hammer-drop-mode",
       "skeleton_id": "g03-skel-重锤低击真题",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a8bb3beee3475170e4a798bab00a51255b5e19bba4ba28715e15819eb7590d1e",
+      "content_sha256": "8037deab608d708c84821674bfd6ff6a27dd08ceddcc71e815be33b68e6e22d3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a8bb3beee3475170e4a798bab00a51255b5e19bba4ba28715e15819eb7590d1e",
+        "reviewed_content_sha256": "8037deab608d708c84821674bfd6ff6a27dd08ceddcc71e815be33b68e6e22d3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -501,7 +501,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "锤击落锤方式。真题 exam:2017:第26题官答 BD=重锤低击/低锤重打,解析同口径;教材本包无此条,真题锚独立成立且与2026教材无冲突。沿用重裁 SIGNABLE。"
+        "note": "锤击落锤方式。真题 exam:2017:第26题官答 BD=重锤低击/低锤重打,解析同口径;教材本包无此条,真题锚独立成立且与2026教材无冲突。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -633,27 +633,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
       "source_anchor": "kc:1A413030_091_0166:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-static-press-termination",
       "skeleton_id": "g03-skel-静压终止标高压力",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "392a5a91d01fd2a71f991dfd6ba3579f0b3a44449aee0650824304cd8e4670ef",
+      "content_sha256": "bcbe6c54b91e29c1e38a1cc99b5ca442eeb6d46bb7f2a07b2530f741464878d7",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "392a5a91d01fd2a71f991dfd6ba3579f0b3a44449aee0650824304cd8e4670ef",
+        "reviewed_content_sha256": "bcbe6c54b91e29c1e38a1cc99b5ca442eeb6d46bb7f2a07b2530f741464878d7",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -663,7 +663,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "静压终止标准。核心判分眼(摩擦桩标高为主/端承桩压力为主)教材0166⑧a逐字;干扰项1为主辅对调。辅助采分句'试压桩≥3根/不得边压边挖'教材0165静压①③逐字为真(第一手核对),其候选点0165:1本轮已进q5 TOP_K=5候选,核心眼仍签0166:0。沿用重裁 SIGNABLE(带拆锚记录)。"
+        "note": "静压终止标准。核心判分眼(摩擦桩标高为主/端承桩压力为主)教材0166⑧a逐字;干扰项1为主辅对调。辅助采分句'试压桩≥3根/不得边压边挖'教材0165静压①③逐字为真(第一手核对),其候选点0165:1本轮已进q5 TOP_K=5候选,核心眼仍签0166:0。沿用重裁 SIGNABLE(带拆锚记录)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -778,27 +778,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q6",
       "source_anchor": "kc:1A413030_091_0168:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-slurry-wall-process",
       "skeleton_id": "g03-skel-护壁流程护筒清孔",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6b81b0a228285c428f565d508395e9eaf9c42320c1d9b9b3f374f59b43070cea",
+      "content_sha256": "d8cae98945c18ae36304cdddf9ba7b6184735d21b37279866a344324475c27b8",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "6b81b0a228285c428f565d508395e9eaf9c42320c1d9b9b3f374f59b43070cea",
+        "reviewed_content_sha256": "d8cae98945c18ae36304cdddf9ba7b6184735d21b37279866a344324475c27b8",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -808,7 +808,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "泥浆护壁成孔流程。教材0168完整流程逐字支撑正确项(护筒/清孔两易漏节点齐)。工单(沿用):正确项省略下笼后二次清孔节点;干扰项2'先下笼后清孔'指完全跳过首次清孔仍确误,但与二次清孔工序有表述混淆风险。备用位可签。"
+        "note": "泥浆护壁成孔流程。教材0168完整流程逐字支撑正确项(护筒/清孔两易漏节点齐)。工单(沿用):正确项省略下笼后二次清孔节点;干扰项2'先下笼后清孔'指完全跳过首次清孔仍确误,但与二次清孔工序有表述混淆风险。备用位可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -974,27 +974,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q7",
       "source_anchor": "kc:1A413030_091_0169:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-sediment-thickness",
       "skeleton_id": "g03-skel-沉渣50-100-200",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3b8702d439a6fe1355e849c558a28932a04e2a3464edd22964ca9000487fce01",
+      "content_sha256": "a989804be9ad6b4850b31d62315a4a8990acc021867fbcb59dd81f586520b3b2",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3b8702d439a6fe1355e849c558a28932a04e2a3464edd22964ca9000487fce01",
+        "reviewed_content_sha256": "a989804be9ad6b4850b31d62315a4a8990acc021867fbcb59dd81f586520b3b2",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1004,7 +1004,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "孔底沉渣三档。教材0169逐字(端承≤50/摩擦≤100/抗拔抗水平≤200mm)。沿用重裁备用可签。"
+        "note": "孔底沉渣三档。教材0169逐字(端承≤50/摩擦≤100/抗拔抗水平≤200mm)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1221,27 +1221,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q8",
       "source_anchor": "kc:1A413030_091_0169:1",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-overcast-height-2026",
       "skeleton_id": "g03-skel-超灌纠错500mm",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "70f48aef16ce90bc47a7ac5577c154993ec1b62e2aec9b25c48a7ab154bd18fd",
+      "content_sha256": "5f86f6c16cc339f469e7e34a61cee1f76ecc5a2686002fb8ec0f8fa9764cfd63",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "70f48aef16ce90bc47a7ac5577c154993ec1b62e2aec9b25c48a7ab154bd18fd",
+        "reviewed_content_sha256": "5f86f6c16cc339f469e7e34a61cee1f76ecc5a2686002fb8ec0f8fa9764cfd63",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1251,7 +1251,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "超灌纠错(2026-07-20 冲突修正后新裁)。教材 page91 chunk 0169 ⑧逐字'水下混凝土超灌高度应高于设计桩顶标高 1m 以上，充盈系数不应小于 1'。正确项已改为2026教材口径'高于设计桩顶标高1m以上';2016案例1官答0.8~1.0m旧口径降级为M08干扰项并在解析注明新旧口径(authority-ladder 教材>历史官答,owner-delegated 仲裁)。锚为拆锚修复后的独立超灌采分点(候选rank3,repair_note在编译库)。前轮NO-GO病灶已治,SIGNABLE。"
+        "note": "超灌纠错(2026-07-20 冲突修正后新裁)。教材 page91 chunk 0169 ⑧逐字'水下混凝土超灌高度应高于设计桩顶标高 1m 以上，充盈系数不应小于 1'。正确项已改为2026教材口径'高于设计桩顶标高1m以上';2016案例1官答0.8~1.0m旧口径降级为M08干扰项并在解析注明新旧口径(authority-ladder 教材>历史官答,owner-delegated 仲裁)。锚为拆锚修复后的独立超灌采分点(候选rank3,repair_note在编译库)。前轮NO-GO病灶已治,SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1383,27 +1383,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q9",
       "source_anchor": "kc:1A413030_092_0171:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-immersed-tube-methods",
       "skeleton_id": "g03-skel-沉管复打反插续浇",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f387331ea68eec0b2bffe98113a80a55feca8a57607a0bfa4bf5fb3ed74387fa",
+      "content_sha256": "f0318a4e1fd9341103dbc4344d036f4062bc4c11c86bc9d5448d96a60dc6626c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "f387331ea68eec0b2bffe98113a80a55feca8a57607a0bfa4bf5fb3ed74387fa",
+        "reviewed_content_sha256": "f0318a4e1fd9341103dbc4344d036f4062bc4c11c86bc9d5448d96a60dc6626c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1413,7 +1413,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "沉管工法+成桩步骤。教材0171逐字+exam:2022:第(三)题官答双证(复打法/反插法;边振边拔→下笼继续浇→成桩)。沿用重裁备用可签。"
+        "note": "沉管工法+成桩步骤。教材0171逐字+exam:2022:第(三)题官答双证(复打法/反插法;边振边拔→下笼继续浇→成桩)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1545,27 +1545,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q10",
       "source_anchor": "kc:1A413030_092_0172:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-manual-dug-pile-spacing",
       "skeleton_id": "g03-skel-挖孔间隔5m先中后周",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2338c16b57df6d800dea403fd0e418ec5a507961edbcacefac5156402747ac15",
+      "content_sha256": "8857d0d93936716a44a6c79bcbdcf483f58ce7640b05221c32d8d80e15e41311",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "2338c16b57df6d800dea403fd0e418ec5a507961edbcacefac5156402747ac15",
+        "reviewed_content_sha256": "8857d0d93936716a44a6c79bcbdcf483f58ce7640b05221c32d8d80e15e41311",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1575,7 +1575,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "人工挖孔间距顺序。教材0172逐字(<2.5m间隔开挖浇筑/最小≥5m/先中间后周边)。沿用重裁备用可签。"
+        "note": "人工挖孔间距顺序。教材0172逐字(<2.5m间隔开挖浇筑/最小≥5m/先中间后周边)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1758,27 +1758,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q11",
       "source_anchor": "kc:1A413030_092_0170:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-post-grouting-control",
       "skeleton_id": "g03-skel-注浆量主控80",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c055736d5d6f61b7a560df7e730aa05eb452c3307777051df2a366331bcc3f5a",
+      "content_sha256": "a82a5e71d5fdbd3fbc4c84170af7cda01176a190ccc0e65207f5e67fb6dac15c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c055736d5d6f61b7a560df7e730aa05eb452c3307777051df2a366331bcc3f5a",
+        "reviewed_content_sha256": "a82a5e71d5fdbd3fbc4c84170af7cda01176a190ccc0e65207f5e67fb6dac15c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1788,7 +1788,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "桩底注浆终止控制。教材0170逐字(以注浆量为主;总量达设计 或 ≥80%且压力>设计值)。沿用重裁备用可签。"
+        "note": "桩底注浆终止控制。教材0170逐字(以注浆量为主;总量达设计 或 ≥80%且压力>设计值)。沿用重裁备用可签。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1886,27 +1886,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q12",
       "source_anchor": "kc:1A413030_092_0173:0",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-pile-testing-eyes",
       "skeleton_id": "g03-skel-方法目的匹配",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2d92bcb83b644483684719fcddffb3e64f7c87bbe41c826501550071592576bc",
+      "content_sha256": "9adbd00a70e38f11b829f77cc997f6b7cbf8baf1f99fd012b832dce5982bb14c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "2d92bcb83b644483684719fcddffb3e64f7c87bbe41c826501550071592576bc",
+        "reviewed_content_sha256": "9adbd00a70e38f11b829f77cc997f6b7cbf8baf1f99fd012b832dce5982bb14c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1916,7 +1916,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "检测方法-目的匹配。教材0173方法汇总五连全覆盖+0174逐字+exam:2021:第14题(钻芯法=A)旁证。jury issue#1(高应变也可判完整性)为工单级非fatal——选项未写'只能',配对法与教材口径一致。三件套 anchor。沿用重裁 SIGNABLE。"
+        "note": "检测方法-目的匹配。教材0173方法汇总五连全覆盖+0174逐字+exam:2021:第14题(钻芯法=A)旁证。jury issue#1(高应变也可判完整性)为工单级非fatal——选项未写'只能',配对法与教材口径一致。三件套 anchor。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2065,27 +2065,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q13",
       "source_anchor": "kc:1A413030_093_0174:1",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-pile-testing-eyes",
       "skeleton_id": "g03-skel-完整性II-III分界",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b1b6182a3b6760e377e81a4fa81656f27fc1a7001b2a613c85c1e1f941980a50",
+      "content_sha256": "6d1735d5e0d597dea4bc97c19d49af2ade961e571e4ff7231a92f305a815e36a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "b1b6182a3b6760e377e81a4fa81656f27fc1a7001b2a613c85c1e1f941980a50",
+        "reviewed_content_sha256": "6d1735d5e0d597dea4bc97c19d49af2ade961e571e4ff7231a92f305a815e36a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2095,7 +2095,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "完整性Ⅱ/Ⅲ分界。教材0174:1逐字(Ⅱ轻微不影响/Ⅲ明显影响承载力)。三件套 immediate_confirm,第2独立skeleton。沿用重裁 SIGNABLE。"
+        "note": "完整性Ⅱ/Ⅲ分界。教材0174:1逐字(Ⅱ轻微不影响/Ⅲ明显影响承载力)。三件套 immediate_confirm,第2独立skeleton。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2244,27 +2244,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q14",
       "source_anchor": "kc:1A413030_093_0174:2",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-pile-testing-eyes",
       "skeleton_id": "g03-skel-钻芯孔数分档",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fab0996c6af0aefbda881a9ef3860140d90370f0543736cc2430a1482b2b8936",
+      "content_sha256": "3b6cb344d9f5b2da5c2c1b6d591e45e648b90176e8316baab3c5c0405b7a5f68",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "fab0996c6af0aefbda881a9ef3860140d90370f0543736cc2430a1482b2b8936",
+        "reviewed_content_sha256": "3b6cb344d9f5b2da5c2c1b6d591e45e648b90176e8316baab3c5c0405b7a5f68",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2274,7 +2274,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "钻芯孔数分档。教材0174:2逐字+数值复核(<1.2m为1~2孔/1.2~1.6m为2孔/>1.6m为3孔,孔位0.15~0.25D)。三件套 d1_probe,第3独立skeleton。沿用重裁 SIGNABLE。"
+        "note": "钻芯孔数分档。教材0174:2逐字+数值复核(<1.2m为1~2孔/1.2~1.6m为2孔/>1.6m为3孔,孔位0.15~0.25D)。三件套 d1_probe,第3独立skeleton。沿用重裁 SIGNABLE。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2610,27 +2610,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
       "source_anchor": "kc:1A413030_091_0169:1",
       "source_sha256": "67fd574ee493ace8e3531afc1f532144f014cddf8471bdcb51be0a0b22239204",
-      "source_html_sha256": "cecd661914200c289bf973c69d8cfddedf86022f3eff88bbd97c73c5e6d6881f",
+      "source_html_sha256": "e9758b550bfef74881bcb0a2df2a7bf526f0b2696a12e47bdbf1e6ccfd296a97",
       "fact_id": "g03-fact-pile-diagnosis-composite",
       "skeleton_id": "g03-skel-诊断超灌抽检坍孔",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5243936161cabf98bc438c941ed734f009839f3f2d0630fb873b0c8e37ada152",
+      "content_sha256": "902848ff3e59a32072353b4564ac145b98552f7caba6612d27c4fe338c9e0d25",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "5243936161cabf98bc438c941ed734f009839f3f2d0630fb873b0c8e37ada152",
+        "reviewed_content_sha256": "902848ff3e59a32072353b4564ac145b98552f7caba6612d27c4fe338c9e0d25",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:27:46+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2640,7 +2640,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "复合诊断末题(2026-07-20 双病灶修复后新裁)。①超灌:正确项改2026教材口径'高于设计桩顶标高1m以上',主锚即该教材逐字采分点(候选rank1);0.8~1.0m旧口径降级为E08干扰项内错误成分并在解析点破。②甲级完整性≥30%且≥20根,900×30%=270根,exam:2016官答逐字支持、教材无冲突(前轮已裁无病)。③前轮预制桩'断裂五因'拼装错误已整段替换为泥浆护壁灌注桩坍孔病谱,教材 page71 chunk 1A434000_071_0110 '原因分析'六条逐字支撑(泥浆比重/水头/护筒埋深/进尺等,已按S02同法补独立采分点 kc:1A434000_071_0110:2+repair_note;该点rank7未进本题TOP_K=5候选,单锚按G01-q15先例取首要判分眼超灌教材点)。场景已改'甲级泥浆护壁灌注桩',病谱-场景自洽。前轮三重阻断全部解除,SIGNABLE。工单:正确项偏长(诊断题固有,同G01-q15口径)。"
+        "note": "复合诊断末题(2026-07-20 双病灶修复后新裁)。①超灌:正确项改2026教材口径'高于设计桩顶标高1m以上',主锚即该教材逐字采分点(候选rank1);0.8~1.0m旧口径降级为E08干扰项内错误成分并在解析点破。②甲级完整性≥30%且≥20根,900×30%=270根,exam:2016官答逐字支持、教材无冲突(前轮已裁无病)。③前轮预制桩'断裂五因'拼装错误已整段替换为泥浆护壁灌注桩坍孔病谱,教材 page71 chunk 1A434000_071_0110 '原因分析'六条逐字支撑(泥浆比重/水头/护筒埋深/进尺等,已按S02同法补独立采分点 kc:1A434000_071_0110:2+repair_note;该点rank7未进本题TOP_K=5候选,单锚按G01-q15先例取首要判分眼超灌教材点)。场景已改'甲级泥浆护壁灌注桩',病谱-场景自洽。前轮三重阻断全部解除,SIGNABLE。工单:正确项偏长(诊断题固有,同G01-q15口径)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2705,5 +2705,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "1379e038063aca0fb854bbe941069e4d7df60e0a4ec8e2d9faa571c5bbdd96b0"
+  "published_lesson_sha256": "50213e4c5a92ae92a70d21836b6cf1817264cade6fb9c02c54196b7a165e1436"
 }

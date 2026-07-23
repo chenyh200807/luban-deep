@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F16",
   "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
-  "source_bundle_sha256": "a5503a42ad69bcb3404c22f2cec5878c343183b7fb6da296b921add1061d3454",
+  "source_bundle_sha256": "839ce0cf4af587ef2767c17049345a8f14bded2790d8a723f3edf7c3e6307d97",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -34,8 +34,8 @@
         "F16-html-practice-html-q7-93e692c80e76",
         "F16-html-practice-html-q8-19876fafd2ec"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjE2MDc0NWUwNjVlIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kODdlZTlhMzMyNTYiLCJGMTYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWRhYmQwNWViOTFiNiIsIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDBmMGYyZDkyNWVjIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wYjI2ZjFkZWRhZWYiXSwicGFja19pZCI6IkYxNiIsInByb2plY3Rpb25fZGlnZXN0IjoiNTE1NmIzYzViZGNkYWE0YmQ0NmI0YmFiNDVjMjJjZTQ1YTVlNTAxMGUxMjBkODI2MDJiYmE3YTEyOWNmNTcwMCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJhNjI1YjYzMTc5YWIzOTE5NTgwMTkxODI3N2QzMmE1MzAyNzY5MDkyMWZiNWIxODNmYWMwYmJjOGUzODYzN2VkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "1ae5f8f4798e8542170f2754c4ae4f1f157bb7a259b498555cc65c374e71f22b"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjE2MDc0NWUwNjVlIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1kODdlZTlhMzMyNTYiLCJGMTYtaHRtbC1wcmFjdGljZS1odG1sLXEzLWRhYmQwNWViOTFiNiIsIkYxNi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDBmMGYyZDkyNWVjIiwiRjE2LWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wYjI2ZjFkZWRhZWYiXSwicGFja19pZCI6IkYxNiIsInByb2plY3Rpb25fZGlnZXN0IjoiYjVlYjMwMTExYzIwMzhhMzU5OGEwMzRiZDljYzk5MWRiMmE3ZjI0ZWY1NTQ0ZGE2ZmJkOTQ4NjNmNjM5MGY1NCIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJhNjI1YjYzMTc5YWIzOTE5NTgwMTkxODI3N2QzMmE1MzAyNzY5MDkyMWZiNWIxODNmYWMwYmJjOGUzODYzN2VkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "648a2aebea3b3cc073e426a7f337fcc732bb229b747fb313b3598c71638ee2c3"
     }
   ],
   "items": [
@@ -90,27 +90,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q1",
       "source_anchor": "kc:1A434000_076_0119:0",
       "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-起鼓分档处置",
       "skeleton_id": "f16-skel-分档抽气灌胶vs割补",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3fcea5de5885bd99984c9992650af56f3911a9fd38634302b2d9b14a5c03b48c",
+      "content_sha256": "1a49c86211c1403987047fd5e651da7e5a7aafac546ebd05524dc197a3560a45",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3fcea5de5885bd99984c9992650af56f3911a9fd38634302b2d9b14a5c03b48c",
+        "reviewed_content_sha256": "1a49c86211c1403987047fd5e651da7e5a7aafac546ebd05524dc197a3560a45",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -120,7 +120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "起鼓按100mm直径分档: <100mm抽气灌胶法; ≥100mm割开清理吹干重贴。教材 kc:1A434000_076_0119:0 原文 verbatim 支撑正确项(Ø80抽气灌胶/Ø160割补)。工单: 正确项恒次位、干扰项数字混淆(300mm)为template artifact。"
+        "note": "起鼓按100mm直径分档: <100mm抽气灌胶法; ≥100mm割开清理吹干重贴。教材 kc:1A434000_076_0119:0 原文 verbatim 支撑正确项(Ø80抽气灌胶/Ø160割补)。工单: 正确项恒次位、干扰项数字混淆(300mm)为template artifact。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -286,27 +286,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q2",
       "source_anchor": "exam:2017:案例二",
       "source_sha256": "889e43a15c48cadacd1790d356a070eb73e422bc836e423d2ce3c108e6966552",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-割补工序八环",
       "skeleton_id": "f16-skel-工序箭头链",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "17567d2987811661db3890309db7e73bad6e3df04bb5945227e0ed9f99fbc6f8",
+      "content_sha256": "5572878f3b279d7281671078fd1d293dc969530747f928b59c05c186b6360528",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "17567d2987811661db3890309db7e73bad6e3df04bb5945227e0ed9f99fbc6f8",
+        "reviewed_content_sha256": "5572878f3b279d7281671078fd1d293dc969530747f928b59c05c186b6360528",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -316,7 +316,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "割补八环工序(割开→放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层)。真题 exam:2017:案例二 workflow文本(用刀割开/放出气体/擦干水分/清除旧胶结料/喷灯烘烤/重贴/压实/重做保护层)实证在 _F16_exam_evidence.json, 支撑正确项。"
+        "note": "割补八环工序(割开→放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层)。真题 exam:2017:案例二 workflow文本(用刀割开/放出气体/擦干水分/清除旧胶结料/喷灯烘烤/重贴/压实/重做保护层)实证在 _F16_exam_evidence.json, 支撑正确项。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -516,27 +516,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q3",
       "source_anchor": "exam:2017:案例二",
       "source_sha256": "889e43a15c48cadacd1790d356a070eb73e422bc836e423d2ce3c108e6966552",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-割补工序八环",
       "skeleton_id": "f16-skel-三段式纠错漏步",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bae9b1f25193f6fc485bb17f164944074ffd28f0c38940ae29e4b9817b6a2a71",
+      "content_sha256": "df5fb6f3353ce09ceff01537acc9bb8f0a1e58231c64c7e5c39c7a6a4b925c8a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "bae9b1f25193f6fc485bb17f164944074ffd28f0c38940ae29e4b9817b6a2a71",
+        "reviewed_content_sha256": "df5fb6f3353ce09ceff01537acc9bb8f0a1e58231c64c7e5c39c7a6a4b925c8a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -546,7 +546,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "三段式纠错: 割开后直接贴不妥, 漏放气/擦干/清旧胶/烘烤剥离。同割补工序 fact, 依 exam:2017:案例二 workflow evidence 判漏步。skeleton 与 q2/q7/q8 互异(三段式纠错 vs 工序箭头链 vs 作用判别 vs 乱序纠错)。"
+        "note": "三段式纠错: 割开后直接贴不妥, 漏放气/擦干/清旧胶/烘烤剥离。同割补工序 fact, 依 exam:2017:案例二 workflow evidence 判漏步。skeleton 与 q2/q7/q8 互异(三段式纠错 vs 工序箭头链 vs 作用判别 vs 乱序纠错)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -712,27 +712,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q4",
       "source_anchor": "kc:1A434000_068_0104:0",
       "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-施工过程检查清单",
       "skeleton_id": "f16-skel-检验清单枚举",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "282787cf76e1b7726065c9e2b9a464973946f44d431a2a1687c60148b1b0c3c5",
+      "content_sha256": "cac100b502547fbc87020edb0fcc4e7e483144358913ce1624727ae34ec81926",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "282787cf76e1b7726065c9e2b9a464973946f44d431a2a1687c60148b1b0c3c5",
+        "reviewed_content_sha256": "cac100b502547fbc87020edb0fcc4e7e483144358913ce1624727ae34ec81926",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -742,7 +742,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "屋面施工过程检查清单(基层平整干燥/排气孔/铺贴方向/搭接长度/泛水高度/保护层/材料相容性/防潮防火)。教材 kc:1A434000_068_0104:0 原文 verbatim 枚举支撑正确项, 基层平整干燥+排气孔直指起鼓根因。"
+        "note": "屋面施工过程检查清单(基层平整干燥/排气孔/铺贴方向/搭接长度/泛水高度/保护层/材料相容性/防潮防火)。教材 kc:1A434000_068_0104:0 原文 verbatim 枚举支撑正确项, 基层平整干燥+排气孔直指起鼓根因。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -925,27 +925,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q5",
       "source_anchor": "kc:1A434000_076_0119:0",
       "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-姐妹病害区分",
       "skeleton_id": "f16-skel-流淌vs起鼓药方",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1400442dd4d8bd755975fc16ef2b58bb7a37f4d5347e55819de769d0f5c960cd",
+      "content_sha256": "74c64d504100e7d71dbf4b7a4992fd00bbde9ebd06f35344053401418d62a2dc",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "1400442dd4d8bd755975fc16ef2b58bb7a37f4d5347e55819de769d0f5c960cd",
+        "reviewed_content_sha256": "74c64d504100e7d71dbf4b7a4992fd00bbde9ebd06f35344053401418d62a2dc",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -955,7 +955,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "姐妹病害防混答: 流淌(钉钉子/切割/局部切除重铺, 见 kc:1A434000_076_0118:0)vs起鼓(100mm分档+割补)药方不互换。正确项起鼓半段锚 kc:1A434000_076_0119:0 verbatim分档(该锚为本题机器候选); 流淌半段 ca:1A434000_076_0118 佐证同在候选。第6题补入本轮 eligible, 非投影5题。"
+        "note": "姐妹病害防混答: 流淌(钉钉子/切割/局部切除重铺, 见 kc:1A434000_076_0118:0)vs起鼓(100mm分档+割补)药方不互换。正确项起鼓半段锚 kc:1A434000_076_0119:0 verbatim分档(该锚为本题机器候选); 流淌半段 ca:1A434000_076_0118 佐证同在候选。第6题补入本轮 eligible, 非投影5题。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1138,27 +1138,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q6",
       "source_anchor": "kc:1A434000_076_0119:0",
       "source_sha256": "d9ad672f0fc1dcf39132805ce836dff4b8a3f7f28f478072b51f4348d2478b90",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-采分诊断补写",
       "skeleton_id": "f16-skel-采分诊断三处失分",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c7457113cebe358c9c8975b7050da09a2a0d562d54e1c4736fcb5075e7d2830e",
+      "content_sha256": "91403e79de0fd47fcdb1efd334194b78197f16ae95b01b47a6bea882ed9a28b3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c7457113cebe358c9c8975b7050da09a2a0d562d54e1c4736fcb5075e7d2830e",
+        "reviewed_content_sha256": "91403e79de0fd47fcdb1efd334194b78197f16ae95b01b47a6bea882ed9a28b3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1168,7 +1168,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "末题采分诊断: 三处失分(不分档/割开直接贴/缺保护层)+补写。核心分档锚 kc:1A434000_076_0119:0(verbatim分档), 综合工序+检验。工单: 正确项偏长(采分句完整所致)。投影末题。"
+        "note": "末题采分诊断: 三处失分(不分档/割开直接贴/缺保护层)+补写。核心分档锚 kc:1A434000_076_0119:0(verbatim分档), 综合工序+检验。工单: 正确项偏长(采分句完整所致)。投影末题。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1283,27 +1283,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q7",
       "source_anchor": "exam:2017:案例二",
       "source_sha256": "889e43a15c48cadacd1790d356a070eb73e422bc836e423d2ce3c108e6966552",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-割补工序八环",
       "skeleton_id": "f16-skel-烘烤剥离作用判别",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "748ce77fafa2c207d941a99aa77aa0b24770f09e721bdd819adb2bd52bda6f06",
+      "content_sha256": "9989df06c455c2fdb4708670f83c30b9a4c7b5b9fddfd264d6e7cb467171e25b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "748ce77fafa2c207d941a99aa77aa0b24770f09e721bdd819adb2bd52bda6f06",
+        "reviewed_content_sha256": "9989df06c455c2fdb4708670f83c30b9a4c7b5b9fddfd264d6e7cb467171e25b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1313,7 +1313,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "immediate_confirm·关键环节作用判别: 「喷灯烘烤旧卷材槎口」的作用=分层剥开、除去旧胶结材料后再重贴。逐字对照 exam:2017:案例二 官方解「再用喷灯烘烤旧卷材槎口，并分层剥开，除去旧胶结材料后，重新粘贴新卷材」, 不发明作用。干扰项: 顶替擦干(E07概念混淆)/热熔焊接收尾(E10顺序)/等同重做保护层(E02)。skeleton 与 q2/q3/q8 互异。非投影, 仅作割补八环 fact 三件套供给。"
+        "note": "immediate_confirm·关键环节作用判别: 「喷灯烘烤旧卷材槎口」的作用=分层剥开、除去旧胶结材料后再重贴。逐字对照 exam:2017:案例二 官方解「再用喷灯烘烤旧卷材槎口，并分层剥开，除去旧胶结材料后，重新粘贴新卷材」, 不发明作用。干扰项: 顶替擦干(E07概念混淆)/热熔焊接收尾(E10顺序)/等同重做保护层(E02)。skeleton 与 q2/q3/q8 互异。非投影, 仅作割补八环 fact 三件套供给。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1479,27 +1479,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q8",
       "source_anchor": "exam:2017:案例二",
       "source_sha256": "889e43a15c48cadacd1790d356a070eb73e422bc836e423d2ce3c108e6966552",
-      "source_html_sha256": "d1795db57c2e881cf5369e72536277da2b8ee8f5948ab703ddec0cf85b2b3afb",
+      "source_html_sha256": "c9a0b2f2f3d183054b2a2fc4f9e6257a2e1008ebb4079829675b67583194e54c",
       "fact_id": "f16-fact-割补工序八环",
       "skeleton_id": "f16-skel-工序乱序纠错",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "201c28575cbd89f937fc3ef790b233f7d61b3f0d0e9bbbe535eb702923cf0330",
+      "content_sha256": "8c67f5a3785f375b918d2c28115a1b24bc01d9ff9418cf88b7986baa8e605f1d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "201c28575cbd89f937fc3ef790b233f7d61b3f0d0e9bbbe535eb702923cf0330",
+        "reviewed_content_sha256": "8c67f5a3785f375b918d2c28115a1b24bc01d9ff9418cf88b7986baa8e605f1d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:30+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1509,7 +1509,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "d1_probe·八环乱序纠错: 四份默写步骤全同、仅先后不同, 选顺序全对的一项(距正确序一次相邻交换)。正确序=割开→放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层, 逐字对照 exam:2017:案例二 官方解次序; 三干扰项均为相邻两步次序颠倒(放气↔擦干/清旧胶↔烘烤/重贴↔压实, 全E10顺序), 埋错与解析一致。skeleton 与 q2(箭头链填空)/q3(三段式)/q7(作用判别)互异。非投影, 仅作割补八环 fact 三件套供给。"
+        "note": "d1_probe·八环乱序纠错: 四份默写步骤全同、仅先后不同, 选顺序全对的一项(距正确序一次相邻交换)。正确序=割开→放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层, 逐字对照 exam:2017:案例二 官方解次序; 三干扰项均为相邻两步次序颠倒(放气↔擦干/清旧胶↔烘烤/重贴↔压实, 全E10顺序), 埋错与解析一致。skeleton 与 q2(箭头链填空)/q3(三段式)/q7(作用判别)互异。非投影, 仅作割补八环 fact 三件套供给。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1659,5 +1659,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "bd9bc799cb0fc4a787dc14a7919fdfa912eef8f72262d8aedb8492f1bebb99b1"
+  "published_lesson_sha256": "fd63c4061235bbcad3307f5e1d8b06a1e97f4c8114804ca9dfcfd34d39f44ffd"
 }

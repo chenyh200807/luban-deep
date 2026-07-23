@@ -8,7 +8,7 @@
 </head>
 <body>
 <x-dc>
-<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 追问AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
@@ -129,7 +129,7 @@
         <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
       </div>
       <div style="padding:0 16px 24px;">
-        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？追问AI（已带题目）</button>
       </div>
     </div>
     </sc-if>
@@ -186,7 +186,7 @@
         <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
         <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
           <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
-          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">追问AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
           <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
         </div>
         <div style="flex:none;padding:0 16px;">
@@ -503,7 +503,7 @@ class Component extends DCLogic {
     const wxm=window.wx&&window.wx.miniProgram;
     const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
     if(!wxm||!inMini||!wxm.redirectTo) return false;
-    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04MTMwNzJkOTJjNWEiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTU3ODc4MGYzNDFlNSIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi00NjFkNTQwNWZhMzQiXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNGRlYTJjNTYwZmVjYzMxODQ3YTRmMzQ1NWFjYWI1NTQ1NDNjYTk3MmQ4NWE2NmU5YzY1NGUyYzFhNTA0NTM5YiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiIwOGY2ZWZkYTUyNGI1OTM1ZGEyMmI2ZGM2ZTJmOTVkMWViMjdkN2Y4MTBhOTEyNTcwZWZlNjg3ZTI0MmMxNWRkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N02")+'&practice_surface='+encodeURIComponent("practice.html")+'&projection_receipt='+encodeURIComponent("eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04MTMwNzJkOTJjNWEiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTU3ODc4MGYzNDFlNSIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi00NjFkNTQwNWZhMzQiXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZmI5ZGRiZTFiY2VlZWJhOTUxNTc5ZTQ4MjM2MTc5NWU2ZTM1ZTQ4OWE3OTE3ZjVhOGU0MmU2NGNhMGVjMDYzNSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiIwOGY2ZWZkYTUyNGI1OTM1ZGEyMmI2ZGM2ZTJmOTVkMWViMjdkN2Y4MTBhOTEyNTcwZWZlNjg3ZTI0MmMxNWRkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ")+'&answers='+encodeURIComponent(JSON.stringify(answers));
     wxm.redirectTo({url:url,fail:onFailure});
     return true;
   }
@@ -564,7 +564,7 @@ class Component extends DCLogic {
     this.__dtOverlayLoading();
     let response,data;
     try{
-      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"N02",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04MTMwNzJkOTJjNWEiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTU3ODc4MGYzNDFlNSIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi00NjFkNTQwNWZhMzQiXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiNGRlYTJjNTYwZmVjYzMxODQ3YTRmMzQ1NWFjYWI1NTQ1NDNjYTk3MmQ4NWE2NmU5YzY1NGUyYzFhNTA0NTM5YiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiIwOGY2ZWZkYTUyNGI1OTM1ZGEyMmI2ZGM2ZTJmOTVkMWViMjdkN2Y4MTBhOTEyNTcwZWZlNjg3ZTI0MmMxNWRkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
+      response=await fetch('/api/v1/luban-preview/practice-submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contextId:"N02",entryTicket:ticket,practiceSurface:"practice.html",projectionReceipt:"eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjBhZDUxNmM3MjAxIiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04MTMwNzJkOTJjNWEiLCJOMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLTU3ODc4MGYzNDFlNSIsIk4wMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtNDlhZTJhNDdiZDk0IiwiTjAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi00NjFkNTQwNWZhMzQiXSwicGFja19pZCI6Ik4wMiIsInByb2plY3Rpb25fZGlnZXN0IjoiZmI5ZGRiZTFiY2VlZWJhOTUxNTc5ZTQ4MjM2MTc5NWU2ZTM1ZTQ4OWE3OTE3ZjVhOGU0MmU2NGNhMGVjMDYzNSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiIwOGY2ZWZkYTUyNGI1OTM1ZGEyMmI2ZGM2ZTJmOTVkMWViMjdkN2Y4MTBhOTEyNTcwZWZlNjg3ZTI0MmMxNWRkIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",completionId:this.__dtRound.id,answers:this.__dtRound.answers})});
       data=await response.json().catch(function(){ return {}; });
     }catch(_){
       this.__dtRound.state='failed';

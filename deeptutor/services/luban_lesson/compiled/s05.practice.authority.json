@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S05",
   "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
-  "source_bundle_sha256": "76e6779f219506f06b68e9ae0ec27dfedabacb6c79fef8488ce6e782df8d5dab",
+  "source_bundle_sha256": "d6ae94e539caf5ca8d385b833fca155ddf36c8cf7fec9062eef7a1a9884803ba",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -34,8 +34,8 @@
         "S05-html-practice-html-q11-69e222135867",
         "S05-html-practice-html-q18-236101054350"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtY2ZkM2FiZmQ5NzYxIiwiUzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MjNmYjQ4NzgwNzEiLCJTMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTE1NWE3MTljNTllOCIsIlMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmEwMjk5YmI5NTZkIiwiUzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTgtMjM2MTAxMDU0MzUwIl0sInBhY2tfaWQiOiJTMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImQ5NWU0YWQxNDk0ZTU2N2RiZWZkZTRjNmViNTU0OTAzZDBjMzU0MDRhZjFiOWRmZTRiOTc3MjVmZWQ2ZjZhMTAiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWQwYWU3YWNiM2IyYjQ2YWMzNTdmNzM4MzcxNTFjOWMyYmUzYjExNDNhN2MyYWJkMTQ2YmZhODUyNTZhMzcyOSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "c61933504e921a9c96877d6bbf5edc46a16c9794287cdbc3e6b424d666051faa"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtY2ZkM2FiZmQ5NzYxIiwiUzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi01MjNmYjQ4NzgwNzEiLCJTMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLTE1NWE3MTljNTllOCIsIlMwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMmEwMjk5YmI5NTZkIiwiUzA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTgtMjM2MTAxMDU0MzUwIl0sInBhY2tfaWQiOiJTMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImRkOTQ2OGEwYmUyODIxOGRhMTgxNWU0OWZmNzY2MzE5ZWUwODI4YTZkYWU2MTljYTMyMmIxYjdlZDdhMGVhMDgiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiMWQwYWU3YWNiM2IyYjQ2YWMzNTdmNzM4MzcxNTFjOWMyYmUzYjExNDNhN2MyYWJkMTQ2YmZhODUyNTZhMzcyOSIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "631cdbbe28d43ccd82ea9edec3ad5a41828c2984d260b5d494f574b44b82c0bc"
     }
   ],
   "items": [
@@ -90,27 +90,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q1",
       "source_anchor": "kc:1A431011_015_0016:0",
       "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-three-systems",
       "skeleton_id": "s05-skel-三大系统缺一不可",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7dc794558a3b6f0f58f8835ba6221581046219fdd6d38411812c2bbcb783a7dd",
+      "content_sha256": "d82a8696282ddee319fba73967ac9e570bab6761dd5ac5285a9e4cb118d51381",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7dc794558a3b6f0f58f8835ba6221581046219fdd6d38411812c2bbcb783a7dd",
+        "reviewed_content_sha256": "d82a8696282ddee319fba73967ac9e570bab6761dd5ac5285a9e4cb118d51381",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -120,7 +120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "施工现场临时用电必须采用三级配电系统、TN-S接零保护系统、二级剩余电流动作保护系统, 教材 kc:1A431011_015_0016:0 逐字直引; 干扰项(两级配电+一级漏保/大地兼作保护零线/TN-C)均确错(教材同 chunk『严禁利用大地作导体』)。历史退批 fact 与本题无涉。"
+        "note": "施工现场临时用电必须采用三级配电系统、TN-S接零保护系统、二级剩余电流动作保护系统, 教材 kc:1A431011_015_0016:0 逐字直引; 干扰项(两级配电+一级漏保/大地兼作保护零线/TN-C)均确错(教材同 chunk『严禁利用大地作导体』)。历史退批 fact 与本题无涉。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -252,27 +252,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q2",
       "source_anchor": "kc:1A431011_014_0015:1",
       "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-three-level-distribution",
       "skeleton_id": "s05-skel-三级配电装置组成",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d61c7479b7a5275852b8716c4275adcd101c436d1791b0016d956e00b85f6f7f",
+      "content_sha256": "720928f95c85849f121f4c2578ffb090b19f505e948279e4b960a48b20121578",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "d61c7479b7a5275852b8716c4275adcd101c436d1791b0016d956e00b85f6f7f",
+        "reviewed_content_sha256": "720928f95c85849f121f4c2578ffb090b19f505e948279e4b960a48b20121578",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -282,7 +282,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "总配电箱、分配电箱、开关箱三级配电装置, 教材 kc:1A431011_014_0015:1 逐字直引。工单: 正确项附加『不得越级直接接用电设备』超引文字面, 系三级配电制度必然含义且不使选项变错, 非 fatal; 建议教材线补原文分片回填。"
+        "note": "总配电箱、分配电箱、开关箱三级配电装置, 教材 kc:1A431011_014_0015:1 逐字直引。工单: 正确项附加『不得越级直接接用电设备』超引文字面, 系三级配电制度必然含义且不使选项变错, 非 fatal; 建议教材线补原文分片回填。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -448,27 +448,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q3",
       "source_anchor": "kc:1A431011_014_0015:2",
       "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-one-device-one-switchbox",
       "skeleton_id": "s05-skel-专用开关箱严禁共用",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2255efb8b4bd0dd62c323b8562da7408b47fc398491dd004e09374a4959c28ba",
+      "content_sha256": "c54056dcb1bc81bc3ab4d1471175b78859474cbfcb63ef979e431c58c0ef344b",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "2255efb8b4bd0dd62c323b8562da7408b47fc398491dd004e09374a4959c28ba",
+        "reviewed_content_sha256": "c54056dcb1bc81bc3ab4d1471175b78859474cbfcb63ef979e431c58c0ef344b",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -478,7 +478,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "每台用电设备应有各自专用开关箱、不得同箱直接控制2台及以上(含插座), 教材 kc:1A431011_014_0015:2 逐字直引(含『含插座』); exam:2023:第1题 正确做法② 旁证。fact_id 沿用变体银行线命名先例。"
+        "note": "每台用电设备应有各自专用开关箱、不得同箱直接控制2台及以上(含插座), 教材 kc:1A431011_014_0015:2 逐字直引(含『含插座』); exam:2023:第1题 正确做法② 旁证。fact_id 沿用变体银行线命名先例。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -610,27 +610,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q4",
       "source_anchor": "exam:2023:第1题",
       "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-no-plug-socket-inlet",
       "skeleton_id": "s05-skel-进线端严禁插头插座",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "85639595e7d4ba569d14ade4a6f3fb1fd02507987d654a4959d40bb779cb5909",
+      "content_sha256": "12d15fb7fa87c35c8a2af73a366f557f10ba10e9e088ff9efe426d2d909bbf19",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "85639595e7d4ba569d14ade4a6f3fb1fd02507987d654a4959d40bb779cb5909",
+        "reviewed_content_sha256": "12d15fb7fa87c35c8a2af73a366f557f10ba10e9e088ff9efe426d2d909bbf19",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -640,7 +640,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "配电箱、开关箱电源进线端严禁采用插头和插座做活动连接, 真题 exam:2023:第1题 正确做法③ 逐字直引(唯一机器候选)。『应采用固定可靠连接』为该禁令的自然改正表述, 不构成第二断言。fact_id 沿用变体银行线命名先例。"
+        "note": "配电箱、开关箱电源进线端严禁采用插头和插座做活动连接, 真题 exam:2023:第1题 正确做法③ 逐字直引(唯一机器候选)。『应采用固定可靠连接』为该禁令的自然改正表述, 不构成第二断言。fact_id 沿用变体银行线命名先例。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -772,17 +772,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "cedbba6f4ae298803aa6f1fa48703e57609bf250c2cc2dcceb575cf6db01dc6c",
+      "content_sha256": "66d5e7430e2058d9e28655691faba33119f7f19266cdfb4582e1d1a20bf5c737",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "cedbba6f4ae298803aa6f1fa48703e57609bf250c2cc2dcceb575cf6db01dc6c",
+        "reviewed_content_sha256": "66d5e7430e2058d9e28655691faba33119f7f19266cdfb4582e1d1a20bf5c737",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -905,17 +905,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "92859486809b79227c6afd22061fa7c750d094afad8a6af26cec2aa3c70e7560",
+      "content_sha256": "ff4c6c247345f73f1e1b8ad0908da1ac641816f4764640dad6fa48e84fa80886",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "92859486809b79227c6afd22061fa7c750d094afad8a6af26cec2aa3c70e7560",
+        "reviewed_content_sha256": "ff4c6c247345f73f1e1b8ad0908da1ac641816f4764640dad6fa48e84fa80886",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1055,17 +1055,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f48ba72ffa1653dbf32bf026831a1064b46a1f3921e6bd765cc7e82604d20e4f",
+      "content_sha256": "420f3acb4ce09615090adeac46ba6d0b7e21128414b50cbe18e127a505a75cdc",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f48ba72ffa1653dbf32bf026831a1064b46a1f3921e6bd765cc7e82604d20e4f",
+        "reviewed_content_sha256": "420f3acb4ce09615090adeac46ba6d0b7e21128414b50cbe18e127a505a75cdc",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1205,27 +1205,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q8",
       "source_anchor": "exam:2016:第13题",
       "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-safety-voltage-application",
       "skeleton_id": "s05-skel-金属容器锅炉12V场景",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "848482c07f930e9567e915c1938a883b93503eaf7eb0a19b6cb7215dd0631396",
+      "content_sha256": "1938abb6f31fb099743eaae8004f069fb8ba07987dca2c7c46d68ff2465b819e",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "848482c07f930e9567e915c1938a883b93503eaf7eb0a19b6cb7215dd0631396",
+        "reviewed_content_sha256": "1938abb6f31fb099743eaae8004f069fb8ba07987dca2c7c46d68ff2465b819e",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1235,7 +1235,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "金属容器内照明电压不得超过12V, 真题 exam:2016:第13题(答案C)题面+解析逐字直证; 教材 kc:1A431011_015_0016:2 同表旁证(与 q9 共享同一采分点)。三件套 immediate_confirm(同安全电压应用 fact, 单场景条件维 skeleton)。"
+        "note": "金属容器内照明电压不得超过12V, 真题 exam:2016:第13题(答案C)题面+解析逐字直证; 教材 kc:1A431011_015_0016:2 同表旁证(与 q9 共享同一采分点)。三件套 immediate_confirm(同安全电压应用 fact, 单场景条件维 skeleton)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1350,27 +1350,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q9",
       "source_anchor": "kc:1A431011_015_0016:2",
       "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-safety-voltage-application",
       "skeleton_id": "s05-skel-安全电压三档全表对应",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "70250ae9e319ce9aed4bfd8e06a55bcd6788ae1b88c1d38cc60073dd07d3911d",
+      "content_sha256": "3f72eac8249da6af66eb5f69cb910ab5fd29e274986dd1ec1f636e69b6238cf3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "70250ae9e319ce9aed4bfd8e06a55bcd6788ae1b88c1d38cc60073dd07d3911d",
+        "reviewed_content_sha256": "3f72eac8249da6af66eb5f69cb910ab5fd29e274986dd1ec1f636e69b6238cf3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1380,7 +1380,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉≤12V, 教材 kc:1A431011_015_0016:2 逐字全表直引。三件套 anchor。"
+        "note": "潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉≤12V, 教材 kc:1A431011_015_0016:2 逐字全表直引。三件套 anchor。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1546,17 +1546,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "72020b4402de33ad8f4329c6c5369be4ab446234f04a766772011a4f8daef877",
+      "content_sha256": "35d0221c6691015ad81eca0db1be4a650087c02b00a69b36953df4d69e86e8b0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "72020b4402de33ad8f4329c6c5369be4ab446234f04a766772011a4f8daef877",
+        "reviewed_content_sha256": "35d0221c6691015ad81eca0db1be4a650087c02b00a69b36953df4d69e86e8b0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1679,27 +1679,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q11",
       "source_anchor": "kc:1A436000_007_0010:0",
       "source_sha256": "389827de560554dba63cd0ee3aaeefca0e1318cd251c7c1b8cd7d3781e704083",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-safety-voltage-application",
       "skeleton_id": "s05-skel-特殊环境未用安全电压属重大隐患",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fca388c1306410980353908e3562f50facad049ca963dffb20250983e37140f8",
+      "content_sha256": "ea1ac626c5dbb2388d04b755a29d290d65841660f9c0b94b9953769690b6dd0f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "fca388c1306410980353908e3562f50facad049ca963dffb20250983e37140f8",
+        "reviewed_content_sha256": "ea1ac626c5dbb2388d04b755a29d290d65841660f9c0b94b9953769690b6dd0f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1709,7 +1709,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "特殊环境(湿度>75%、积水)未使用安全电压照明属重大事故隐患, 教材 kc:1A436000_007_0010:0 逐字直引。三件套 d1_probe(同安全电压应用 fact 的后果定性维, 第3独立 skeleton)。干扰项『加漏保后可继续220V照明』确错。"
+        "note": "特殊环境(湿度>75%、积水)未使用安全电压照明属重大事故隐患, 教材 kc:1A436000_007_0010:0 逐字直引。三件套 d1_probe(同安全电压应用 fact 的后果定性维, 第3独立 skeleton)。干扰项『加漏保后可继续220V照明』确错。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1824,17 +1824,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c1d816679b217145135ff1dac7ba6b952f0a03614524789381e4b1aff0ddb2c6",
+      "content_sha256": "96becf278a6b102c6e368498dc75be0b7822c9406a36df8e6ebf4a6a75ff88c2",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "c1d816679b217145135ff1dac7ba6b952f0a03614524789381e4b1aff0ddb2c6",
+        "reviewed_content_sha256": "96becf278a6b102c6e368498dc75be0b7822c9406a36df8e6ebf4a6a75ff88c2",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1974,17 +1974,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5d2b8c36285853488f4f17e0c85fb8ca374bae93249c4c881b6a745a264c2b9c",
+      "content_sha256": "8ce804e3220fbc765d505ac839957169b4774443c1fd8f536b8f27be0768dfce",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5d2b8c36285853488f4f17e0c85fb8ca374bae93249c4c881b6a745a264c2b9c",
+        "reviewed_content_sha256": "8ce804e3220fbc765d505ac839957169b4774443c1fd8f536b8f27be0768dfce",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2226,17 +2226,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6384f232f17aa2e714dcde042ecf3b7a43495a83f1062eeb3634f7b8dc37a772",
+      "content_sha256": "af314cb60b22197811137e17625ae0e0226585cf212d8be3fe6bbea3559795d4",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6384f232f17aa2e714dcde042ecf3b7a43495a83f1062eeb3634f7b8dc37a772",
+        "reviewed_content_sha256": "af314cb60b22197811137e17625ae0e0226585cf212d8be3fe6bbea3559795d4",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2359,17 +2359,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f71e9c07b3d210780d654864a356ab6350b5ab506e71740e5e26ad2bcd27408b",
+      "content_sha256": "8e610c67be962ebf1cf75d6d568a769aed3ba648eb271ffd03854036e6c831e2",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f71e9c07b3d210780d654864a356ab6350b5ab506e71740e5e26ad2bcd27408b",
+        "reviewed_content_sha256": "8e610c67be962ebf1cf75d6d568a769aed3ba648eb271ffd03854036e6c831e2",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2475,17 +2475,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q16",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "78ba6c96527a282784400ab43f8d3f9b52baaf51b29000a3b14c988aa6404ef5",
+      "content_sha256": "c61cb5b7233f9c4f83d0532af278ecfd185f13a65bc3c43cedff4cc606f9f199",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "78ba6c96527a282784400ab43f8d3f9b52baaf51b29000a3b14c988aa6404ef5",
+        "reviewed_content_sha256": "c61cb5b7233f9c4f83d0532af278ecfd185f13a65bc3c43cedff4cc606f9f199",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2625,17 +2625,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q17",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e94bcbc1d37383a027b1fb845f3889e1421e8472f6a2489df19d648f561935d5",
+      "content_sha256": "27595ca194529aa6569560f26c085becd8d791caad0f4370783cc55c19e9064a",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e94bcbc1d37383a027b1fb845f3889e1421e8472f6a2489df19d648f561935d5",
+        "reviewed_content_sha256": "27595ca194529aa6569560f26c085becd8d791caad0f4370783cc55c19e9064a",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2775,27 +2775,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S05/P40_S05.practice.dc.html#Q18",
       "source_anchor": "exam:2023:第1题",
       "source_sha256": "49e272073a5e6fd78298204b9b4ff4b6a581a4c498c1589bdbbb8f6e97fe7212",
-      "source_html_sha256": "6518b46312e8f743a73298646fc22e91a2573ee9ae742484524104a538e10bf6",
+      "source_html_sha256": "d61477cd6e9a7d8b347bd9865c9a77be536eda9548b316cb3882285342307890",
       "fact_id": "s05-fact-2023-tempelec-case-diagnosis",
       "skeleton_id": "s05-skel-2023案例三处漏诊补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7c39d4a4c634844872b12db42cd3aa67dedfd5260da06e27bacb971e026b8bab",
+      "content_sha256": "ad1446054ab22a9a2f10cabccaf9a690f07ca871ac4a9916b5e824b88db4e88a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7c39d4a4c634844872b12db42cd3aa67dedfd5260da06e27bacb971e026b8bab",
+        "reviewed_content_sha256": "ad1446054ab22a9a2f10cabccaf9a690f07ca871ac4a9916b5e824b88db4e88a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:57:43+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2805,7 +2805,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "2023 案例临电三处不妥(①仅按组织设计/②共用开关箱/③进线端插接)+正确做法①②③, 真题 exam:2023:第1题 全文逐字直证正确项三断言。①『装饰装修施工阶段应补充编制单项施工用电方案』为真题正确做法①原文——与历史退批 fact s05-fact-below-50kw-measures(50kW以下逆命题)无涉, 重裁结论: 本断言锚成立。"
+        "note": "2023 案例临电三处不妥(①仅按组织设计/②共用开关箱/③进线端插接)+正确做法①②③, 真题 exam:2023:第1题 全文逐字直证正确项三断言。①『装饰装修施工阶段应补充编制单项施工用电方案』为真题正确做法①原文——与历史退批 fact s05-fact-below-50kw-measures(50kW以下逆命题)无涉, 重裁结论: 本断言锚成立。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2870,5 +2870,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "f6cc97ca40e995788b91f0ba33dffbf17f1589c572918ee122533de249157582"
+  "published_lesson_sha256": "de275b22003327bdf9dc4d1c8f1ecf74f07e3a12385bb5fb22a4e21bd8a2b71f"
 }

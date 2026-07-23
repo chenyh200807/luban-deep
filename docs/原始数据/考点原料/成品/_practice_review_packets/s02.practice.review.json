@@ -1,1453 +1,1444 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "S02",
-  "source_pack_sha256": "32aa09500e3ba31c5b064058c1b51892f7976e8d069b5ff497d07f1a061cf1ab",
-  "source_bundle_sha256": "0a45b149d6fcbf1489bf996a67711d26aa0b95b1d5d5186e31e1910a33307cb5",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 19,
-  "eligible_count": 8,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "S02-html-practice-html-q1-50f09cba8426",
-      "surface_id": "practice.html",
-      "stem": "某工程用常规塔式起重机吊装单件重 80kN 的构件。关于危大等级，选出能得分的作答。",
-      "options": [
-        {
-          "text": "单件起吊重量 80kN 未达到 100kN，因而不属于危大工程，按一般吊装作业组织施工即可，无需编制专项施工方案。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记成「起重吊装够 100kN 才算危大」。",
-          "loss_reason": "100kN 是超危大吊装档口径（且前置「非常规起重设备、方法」）；危大档不比它——采用起重机械进行安装的工程即属危大。",
-          "fix": "塔吊安装作业即属危大，须专项方案。",
-          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-1"
-        },
-        {
-          "text": "本工程采用起重机械（塔式起重机）进行安装，属于危大工程，须编制专项施工方案；未达超危大标准，不需专家论证。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "引「采用起重机械进行安装的工程」条款 + 结论「属危大」+ 须专项方案，三件齐。",
-          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-2"
-        },
-        {
-          "text": "起重吊装单件起吊重量 10kN 及以上即属危大工程，据此本题 80kN 属于危大工程，应编制专项施工方案。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "把 10kN 档记成不带前提的通用门槛。",
-          "loss_reason": "教材 10kN 档带「采用非常规起重设备、方法，且」限定，常规塔吊不落此条；结论碰巧同向，判据引错条款不得分。",
-          "fix": "常规塔吊按「采用起重机械进行安装的工程」判危大。",
-          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-3"
-        },
-        {
-          "text": "该构件 80kN 已属危大工程，除编制专项施工方案外，还应当组织专家论证后方可实施吊装。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "一见危大就联想到专家论证。",
-          "loss_reason": "超危大吊装档=「非常规起重设备、方法」且单件≥100kN，常规设备与 80kN 两个要件都不满足。",
-          "fix": "属危大编专项方案即可，不需专家论证。",
-          "option_id": "S02-html-practice-html-q1-50f09cba8426:option-4"
-        }
-      ],
-      "model_answer": "「采用起重机械进行安装的工程」即属危大工程，须编专项施工方案；常规设备且 80kN 未达超危大吊装档「非常规起重设备、方法且单件≥100kN」，不需专家论证。",
-      "rule_group": "危大判定·普通档条款",
-      "content_sha256": "858b2bf791dac635e5407f8225d5fe565f2ea1be9839e9a1f31fc30ca7ec320b",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q1",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-weida-crane-install-clause",
-        "skeleton_id": "s02-skel-起重机械安装即危大",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_008_0011:0",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "858b2bf791dac635e5407f8225d5fe565f2ea1be9839e9a1f31fc30ca7ec320b",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "常规塔吊吊装80kN构件: 属危大工程, 判据=教材危大范围普通档『（2）采用起重机械进行安装的工程』(kc:1A436000_008_0011:0, 2026-07-20 教材逐字修复后直引); 未达超危大吊装档『非常规起重设备、方法且单件≥100kN』故不需专家论证。旧正确项『单件≥10kN即属危大』因教材10kN档带非常规限定, 已降为M03干扰项并在解析教辨。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q2-e2fb7cb17c23",
-      "surface_id": "practice.html",
-      "stem": "某常规塔式起重机吊装，单件起吊重量 150kN。是否需要专家论证？选出能得分的作答。",
-      "options": [
-        {
-          "text": "单件起吊重量 150kN 已超过 100kN 的专家论证门槛，应当组织专家论证后方可实施本次吊装作业。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "只比 100kN 数字，忽略「非常规设备/方法」前置。",
-          "loss_reason": "专家论证前置是非常规设备，常规 150kN 不触发论证。",
-          "fix": "属危大编专项方案，常规设备不需论证。",
-          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-1"
-        },
-        {
-          "text": "150kN 属危大须专项方案；但为常规设备、未达「非常规且≥100kN」，不需专家论证。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "两阶写清：先判危大（起重机械安装即属），再核「非常规且单件≥100kN」判论证。",
-          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-2"
-        },
-        {
-          "text": "起吊重量 150kN 尚未达到 300kN，该吊装不属于危大工程，无需编制专项施工方案。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "拿安拆 300kN 门槛来判吊装。",
-          "loss_reason": "300kN 是起重机械安装拆卸工程口径，不是吊装判危大的门槛；起重机械吊装本身即属危大。",
-          "fix": "起重机械吊装即属危大，须专项方案。",
-          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-3"
-        },
-        {
-          "text": "为保证施工工期可先行组织起吊，专项施工方案在作业期间同步补办完善手续。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "赶工期，先干后补。",
-          "loss_reason": "危大须先编专项方案并审批，漏方案=重大失分。",
-          "fix": "属危大，先编专项方案再作业。",
-          "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-4"
-        }
-      ],
-      "model_answer": "常规塔机吊装属「采用起重机械进行安装的工程」，属危大须专项方案；专家论证须「非常规起重设备、方法且单件≥100kN」，常规设备的 150kN 够不到，不需论证。",
-      "rule_group": "危大判定·两层门槛",
-      "content_sha256": "c33ccef23415e07b791f6215751a0d8c8cc6498f84e3c67c7fcf30098c5fbad9",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q2",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-lunzheng-nonconventional-100kn",
-        "skeleton_id": "s02-skel-非常规100kn论证前置",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_009_0012:0",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "c33ccef23415e07b791f6215751a0d8c8cc6498f84e3c67c7fcf30098c5fbad9",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "超一定规模起重吊装=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上』; 常规设备150kN不触发专家论证但属危大须专项方案。教材原文直引(2026-07-20修复采分点后, repair_note in _S02_compiled_source.json)。 2026-07-20 二轮: 仅微文本口径调和(model引『采用起重机械进行安装的工程』条款/300kN干扰项解析改安拆口径), 正确项文字未动, 沿用前轮裁决。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q3-4fd6335982ef",
-      "surface_id": "practice.html",
-      "stem": "某构件重 320kN，常规单机无法满足要求，采用双机抬吊的非常规起重方法吊装。判定危大等级，选出能得分的作答。",
-      "options": [
-        {
-          "text": "构件重量 320kN 已达到 300kN 及以上，该吊装属于超过一定规模的危大工程，应当组织专家论证后实施。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "拿 300kN 去套一切「大重量」场景。",
-          "loss_reason": "300kN 是起重机械安装和拆卸工程的口径，不适用于构件吊装；吊装超危大判据=非常规方法且单件≥100kN。结论碰巧同向，判据引错口径不得分。",
-          "fix": "答「非常规方法+单件 320≥100kN」这条吊装口径。",
-          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-1"
-        },
-        {
-          "text": "采用非常规起重方法（双机抬吊）且单件起吊重量 320kN≥100kN，属超危大工程，专项方案须组织专家论证。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "吊装超危大两要件：非常规设备/方法 + 单件≥100kN，双要件写齐。",
-          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-2"
-        },
-        {
-          "text": "双机抬吊时每台起重机仅分担约 160kN，按单机荷载判定未达超危大论证标准，不需要组织专家论证。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "按每台分担把重量摊薄。",
-          "loss_reason": "单件起吊重量按被吊构件整体计=320kN，不按每台分担拆算；非常规方法且 320≥100kN，须论证。",
-          "fix": "单件按构件整体 320kN 计，超危大须论证。",
-          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-3"
-        },
-        {
-          "text": "该吊装属危大工程，依规编制专项施工方案并履行审批手续后即可实施，不必再组织专家论证。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "停在危大档、忘了超危大档。",
-          "loss_reason": "非常规方法+单件≥100kN 已进超危大档，专项方案还须专家论证。",
-          "fix": "须专家论证，不止专项方案。",
-          "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-4"
-        }
-      ],
-      "model_answer": "「采用非常规起重设备、方法，且单件起吊重量在 100kN 及以上的起重吊装工程」属超危大——本题非常规方法（双机抬吊）+ 单件 320kN≥100kN，专项方案须专家论证；300kN 档是起重机械安装拆卸口径，不能拿来判吊装。",
-      "rule_group": "危大判定·超危大",
-      "content_sha256": "f37590e73951c74102d1184e1571532bb8fc5b272bb81570c8b7baeeff6542ad",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q3",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-chaoweida-diaozhuang-nonconv-100kn",
-        "skeleton_id": "s02-skel-非常规100kn吊装口径",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_009_0012:0",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "f37590e73951c74102d1184e1571532bb8fc5b272bb81570c8b7baeeff6542ad",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "双机抬吊320kN构件: 题干明示非常规起重方法, 判据=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上的起重吊装工程』(kc:1A436000_009_0012:0 修复后教材逐字直引), 320≥100 属超危大须专家论证; 300kN 档为起重机械安装拆卸工程口径, 不适用构件吊装, 已降为M03干扰项教口径辨析。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q4-db858af17b5b",
-      "surface_id": "practice.html",
-      "stem": "塔机起吊某构件，荷载达额定起重量的 95%。正式吊运前应如何处置？选出能得分的作答。",
-      "options": [
-        {
-          "text": "荷载偏大时应加强起吊全过程的观察与统一指挥，采取匀速慢吊、平稳操作的方式完成本次吊运作业。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "当成「加强注意」态度题。",
-          "loss_reason": "漏了「先吊离地 200~500 再四查」的前置程序，丢采分。",
-          "fix": "补「先吊离 200~500mm，查稳定/制动/平稳/绑扎」。",
-          "option_id": "S02-html-practice-html-q4-db858af17b5b:option-1"
-        },
-        {
-          "text": "可将构件一次直接吊运到设计安装位置，就位之后再对制动器与绑扎牢固情况进行全面检查与确认。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "觉得吊上去再查也一样。",
-          "loss_reason": "检查须在吊离地面时做，吊到位才查已失意义、程序错。",
-          "fix": "先吊离地 200~500mm 检查，合格再升。",
-          "option_id": "S02-html-practice-html-q4-db858af17b5b:option-2"
-        },
-        {
-          "text": "应先将重物吊离地面约 1m 并稳定悬停，再逐项检查机械稳定性、制动器、重物平稳性与绑扎牢固情况，合格后正式吊运。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "记得要吊离，却记错高度。",
-          "loss_reason": "离地高度应 200~500mm，不是 1m。",
-          "fix": "吊离 200~500mm 后四查。",
-          "option_id": "S02-html-practice-html-q4-db858af17b5b:option-3"
-        },
-        {
-          "text": "达 90% 及以上，先将重物吊离地面 200~500mm，检查稳定性、制动器、重物平稳、绑扎牢固后再正式起吊。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "前置动作「先吊离 200~500」+ 四查清单，缺一扣一。",
-          "option_id": "S02-html-practice-html-q4-db858af17b5b:option-4"
-        }
-      ],
-      "model_answer": "起吊达额定 90% 及以上，应先将重物吊离地面 200~500mm，检查机械稳定性、制动器、重物平稳性、绑扎牢固后再起吊。",
-      "rule_group": "作业中·起吊90%",
-      "content_sha256": "9c57e2da152cc909b8a4fa5aacd4abab0b04915971989a799afd8ad0d4e4654e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q4",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-hoist-90pct-liftcheck",
-        "skeleton_id": "s02-skel-起吊90先吊离检查",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_125_0199:2",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "9c57e2da152cc909b8a4fa5aacd4abab0b04915971989a799afd8ad0d4e4654e",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "起吊达额定90%及以上先吊离200~500mm检查, 教材直引。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q5-228c4cf42de2",
-      "surface_id": "practice.html",
-      "stem": "一般吊装物正式起吊前的离地检查，选出能得分的作答。",
-      "options": [
-        {
-          "text": "应先将吊装物吊离地面 200~500mm，经检查确认合格后再正式起吊。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "和塔机 90% 的 200~500 记混。",
-          "loss_reason": "吊装物一般检查是 200~300mm，数值口径不同。",
-          "fix": "吊装物 200~300mm，塔机 90% 是 200~500mm。",
-          "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-1"
-        },
-        {
-          "text": "绑扎经检查确认牢固后即可直接正式起吊，无需再作离地检查。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "觉得绑好就行。",
-          "loss_reason": "漏了离地检查这道前置程序。",
-          "fix": "先离地 200~300mm 全面检查再起吊。",
-          "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-2"
-        },
-        {
-          "text": "吊装物吊离地面越高越便于全面观察，检查也越充分可靠。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "以为高一点更安全。",
-          "loss_reason": "高度有规定 200~300mm，过高反而危险。",
-          "fix": "离地 200~300mm 检查即可。",
-          "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-3"
-        },
-        {
-          "text": "先将吊装物吊离地面 200~300mm，全面检查合格后再正式起吊。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "记准吊装物 200~300、与塔机 90% 的 200~500 分开。",
-          "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-4"
-        }
-      ],
-      "model_answer": "吊装物应先离地 200~300mm，全面检查（吊具、绑扎、平稳、周边）合格后再正式起吊。",
-      "rule_group": "作业中·离地检查",
-      "content_sha256": "fbfbd406f7c28d685082e3f3bbaabd030c33cc03f69bd7f3d5ef0ee028305a89",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q5",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "fbfbd406f7c28d685082e3f3bbaabd030c33cc03f69bd7f3d5ef0ee028305a89",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q6-0edb60cf41ba",
-      "surface_id": "practice.html",
-      "stem": "塔机露天吊装作业时风力达到 6 级。应如何处置？选出能得分的作答。",
-      "options": [
-        {
-          "text": "作业高度处风速尚未超过 9.0m/s 的红线值，可以继续露天吊装作业。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把安拆的 9.0m/s 套到作业上。",
-          "loss_reason": "露天作业看风级（6 级），9.0m/s 是安拆红线，用错场景。",
-          "fix": "作业看 6 级；6 级及以上停。",
-          "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-1"
-        },
-        {
-          "text": "6 级风尚在可控范围内，采取减速慢吊并加强指挥后可继续作业。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭常识觉得能扛。",
-          "loss_reason": "6 级是规范停工红线，不能凭感觉续吊。",
-          "fix": "6 级及以上必须停露天作业。",
-          "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-2"
-        },
-        {
-          "text": "构件重量较小时风载影响有限，可在专人监护下继续吊装。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "以为轻就没事。",
-          "loss_reason": "气象红线与荷载无关，达 6 级即停。",
-          "fix": "6 级及以上停，不看构件轻重。",
-          "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-3"
-        },
-        {
-          "text": "风力达 6 级及以上，应停止塔机露天吊装作业（大雨、雪、雾同样停）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "作业红线「6 级及以上停」，连恶劣天气一起答。",
-          "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-4"
-        }
-      ],
-      "model_answer": "遇 6 级及以上大风（或大雨、雪、雾）应停止塔机露天作业。",
-      "rule_group": "作业条件·气象",
-      "content_sha256": "9e027ee0852e69bb09bf38d5e54ecf3cf0cc2d82a5e9975440fda2ac45b10bca",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q6",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-crane-weather-redline",
-        "skeleton_id": "s02-skel-6级风停露天",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_125_0199:3",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "9e027ee0852e69bb09bf38d5e54ecf3cf0cc2d82a5e9975440fda2ac45b10bca",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "6级及以上大风停塔机露天作业, 教材直引。三联anchor。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q7-419250f2d3e2",
-      "surface_id": "practice.html",
-      "stem": "拆卸大型塔式起重机时，测得作业高度处风速 9.5m/s。应如何处置？选出能得分的作答。",
-      "options": [
-        {
-          "text": "当前风力尚未达到 6 级大风的停工标准，可以继续实施本次塔机拆卸作业。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把作业的 6 级套到安拆。",
-          "loss_reason": "安拆看风速 9.0m/s，9.5 已超；6 级是作业红线。",
-          "fix": "安拆看 9.0m/s；9.5>9.0，停。",
-          "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-1"
-        },
-        {
-          "text": "拆卸作业较安装工序简单，风速稍大不影响作业安全，可正常进行。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭常识轻视拆卸。",
-          "loss_reason": "安拆最危险、红线更严，>9.0 必停。",
-          "fix": "风速>9.0m/s 停止安拆。",
-          "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-2"
-        },
-        {
-          "text": "风速>9.0m/s，应停止塔机安装拆卸作业（低能见度天气同样禁止）。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "安拆红线「9.0m/s + 低能见度」，比作业更严。",
-          "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-3"
-        },
-        {
-          "text": "作业人员正确系挂安全带并加强防护后，仍可继续拆卸作业。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "以为个人防护可抵消。",
-          "loss_reason": "气象红线是停工条件，防护不能替代。",
-          "fix": ">9.0m/s 停止安拆作业。",
-          "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-4"
-        }
-      ],
-      "model_answer": "大型起重机械安装拆卸，风速>9.0m/s 或低能见度（雨雪雾霾沙尘）时严禁作业，应停止安拆。",
-      "rule_group": "作业条件·安拆气象",
-      "content_sha256": "fc6a664ca4db825b2c5c8c549b01b6d45e0264873f85b04e544bf44bb62ef2b3",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q7",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-crane-weather-redline",
-        "skeleton_id": "s02-skel-安拆风速9ms",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "kc:1A436000_130_0211:0",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "fc6a664ca4db825b2c5c8c549b01b6d45e0264873f85b04e544bf44bb62ef2b3",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "大型起重机械安拆风速>9.0m/s停止, 教材直引。三联immediate_confirm。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q8-ab02aded8a88",
-      "surface_id": "practice.html",
-      "stem": "下列关于塔机风的红线，判断与依据都正确的是？",
-      "options": [
-        {
-          "text": "露天作业按 6 级及以上停；安装拆卸按风速>9.0m/s 停，安拆更严——按题干动词选红线。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "一句点透「动词决定红线、安拆更严」。",
-          "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-1"
-        },
-        {
-          "text": "露天吊装作业与安装拆卸可统一执行 6 级风即停的标准，无需按题干动词区分两条红线。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "图省事只记一条线。",
-          "loss_reason": "两条独立红线：作业 6 级、安拆 9.0m/s，不能合并。",
-          "fix": "作业 6 级、安拆 9.0m/s，看动词分。",
-          "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-2"
-        },
-        {
-          "text": "安装拆卸环节的气象红线较露天吊装作业更为宽松，风速要求可以适当放宽，允许在较大风力条件下组织实施。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "以为拆装是次要环节。",
-          "loss_reason": "安拆更危险、红线更靠前更严，不是更宽松。",
-          "fix": "安拆 9.0m/s（≈5 级）比作业 6 级更严。",
-          "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-3"
-        },
-        {
-          "text": "风的红线数值与作业类型没有对应关系，应由操作者依据现场经验自行判断是否停工。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "把判断权交给「经验」。",
-          "loss_reason": "红线是规范硬指标、与动词绑定、非经验。",
-          "fix": "作业 6 级、安拆 9.0m/s。",
-          "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-4"
-        }
-      ],
-      "model_answer": "露天吊装作业看风级（6 级及以上停）；安装拆卸看风速（>9.0m/s 停），安拆更严，按题干动词选线。",
-      "rule_group": "作业条件·动词判别",
-      "content_sha256": "100f83392ab5fc3776ced3204098e20667a4179dfe51c89d26045c45a82b71e4",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q8",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-crane-weather-redline",
-        "skeleton_id": "s02-skel-气象红线动词判别",
-        "probe_role": "d1_probe",
-        "source_anchor": "kc:1A436000_130_0211:0",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "100f83392ab5fc3776ced3204098e20667a4179dfe51c89d26045c45a82b71e4",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "露天看风级/安拆看风速的动词判别, 教材直引。三联d1_probe。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q9-93d6f67979c1",
-      "surface_id": "practice.html",
-      "stem": "施工中塔机操作机构失灵，司机改用限位装置代替操作机构继续吊运。对此处置的判断，选出能得分的作答。",
-      "options": [
-        {
-          "text": "处置可行，限位装置同样能控制起升动作，短时间代替操作机构使用不会影响吊运安全。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "用生活常识「都能停就行」替代规范。",
-          "loss_reason": "限位代替操作机构是绝对禁令，出现「代替」即判错。",
-          "fix": "严禁代替，须停机检修操作机构。",
-          "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-1"
-        },
-        {
-          "text": "判断为错误，理由是限位装置的动作反应速度比操作机构慢，紧急情况下来不及在危险发生前及时停机制动。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "判断对，但理由归到「反应快慢」。",
-          "loss_reason": "错因是「严禁代替」的功能禁令，不是快慢；依据点错不给分。",
-          "fix": "依据是「严禁用限位代替操作机构」。",
-          "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-2"
-        },
-        {
-          "text": "错误。严禁用限位装置代替操作机构，限位仅作行程终点保护、不得作日常操作，应立即停机检修。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "点出「严禁代替」绝对禁令 + 限位职能 + 停机检修。",
-          "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-3"
-        },
-        {
-          "text": "可以继续作业，待本钩构件吊运就位后再安排停机检修，属于合理的临时处置。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "赶进度侥幸。",
-          "loss_reason": "装置失灵禁止带病作业，须先停机。",
-          "fix": "立即停机检修，严禁代替续吊。",
-          "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-4"
-        }
-      ],
-      "model_answer": "错误。严禁用限位装置代替操作机构；限位是最后一道保险、不得作日常操作用，应停机检修。",
-      "rule_group": "机械本体·装置禁令",
-      "content_sha256": "e8f2e698516e90ef50aa55864d24274355f66c66c6a65cb05487684af68e0928",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q9",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e8f2e698516e90ef50aa55864d24274355f66c66c6a65cb05487684af68e0928",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q10-6dba3425177c",
-      "surface_id": "practice.html",
-      "stem": "关于起重力矩限制器的作用，选出正确的作答。",
-      "options": [
-        {
-          "text": "实时计算重量×幅度，超过额定起重力矩即切断危险方向电源并报警，属保护装置、不得拆改。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "功能=算力矩+超额断电，且「不得拆改」。",
-          "option_id": "S02-html-practice-html-q10-6dba3425177c:option-1"
-        },
-        {
-          "text": "该装置用于控制吊钩上下运行的行程终点，在到达极限位置时自动切断相应运行方向的电源回路。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "和「高度/行程限位」职能混了。",
-          "loss_reason": "控制行程终点的是限位开关，力矩限制器管超载。",
-          "fix": "力矩限制器防超力矩，限位管行程。",
-          "option_id": "S02-html-practice-html-q10-6dba3425177c:option-2"
-        },
-        {
-          "text": "其功能是在停电或制动状态下使吊钩停住不下滑，保证重物在空中保持稳定停位。",
-          "is_correct": false,
-          "source_error_code": "M03",
-          "temptation": "和「制动器」职能混了。",
-          "loss_reason": "防下滑停位是制动器的活，不是力矩限制器。",
-          "fix": "力矩限制器算力矩超额断电；制动器管停位。",
-          "option_id": "S02-html-practice-html-q10-6dba3425177c:option-3"
-        },
-        {
-          "text": "当额定力矩不能满足吊装需要时，可临时拆除该装置以提高作业效率，吊装完成后恢复。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "嫌它碍事想拆。",
-          "loss_reason": "安全保护装置不得随意调整拆除。",
-          "fix": "不得拆改，须完整灵敏。",
-          "option_id": "S02-html-practice-html-q10-6dba3425177c:option-4"
-        }
-      ],
-      "model_answer": "力矩限制器实时计算「重量×幅度」，超过额定起重力矩即断电报警、停止危险动作，属安全保护装置、不得拆改。",
-      "rule_group": "机械本体·装置辨识",
-      "content_sha256": "af8b4638a8a0881614b28e7bd6d059e8f32bbb1b107da6390bb103e0acd19f1e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q10",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "af8b4638a8a0881614b28e7bd6d059e8f32bbb1b107da6390bb103e0acd19f1e",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q11-c31c38058858",
-      "surface_id": "practice.html",
-      "stem": "塔式起重机塔身垂直度（无载荷状态）的允许偏差，选出能得分的作答。",
-      "options": [
-        {
-          "text": "塔身垂直度的允许偏差控制为不大于 4/100。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "小数点/量级记错。",
-          "loss_reason": "标准是 4/1000，不是 4/100，放大了 10 倍。",
-          "fix": "垂直度≤4/1000。",
-          "option_id": "S02-html-practice-html-q11-c31c38058858:option-1"
-        },
-        {
-          "text": "塔身垂直度应在带载状态下检测，允许偏差不大于 4/1000。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "漏了「无载荷」这个前提。",
-          "loss_reason": "垂直度按无载荷状态测，条件写错。",
-          "fix": "无载荷下≤4/1000。",
-          "option_id": "S02-html-practice-html-q11-c31c38058858:option-2"
-        },
-        {
-          "text": "无载荷状态下塔身垂直度允许偏差不大于 4/1000。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "记准「无载荷 + 4/1000」。",
-          "option_id": "S02-html-practice-html-q11-c31c38058858:option-3"
-        },
-        {
-          "text": "塔身垂直度存在少量超差不影响使用，能正常起吊即可继续作业。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭经验轻视初始偏心。",
-          "loss_reason": "垂直度超差是倾覆先天本钱，必须卡 4/1000。",
-          "fix": "无载荷≤4/1000，超差不得用。",
-          "option_id": "S02-html-practice-html-q11-c31c38058858:option-4"
-        }
-      ],
-      "model_answer": "塔身垂直度（无载荷）允许偏差不大于 4/1000。",
-      "rule_group": "机械本体·垂直度",
-      "content_sha256": "4d1d7e9fc8df97145fd01b929469380f3f3073e656aba827865d1387b787376e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q11",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "4d1d7e9fc8df97145fd01b929469380f3f3073e656aba827865d1387b787376e",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q12-55a02d06a401",
-      "surface_id": "practice.html",
-      "stem": "某塔机基础高 0.9m、混凝土 C20，方案仅验算地基承载力即投入使用。指出不妥并改正，选出能得分的作答。",
-      "options": [
-        {
-          "text": "不妥：高应≥1m（0.9m 不足）、强度应≥C25（C20 不足），且须设计验算合格后再用。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三处硬指标：高≥1m、≥C25、须设计验算。",
-          "option_id": "S02-html-practice-html-q12-55a02d06a401:option-1"
-        },
-        {
-          "text": "基础平面尺寸达 6m×6m，已足够宽大，0.9m 的高度与 C20 的强度均可满足使用要求。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "看尺寸大就放心。",
-          "loss_reason": "高<1m、强度<C25 都不达标，尺寸大不能替代。",
-          "fix": "高≥1m、≥C25、须设计验算。",
-          "option_id": "S02-html-practice-html-q12-55a02d06a401:option-2"
-        },
-        {
-          "text": "地基承载力验算满足要求即为合格，混凝土强度等级对基础安全影响不大，无须另行控制。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "抓住承载力一项就收。",
-          "loss_reason": "漏了强度≥C25 与高≥1m 等采分点。",
-          "fix": "补 C25、≥1m、须设计验算。",
-          "option_id": "S02-html-practice-html-q12-55a02d06a401:option-3"
-        },
-        {
-          "text": "C20 与 C25 的强度差别有限，实际受力尚有富余，可判定基础合格并投入使用。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭「差不多」放行。",
-          "loss_reason": "强度是硬门槛，C20<C25 即不合格。",
-          "fix": "强度须≥C25。",
-          "option_id": "S02-html-practice-html-q12-55a02d06a401:option-4"
-        }
-      ],
-      "model_answer": "不妥：基础高应≥1m、混凝土强度应≥C25，且须经设计验算合格后使用（非仅算地基承载力）。",
-      "rule_group": "机械本体·基础",
-      "content_sha256": "1fa673af641ec923608cac983efe9e26e9164f3586fcdff22868dde92edbd758",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q12",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "1fa673af641ec923608cac983efe9e26e9164f3586fcdff22868dde92edbd758",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q13-11710e7bf3eb",
-      "surface_id": "practice.html",
-      "stem": "关于钢丝绳的报废标准，选出能得分的作答。",
-      "options": [
-        {
-          "text": "钢丝绳一节距内断丝率超过 40%，或表面磨损达到 10% 时，应当作报废处理。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "断丝率与磨损率数字对调。",
-          "loss_reason": "数字背反：断丝看>10%、磨损看 40%，写反=不给分。",
-          "fix": "断丝>10%、磨损 40%，别对调。",
-          "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-1"
-        },
-        {
-          "text": "钢丝绳尚能正常承担起吊荷载时，出现少量断丝仍可继续使用，不必立即报废更换。",
-          "is_correct": false,
-          "source_error_code": "M10",
-          "temptation": "凭「还能用」经验拖着。",
-          "loss_reason": "达报废线必须报废，不看还能不能吊。",
-          "fix": "断丝>10% 或磨损 40% 即报废。",
-          "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-2"
-        },
-        {
-          "text": "断丝率应当按照整根钢丝绳的全长统计，累计超过 10% 即应报废，不以一节距为统计口径。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "漏了「一节距」这个统计口径。",
-          "loss_reason": "断丝按「一节距内」统计，不是整根。",
-          "fix": "一节距内断丝>10% 报废。",
-          "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-3"
-        },
-        {
-          "text": "一节距内断丝率超过 10%，或表面磨损达 40%，或死弯/结构变形/绳芯挤出，即报废。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "记「断丝十（看一节距）、磨损四（看表面）」，加结构缺陷。",
-          "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-4"
-        }
-      ],
-      "model_answer": "一节距内断丝率>10%，或表面磨损达 40%，或有死弯、结构变形、绳芯挤出等，即应报废。",
-      "rule_group": "吊索具·报废线",
-      "content_sha256": "0441578f2ecfe1abc5d1395eeaeeedc3c506cceed0f2f5c3d8fb0fbb0893d406",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q13",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "0441578f2ecfe1abc5d1395eeaeeedc3c506cceed0f2f5c3d8fb0fbb0893d406",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q14-b917c2f0ea5a",
-      "surface_id": "practice.html",
-      "stem": "关于抱杆缆风绳的要求，选出能得分的作答。",
-      "options": [
-        {
-          "text": "缆风绳应采用钢丝绳，安全系数取 3.5，并与地锚牢固连接。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三件：钢丝绳 + K=3.5 + 接地锚。",
-          "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-1"
-        },
-        {
-          "text": "缆风绳张拉紧固并系于牢固物体上即可，安全系数不必专门验算。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "凭手感「拉紧就行」。",
-          "loss_reason": "漏了安全系数 3.5 与地锚要求，丢采分。",
-          "fix": "钢丝绳、K=3.5、连地锚。",
-          "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-2"
-        },
-        {
-          "text": "缆风绳安全系数按 3.5 取值，材料选用麻绳即能满足要求。",
-          "is_correct": false,
-          "source_error_code": "M07",
-          "temptation": "记住 3.5 却用错材料。",
-          "loss_reason": "缆风绳须用钢丝绳，麻绳不合格。",
-          "fix": "钢丝绳 + K=3.5 + 地锚。",
-          "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-3"
-        },
-        {
-          "text": "缆风绳的安全系数按照 1.5 取值即符合要求。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "和其他系数记混。",
-          "loss_reason": "缆风绳安全系数是 3.5，不是 1.5。",
-          "fix": "K=3.5。",
-          "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-4"
-        }
-      ],
-      "model_answer": "缆风绳应采用钢丝绳，安全系数取 3.5，并与地锚牢固连接。",
-      "rule_group": "吊索具·缆风绳",
-      "content_sha256": "2005b4fb343df693cbac12b1f7729bd6ec9c60293ce7fa97d3717187ed4ba73d",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q14",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "2005b4fb343df693cbac12b1f7729bd6ec9c60293ce7fa97d3717187ed4ba73d",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q15-846d69b6d92f",
-      "surface_id": "practice.html",
-      "stem": "关于吊点位置与起吊方式，选出能得分的作答。",
-      "options": [
-        {
-          "text": "吊点与重心在同一垂直线上、位于重心之上，垂直起吊，严禁斜吊。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "三硬约束：同垂直线 + 重心之上 + 严禁斜吊。",
-          "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-1"
-        },
-        {
-          "text": "场地受限时允许采取适当斜吊的方式，以便构件更为灵活地就位安装。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "把「斜吊」包装成灵活高效。",
-          "loss_reason": "「严禁斜吊」是硬约束，斜吊产生水平分力易摆荡脱钩。",
-          "fix": "必须垂直起吊、严禁斜吊。",
-          "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-2"
-        },
-        {
-          "text": "吊点设置在构件重心下方时整体更平稳，也更便于起吊操作。",
-          "is_correct": false,
-          "source_error_code": "M07",
-          "temptation": "想当然「低重心更稳」。",
-          "loss_reason": "吊点须在重心之上，位于下方会翻转失稳。",
-          "fix": "吊点在重心正上方、同一垂直线。",
-          "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-3"
-        },
-        {
-          "text": "吊索水平夹角越小越省力，必要时可按小于 45° 布置。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "把「省力」当放松夹角的理由。",
-          "loss_reason": "夹角不宜<60°、不应<45°，越小索内拉力越大易断。",
-          "fix": "夹角不应<45°，垂直起吊为宜。",
-          "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-4"
-        }
-      ],
-      "model_answer": "吊点应与重心在同一垂直线上、位于重心之上，垂直起吊，严禁斜吊。",
-      "rule_group": "吊索具·吊点",
-      "content_sha256": "23d1dceef2af9e72d7643ee46214597a5b717f273480f32ee4d70e4faa83001b",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q15",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "23d1dceef2af9e72d7643ee46214597a5b717f273480f32ee4d70e4faa83001b",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q17-4ea34f3f27c0",
-      "surface_id": "practice.html",
-      "stem": "题目要求指出塔机吊装作业中的不妥。某学生只答：①基础未验收；②钢丝绳有断丝。背景另给：6 级大风仍露天作业、起吊达 92% 未先吊离地检查。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "该生已答出基础未验收与钢丝绳存在断丝两条不妥，覆盖了背景材料的主要方向，作答基本到位，按照逐条给分的原则已可获得大部分分数，无需再补写。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "看见答了两条就以为差不多。",
-          "loss_reason": "漏了气象（6 级停）与 90% 先吊离地两大采分点，逐条给分丢得多。",
-          "fix": "逐条比对，补 6 级停、90% 先吊离地四查。",
-          "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-1"
-        },
-        {
-          "text": "诊断结论为作答框架大体完整，只需在原有两条之外再补写一句「注意安全」，即可覆盖背景中给出的其余违规情形。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "用笼统一句凑数。",
-          "loss_reason": "「注意安全」不是采分句，须落到具体规范条。",
-          "fix": "补具体两句：6 级停、90% 先吊离地查四项。",
-          "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-2"
-        },
-        {
-          "text": "背景中起吊荷载为额定起重量的 92%，尚未达到 100% 的触发线，不需要先吊离地检查，学生未补写此条并无遗漏。",
-          "is_correct": false,
-          "source_error_code": "M08",
-          "temptation": "把 90% 触发线记成 100%。",
-          "loss_reason": "触发线是 90% 及以上，92% 已触发先吊离地。",
-          "fix": "≥90% 即先吊离 200~500 查四项。",
-          "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-3"
-        },
-        {
-          "text": "漏两条采分：一，6 级风应停露天作业；二，起吊达 90% 应先吊离地 200~500 查四项。基础、钢丝绳两条方向对，补足数值即可。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "照三关补齐气象与 90% 前置，这正是丢的采分句。",
-          "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-4"
-        }
-      ],
-      "model_answer": "漏采分：未答「6 级风应停露天作业」「起吊≥90% 应先吊离地 200~500 查四项」；补这两句，并把基础改为「须设计验算、高≥1m、C25」、钢丝绳补「断丝>10%/磨损40%报废」。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "6ff11c74e1aa671d9013fa1c42e2a3eacf0347647eeeda7eff0c892d5fa47420",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q17",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "s02-fact-scoring-diagnosis",
-        "skeleton_id": "s02-skel-采分诊断补写",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A436000_125_0199:2",
-        "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "6ff11c74e1aa671d9013fa1c42e2a3eacf0347647eeeda7eff0c892d5fa47420",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T20:37:09+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "诊断末题补写起吊90%吊离检查等采分句, 教材直引。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q18-ba6a50a114f3",
-      "surface_id": "practice.html",
-      "stem": "某塔机安装（拆卸）专项施工方案，经专家论证后报总工程师批准即实施。指出审批程序不妥并改正，选出能得分的作答。",
-      "options": [
-        {
-          "text": "程序并无不妥之处，总工程师是施工单位内部的最高技术负责人，专项施工方案经专家论证通过后报其签字批准，已经完成了应当履行的全部审批环节。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为总工程师是最高技术审批就够。",
-          "loss_reason": "漏了专业承包技负、总监、建设单位负责人等签批主体，采分点遗漏。",
-          "fix": "补齐总包技负+专业承包技负+总监+建设单位负责人。",
-          "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-1"
-        },
-        {
-          "text": "不妥。应由施工总承包单位技术负责人、专业承包单位技术负责人、总监理工程师、建设单位项目负责人共同签字批准后实施，不能仅报总工程师批准。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "审批主体四方齐：总包技负+专业承包技负+总监+建设单位负责人。",
-          "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-2"
-        },
-        {
-          "text": "专项施工方案通过专家论证即视为完成终审，论证意见就是实施依据，可以据此直接组织实施，无需再履行其他签字批准手续。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "觉得论证=终审。",
-          "loss_reason": "论证是环节之一，之后仍须多方技术负责人签字批准。",
-          "fix": "论证后仍须四方签批方可实施。",
-          "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-3"
-        },
-        {
-          "text": "审批主体应予纠正，改由项目经理签字批准后组织实施，因为项目经理全面负责施工现场管理，最了解吊装作业的实际情况。",
-          "is_correct": false,
-          "source_error_code": "M07",
-          "temptation": "把现场负责人当审批主体。",
-          "loss_reason": "审批主体是各方技术负责人+总监+建设单位负责人，非项目经理。",
-          "fix": "技负/总监/建设单位负责人签批，非项目经理。",
-          "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-4"
-        }
-      ],
-      "model_answer": "不妥：专项方案应由施工（总承包）单位技术负责人、专业承包单位技术负责人、总监理工程师、建设单位项目负责人签字批准后方可实施，不能仅报总工程师批准。",
-      "rule_group": "程序·方案审批",
-      "content_sha256": "597f18ae9e5e5386a893f803d2f8651d5c67e908134a9e350897568e575379df",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q18",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "597f18ae9e5e5386a893f803d2f8651d5c67e908134a9e350897568e575379df",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q19-63158853b707",
-      "surface_id": "practice.html",
-      "stem": "塔式起重机现场布置主要应考虑哪些因素？选出较完整、能得分的作答。",
-      "options": [
-        {
-          "text": "现场布置的核心是基础牢固可靠、起重臂能够吊运到各类材料堆场，满足这两点即可确定塔机的安设位置，其余因素可从简。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只盯「吊得到」。",
-          "loss_reason": "漏了附着条件、周边环境、覆盖范围等因素，考虑不全。",
-          "fix": "补附着、周边环境（架空线）、覆盖范围与群塔避让。",
-          "option_id": "S02-html-practice-html-q19-63158853b707:option-1"
-        },
-        {
-          "text": "综合基础位置与承载、附着条件、周边环境（临近建筑与架空线路）、起重臂覆盖范围与群塔交叉避让统筹布置。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "四类因素：基础·附着·周边环境·覆盖范围（含群塔避让）。",
-          "option_id": "S02-html-practice-html-q19-63158853b707:option-2"
-        },
-        {
-          "text": "塔机位置可先利用现场空地布设，施工过程中再根据进度需要移位调整，不必在开工前统筹规划。",
-          "is_correct": false,
-          "source_error_code": "M09",
-          "temptation": "以为塔机可随意挪。",
-          "loss_reason": "布置须提前规划，涉安全间距与安拆，不能随意。",
-          "fix": "提前统筹基础/附着/周边/覆盖范围。",
-          "option_id": "S02-html-practice-html-q19-63158853b707:option-3"
-        },
-        {
-          "text": "布置方案主要由塔机型号与起重能力确定，周边建筑物及管线环境不构成布置塔机时的制约因素。",
-          "is_correct": false,
-          "source_error_code": "M07",
-          "temptation": "以为选型定了就行。",
-          "loss_reason": "周边建筑、架空线路等环境是布置关键因素。",
-          "fix": "周边环境（含架空线）是必考因素。",
-          "option_id": "S02-html-practice-html-q19-63158853b707:option-4"
-        }
-      ],
-      "model_answer": "应综合基础位置与承载、附着（附墙）条件、周边环境（临近建筑/管线/架空线路）、起重臂回转覆盖范围与群塔交叉避让等。",
-      "rule_group": "检查标准·现场布置",
-      "content_sha256": "5307f92ec1e713592a5c40edc5a56de0adc09ab183cd0c233c8d50a61bde74a9",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q19",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "5307f92ec1e713592a5c40edc5a56de0adc09ab183cd0c233c8d50a61bde74a9",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "S02-html-practice-html-q20-940c4be46b69",
-      "surface_id": "practice.html",
-      "stem": "预制构件吊装，吊索水平夹角的规范要求，选出能得分的作答。",
-      "options": [
-        {
-          "text": "吊索水平夹角越小越省绳、越省力，为便于绑扎与起吊作业，可按小于 45° 的夹角布置吊索。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "把「省力省绳」当放松夹角的理由。",
-          "loss_reason": "夹角越小索内拉力越大、越危险，不应小于 45°。",
-          "fix": "不应<45°，尽量增大夹角。",
-          "option_id": "S02-html-practice-html-q20-940c4be46b69:option-1"
-        },
-        {
-          "text": "吊索水平夹角不应小于 60°，吊装时只要守住 60° 这一强制底线即可满足要求。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "把「不宜60°」当成「不应60°」。",
-          "loss_reason": "偷换刚性：60° 是「不宜」(推荐)，45° 才是「不应」(强制底线)。",
-          "fix": "不宜<60°、不应<45°，底线是 45°。",
-          "option_id": "S02-html-practice-html-q20-940c4be46b69:option-2"
-        },
-        {
-          "text": "吊索水平夹角不宜小于 60°、不应小于 45°；夹角越小索内拉力越大，应尽量增大夹角。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "记双线「不宜<60°(推荐)、不应<45°(强制底线)」。",
-          "option_id": "S02-html-practice-html-q20-940c4be46b69:option-3"
-        },
-        {
-          "text": "吊索与构件间绑扎牢固可靠时，吊索水平夹角的大小可不作硬性限制，按作业方便布置。",
-          "is_correct": false,
-          "source_error_code": "M04",
-          "temptation": "以为绑牢就抵消夹角影响。",
-          "loss_reason": "夹角有刚性规定，过小拉力放大易断，与绑扎无关。",
-          "fix": "夹角不应<45°。",
-          "option_id": "S02-html-practice-html-q20-940c4be46b69:option-4"
-        }
-      ],
-      "model_answer": "吊索水平夹角不宜小于 60°、不应小于 45°；夹角越小索内拉力越大，过小易断索。",
-      "rule_group": "吊索具·夹角（装配式）",
-      "content_sha256": "f6e8ab9bdd1f18c20d9d9834f8fd6c42f05e05ceb1e2ce3dc81c8878fff4eae8",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q20",
-      "authoring_sha256": "673c48e7457504599c0aace8e4251f3180814fb817e02c06420654b9b4ced8fa",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "f6e8ab9bdd1f18c20d9d9834f8fd6c42f05e05ceb1e2ce3dc81c8878fff4eae8",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "S02",
+ "source_pack_sha256": "32aa09500e3ba31c5b064058c1b51892f7976e8d069b5ff497d07f1a061cf1ab",
+ "source_bundle_sha256": "5aaf611bca80abb7559fb22f4495cecc9308521b9025ac7d240c39872be1abb2",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 19,
+ "eligible_count": 8,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "codex-cross-model + textbook arbitration 2026-07-20: q2 blocker resolved by repairing _S02_compiled_source.json kc:1A436000_009_0012:0 (恢复『采用非常规起重设备、方法，且』限定, 教材原文逐字回填自 2026教材 chunk 1A436000_009_0012, 对齐建质〔2018〕37号); 2026-07-20 二轮(verify_fix_batch.log §12 CONFIRMED): q1/q3 卡端仍教修复前旧错规则——q1 重构为锚普通档条款『采用起重机械进行安装的工程』(kc:1A436000_008_0011:0 同步教材逐字修复, 10kN 无限定压缩句降为干扰项), q3 重构为非常规方法(双机抬吊)+单件320kN≥100kN 吊装口径(300kN 安拆口径降为干扰项); q2 微文本(model/解析)同步口径调和, 正确项未动; 其余 q4/q6/q7/q8/q17 沿用前轮探针核验结论",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "S02-html-practice-html-q1-50f09cba8426",
+   "surface_id": "practice.html",
+   "stem": "某工程用常规塔式起重机吊装单件重 80kN 的构件。关于危大等级，选出能得分的作答。",
+   "options": [
+    {
+     "text": "单件起吊重量 80kN 未达到 100kN，因而不属于危大工程，按一般吊装作业组织施工即可，无需编制专项施工方案。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记成「起重吊装够 100kN 才算危大」。",
+     "loss_reason": "100kN 是超危大吊装档口径（且前置「非常规起重设备、方法」）；危大档不比它——采用起重机械进行安装的工程即属危大。",
+     "fix": "塔吊安装作业即属危大，须专项方案。",
+     "option_id": "S02-html-practice-html-q1-50f09cba8426:option-1"
+    },
+    {
+     "text": "本工程采用起重机械（塔式起重机）进行安装，属于危大工程，须编制专项施工方案；未达超危大标准，不需专家论证。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "引「采用起重机械进行安装的工程」条款 + 结论「属危大」+ 须专项方案，三件齐。",
+     "option_id": "S02-html-practice-html-q1-50f09cba8426:option-2"
+    },
+    {
+     "text": "起重吊装单件起吊重量 10kN 及以上即属危大工程，据此本题 80kN 属于危大工程，应编制专项施工方案。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "把 10kN 档记成不带前提的通用门槛。",
+     "loss_reason": "教材 10kN 档带「采用非常规起重设备、方法，且」限定，常规塔吊不落此条；结论碰巧同向，判据引错条款不得分。",
+     "fix": "常规塔吊按「采用起重机械进行安装的工程」判危大。",
+     "option_id": "S02-html-practice-html-q1-50f09cba8426:option-3"
+    },
+    {
+     "text": "该构件 80kN 已属危大工程，除编制专项施工方案外，还应当组织专家论证后方可实施吊装。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "一见危大就联想到专家论证。",
+     "loss_reason": "超危大吊装档=「非常规起重设备、方法」且单件≥100kN，常规设备与 80kN 两个要件都不满足。",
+     "fix": "属危大编专项方案即可，不需专家论证。",
+     "option_id": "S02-html-practice-html-q1-50f09cba8426:option-4"
+    }
+   ],
+   "model_answer": "「采用起重机械进行安装的工程」即属危大工程，须编专项施工方案；常规设备且 80kN 未达超危大吊装档「非常规起重设备、方法且单件≥100kN」，不需专家论证。",
+   "rule_group": "危大判定·普通档条款",
+   "content_sha256": "2418f53384668eedb5c4e47e7bf9405801a3e360dc9a02c0927d2c3af780a637",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q1",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-weida-crane-install-clause",
+    "skeleton_id": "s02-skel-起重机械安装即危大",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_008_0011:0",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "2418f53384668eedb5c4e47e7bf9405801a3e360dc9a02c0927d2c3af780a637",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "常规塔吊吊装80kN构件: 属危大工程, 判据=教材危大范围普通档『（2）采用起重机械进行安装的工程』(kc:1A436000_008_0011:0, 2026-07-20 教材逐字修复后直引); 未达超危大吊装档『非常规起重设备、方法且单件≥100kN』故不需专家论证。旧正确项『单件≥10kN即属危大』因教材10kN档带非常规限定, 已降为M03干扰项并在解析教辨。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q2-e2fb7cb17c23",
+   "surface_id": "practice.html",
+   "stem": "某常规塔式起重机吊装，单件起吊重量 150kN。是否需要专家论证？选出能得分的作答。",
+   "options": [
+    {
+     "text": "单件起吊重量 150kN 已超过 100kN 的专家论证门槛，应当组织专家论证后方可实施本次吊装作业。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "只比 100kN 数字，忽略「非常规设备/方法」前置。",
+     "loss_reason": "专家论证前置是非常规设备，常规 150kN 不触发论证。",
+     "fix": "属危大编专项方案，常规设备不需论证。",
+     "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-1"
+    },
+    {
+     "text": "150kN 属危大须专项方案；但为常规设备、未达「非常规且≥100kN」，不需专家论证。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "两阶写清：先判危大（起重机械安装即属），再核「非常规且单件≥100kN」判论证。",
+     "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-2"
+    },
+    {
+     "text": "起吊重量 150kN 尚未达到 300kN，该吊装不属于危大工程，无需编制专项施工方案。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "拿安拆 300kN 门槛来判吊装。",
+     "loss_reason": "300kN 是起重机械安装拆卸工程口径，不是吊装判危大的门槛；起重机械吊装本身即属危大。",
+     "fix": "起重机械吊装即属危大，须专项方案。",
+     "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-3"
+    },
+    {
+     "text": "为保证施工工期可先行组织起吊，专项施工方案在作业期间同步补办完善手续。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "赶工期，先干后补。",
+     "loss_reason": "危大须先编专项方案并审批，漏方案=重大失分。",
+     "fix": "属危大，先编专项方案再作业。",
+     "option_id": "S02-html-practice-html-q2-e2fb7cb17c23:option-4"
+    }
+   ],
+   "model_answer": "常规塔机吊装属「采用起重机械进行安装的工程」，属危大须专项方案；专家论证须「非常规起重设备、方法且单件≥100kN」，常规设备的 150kN 够不到，不需论证。",
+   "rule_group": "危大判定·两层门槛",
+   "content_sha256": "444d3e30ed8c5e71ae3372a44365a5d6fe33f9cb37ad13e30388194b02e02ec0",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q2",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-lunzheng-nonconventional-100kn",
+    "skeleton_id": "s02-skel-非常规100kn论证前置",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_009_0012:0",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "444d3e30ed8c5e71ae3372a44365a5d6fe33f9cb37ad13e30388194b02e02ec0",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "超一定规模起重吊装=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上』; 常规设备150kN不触发专家论证但属危大须专项方案。教材原文直引(2026-07-20修复采分点后, repair_note in _S02_compiled_source.json)。 2026-07-20 二轮: 仅微文本口径调和(model引『采用起重机械进行安装的工程』条款/300kN干扰项解析改安拆口径), 正确项文字未动, 沿用前轮裁决。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q3-4fd6335982ef",
+   "surface_id": "practice.html",
+   "stem": "某构件重 320kN，常规单机无法满足要求，采用双机抬吊的非常规起重方法吊装。判定危大等级，选出能得分的作答。",
+   "options": [
+    {
+     "text": "构件重量 320kN 已达到 300kN 及以上，该吊装属于超过一定规模的危大工程，应当组织专家论证后实施。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "拿 300kN 去套一切「大重量」场景。",
+     "loss_reason": "300kN 是起重机械安装和拆卸工程的口径，不适用于构件吊装；吊装超危大判据=非常规方法且单件≥100kN。结论碰巧同向，判据引错口径不得分。",
+     "fix": "答「非常规方法+单件 320≥100kN」这条吊装口径。",
+     "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-1"
+    },
+    {
+     "text": "采用非常规起重方法（双机抬吊）且单件起吊重量 320kN≥100kN，属超危大工程，专项方案须组织专家论证。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "吊装超危大两要件：非常规设备/方法 + 单件≥100kN，双要件写齐。",
+     "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-2"
+    },
+    {
+     "text": "双机抬吊时每台起重机仅分担约 160kN，按单机荷载判定未达超危大论证标准，不需要组织专家论证。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "按每台分担把重量摊薄。",
+     "loss_reason": "单件起吊重量按被吊构件整体计=320kN，不按每台分担拆算；非常规方法且 320≥100kN，须论证。",
+     "fix": "单件按构件整体 320kN 计，超危大须论证。",
+     "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-3"
+    },
+    {
+     "text": "该吊装属危大工程，依规编制专项施工方案并履行审批手续后即可实施，不必再组织专家论证。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "停在危大档、忘了超危大档。",
+     "loss_reason": "非常规方法+单件≥100kN 已进超危大档，专项方案还须专家论证。",
+     "fix": "须专家论证，不止专项方案。",
+     "option_id": "S02-html-practice-html-q3-4fd6335982ef:option-4"
+    }
+   ],
+   "model_answer": "「采用非常规起重设备、方法，且单件起吊重量在 100kN 及以上的起重吊装工程」属超危大——本题非常规方法（双机抬吊）+ 单件 320kN≥100kN，专项方案须专家论证；300kN 档是起重机械安装拆卸口径，不能拿来判吊装。",
+   "rule_group": "危大判定·超危大",
+   "content_sha256": "d9c26490cf309be9507fda1623d46ed386447d9e54be46fd8d2ab5c183ef8357",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q3",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-chaoweida-diaozhuang-nonconv-100kn",
+    "skeleton_id": "s02-skel-非常规100kn吊装口径",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_009_0012:0",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "d9c26490cf309be9507fda1623d46ed386447d9e54be46fd8d2ab5c183ef8357",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "双机抬吊320kN构件: 题干明示非常规起重方法, 判据=『采用非常规起重设备、方法，且单件起吊重量在100kN及以上的起重吊装工程』(kc:1A436000_009_0012:0 修复后教材逐字直引), 320≥100 属超危大须专家论证; 300kN 档为起重机械安装拆卸工程口径, 不适用构件吊装, 已降为M03干扰项教口径辨析。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q4-db858af17b5b",
+   "surface_id": "practice.html",
+   "stem": "塔机起吊某构件，荷载达额定起重量的 95%。正式吊运前应如何处置？选出能得分的作答。",
+   "options": [
+    {
+     "text": "荷载偏大时应加强起吊全过程的观察与统一指挥，采取匀速慢吊、平稳操作的方式完成本次吊运作业。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "当成「加强注意」态度题。",
+     "loss_reason": "漏了「先吊离地 200~500 再四查」的前置程序，丢采分。",
+     "fix": "补「先吊离 200~500mm，查稳定/制动/平稳/绑扎」。",
+     "option_id": "S02-html-practice-html-q4-db858af17b5b:option-1"
+    },
+    {
+     "text": "可将构件一次直接吊运到设计安装位置，就位之后再对制动器与绑扎牢固情况进行全面检查与确认。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "觉得吊上去再查也一样。",
+     "loss_reason": "检查须在吊离地面时做，吊到位才查已失意义、程序错。",
+     "fix": "先吊离地 200~500mm 检查，合格再升。",
+     "option_id": "S02-html-practice-html-q4-db858af17b5b:option-2"
+    },
+    {
+     "text": "应先将重物吊离地面约 1m 并稳定悬停，再逐项检查机械稳定性、制动器、重物平稳性与绑扎牢固情况，合格后正式吊运。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "记得要吊离，却记错高度。",
+     "loss_reason": "离地高度应 200~500mm，不是 1m。",
+     "fix": "吊离 200~500mm 后四查。",
+     "option_id": "S02-html-practice-html-q4-db858af17b5b:option-3"
+    },
+    {
+     "text": "达 90% 及以上，先将重物吊离地面 200~500mm，检查稳定性、制动器、重物平稳、绑扎牢固后再正式起吊。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "前置动作「先吊离 200~500」+ 四查清单，缺一扣一。",
+     "option_id": "S02-html-practice-html-q4-db858af17b5b:option-4"
+    }
+   ],
+   "model_answer": "起吊达额定 90% 及以上，应先将重物吊离地面 200~500mm，检查机械稳定性、制动器、重物平稳性、绑扎牢固后再起吊。",
+   "rule_group": "作业中·起吊90%",
+   "content_sha256": "6c3cca7c2418390eb21ee0a9305b7e57e86ed718e70703d03eb665ada4ef2d6b",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q4",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-hoist-90pct-liftcheck",
+    "skeleton_id": "s02-skel-起吊90先吊离检查",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_125_0199:2",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "6c3cca7c2418390eb21ee0a9305b7e57e86ed718e70703d03eb665ada4ef2d6b",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "起吊达额定90%及以上先吊离200~500mm检查, 教材直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q5-228c4cf42de2",
+   "surface_id": "practice.html",
+   "stem": "一般吊装物正式起吊前的离地检查，选出能得分的作答。",
+   "options": [
+    {
+     "text": "应先将吊装物吊离地面 200~500mm，经检查确认合格后再正式起吊。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "和塔机 90% 的 200~500 记混。",
+     "loss_reason": "吊装物一般检查是 200~300mm，数值口径不同。",
+     "fix": "吊装物 200~300mm，塔机 90% 是 200~500mm。",
+     "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-1"
+    },
+    {
+     "text": "绑扎经检查确认牢固后即可直接正式起吊，无需再作离地检查。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "觉得绑好就行。",
+     "loss_reason": "漏了离地检查这道前置程序。",
+     "fix": "先离地 200~300mm 全面检查再起吊。",
+     "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-2"
+    },
+    {
+     "text": "吊装物吊离地面越高越便于全面观察，检查也越充分可靠。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "以为高一点更安全。",
+     "loss_reason": "高度有规定 200~300mm，过高反而危险。",
+     "fix": "离地 200~300mm 检查即可。",
+     "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-3"
+    },
+    {
+     "text": "先将吊装物吊离地面 200~300mm，全面检查合格后再正式起吊。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "记准吊装物 200~300、与塔机 90% 的 200~500 分开。",
+     "option_id": "S02-html-practice-html-q5-228c4cf42de2:option-4"
+    }
+   ],
+   "model_answer": "吊装物应先离地 200~300mm，全面检查（吊具、绑扎、平稳、周边）合格后再正式起吊。",
+   "rule_group": "作业中·离地检查",
+   "content_sha256": "2f9d4e365b90c627bf749c46cc5838bcc7f677053c57a5df8a7174aa5cba06be",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q5",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "2f9d4e365b90c627bf749c46cc5838bcc7f677053c57a5df8a7174aa5cba06be",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q6-0edb60cf41ba",
+   "surface_id": "practice.html",
+   "stem": "塔机露天吊装作业时风力达到 6 级。应如何处置？选出能得分的作答。",
+   "options": [
+    {
+     "text": "作业高度处风速尚未超过 9.0m/s 的红线值，可以继续露天吊装作业。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把安拆的 9.0m/s 套到作业上。",
+     "loss_reason": "露天作业看风级（6 级），9.0m/s 是安拆红线，用错场景。",
+     "fix": "作业看 6 级；6 级及以上停。",
+     "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-1"
+    },
+    {
+     "text": "6 级风尚在可控范围内，采取减速慢吊并加强指挥后可继续作业。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭常识觉得能扛。",
+     "loss_reason": "6 级是规范停工红线，不能凭感觉续吊。",
+     "fix": "6 级及以上必须停露天作业。",
+     "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-2"
+    },
+    {
+     "text": "构件重量较小时风载影响有限，可在专人监护下继续吊装。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "以为轻就没事。",
+     "loss_reason": "气象红线与荷载无关，达 6 级即停。",
+     "fix": "6 级及以上停，不看构件轻重。",
+     "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-3"
+    },
+    {
+     "text": "风力达 6 级及以上，应停止塔机露天吊装作业（大雨、雪、雾同样停）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "作业红线「6 级及以上停」，连恶劣天气一起答。",
+     "option_id": "S02-html-practice-html-q6-0edb60cf41ba:option-4"
+    }
+   ],
+   "model_answer": "遇 6 级及以上大风（或大雨、雪、雾）应停止塔机露天作业。",
+   "rule_group": "作业条件·气象",
+   "content_sha256": "1d20608d55211272aa9bfdbe47f429374b195b237fcad4dd168375afa403d7a8",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q6",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-crane-weather-redline",
+    "skeleton_id": "s02-skel-6级风停露天",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_125_0199:3",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "1d20608d55211272aa9bfdbe47f429374b195b237fcad4dd168375afa403d7a8",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "6级及以上大风停塔机露天作业, 教材直引。三联anchor。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q7-419250f2d3e2",
+   "surface_id": "practice.html",
+   "stem": "拆卸大型塔式起重机时，测得作业高度处风速 9.5m/s。应如何处置？选出能得分的作答。",
+   "options": [
+    {
+     "text": "当前风力尚未达到 6 级大风的停工标准，可以继续实施本次塔机拆卸作业。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把作业的 6 级套到安拆。",
+     "loss_reason": "安拆看风速 9.0m/s，9.5 已超；6 级是作业红线。",
+     "fix": "安拆看 9.0m/s；9.5>9.0，停。",
+     "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-1"
+    },
+    {
+     "text": "拆卸作业较安装工序简单，风速稍大不影响作业安全，可正常进行。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭常识轻视拆卸。",
+     "loss_reason": "安拆最危险、红线更严，>9.0 必停。",
+     "fix": "风速>9.0m/s 停止安拆。",
+     "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-2"
+    },
+    {
+     "text": "风速>9.0m/s，应停止塔机安装拆卸作业（低能见度天气同样禁止）。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "安拆红线「9.0m/s + 低能见度」，比作业更严。",
+     "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-3"
+    },
+    {
+     "text": "作业人员正确系挂安全带并加强防护后，仍可继续拆卸作业。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "以为个人防护可抵消。",
+     "loss_reason": "气象红线是停工条件，防护不能替代。",
+     "fix": ">9.0m/s 停止安拆作业。",
+     "option_id": "S02-html-practice-html-q7-419250f2d3e2:option-4"
+    }
+   ],
+   "model_answer": "大型起重机械安装拆卸，风速>9.0m/s 或低能见度（雨雪雾霾沙尘）时严禁作业，应停止安拆。",
+   "rule_group": "作业条件·安拆气象",
+   "content_sha256": "2d74480670081a0eb730eb827453780d06620551f3263260d8a1116d00ba99bf",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q7",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-crane-weather-redline",
+    "skeleton_id": "s02-skel-安拆风速9ms",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "kc:1A436000_130_0211:0",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "2d74480670081a0eb730eb827453780d06620551f3263260d8a1116d00ba99bf",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "大型起重机械安拆风速>9.0m/s停止, 教材直引。三联immediate_confirm。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q8-ab02aded8a88",
+   "surface_id": "practice.html",
+   "stem": "下列关于塔机风的红线，判断与依据都正确的是？",
+   "options": [
+    {
+     "text": "露天作业按 6 级及以上停；安装拆卸按风速>9.0m/s 停，安拆更严——按题干动词选红线。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "一句点透「动词决定红线、安拆更严」。",
+     "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-1"
+    },
+    {
+     "text": "露天吊装作业与安装拆卸可统一执行 6 级风即停的标准，无需按题干动词区分两条红线。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "图省事只记一条线。",
+     "loss_reason": "两条独立红线：作业 6 级、安拆 9.0m/s，不能合并。",
+     "fix": "作业 6 级、安拆 9.0m/s，看动词分。",
+     "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-2"
+    },
+    {
+     "text": "安装拆卸环节的气象红线较露天吊装作业更为宽松，风速要求可以适当放宽，允许在较大风力条件下组织实施。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "以为拆装是次要环节。",
+     "loss_reason": "安拆更危险、红线更靠前更严，不是更宽松。",
+     "fix": "安拆 9.0m/s（≈5 级）比作业 6 级更严。",
+     "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-3"
+    },
+    {
+     "text": "风的红线数值与作业类型没有对应关系，应由操作者依据现场经验自行判断是否停工。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "把判断权交给「经验」。",
+     "loss_reason": "红线是规范硬指标、与动词绑定、非经验。",
+     "fix": "作业 6 级、安拆 9.0m/s。",
+     "option_id": "S02-html-practice-html-q8-ab02aded8a88:option-4"
+    }
+   ],
+   "model_answer": "露天吊装作业看风级（6 级及以上停）；安装拆卸看风速（>9.0m/s 停），安拆更严，按题干动词选线。",
+   "rule_group": "作业条件·动词判别",
+   "content_sha256": "424fc64d985a79e4c879e8428081307bcb2558e32725fdce29b780b11c79c6c9",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q8",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-crane-weather-redline",
+    "skeleton_id": "s02-skel-气象红线动词判别",
+    "probe_role": "d1_probe",
+    "source_anchor": "kc:1A436000_130_0211:0",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "424fc64d985a79e4c879e8428081307bcb2558e32725fdce29b780b11c79c6c9",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "露天看风级/安拆看风速的动词判别, 教材直引。三联d1_probe。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q9-93d6f67979c1",
+   "surface_id": "practice.html",
+   "stem": "施工中塔机操作机构失灵，司机改用限位装置代替操作机构继续吊运。对此处置的判断，选出能得分的作答。",
+   "options": [
+    {
+     "text": "处置可行，限位装置同样能控制起升动作，短时间代替操作机构使用不会影响吊运安全。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "用生活常识「都能停就行」替代规范。",
+     "loss_reason": "限位代替操作机构是绝对禁令，出现「代替」即判错。",
+     "fix": "严禁代替，须停机检修操作机构。",
+     "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-1"
+    },
+    {
+     "text": "判断为错误，理由是限位装置的动作反应速度比操作机构慢，紧急情况下来不及在危险发生前及时停机制动。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "判断对，但理由归到「反应快慢」。",
+     "loss_reason": "错因是「严禁代替」的功能禁令，不是快慢；依据点错不给分。",
+     "fix": "依据是「严禁用限位代替操作机构」。",
+     "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-2"
+    },
+    {
+     "text": "错误。严禁用限位装置代替操作机构，限位仅作行程终点保护、不得作日常操作，应立即停机检修。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "点出「严禁代替」绝对禁令 + 限位职能 + 停机检修。",
+     "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-3"
+    },
+    {
+     "text": "可以继续作业，待本钩构件吊运就位后再安排停机检修，属于合理的临时处置。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "赶进度侥幸。",
+     "loss_reason": "装置失灵禁止带病作业，须先停机。",
+     "fix": "立即停机检修，严禁代替续吊。",
+     "option_id": "S02-html-practice-html-q9-93d6f67979c1:option-4"
+    }
+   ],
+   "model_answer": "错误。严禁用限位装置代替操作机构；限位是最后一道保险、不得作日常操作用，应停机检修。",
+   "rule_group": "机械本体·装置禁令",
+   "content_sha256": "a89f7ed0154e1b27fa16274c69a3b3ac739ea30d1124c2154613de8f4a6389c7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q9",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "a89f7ed0154e1b27fa16274c69a3b3ac739ea30d1124c2154613de8f4a6389c7",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q10-6dba3425177c",
+   "surface_id": "practice.html",
+   "stem": "关于起重力矩限制器的作用，选出正确的作答。",
+   "options": [
+    {
+     "text": "实时计算重量×幅度，超过额定起重力矩即切断危险方向电源并报警，属保护装置、不得拆改。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "功能=算力矩+超额断电，且「不得拆改」。",
+     "option_id": "S02-html-practice-html-q10-6dba3425177c:option-1"
+    },
+    {
+     "text": "该装置用于控制吊钩上下运行的行程终点，在到达极限位置时自动切断相应运行方向的电源回路。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "和「高度/行程限位」职能混了。",
+     "loss_reason": "控制行程终点的是限位开关，力矩限制器管超载。",
+     "fix": "力矩限制器防超力矩，限位管行程。",
+     "option_id": "S02-html-practice-html-q10-6dba3425177c:option-2"
+    },
+    {
+     "text": "其功能是在停电或制动状态下使吊钩停住不下滑，保证重物在空中保持稳定停位。",
+     "is_correct": false,
+     "source_error_code": "M03",
+     "temptation": "和「制动器」职能混了。",
+     "loss_reason": "防下滑停位是制动器的活，不是力矩限制器。",
+     "fix": "力矩限制器算力矩超额断电；制动器管停位。",
+     "option_id": "S02-html-practice-html-q10-6dba3425177c:option-3"
+    },
+    {
+     "text": "当额定力矩不能满足吊装需要时，可临时拆除该装置以提高作业效率，吊装完成后恢复。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "嫌它碍事想拆。",
+     "loss_reason": "安全保护装置不得随意调整拆除。",
+     "fix": "不得拆改，须完整灵敏。",
+     "option_id": "S02-html-practice-html-q10-6dba3425177c:option-4"
+    }
+   ],
+   "model_answer": "力矩限制器实时计算「重量×幅度」，超过额定起重力矩即断电报警、停止危险动作，属安全保护装置、不得拆改。",
+   "rule_group": "机械本体·装置辨识",
+   "content_sha256": "6a6aa8e1626cac3eacf31bb86a73749ee69435cc14c86c2c868aa6ecc6703699",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q10",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "6a6aa8e1626cac3eacf31bb86a73749ee69435cc14c86c2c868aa6ecc6703699",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q11-c31c38058858",
+   "surface_id": "practice.html",
+   "stem": "塔式起重机塔身垂直度（无载荷状态）的允许偏差，选出能得分的作答。",
+   "options": [
+    {
+     "text": "塔身垂直度的允许偏差控制为不大于 4/100。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "小数点/量级记错。",
+     "loss_reason": "标准是 4/1000，不是 4/100，放大了 10 倍。",
+     "fix": "垂直度≤4/1000。",
+     "option_id": "S02-html-practice-html-q11-c31c38058858:option-1"
+    },
+    {
+     "text": "塔身垂直度应在带载状态下检测，允许偏差不大于 4/1000。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "漏了「无载荷」这个前提。",
+     "loss_reason": "垂直度按无载荷状态测，条件写错。",
+     "fix": "无载荷下≤4/1000。",
+     "option_id": "S02-html-practice-html-q11-c31c38058858:option-2"
+    },
+    {
+     "text": "无载荷状态下塔身垂直度允许偏差不大于 4/1000。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "记准「无载荷 + 4/1000」。",
+     "option_id": "S02-html-practice-html-q11-c31c38058858:option-3"
+    },
+    {
+     "text": "塔身垂直度存在少量超差不影响使用，能正常起吊即可继续作业。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭经验轻视初始偏心。",
+     "loss_reason": "垂直度超差是倾覆先天本钱，必须卡 4/1000。",
+     "fix": "无载荷≤4/1000，超差不得用。",
+     "option_id": "S02-html-practice-html-q11-c31c38058858:option-4"
+    }
+   ],
+   "model_answer": "塔身垂直度（无载荷）允许偏差不大于 4/1000。",
+   "rule_group": "机械本体·垂直度",
+   "content_sha256": "03e83ddc8157a808cf853b3df3289799af83baa82b2fb0ba562da7ceb42831b9",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q11",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "03e83ddc8157a808cf853b3df3289799af83baa82b2fb0ba562da7ceb42831b9",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q12-55a02d06a401",
+   "surface_id": "practice.html",
+   "stem": "某塔机基础高 0.9m、混凝土 C20，方案仅验算地基承载力即投入使用。指出不妥并改正，选出能得分的作答。",
+   "options": [
+    {
+     "text": "不妥：高应≥1m（0.9m 不足）、强度应≥C25（C20 不足），且须设计验算合格后再用。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三处硬指标：高≥1m、≥C25、须设计验算。",
+     "option_id": "S02-html-practice-html-q12-55a02d06a401:option-1"
+    },
+    {
+     "text": "基础平面尺寸达 6m×6m，已足够宽大，0.9m 的高度与 C20 的强度均可满足使用要求。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "看尺寸大就放心。",
+     "loss_reason": "高<1m、强度<C25 都不达标，尺寸大不能替代。",
+     "fix": "高≥1m、≥C25、须设计验算。",
+     "option_id": "S02-html-practice-html-q12-55a02d06a401:option-2"
+    },
+    {
+     "text": "地基承载力验算满足要求即为合格，混凝土强度等级对基础安全影响不大，无须另行控制。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "抓住承载力一项就收。",
+     "loss_reason": "漏了强度≥C25 与高≥1m 等采分点。",
+     "fix": "补 C25、≥1m、须设计验算。",
+     "option_id": "S02-html-practice-html-q12-55a02d06a401:option-3"
+    },
+    {
+     "text": "C20 与 C25 的强度差别有限，实际受力尚有富余，可判定基础合格并投入使用。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭「差不多」放行。",
+     "loss_reason": "强度是硬门槛，C20<C25 即不合格。",
+     "fix": "强度须≥C25。",
+     "option_id": "S02-html-practice-html-q12-55a02d06a401:option-4"
+    }
+   ],
+   "model_answer": "不妥：基础高应≥1m、混凝土强度应≥C25，且须经设计验算合格后使用（非仅算地基承载力）。",
+   "rule_group": "机械本体·基础",
+   "content_sha256": "6847b95248f8ee47ebe1792837512048cf6067ae27eeaf55c64cef5299d651b2",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q12",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "6847b95248f8ee47ebe1792837512048cf6067ae27eeaf55c64cef5299d651b2",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q13-11710e7bf3eb",
+   "surface_id": "practice.html",
+   "stem": "关于钢丝绳的报废标准，选出能得分的作答。",
+   "options": [
+    {
+     "text": "钢丝绳一节距内断丝率超过 40%，或表面磨损达到 10% 时，应当作报废处理。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "断丝率与磨损率数字对调。",
+     "loss_reason": "数字背反：断丝看>10%、磨损看 40%，写反=不给分。",
+     "fix": "断丝>10%、磨损 40%，别对调。",
+     "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-1"
+    },
+    {
+     "text": "钢丝绳尚能正常承担起吊荷载时，出现少量断丝仍可继续使用，不必立即报废更换。",
+     "is_correct": false,
+     "source_error_code": "M10",
+     "temptation": "凭「还能用」经验拖着。",
+     "loss_reason": "达报废线必须报废，不看还能不能吊。",
+     "fix": "断丝>10% 或磨损 40% 即报废。",
+     "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-2"
+    },
+    {
+     "text": "断丝率应当按照整根钢丝绳的全长统计，累计超过 10% 即应报废，不以一节距为统计口径。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "漏了「一节距」这个统计口径。",
+     "loss_reason": "断丝按「一节距内」统计，不是整根。",
+     "fix": "一节距内断丝>10% 报废。",
+     "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-3"
+    },
+    {
+     "text": "一节距内断丝率超过 10%，或表面磨损达 40%，或死弯/结构变形/绳芯挤出，即报废。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "记「断丝十（看一节距）、磨损四（看表面）」，加结构缺陷。",
+     "option_id": "S02-html-practice-html-q13-11710e7bf3eb:option-4"
+    }
+   ],
+   "model_answer": "一节距内断丝率>10%，或表面磨损达 40%，或有死弯、结构变形、绳芯挤出等，即应报废。",
+   "rule_group": "吊索具·报废线",
+   "content_sha256": "6e988629fd8ebd4e3d12372336a4a0a3e498ebce2c26da2b2fd71160ea9ecf27",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q13",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "6e988629fd8ebd4e3d12372336a4a0a3e498ebce2c26da2b2fd71160ea9ecf27",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q14-b917c2f0ea5a",
+   "surface_id": "practice.html",
+   "stem": "关于抱杆缆风绳的要求，选出能得分的作答。",
+   "options": [
+    {
+     "text": "缆风绳应采用钢丝绳，安全系数取 3.5，并与地锚牢固连接。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三件：钢丝绳 + K=3.5 + 接地锚。",
+     "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-1"
+    },
+    {
+     "text": "缆风绳张拉紧固并系于牢固物体上即可，安全系数不必专门验算。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "凭手感「拉紧就行」。",
+     "loss_reason": "漏了安全系数 3.5 与地锚要求，丢采分。",
+     "fix": "钢丝绳、K=3.5、连地锚。",
+     "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-2"
+    },
+    {
+     "text": "缆风绳安全系数按 3.5 取值，材料选用麻绳即能满足要求。",
+     "is_correct": false,
+     "source_error_code": "M07",
+     "temptation": "记住 3.5 却用错材料。",
+     "loss_reason": "缆风绳须用钢丝绳，麻绳不合格。",
+     "fix": "钢丝绳 + K=3.5 + 地锚。",
+     "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-3"
+    },
+    {
+     "text": "缆风绳的安全系数按照 1.5 取值即符合要求。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "和其他系数记混。",
+     "loss_reason": "缆风绳安全系数是 3.5，不是 1.5。",
+     "fix": "K=3.5。",
+     "option_id": "S02-html-practice-html-q14-b917c2f0ea5a:option-4"
+    }
+   ],
+   "model_answer": "缆风绳应采用钢丝绳，安全系数取 3.5，并与地锚牢固连接。",
+   "rule_group": "吊索具·缆风绳",
+   "content_sha256": "6bab526a6948f77d38f1ae0f1df4f704926576eb885af78a44adc631df06e7ed",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q14",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "6bab526a6948f77d38f1ae0f1df4f704926576eb885af78a44adc631df06e7ed",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q15-846d69b6d92f",
+   "surface_id": "practice.html",
+   "stem": "关于吊点位置与起吊方式，选出能得分的作答。",
+   "options": [
+    {
+     "text": "吊点与重心在同一垂直线上、位于重心之上，垂直起吊，严禁斜吊。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "三硬约束：同垂直线 + 重心之上 + 严禁斜吊。",
+     "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-1"
+    },
+    {
+     "text": "场地受限时允许采取适当斜吊的方式，以便构件更为灵活地就位安装。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "把「斜吊」包装成灵活高效。",
+     "loss_reason": "「严禁斜吊」是硬约束，斜吊产生水平分力易摆荡脱钩。",
+     "fix": "必须垂直起吊、严禁斜吊。",
+     "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-2"
+    },
+    {
+     "text": "吊点设置在构件重心下方时整体更平稳，也更便于起吊操作。",
+     "is_correct": false,
+     "source_error_code": "M07",
+     "temptation": "想当然「低重心更稳」。",
+     "loss_reason": "吊点须在重心之上，位于下方会翻转失稳。",
+     "fix": "吊点在重心正上方、同一垂直线。",
+     "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-3"
+    },
+    {
+     "text": "吊索水平夹角越小越省力，必要时可按小于 45° 布置。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "把「省力」当放松夹角的理由。",
+     "loss_reason": "夹角不宜<60°、不应<45°，越小索内拉力越大易断。",
+     "fix": "夹角不应<45°，垂直起吊为宜。",
+     "option_id": "S02-html-practice-html-q15-846d69b6d92f:option-4"
+    }
+   ],
+   "model_answer": "吊点应与重心在同一垂直线上、位于重心之上，垂直起吊，严禁斜吊。",
+   "rule_group": "吊索具·吊点",
+   "content_sha256": "02dc3cf342ab4efb6055ea56ee6e74237fa22e98f7c46a1b38046777f47bd782",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q15",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "02dc3cf342ab4efb6055ea56ee6e74237fa22e98f7c46a1b38046777f47bd782",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q17-4ea34f3f27c0",
+   "surface_id": "practice.html",
+   "stem": "题目要求指出塔机吊装作业中的不妥。某学生只答：①基础未验收；②钢丝绳有断丝。背景另给：6 级大风仍露天作业、起吊达 92% 未先吊离地检查。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "该生已答出基础未验收与钢丝绳存在断丝两条不妥，覆盖了背景材料的主要方向，作答基本到位，按照逐条给分的原则已可获得大部分分数，无需再补写。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "看见答了两条就以为差不多。",
+     "loss_reason": "漏了气象（6 级停）与 90% 先吊离地两大采分点，逐条给分丢得多。",
+     "fix": "逐条比对，补 6 级停、90% 先吊离地四查。",
+     "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-1"
+    },
+    {
+     "text": "诊断结论为作答框架大体完整，只需在原有两条之外再补写一句「注意安全」，即可覆盖背景中给出的其余违规情形。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "用笼统一句凑数。",
+     "loss_reason": "「注意安全」不是采分句，须落到具体规范条。",
+     "fix": "补具体两句：6 级停、90% 先吊离地查四项。",
+     "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-2"
+    },
+    {
+     "text": "背景中起吊荷载为额定起重量的 92%，尚未达到 100% 的触发线，不需要先吊离地检查，学生未补写此条并无遗漏。",
+     "is_correct": false,
+     "source_error_code": "M08",
+     "temptation": "把 90% 触发线记成 100%。",
+     "loss_reason": "触发线是 90% 及以上，92% 已触发先吊离地。",
+     "fix": "≥90% 即先吊离 200~500 查四项。",
+     "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-3"
+    },
+    {
+     "text": "漏两条采分：一，6 级风应停露天作业；二，起吊达 90% 应先吊离地 200~500 查四项。基础、钢丝绳两条方向对，补足数值即可。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "照三关补齐气象与 90% 前置，这正是丢的采分句。",
+     "option_id": "S02-html-practice-html-q17-4ea34f3f27c0:option-4"
+    }
+   ],
+   "model_answer": "漏采分：未答「6 级风应停露天作业」「起吊≥90% 应先吊离地 200~500 查四项」；补这两句，并把基础改为「须设计验算、高≥1m、C25」、钢丝绳补「断丝>10%/磨损40%报废」。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "b59d7c72f8b7161e07fbb05aa7a3d4f149c89556104bee8970a2023b6e118065",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q17",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "s02-fact-scoring-diagnosis",
+    "skeleton_id": "s02-skel-采分诊断补写",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A436000_125_0199:2",
+    "source_sha256": "daac6710b2506ba2995f607904074661375c12b31111498aa8d94329bc05ae06",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b59d7c72f8b7161e07fbb05aa7a3d4f149c89556104bee8970a2023b6e118065",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "诊断末题补写起吊90%吊离检查等采分句, 教材直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q18-ba6a50a114f3",
+   "surface_id": "practice.html",
+   "stem": "某塔机安装（拆卸）专项施工方案，经专家论证后报总工程师批准即实施。指出审批程序不妥并改正，选出能得分的作答。",
+   "options": [
+    {
+     "text": "程序并无不妥之处，总工程师是施工单位内部的最高技术负责人，专项施工方案经专家论证通过后报其签字批准，已经完成了应当履行的全部审批环节。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为总工程师是最高技术审批就够。",
+     "loss_reason": "漏了专业承包技负、总监、建设单位负责人等签批主体，采分点遗漏。",
+     "fix": "补齐总包技负+专业承包技负+总监+建设单位负责人。",
+     "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-1"
+    },
+    {
+     "text": "不妥。应由施工总承包单位技术负责人、专业承包单位技术负责人、总监理工程师、建设单位项目负责人共同签字批准后实施，不能仅报总工程师批准。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "审批主体四方齐：总包技负+专业承包技负+总监+建设单位负责人。",
+     "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-2"
+    },
+    {
+     "text": "专项施工方案通过专家论证即视为完成终审，论证意见就是实施依据，可以据此直接组织实施，无需再履行其他签字批准手续。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "觉得论证=终审。",
+     "loss_reason": "论证是环节之一，之后仍须多方技术负责人签字批准。",
+     "fix": "论证后仍须四方签批方可实施。",
+     "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-3"
+    },
+    {
+     "text": "审批主体应予纠正，改由项目经理签字批准后组织实施，因为项目经理全面负责施工现场管理，最了解吊装作业的实际情况。",
+     "is_correct": false,
+     "source_error_code": "M07",
+     "temptation": "把现场负责人当审批主体。",
+     "loss_reason": "审批主体是各方技术负责人+总监+建设单位负责人，非项目经理。",
+     "fix": "技负/总监/建设单位负责人签批，非项目经理。",
+     "option_id": "S02-html-practice-html-q18-ba6a50a114f3:option-4"
+    }
+   ],
+   "model_answer": "不妥：专项方案应由施工（总承包）单位技术负责人、专业承包单位技术负责人、总监理工程师、建设单位项目负责人签字批准后方可实施，不能仅报总工程师批准。",
+   "rule_group": "程序·方案审批",
+   "content_sha256": "1846cc378b9b48d339a605f6cc7c23a9127ea5e51df459e80cf4c549a7770774",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q18",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "1846cc378b9b48d339a605f6cc7c23a9127ea5e51df459e80cf4c549a7770774",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q19-63158853b707",
+   "surface_id": "practice.html",
+   "stem": "塔式起重机现场布置主要应考虑哪些因素？选出较完整、能得分的作答。",
+   "options": [
+    {
+     "text": "现场布置的核心是基础牢固可靠、起重臂能够吊运到各类材料堆场，满足这两点即可确定塔机的安设位置，其余因素可从简。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只盯「吊得到」。",
+     "loss_reason": "漏了附着条件、周边环境、覆盖范围等因素，考虑不全。",
+     "fix": "补附着、周边环境（架空线）、覆盖范围与群塔避让。",
+     "option_id": "S02-html-practice-html-q19-63158853b707:option-1"
+    },
+    {
+     "text": "综合基础位置与承载、附着条件、周边环境（临近建筑与架空线路）、起重臂覆盖范围与群塔交叉避让统筹布置。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "四类因素：基础·附着·周边环境·覆盖范围（含群塔避让）。",
+     "option_id": "S02-html-practice-html-q19-63158853b707:option-2"
+    },
+    {
+     "text": "塔机位置可先利用现场空地布设，施工过程中再根据进度需要移位调整，不必在开工前统筹规划。",
+     "is_correct": false,
+     "source_error_code": "M09",
+     "temptation": "以为塔机可随意挪。",
+     "loss_reason": "布置须提前规划，涉安全间距与安拆，不能随意。",
+     "fix": "提前统筹基础/附着/周边/覆盖范围。",
+     "option_id": "S02-html-practice-html-q19-63158853b707:option-3"
+    },
+    {
+     "text": "布置方案主要由塔机型号与起重能力确定，周边建筑物及管线环境不构成布置塔机时的制约因素。",
+     "is_correct": false,
+     "source_error_code": "M07",
+     "temptation": "以为选型定了就行。",
+     "loss_reason": "周边建筑、架空线路等环境是布置关键因素。",
+     "fix": "周边环境（含架空线）是必考因素。",
+     "option_id": "S02-html-practice-html-q19-63158853b707:option-4"
+    }
+   ],
+   "model_answer": "应综合基础位置与承载、附着（附墙）条件、周边环境（临近建筑/管线/架空线路）、起重臂回转覆盖范围与群塔交叉避让等。",
+   "rule_group": "检查标准·现场布置",
+   "content_sha256": "4db9f0285d3ae339beccea2093d7f1478e05420b500d6b2a730015410892418e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q19",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "4db9f0285d3ae339beccea2093d7f1478e05420b500d6b2a730015410892418e",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "S02-html-practice-html-q20-940c4be46b69",
+   "surface_id": "practice.html",
+   "stem": "预制构件吊装，吊索水平夹角的规范要求，选出能得分的作答。",
+   "options": [
+    {
+     "text": "吊索水平夹角越小越省绳、越省力，为便于绑扎与起吊作业，可按小于 45° 的夹角布置吊索。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "把「省力省绳」当放松夹角的理由。",
+     "loss_reason": "夹角越小索内拉力越大、越危险，不应小于 45°。",
+     "fix": "不应<45°，尽量增大夹角。",
+     "option_id": "S02-html-practice-html-q20-940c4be46b69:option-1"
+    },
+    {
+     "text": "吊索水平夹角不应小于 60°，吊装时只要守住 60° 这一强制底线即可满足要求。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "把「不宜60°」当成「不应60°」。",
+     "loss_reason": "偷换刚性：60° 是「不宜」(推荐)，45° 才是「不应」(强制底线)。",
+     "fix": "不宜<60°、不应<45°，底线是 45°。",
+     "option_id": "S02-html-practice-html-q20-940c4be46b69:option-2"
+    },
+    {
+     "text": "吊索水平夹角不宜小于 60°、不应小于 45°；夹角越小索内拉力越大，应尽量增大夹角。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "记双线「不宜<60°(推荐)、不应<45°(强制底线)」。",
+     "option_id": "S02-html-practice-html-q20-940c4be46b69:option-3"
+    },
+    {
+     "text": "吊索与构件间绑扎牢固可靠时，吊索水平夹角的大小可不作硬性限制，按作业方便布置。",
+     "is_correct": false,
+     "source_error_code": "M04",
+     "temptation": "以为绑牢就抵消夹角影响。",
+     "loss_reason": "夹角有刚性规定，过小拉力放大易断，与绑扎无关。",
+     "fix": "夹角不应<45°。",
+     "option_id": "S02-html-practice-html-q20-940c4be46b69:option-4"
+    }
+   ],
+   "model_answer": "吊索水平夹角不宜小于 60°、不应小于 45°；夹角越小索内拉力越大，过小易断索。",
+   "rule_group": "吊索具·夹角（装配式）",
+   "content_sha256": "0b2b6fbe8fa37960ac46e325205c0df965fa27f3dd3954b1d2f43ecf084dea96",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q20",
+   "authoring_sha256": "a52b3851cd741b91390f6c30c709203d191cdba4547c54b6b404ebb08bd1caa9",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "0b2b6fbe8fa37960ac46e325205c0df965fa27f3dd3954b1d2f43ecf084dea96",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

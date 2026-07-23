@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "X02",
  "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
- "source_bundle_sha256": "ccb4cf18b89ebe96682785c8318dc46431c6fc93cf7707f4a1104015faa46b30",
+ "source_bundle_sha256": "d7714ec5abba6571079b5318e9009b21ff089427ad39a22610a4b0df4767a035",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 16,
  "eligible_count": 7,
@@ -58,9 +58,9 @@
    ],
    "model_answer": "不妥：危险品仓库贴在建工程。正确做法：危险品仓库应远离现场，距在建工程≥15m；临时仓库则接近使用地点。",
    "rule_group": "仓库间距·条件维",
-   "content_sha256": "f02d93a2f5098eec0a47c41f79346c3436c8f41bb2c168b435e949deffc2c032",
+   "content_sha256": "a88fd05ecc061754d28cb7e2e96435cf8bf1086b745d2c6bed818887edb5e1ee",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q1",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-warehouse-siting",
     "skeleton_id": "x02-skel-仓库选址两类判别",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "f02d93a2f5098eec0a47c41f79346c3436c8f41bb2c168b435e949deffc2c032",
+     "reviewed_content_sha256": "a88fd05ecc061754d28cb7e2e96435cf8bf1086b745d2c6bed818887edb5e1ee",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -90,7 +90,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "普通仓库接近使用点/危险品仓库远离现场距在建≥15m, 教材 kc:...012_0013:0 直引。工单: 普通仓库原则略绝对化。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -140,9 +140,9 @@
    ],
    "model_answer": "主干道单行≥4m、双行≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
    "rule_group": "道路宽度·条件维",
-   "content_sha256": "7d4639a202f554a074e9145ca22e1d157797e3cb297088629f32ced1bf27d92e",
+   "content_sha256": "f23835e4feba5dacd46e95899377ac1299c605a0afd6383c2b87318019d0a619",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q2",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-road-width-system",
     "skeleton_id": "x02-skel-道路宽度体系枚举",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "7d4639a202f554a074e9145ca22e1d157797e3cb297088629f32ced1bf27d92e",
+     "reviewed_content_sha256": "f23835e4feba5dacd46e95899377ac1299c605a0afd6383c2b87318019d0a619",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -172,7 +172,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "单行4m/双行6m/消防4m/木材场6m/回车场12×12/载重转弯15m, 教材 kc:...012_0013:1 逐项直引。工单: '不宜小于'简化为硬阈值。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -222,9 +222,9 @@
    ],
    "model_answer": "不妥：木材场通道4m。正确做法：木材场通道≥6m（消防车道≥4m，但不能用消防车道4m套木材场）。",
    "rule_group": "道路错档·条件维",
-   "content_sha256": "a9da72262abd0e228c8e2cff11d0afce1617df73743bc31f623951e90592af0f",
+   "content_sha256": "e9a8263e18d9bb4f5c5277b1c8e6869ba39570ce33be458af82ba1e622e042b0",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q3",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-timber-vs-fire-lane",
     "skeleton_id": "x02-skel-木材场通道错档改正",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "a9da72262abd0e228c8e2cff11d0afce1617df73743bc31f623951e90592af0f",
+     "reviewed_content_sha256": "e9a8263e18d9bb4f5c5277b1c8e6869ba39570ce33be458af82ba1e622e042b0",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -254,7 +254,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "木材场通道≥6m 与消防车道≥4m 分档, 教材 kc:...012_0013:1 直引, 4m 错档判断正确。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -304,9 +304,9 @@
    ],
    "model_answer": "不妥：每间住18人、通道0.8m。正确做法：每间宿舍≤16人；通道≥0.9m（床铺≤2层、净高≥2.5m、人均≥2.5m²）。",
    "rule_group": "宿舍改错·条件维",
-   "content_sha256": "677232c27f66575c2cd3eeeafbc8ef26b896ab505f077af595aeca2db2ee36bd",
+   "content_sha256": "f84da12c8ed9c146c0eac9da3f0b6e7e967fe7a0bab7a59b4f780ef594b6bb14",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q4",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-dorm-capacity-aisle",
     "skeleton_id": "x02-skel-宿舍人数通道纠错",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "677232c27f66575c2cd3eeeafbc8ef26b896ab505f077af595aeca2db2ee36bd",
+     "reviewed_content_sha256": "f84da12c8ed9c146c0eac9da3f0b6e7e967fe7a0bab7a59b4f780ef594b6bb14",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -336,7 +336,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "18人→每间≤16人/0.8m→通道≥0.9m, 真题 exam:2020 解析逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -386,9 +386,9 @@
    ],
    "model_answer": "不妥：易燃仓库设上风向、通道5m。正确做法：应设下风向、水源充足处；消防通道≥6m；距明火≥30m、危险品间距≥10m。",
    "rule_group": "易燃库方向·后果维",
-   "content_sha256": "d08c74297d7057711737b60b55afea5bb7becba2d5337371090e2cc1f12e1720",
+   "content_sha256": "20d0c93e36b2be0c8bb3721cc6a5011fe503b07fd9402c700979c83018d10e3f",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q5",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-flammable-warehouse-fire-layout",
     "skeleton_id": "x02-skel-易燃仓库场景改错",
@@ -398,17 +398,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "d08c74297d7057711737b60b55afea5bb7becba2d5337371090e2cc1f12e1720",
+     "reviewed_content_sha256": "20d0c93e36b2be0c8bb3721cc6a5011fe503b07fd9402c700979c83018d10e3f",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -418,7 +418,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "露天易燃仓库下风向/水源/6m通道/30m明火距, 教材 kc:...146_0235:0 直引。三联 immediate_confirm(同易燃仓库 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -468,9 +468,9 @@
    ],
    "model_answer": "每500m²设防火墙；可燃材料库单间≤30m²；易燃易爆品库单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
    "rule_group": "仓库分区·条件维",
-   "content_sha256": "0391aeb136ea33fe73da6c410348237dc11c99cb103addeb434910468f45003f",
+   "content_sha256": "35f68b2435c0acce7c1355075586b869838da92411c6aa0adf6a965fbfe095cf",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q6",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -480,7 +480,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "0391aeb136ea33fe73da6c410348237dc11c99cb103addeb434910468f45003f",
+     "reviewed_content_sha256": "35f68b2435c0acce7c1355075586b869838da92411c6aa0adf6a965fbfe095cf",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -538,9 +538,9 @@
    ],
    "model_answer": "架空电力线与堆垛≥电杆高度×1.5；照明灯具距堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
    "rule_group": "电气间距·条件维",
-   "content_sha256": "a2bb9c8e14037a11f0d55f153da73e791ac23cef725f396ee7696cb20abd4f26",
+   "content_sha256": "8e8474f233acc54fb8dc6772c7f5cf3d154f69036887e33bfa2d4dd424f5f759",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q7",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -550,7 +550,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "a2bb9c8e14037a11f0d55f153da73e791ac23cef725f396ee7696cb20abd4f26",
+     "reviewed_content_sha256": "8e8474f233acc54fb8dc6772c7f5cf3d154f69036887e33bfa2d4dd424f5f759",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -608,9 +608,9 @@
    ],
    "model_answer": "临建每100㎡配2只10L灭火器；木料间、油漆间每25㎡配1只；场地超1200㎡设太平桶、积水池、黄砂池。",
    "rule_group": "灭火器·条件维",
-   "content_sha256": "28c9d6f1ec21c9abef58c5d4eceadbea4eaf1618c9faf021a6e821a7eef35f38",
+   "content_sha256": "5470e5ce1dba1bdbdfe3ea6d26e85f1b0219ff8f9d1e1c0519af766a48954ed7",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q8",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -620,7 +620,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "28c9d6f1ec21c9abef58c5d4eceadbea4eaf1618c9faf021a6e821a7eef35f38",
+     "reviewed_content_sha256": "5470e5ce1dba1bdbdfe3ea6d26e85f1b0219ff8f9d1e1c0519af766a48954ed7",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -678,9 +678,9 @@
    ],
    "model_answer": "进场须凭证、数量、规格、外观验收；挂牌标识；建立收料台账。",
    "rule_group": "材料验收·程序记录维",
-   "content_sha256": "2beca30846faae3d664ce84ab694488a2dee58f615197702ed077ddd0bbb941a",
+   "content_sha256": "3e36b5ca8f0f80d71fdbff360e5d7e5318ba0aa0c5291e220ccc72e0959ad34a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q9",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -690,7 +690,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "2beca30846faae3d664ce84ab694488a2dee58f615197702ed077ddd0bbb941a",
+     "reviewed_content_sha256": "3e36b5ca8f0f80d71fdbff360e5d7e5318ba0aa0c5291e220ccc72e0959ad34a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -748,9 +748,9 @@
    ],
    "model_answer": "不妥：码放2.2m、露天无下垫上盖。正确做法：料具码放高度≤1.5m；库外材料应下垫上盖。",
    "rule_group": "材料堆放·条件维",
-   "content_sha256": "2ec50543d74797301b2d85ae5b180061ef9ce27c69dcd5373cf6773d7fed473c",
+   "content_sha256": "2891245bcc6cfacf1b3b09b0a4233186cf06ed6c654d9c6ee817cbb6b1c47d89",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q10",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -760,7 +760,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "2ec50543d74797301b2d85ae5b180061ef9ce27c69dcd5373cf6773d7fed473c",
+     "reviewed_content_sha256": "2891245bcc6cfacf1b3b09b0a4233186cf06ed6c654d9c6ee817cbb6b1c47d89",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -818,9 +818,9 @@
    ],
    "model_answer": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交；不得直接或降级使用。",
    "rule_group": "不合格退场·程序后果维",
-   "content_sha256": "ab41b83fced9143f11c6dc6289d24ddac08f870b8f501d4bef6f38f15b39c2a6",
+   "content_sha256": "87d928258f21770be05bdf55e58d57dc80bc434419a3ca065513c510e65bae67",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q11",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -830,7 +830,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "ab41b83fced9143f11c6dc6289d24ddac08f870b8f501d4bef6f38f15b39c2a6",
+     "reviewed_content_sha256": "87d928258f21770be05bdf55e58d57dc80bc434419a3ca065513c510e65bae67",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -888,9 +888,9 @@
    ],
    "model_answer": "工具式定型化临设：标准化箱式房、定型化临边洞口防护、加工棚、构件化PVC围墙、装配式马道、可重复使用临时道路板。",
    "rule_group": "工具式临设·辨析维",
-   "content_sha256": "58b79e2f44f14da789ac906aa62c68328b0342f6179444384364877fd14df9d3",
+   "content_sha256": "44a91ac46e119911a5dd1f5fc37907ce82122546ee785b8f5982a4d660ec830d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q12",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -900,7 +900,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "58b79e2f44f14da789ac906aa62c68328b0342f6179444384364877fd14df9d3",
+     "reviewed_content_sha256": "44a91ac46e119911a5dd1f5fc37907ce82122546ee785b8f5982a4d660ec830d",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -958,9 +958,9 @@
    ],
    "model_answer": "临时仓库应接近使用地点、方便取料；危险品仓库应远离现场，距在建工程≥15m。",
    "rule_group": "仓库间距·辨析维",
-   "content_sha256": "0e352f0a3101266be9f06e866b07665de60cd8f6c1df4ac7bef276d3a1b4ee9a",
+   "content_sha256": "eefb50cd7d853e030d402e7327dc24fab5769febc6d467067777091a4314e0ac",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q13",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -970,7 +970,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "0e352f0a3101266be9f06e866b07665de60cd8f6c1df4ac7bef276d3a1b4ee9a",
+     "reviewed_content_sha256": "eefb50cd7d853e030d402e7327dc24fab5769febc6d467067777091a4314e0ac",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1028,9 +1028,9 @@
    ],
    "model_answer": "回车场不小于12m×12m；载重车（消防车）转弯半径≥15m。",
    "rule_group": "回车场转弯·条件维",
-   "content_sha256": "2e8de31e5a3ca29a7df53bafe11accf7f64708bbaad6d3a1e2f3e00320dfba7f",
+   "content_sha256": "9dcbdc3c9c071c57c486fbda9484a6cc4b6df6b60ec3d1574dca2986248b8f50",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q14",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1040,7 +1040,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "2e8de31e5a3ca29a7df53bafe11accf7f64708bbaad6d3a1e2f3e00320dfba7f",
+     "reviewed_content_sha256": "9dcbdc3c9c071c57c486fbda9484a6cc4b6df6b60ec3d1574dca2986248b8f50",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1098,9 +1098,9 @@
    ],
    "model_answer": "仓库：临时接近使用点、危险品距在建≥15m、易燃库下风向距明火≥30m；道路：单4双6消防4木材6回车12×12转弯15；消防分区：500墙可燃30易燃20疏散10；材料：验收挂牌台账、码放≤1.5m下垫上盖、不合格退场。",
    "rule_group": "综合列要求·多维",
-   "content_sha256": "7a9ed8f75683d01ebf16326d3cfd8eed50340f84aee0fbad840f72457a767cba",
+   "content_sha256": "17e4be4be561d530c4e90fc053b17d44bf0527e51059e36ea1deed70cccac4b3",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q15",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-flammable-warehouse-fire-layout",
     "skeleton_id": "x02-skel-临设消防分组综合",
@@ -1110,17 +1110,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "7a9ed8f75683d01ebf16326d3cfd8eed50340f84aee0fbad840f72457a767cba",
+     "reviewed_content_sha256": "17e4be4be561d530c4e90fc053b17d44bf0527e51059e36ea1deed70cccac4b3",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -1130,7 +1130,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "四组对象综合, 本锚支持易燃仓库核心组; 道路/防火分区/材料管理另有 kc:012_0013/147_0236 等源(复合多源工单, 待补齐 provenance)。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -1180,9 +1180,9 @@
    ],
    "model_answer": "失分：方向未点'下风向'、间距无数字、漏消防通道。补写：设下风向、水源充足；消防通道≥6m；距明火≥30m；危险品间距≥10m。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "2db87fc98826d2b239e672c0d1bbb3cc00c17ccef9172e56458f54d54fbb723c",
+   "content_sha256": "816cf7923b0d794edb1fad472f4e270695570b59e2ab75c3e5ac4a3a282e31cd",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X02/P40_X02.practice.dc.html#Q16",
-   "authoring_sha256": "f7c6d4021baf0ec99e7175a775a2844b189ef8f923ca9853f098d4ab3f38af03",
+   "authoring_sha256": "f3d4d77a256c8fbac30abb068c5502addd3934958636279418700eafb94208ee",
    "decision": {
     "fact_id": "x02-fact-flammable-warehouse-fire-layout",
     "skeleton_id": "x02-skel-易燃仓库诊断补写",
@@ -1192,17 +1192,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "2db87fc98826d2b239e672c0d1bbb3cc00c17ccef9172e56458f54d54fbb723c",
+     "reviewed_content_sha256": "816cf7923b0d794edb1fad472f4e270695570b59e2ab75c3e5ac4a3a282e31cd",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -1212,7 +1212,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "下风向/水源充足/消防通道≥6m/距明火≥30m/危险品间距≥10m, 教材 kc:...146_0235:0 逐项直引。三联 anchor。工单: 关系对象宜写全。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
