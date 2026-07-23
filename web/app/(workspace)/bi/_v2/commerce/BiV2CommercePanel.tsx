@@ -61,6 +61,7 @@ const EMPTY_PACKAGE_FORM = {
   tier: 'vip',
   points: '9000',
   turns: '450',
+  teachingVideoLimit: '',
   price: '198',
   originalPrice: '',
   badge: '',
@@ -827,6 +828,8 @@ function PackageManagementPanel({
       tier: pkg.tier || pkg.id,
       points: String(pkg.points || ''),
       turns: String(pkg.turns || ''),
+      teachingVideoLimit:
+        pkg.teachingVideoLimit === null ? '' : String(pkg.teachingVideoLimit),
       price: String(pkg.priceCny || ''),
       originalPrice: pkg.originalPriceCny ? String(pkg.originalPriceCny) : '',
       badge: pkg.badge || '',
@@ -845,12 +848,17 @@ function PackageManagementPanel({
     const packageId = form.id.trim()
     const points = Number(form.points)
     const turns = Number(form.turns)
+    const teachingVideoLimit = form.teachingVideoLimit === '' ? null : Number(form.teachingVideoLimit)
     if (!packageId || !form.label.trim() || !form.tier.trim()) {
       setFormError('请填写套餐 ID、名称和层级')
       return
     }
     if (!Number.isFinite(points) || points <= 0 || !Number.isFinite(turns) || turns <= 0) {
       setFormError('点数和次数必须是正数')
+      return
+    }
+    if (teachingVideoLimit !== null && (!Number.isFinite(teachingVideoLimit) || teachingVideoLimit < 0)) {
+      setFormError('教学视频上限必须是非负整数，留空表示无限')
       return
     }
     setSubmitting(true)
@@ -862,6 +870,8 @@ function PackageManagementPanel({
         tier: form.tier.trim(),
         points: Math.floor(points),
         turns: Math.floor(turns),
+        teaching_video_limit:
+          teachingVideoLimit === null ? null : Math.floor(teachingVideoLimit),
         price: form.price.trim(),
         original_price: form.originalPrice.trim(),
         badge: form.badge.trim(),
@@ -1004,6 +1014,15 @@ function PackageManagementPanel({
                 min={1}
                 value={form.turns}
                 onChange={event => patchForm('turns', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+              />
+            </PackageField>
+            <PackageField label="教学视频上限（留空=无限）">
+              <input
+                type="number"
+                min={0}
+                value={form.teachingVideoLimit}
+                onChange={event => patchForm('teachingVideoLimit', event.target.value)}
                 className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
               />
             </PackageField>

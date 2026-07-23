@@ -52,7 +52,17 @@ def _hidden_value_present(source: dict[str, Any]) -> bool:
 
 
 def _is_hidden_source(source: dict[str, Any], *, policy: CitationPolicy) -> bool:
-    return policy.surface == "student" and _hidden_value_present(source)
+    if policy.surface != "student":
+        return False
+    metadata = _metadata(source)
+    visibility = _text(source.get("visibility") or metadata.get("visibility")).lower()
+    return visibility in {"private", "internal", "hidden"} or _hidden_value_present(source)
+
+
+def _visibility(source: dict[str, Any]) -> str:
+    metadata = _metadata(source)
+    visibility = _text(source.get("visibility") or metadata.get("visibility")).lower()
+    return "private" if visibility in {"private", "internal", "hidden"} else "public"
 
 
 def _source_type(source: dict[str, Any]) -> str:
@@ -378,6 +388,7 @@ def normalize_citation_sources(
                 content_hash=_text(source.get("content_hash") or metadata.get("content_hash")),
                 quote_hash=_text(source.get("quote_hash") or metadata.get("quote_hash")),
                 public_quote=quote,
+                visibility=_visibility(source),
                 authority_rank=_int(source.get("authority_rank") or metadata.get("authority_rank")),
                 evidence_level=_text(source.get("evidence_level") or metadata.get("evidence_level")),
             )

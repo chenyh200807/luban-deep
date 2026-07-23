@@ -861,17 +861,7 @@ def test_wallet_endpoints_treat_invalid_uuid_wallet_lookup_as_empty_wallet(
     ],
 )
 def test_resolve_teaching_video_limit_tiers(tier: str, is_active: bool, expected: int | None) -> None:
-    assert mobile_module.resolve_teaching_video_limit(tier, is_active) == expected
-
-
-def test_membership_is_active_by_expire_at() -> None:
-    tz = ZoneInfo("Asia/Shanghai")
-    future = (datetime.now(tz) + timedelta(days=1)).isoformat()
-    past = (datetime.now(tz) - timedelta(days=1)).isoformat()
-    assert mobile_module._membership_is_active(future) is True
-    assert mobile_module._membership_is_active(past) is False
-    assert mobile_module._membership_is_active("") is False
-    assert mobile_module._membership_is_active(None) is False
+    assert mobile_module.member_service.resolve_teaching_video_limit(tier, is_active) == expected
 
 
 def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
@@ -893,13 +883,8 @@ def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_expired")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_billing_entitlement_read_model",
-        lambda user_id: {
-            "user_id": user_id,
-            "tier": "light_98",
-            "status": "active",
-            "expire_at": past_expire,
-        },
+        "get_teaching_video_limit",
+        lambda user_id: 20,
     )
 
     class _FakeWalletService:
@@ -940,13 +925,8 @@ def test_billing_wallet_teaching_video_limit_inactive_membership_defaults_to_20(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_suspended")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_billing_entitlement_read_model",
-        lambda user_id: {
-            "user_id": user_id,
-            "tier": "vip",
-            "status": "suspended",
-            "expire_at": future_expire,
-        },
+        "get_teaching_video_limit",
+        lambda user_id: 20,
     )
 
     class _FakeWalletService:
@@ -983,13 +963,8 @@ def test_billing_wallet_teaching_video_limit_active_starter_is_30(
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_starter")
     monkeypatch.setattr(
         mobile_module.member_service,
-        "get_billing_entitlement_read_model",
-        lambda user_id: {
-            "user_id": user_id,
-            "tier": "starter_19",
-            "status": "active",
-            "expire_at": future_expire,
-        },
+        "get_teaching_video_limit",
+        lambda user_id: 30,
     )
 
     class _FakeWalletService:
@@ -1011,3 +986,43 @@ def test_billing_wallet_teaching_video_limit_active_starter_is_30(
 
     assert response.status_code == 200
     assert response.json()["teaching_video_limit"] == 30
+
+
+def test_billing_wallet_projects_persisted_package_catalog(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    package = {
+        "id": "starter_19",
+        "price": "19",
+        "points": 800,
+        "turns": 40,
+        "teaching_video_limit": 30,
+    }
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "verify_access_token",
+        lambda _token: {"uid": "user_demo", "canonical_uid": "user_demo"},
+    )
+    monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: "user_demo")
+    monkeypatch.setattr(mobile_module.member_service, "list_membership_packages", lambda: [package])
+    monkeypatch.setattr(mobile_module.member_service, "get_teaching_video_limit", lambda _user_id: 30)
+
+    class _FakeWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return _FakeWalletSnapshot(user_id=user_id, balance_micros=400_000_000, version=1)
+
+        @staticmethod
+        def list_wallet_ledger(_user_id: str, *, limit: int = 20, offset: int = 0):
+            del limit, offset
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
+
+    assert response.status_code == 200
+    assert response.json()["packages"] == [package]

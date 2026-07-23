@@ -711,7 +711,12 @@ def _study_tip_from_seed(seed: dict[str, Any]) -> str:
 AUDIT_IDEMPOTENCY_INDEX_MAX = 10_000
 
 
+_UNSET_TEACHING_VIDEO_LIMIT = object()
+
+
 class MemberConsoleService:
+    _PACKAGE_CATALOG_SCHEMA_VERSION = 1
+
     # One-shot guard so the default-auth-secret warning is not logged per token verify.
     _warned_default_auth_secret = False
 
@@ -917,6 +922,38 @@ class MemberConsoleService:
     def canonical_membership_package_id(package_id: str | None) -> str:
         return _canonical_membership_package_id(package_id)
 
+    @classmethod
+    def resolve_teaching_video_limit(
+        cls,
+        tier: str | None,
+        is_active: bool,
+        *,
+        packages: list[dict[str, Any]] | None = None,
+    ) -> int | None:
+        """Resolve video access from the canonical membership package catalog."""
+        if not is_active:
+            return 20
+        package_id = cls.canonical_membership_package_id(tier)
+        catalog = cls._normalize_package_catalog(packages or cls._default_packages())
+        package = next(
+            (
+                item
+                for item in catalog
+                if cls.canonical_membership_package_id(item.get("tier") or item.get("id"))
+                == package_id
+            ),
+            None,
+        )
+        if package is None:
+            return 20
+        value = package.get("teaching_video_limit")
+        if value is None:
+            return None
+        try:
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 20
+
     @staticmethod
     def _default_packages() -> list[dict[str, Any]]:
         return [
@@ -931,6 +968,7 @@ class MemberConsoleService:
                 "badge": "新手体验",
                 "per": "20 次 AI 学习额度",
                 "per_turn_price": "0.495",
+                "teaching_video_limit": 30,
                 "audience": "刚开始体验、偶尔答疑的考生",
                 "desc": "AI智能答疑、AI案例批改、错因专训、学习记录",
             },
@@ -945,6 +983,7 @@ class MemberConsoleService:
                 "badge": "轻量优选",
                 "per": "150 次 AI 学习额度",
                 "per_turn_price": "0.453",
+                "teaching_video_limit": None,
                 "audience": "阶段备考、需要稳定答疑的考生",
                 "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
             },
@@ -959,6 +998,7 @@ class MemberConsoleService:
                 "badge": "",
                 "per": "450 次 AI 学习额度",
                 "per_turn_price": "0.44",
+                "teaching_video_limit": None,
                 "audience": "有基础的、二战的、在职的考生",
                 "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
             },
@@ -975,6 +1015,7 @@ class MemberConsoleService:
                 "badge": "最高性价比",
                 "per": "625 次 AI 学习额度",
                 "per_turn_price": "0.429",
+                "teaching_video_limit": None,
                 "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
                 "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
             },
@@ -989,6 +1030,7 @@ class MemberConsoleService:
                 "badge": "最高性价比",
                 "per": "2500 次 AI 学习额度",
                 "per_turn_price": "0.399",
+                "teaching_video_limit": None,
                 "audience": "零基础纯自学，对考试没信心，处处需答疑的考生",
                 "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
             },
@@ -1033,6 +1075,24 @@ class MemberConsoleService:
             "desc": str(item.get("desc") or item.get("description") or "").strip(),
             "status": status,
         }
+        if "teaching_video_limit" in item:
+            raw_video_limit = item.get("teaching_video_limit")
+            if raw_video_limit is None:
+                package["teaching_video_limit"] = None
+            else:
+                try:
+                    package["teaching_video_limit"] = max(0, int(raw_video_limit))
+                except (TypeError, ValueError):
+                    package["teaching_video_limit"] = 20
+        else:
+            # Compatibility migration for catalogs written before the entitlement
+            # became a package field. This derives shape only; it never rewrites
+            # price, points, turns, or another commerce fact.
+            package["teaching_video_limit"] = (
+                30 if package_id == "starter_19" else None
+                if package_id in {"light_98", "vip", "svip", "supreme_svip"}
+                else 20
+            )
         if not package["per"] and package["turns"] > 0:
             package["per"] = f"{package['turns']} 次 AI 学习额度"
         if not package["per_turn_price"] and package["turns"] > 0:
@@ -1041,53 +1101,6 @@ class MemberConsoleService:
                 package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
             except (TypeError, ValueError, ZeroDivisionError):
                 package["per_turn_price"] = ""
-        # 消费者档位为「防漂移锚点」：无论来自 _default_packages 还是持久化 packages,
-        # 均在此处硬钉成唯一定价真值,消费/发点路径(_resolve_membership_package)也走这里,
-        # 因此改价必须同步改这里(否则发点会被钉回旧值 → 资损)。
-        if package["id"] == "starter_19":
-            package.update(
-                {
-                    "id": "starter_19",
-                    "tier": "starter_19",
-                    "label": "入门体验",
-                    "points": 400,
-                    "turns": 20,
-                    "days": 180,
-                    "price": "9.9",
-                    "per_turn_price": "0.495",
-                }
-            )
-        elif package["id"] == "light_98":
-            package.update(
-                {
-                    "id": "light_98",
-                    "tier": "light_98",
-                    "label": "进阶",
-                    "points": 3000,
-                    "turns": 150,
-                    "days": 180,
-                    "price": "68",
-                    "per_turn_price": "0.453",
-                }
-            )
-        elif package["id"] == "svip":
-            package.update(
-                {
-                    "id": "svip",
-                    "tier": "svip",
-                    "label": "SVIP",
-                    "points": 12500,
-                    "turns": 625,
-                    "days": 180,
-                    "price": "268",
-                    "original_price": "398",
-                    "badge": "最高性价比",
-                    "per": "625 次 AI 学习额度",
-                    "per_turn_price": "0.429",
-                    "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
-                    "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
-                }
-            )
         return package
 
     @classmethod
@@ -1113,11 +1126,64 @@ class MemberConsoleService:
                 normalized.append(package)
         return normalized or defaults
 
+    @classmethod
+    def _migrate_package_catalog(cls, data: dict[str, Any]) -> bool:
+        """Migrate only exact legacy launch rows, then preserve admin-owned values."""
+        try:
+            current_version = int(data.get("package_catalog_schema_version") or 0)
+        except (TypeError, ValueError):
+            current_version = 0
+        if current_version >= cls._PACKAGE_CATALOG_SCHEMA_VERSION:
+            return False
+
+        defaults = {
+            str(item["id"]): deepcopy(item)
+            for item in cls._default_packages()
+        }
+        legacy_fingerprints = {
+            "starter_19": ("体验包", 800, 40, "19", "29"),
+            "light_98": ("轻量包", 4400, 220, "98", "149"),
+            "svip": ("SVIP", 28000, 1400, "598", "798"),
+        }
+        def _catalog_int(value: Any) -> int:
+            try:
+                return int(value or 0)
+            except (TypeError, ValueError):
+                return 0
+
+        migrated: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for raw in data.get("packages") or []:
+            if not isinstance(raw, dict):
+                continue
+            package_id = cls.canonical_membership_package_id(raw.get("id") or raw.get("package_id"))
+            fingerprint = (
+                str(raw.get("label") or raw.get("name") or "").strip(),
+                _catalog_int(raw.get("points")),
+                _catalog_int(raw.get("turns")),
+                str(raw.get("price") or "").strip(),
+                str(raw.get("original_price") or raw.get("originalPrice") or "").strip(),
+            )
+            if package_id in defaults and fingerprint == legacy_fingerprints.get(package_id):
+                replacement = deepcopy(defaults[package_id])
+                replacement["status"] = str(raw.get("status") or "active")
+                migrated.append(replacement)
+            else:
+                migrated.append(raw)
+            seen.add(package_id)
+        for package_id, default in defaults.items():
+            if package_id not in seen:
+                migrated.append(default)
+        data["packages"] = migrated
+        data["package_catalog_schema_version"] = cls._PACKAGE_CATALOG_SCHEMA_VERSION
+        return True
+
     @staticmethod
     def _empty_data() -> dict[str, Any]:
         return {
             "members": [],
             "packages": MemberConsoleService._default_packages(),
+            "package_catalog_schema_version": MemberConsoleService._PACKAGE_CATALOG_SCHEMA_VERSION,
             "audit_log": [],
             "assessment_sessions": {},
             "phone_codes": {},
@@ -1824,6 +1890,7 @@ class MemberConsoleService:
             return data
         data = json.loads(self._data_path.read_text(encoding="utf-8"))
         data.setdefault("members", [])
+        catalog_migrated = self._migrate_package_catalog(data)
         normalized_packages = self._normalize_package_catalog(data.get("packages"))
         packages_changed = normalized_packages != data.get("packages")
         data["packages"] = normalized_packages
@@ -1832,7 +1899,7 @@ class MemberConsoleService:
         data.setdefault("phone_codes", {})
         # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
         data.setdefault("audit_idempotency_keys", {})
-        if self._apply_legacy_chat_learning_migration(data) or packages_changed:
+        if self._apply_legacy_chat_learning_migration(data) or catalog_migrated or packages_changed:
             self._save_unlocked(data)
         return data
 
@@ -5878,14 +5945,45 @@ class MemberConsoleService:
         )
         if member is None:
             return None
-        packages = data.get("packages")
+        packages = self._normalize_package_catalog(data.get("packages"))
+        tier = self.canonical_membership_package_id(str(member.get("tier") or "").strip())
+        status = str(member.get("status") or "").strip()
+        expire_at = str(member.get("expire_at") or "").strip()
+        is_active = status == "active" and _parse_time(expire_at) >= _now()
+        teaching_video_limit: int | None = 20
+        if is_active:
+            package = next(
+                (
+                    item
+                    for item in packages
+                    if self.canonical_membership_package_id(item.get("tier") or item.get("id"))
+                    == tier
+                ),
+                None,
+            )
+            if package is not None:
+                teaching_video_limit = package.get("teaching_video_limit")
         return {
             "user_id": normalized_user_id,
-            "tier": str(member.get("tier") or "").strip(),
-            "status": str(member.get("status") or "").strip(),
-            "expire_at": str(member.get("expire_at") or "").strip(),
-            "packages": deepcopy(packages) if isinstance(packages, list) else [],
+            "tier": tier,
+            "status": status,
+            "expire_at": expire_at,
+            "packages": deepcopy(packages),
+            "teaching_video_limit": teaching_video_limit,
         }
+
+    def get_teaching_video_limit(self, user_id: str) -> int | None:
+        """Project the canonical package entitlement; missing state is free-tier."""
+        entitlement = self.get_billing_entitlement_read_model(user_id)
+        if entitlement is None:
+            return 20
+        value = entitlement.get("teaching_video_limit")
+        if value is None:
+            return None
+        try:
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 20
 
     def upsert_membership_package(
         self,
@@ -5895,6 +5993,7 @@ class MemberConsoleService:
         tier: str,
         points: int,
         turns: int = 0,
+        teaching_video_limit: int | None | object = _UNSET_TEACHING_VIDEO_LIMIT,
         price: str,
         original_price: str = "",
         badge: str = "",
@@ -5907,8 +6006,7 @@ class MemberConsoleService:
     ) -> dict[str, Any]:
         normalized_operator = str(operator or "").strip() or "admin"
         normalized_key = str(idempotency_key or "").strip()
-        draft = self._normalize_membership_package(
-            {
+        draft_input = {
                 "id": package_id,
                 "label": label,
                 "tier": tier,
@@ -5921,7 +6019,9 @@ class MemberConsoleService:
                 "desc": desc,
                 "status": status,
             }
-        )
+        if teaching_video_limit is not _UNSET_TEACHING_VIDEO_LIMIT:
+            draft_input["teaching_video_limit"] = teaching_video_limit
+        draft = self._normalize_membership_package(draft_input)
         if not re.fullmatch(r"[A-Za-z0-9_:-]{1,80}", draft["id"]):
             raise ValueError("package_id must be 1-80 chars of [a-zA-Z0-9_:-]")
         if draft["points"] <= 0:
@@ -5947,6 +6047,8 @@ class MemberConsoleService:
                 None,
             )
             before = deepcopy(packages[index]) if index is not None else {}
+            if teaching_video_limit is _UNSET_TEACHING_VIDEO_LIMIT and index is not None:
+                draft["teaching_video_limit"] = before.get("teaching_video_limit", 20)
             if index is None:
                 packages.append(deepcopy(draft))
             else:

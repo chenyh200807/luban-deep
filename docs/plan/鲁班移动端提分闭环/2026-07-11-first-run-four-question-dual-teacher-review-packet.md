@@ -4,8 +4,7 @@
 > 日期：2026-07-11
 > 目标：让两位独立教研对同一份题目内容和同一 content hash 作出可追溯 verdict；本文件不代替人工签字。
 > Canonical manifest：`deeptutor/services/first_run/script_manifest.v1.json`
-> Manifest 文件 SHA-256：`5616896560d981fd54d3d84ac00130413cf5cdf8da3a95a63495734cc8126529`
-> Script version：`first_run_script.v1@5022d02db1f3316ef7515e60140ba3f16128fde0dd8c0ebd86a9ff540a8ceffd`
+> Manifest 当前状态：`blocked_pending_human_verdict`；四题 `review_refs` 为空，待两位真人教研签发。
 
 ## 1. 签发规则
 
@@ -15,10 +14,19 @@
 4. 四题全部 signed 后，才可把 manifest 顶层 `release_status` 改为 `signed`。缺一题时，`POST /api/v1/first-run/complete` 必须继续返回 `409 first_run_content_not_signed`。
 5. 人工签发只确认内容可作为低置信首次诊断证据；不授权 mastery、正式考试分数或长期人格推断。
 
-建议的 `review_ref` 格式：
+唯一接受的结构化 `review_ref` 格式（legacy 字符串、agent、委托签发均 fail-close）：
 
-```text
-teacher_review:<reviewer_id>:<YYYY-MM-DD>:<question_id>:<content_sha256>
+```json
+{
+  "reviewer_id": "<human reviewer identity>",
+  "reviewer_kind": "human",
+  "reviewer_role": "teaching_reviewer",
+  "verdict": "approve",
+  "delegated": false,
+  "reviewed_on": "<YYYY-MM-DD>",
+  "question_id": "<question_id>",
+  "content_sha256": "<content_sha256>"
+}
 ```
 
 ## 2. 题目一：屋面卷材起鼓
@@ -124,4 +132,4 @@ teacher_review:<reviewer_id>:<YYYY-MM-DD>:<question_id>:<content_sha256>
 - [ ] 重新生成或同步 `script-data.js` 镜像，并运行前后端 hash 一致性测试。
 - [ ] 运行 first-run manifest/writeback/API、前端旅程、contract/schema/mirror gates。
 - [ ] 用隔离 eval runner 在真实 `yousenwebview` 项目根完成一次签发后写回，证明 200、幂等 replay、学情续接和旧摸底弹窗抑制。
-- [ ] 以上只形成内容 release candidate；owner 已授权代码 commit、review、push、PR merge main，部署及把 manifest 改为 signed 仍需单独授权。
+- [ ] 以上只形成内容 release candidate；只有两份满足 `human / teaching_reviewer / approve / delegated=false` 的独立 attestation 齐备后，owner 才可授权机械翻牌与部署。owner 授权不能替代两份真人教研签发。

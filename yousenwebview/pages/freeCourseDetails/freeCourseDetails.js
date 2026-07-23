@@ -384,7 +384,7 @@ Component({
         });
         this.scheduleBeishuHide();
         if (video_id) {
-          this.requestVideoSrc(video_id, true);
+          this.requestVideoSrc(video_id, true, currentChapter);
         }
       } else {
         const progressState = this.getProgressState(chapterList, currentChapter.displayIndex || (Number(index) + 1));
@@ -406,7 +406,7 @@ Component({
     },
     //第三方视频
     publicVideo: function(id) {
-      this.requestVideoSrc(id, true);
+      this.requestVideoSrc(id, true, this.data.gratisDetail);
     },
     staPlay: function() {
       this.pendingAutoPlaySeq = 0;

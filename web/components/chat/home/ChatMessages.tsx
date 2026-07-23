@@ -24,6 +24,7 @@ import { trackWebSurfaceEventOnce } from "@/lib/surface-telemetry";
 import { extractVisualizeResult } from "@/lib/visualize-types";
 import type { StreamEvent } from "@/lib/unified-ws";
 import { hasVisibleMarkdownContent } from "@/lib/markdown-display";
+import { extractCitationReferences } from "@/lib/citation-display";
 import { CallTracePanel } from "./TracePanels";
 
 const MathAnimatorViewer = dynamic(
@@ -130,6 +131,11 @@ const AssistantMessage = memo(function AssistantMessage({
     return extractVisualizeResult(resultEvent.metadata);
   }, [msg.capability, resultEvent]);
 
+  const citationRefs = useMemo(
+    () => extractCitationReferences(resultEvent?.metadata),
+    [resultEvent],
+  );
+
   const turnId = useMemo(() => extractTurnIdFromEvents(events), [events]);
   const hasVisibleAssistantContent = useMemo(() => {
     if (hasVisibleMarkdownContent(msg.content)) return true;
@@ -182,6 +188,26 @@ const AssistantMessage = memo(function AssistantMessage({
       ) : (
         <AssistantResponse content={msg.content} />
       )}
+      {citationRefs.length > 0 ? (
+        <section
+          aria-label={language?.startsWith("zh") ? "引用依据" : "References"}
+          className="mt-3 border-l-2 border-[var(--border)] pl-3 text-[12px] leading-5 text-[var(--muted-foreground)]"
+        >
+          <div className="mb-1 font-medium text-[var(--foreground)]">
+            {language?.startsWith("zh") ? "依据" : "References"}
+          </div>
+          <ol className="space-y-1">
+            {citationRefs.map((ref, index) => (
+              <li key={`${ref.marker}-${ref.title}-${index}`}>
+                <span className="font-medium">{ref.marker || `〔${index + 1}〕`}</span>
+                {ref.title ? ` ${ref.title}` : ""}
+                {ref.locator ? ` · ${ref.locator}` : ""}
+                {ref.publicQuote ? ` — ${ref.publicQuote}` : ""}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
     </>
   );
 });

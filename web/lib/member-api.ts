@@ -242,6 +242,7 @@ export interface MembershipPackagePayload {
   tier: string
   points: number
   turns: number
+  teaching_video_limit?: number | null
   price: string
   original_price?: string
   badge?: string
@@ -257,6 +258,7 @@ export interface MembershipPackageResult {
   tier: string
   points: number
   turns: number
+  teaching_video_limit?: number | null
   price: string
   original_price?: string
   badge?: string

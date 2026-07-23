@@ -6781,3 +6781,30 @@ def test_mobile_chat_start_turn_is_rate_limited(monkeypatch: pytest.MonkeyPatch)
 
     assert statuses[:10] == [200] * 10  # first 10 within the window pass
     assert statuses[10] == 429  # 11th over the limit is rejected
+
+
+def test_mobile_billing_adapters_read_the_persisted_package_catalog(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class CatalogAuthority:
+        @staticmethod
+        def list_membership_packages():
+            return [{"id": "starter_19", "price": "11", "points": 440, "turns": 22}]
+
+        @staticmethod
+        def _default_packages():
+            raise AssertionError("mobile adapter must not read private bootstrap defaults")
+
+    monkeypatch.setattr(mobile_module, "member_service", CatalogAuthority())
+
+    assert mobile_module._wallet_packages() == [
+        {"id": "starter_19", "price": "11", "points": 440, "turns": 22}
+    ]
+    assert mobile_module._billing_package_by_id("starter_19") == {
+        "id": "starter_19",
+        "price": "11",
+        "points": 440,
+        "turns": 22,
+    }
+    with pytest.raises(RuntimeError, match="attacker_unknown"):
+        mobile_module._billing_usage_reference_points_for_plan("attacker_unknown")

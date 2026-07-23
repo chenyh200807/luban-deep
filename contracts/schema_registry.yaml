@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 221            # +4 variant-decision governance ids (2026-07-16/17 slice, see tier3 note)
+  full_set_count: 222            # + first-run human reviewer registry authority (2026-07-22)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 37      # +compiled Practice static projection receipt
+    tier2_runtime_canonical: 38      # + first-run human reviewer registry authority
                                      #  +luban_variant_decision.v1 (variant-probe consumption slice:
                                      #  now read at runtime by luban_lesson router + retest_writeback)
     tier3_ephemeral_artifact: 175    # +luban_variant_decision_candidates.v1
@@ -487,6 +487,31 @@ tier2_canonical_contracts:
       - script_version
       - release_status
       - questions
+      - questions[].review_status
+      - questions[].review_refs[].reviewer_id
+      - questions[].review_refs[].reviewer_kind
+      - questions[].review_refs[].reviewer_role
+      - questions[].review_refs[].verdict
+      - questions[].review_refs[].delegated
+      - questions[].review_refs[].reviewed_on
+      - questions[].review_refs[].question_id
+      - questions[].review_refs[].content_sha256
+      - reviewer_registry
+
+  - name: first_run_reviewer_registry.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: active human teaching-reviewer identities allowed to attest first-run diagnostic questions
+    module: deeptutor/services/first_run/reviewer_registry.v1.json
+    consumed_by: deeptutor/services/first_run/manifest.py
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema_id
+      - reviewers
+      - reviewers[].reviewer_id
+      - reviewers[].reviewer_kind
+      - reviewers[].reviewer_role
+      - reviewers[].status
 
   - name: first_run_completion.v1
     status: runtime_canonical

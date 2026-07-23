@@ -81,8 +81,8 @@ async def test_tutorbot_result_appends_paper_style_citations(monkeypatch: pytest
 
     result_event = next(event for event in stream._history if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
-    assert response == "屋面防水等级应根据工程重要性确定。〔1〕\n\n设防要求应结合渗漏后果判断。〔2〕"
-    assert "〔1〕" in response
+    assert response == "屋面防水等级应根据工程重要性确定。\n\n设防要求应结合渗漏后果判断。"
+    assert "〔1〕" not in response
     assert "依据" not in response
     assert result_event.metadata["citation_bundle"]["footer_text"].startswith("依据\n〔1〕2026 建筑实务教材")
     assert result_event.metadata["citation_bundle"]["citation_state"] in {"supported", "partial"}

@@ -155,20 +155,12 @@ var openCards = openChapters.reduce(function (all, chapter) { return all.concat(
 assert.strictEqual(openCards.some(function (card) { return card.locked; }), false, "开关开(limit=null)时全部解锁,无待开放");
 
 // ── 付费墙上限决策(真实 flags.resolveTeachingVideoLimit):服务端 teaching_video_limit 驱动 ──
-// promo 总开关默认关(host 无 getApp/globalData → DEFAULT_FLAGS.teachingVideoFullAccessEnabled=false)。
 assert.strictEqual(realFlags.resolveTeachingVideoLimit(20), 20, "服务端下发整数 20 → 上限 20");
 assert.strictEqual(realFlags.resolveTeachingVideoLimit(30), 30, "服务端下发整数 30 → 上限 30(会员等级不同上限不同)");
 assert.strictEqual(realFlags.resolveTeachingVideoLimit(null), null, "服务端明确 null → 无限(全开放)");
-assert.strictEqual(realFlags.resolveTeachingVideoLimit(undefined), 20, "服务端值拿不到 → fail-closed 回落 20,绝不因拿不到就放全部");
-assert.strictEqual(realFlags.resolveTeachingVideoLimit("bad"), 20, "服务端下发非法值 → fail-closed 回落 20");
-assert.strictEqual(realFlags.resolveTeachingVideoLimit(-5), 20, "服务端下发负数 → fail-closed 回落 20");
-// promo 总开关开(host 运行时覆盖)→ null,优先级高于服务端任何值。
-global.getApp = function () {
-  return { getDeeptutorWorkspaceFlags: function () { return { teachingVideoFullAccessEnabled: true }; } };
-};
-assert.strictEqual(realFlags.resolveTeachingVideoLimit(5), null, "promo 总开关开 → 无限,覆盖服务端上限");
-assert.strictEqual(realFlags.resolveTeachingVideoLimit(undefined), null, "promo 总开关开 → 无限,即使服务端拿不到");
-delete global.getApp;
+assert.strictEqual(realFlags.resolveTeachingVideoLimit(undefined), 0, "服务端值拿不到 → fail-closed 全锁");
+assert.strictEqual(realFlags.resolveTeachingVideoLimit("bad"), 0, "服务端下发非法值 → fail-closed 全锁");
+assert.strictEqual(realFlags.resolveTeachingVideoLimit(-5), 0, "服务端下发负数 → fail-closed 全锁");
 
 var page = Object.assign({}, definition);
 page.data = JSON.parse(JSON.stringify(definition.data));
@@ -186,7 +178,7 @@ page.setData = function (patch) { Object.assign(this.data, patch || {}); };
   assert.strictEqual(page.data.chapterSections[0].cards[0].locked !== true, true, "第 1 集必须可看");
   assert.strictEqual(page.data.chapterSections[0].cards[2].locked, true, "第 3 集(超上限)必须待开放");
 
-  // fail-closed 接线:服务端 wallet 请求失败 → 回落 20 集引子(3 集 payload 下全可看,页面不崩)。
+  // fail-closed 接线:服务端 wallet 请求失败 → 全锁但仍投影目录,页面不崩。
   walletShouldFail = true;
   var failPage = Object.assign({}, definition);
   failPage.data = JSON.parse(JSON.stringify(definition.data));
@@ -195,7 +187,7 @@ page.setData = function (patch) { Object.assign(this.data, patch || {}); };
   await new Promise(function (resolve) { setTimeout(resolve, 0); });
   assert.strictEqual(failPage.data.errorText, "", "wallet 拿不到时不应把整页判失败(教学集接口本身成功)");
   assert.strictEqual(failPage.data.chapterSections[0].cards.length, 3, "wallet 失败仍如实投影全部教学集");
-  assert.strictEqual(failPage.data.unlockedCount, 3, "wallet 失败 → fail-closed 回落 20,3 集 payload 下全部开放");
+  assert.strictEqual(failPage.data.unlockedCount, 0, "wallet 失败 → fail-closed 全锁,不由客户端猜权益");
   walletShouldFail = false;
   page.openEpisode({ currentTarget: { dataset: { packId: "D14", episode: 2, cardUrl: "https://cdn/d14/lesson2.html" } } });
   assert.strictEqual(navigatedTo, "/station?pack_id=D14&episode=2");

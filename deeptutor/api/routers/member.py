@@ -80,6 +80,7 @@ class MembershipPackageRequest(BaseModel):
     tier: str = Field(..., min_length=1, max_length=40)
     points: int = Field(..., gt=0, le=10_000_000)
     turns: int = Field(..., gt=0, le=1_000_000)
+    teaching_video_limit: int | None = Field(default=None, ge=0, le=1_000_000)
     price: str = Field(..., min_length=1, max_length=40)
     original_price: str = Field(default="", max_length=40)
     badge: str = Field(default="", max_length=40)
@@ -193,6 +194,11 @@ async def upsert_membership_package(
     current_user: AuthContext = Depends(require_admin),
 ) -> dict[str, Any]:
     try:
+        optional_entitlement = (
+            {"teaching_video_limit": body.teaching_video_limit}
+            if "teaching_video_limit" in body.model_fields_set
+            else {}
+        )
         return service.upsert_membership_package(
             package_id=package_id,
             label=body.label,
@@ -208,6 +214,7 @@ async def upsert_membership_package(
             operator=current_user.user_id,
             reason=body.reason,
             idempotency_key=_require_idempotency_key(idempotency_key),
+            **optional_entitlement,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

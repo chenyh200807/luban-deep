@@ -24,7 +24,7 @@ def _answer(
 
 def test_rejects_inline_response_marker() -> None:
     ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
-    with pytest.raises(CitationQualityError, match="orphan citation marker"):
+    with pytest.raises(CitationQualityError, match="inline citation marker"):
         validate_cited_answer(_answer("正文〔1〕", [ref]))
 
 
@@ -34,7 +34,7 @@ def test_allows_legal_document_number_brackets_in_response() -> None:
 
 
 def test_rejects_orphan_inline_response_marker() -> None:
-    with pytest.raises(CitationQualityError, match="orphan citation marker"):
+    with pytest.raises(CitationQualityError, match="inline citation marker"):
         validate_cited_answer(_answer("正文〔2〕\n\n依据\n〔1〕来源", []))
 
 
@@ -43,17 +43,17 @@ def test_allows_structured_footer_rows_without_visible_body_marker() -> None:
     validate_cited_answer(_answer("正文", [ref]))
 
 
-def test_rejects_missing_claim_marker_in_response() -> None:
+def test_allows_claim_binding_only_in_structured_bundle() -> None:
     ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
     claim = CitedClaim("claim_1", "正文", ["c1"], 0.9)
-    with pytest.raises(CitationQualityError, match="missing claim citation marker"):
-        validate_cited_answer(_answer("正文", [ref], [claim]))
+    validate_cited_answer(_answer("正文", [ref], [claim]))
 
 
-def test_accepts_inline_marker_when_backed_by_claim() -> None:
+def test_rejects_inline_marker_even_when_backed_by_claim() -> None:
     ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
     claim = CitedClaim("claim_1", "正文", ["c1"], 0.9)
-    validate_cited_answer(_answer("正文〔1〕", [ref], [claim]))
+    with pytest.raises(CitationQualityError, match="inline citation marker"):
+        validate_cited_answer(_answer("正文〔1〕", [ref], [claim]))
 
 
 def test_rejects_hidden_public_quote() -> None:

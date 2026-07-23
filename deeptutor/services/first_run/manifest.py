@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 MANIFEST_PATH = Path(__file__).with_name("script_manifest.v1.json")
+REVIEWER_REGISTRY_PATH = Path(__file__).with_name("reviewer_registry.v1.json")
 SCHEMA_ID = "first_run_script.v1"
 QUESTION_KEYS = ("A", "B", "C", "D")
 
@@ -77,7 +78,23 @@ def load_first_run_manifest() -> dict[str, Any]:
     return manifest
 
 
+def load_first_run_reviewer_registry() -> set[str]:
+    raw = json.loads(REVIEWER_REGISTRY_PATH.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict) or raw.get("schema_id") != "first_run_reviewer_registry.v1":
+        raise FirstRunManifestError("invalid_reviewer_registry")
+    return {
+        str(item.get("reviewer_id") or "").strip()
+        for item in list(raw.get("reviewers") or [])
+        if isinstance(item, dict)
+        and item.get("status") == "active"
+        and item.get("reviewer_kind") == "human"
+        and item.get("reviewer_role") == "teaching_reviewer"
+        and str(item.get("reviewer_id") or "").strip()
+    }
+
+
 def _require_signed_manifest(manifest: dict[str, Any]) -> None:
+    registered_reviewers = load_first_run_reviewer_registry()
     unsigned: list[str] = []
     for question in list(manifest.get("questions") or []):
         if not isinstance(question, dict):
@@ -91,6 +108,7 @@ def _require_signed_manifest(manifest: dict[str, Any]) -> None:
                     item,
                     question_id=question_id,
                     content_sha256=content_sha256,
+                    registered_reviewers=registered_reviewers,
                 )
                 for item in list(question.get("review_refs") or [])
             )
@@ -107,20 +125,26 @@ def _reviewer_id_for_question(
     *,
     question_id: str,
     content_sha256: str,
+    registered_reviewers: set[str],
 ) -> str:
-    parts = str(value or "").strip().split(":")
-    if len(parts) < 6 or parts[0] != "teacher_review":
+    if not isinstance(value, dict):
         return ""
-    reviewer_id = parts[1].strip()
-    reviewed_on = parts[2].strip()
-    bound_question_id = ":".join(parts[3:-1]).strip()
-    bound_content_sha256 = parts[-1].strip()
+    reviewer_id = str(value.get("reviewer_id") or "").strip()
+    reviewed_on = str(value.get("reviewed_on") or "").strip()
+    bound_question_id = str(value.get("question_id") or "").strip()
+    bound_content_sha256 = str(value.get("content_sha256") or "").strip()
     try:
-        date.fromisoformat(reviewed_on)
+        reviewed_date = date.fromisoformat(reviewed_on)
     except ValueError:
         return ""
     if (
         not reviewer_id
+        or reviewer_id not in registered_reviewers
+        or reviewed_date > date.today()
+        or value.get("reviewer_kind") != "human"
+        or value.get("reviewer_role") != "teaching_reviewer"
+        or value.get("verdict") != "approve"
+        or value.get("delegated") is not False
         or bound_question_id != question_id
         or bound_content_sha256 != content_sha256
     ):

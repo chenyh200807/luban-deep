@@ -125,6 +125,7 @@ mobile_http_read_models:
     authority: canonical entitlement read model + membership package catalog
     semantics:
       - teaching_video_limit is 20 for users without a valid membership or with an expired membership, 30 for starter_19, and null for light_98/vip/svip/supreme_svip.
+      - teaching_video_limit is owned by the persisted membership package catalog; admin package writes update that field through MemberConsoleService and clients must fail closed when the projection is unavailable.
       - The wallet adapter only projects this entitlement; clients must not recompute the limit from tier or wallet plan_id.
   billing_usage:
     path: /api/v1/billing/usage
@@ -158,7 +159,7 @@ mobile_http_auth_controls:
         SMS code, returns no token, and never auto-logs in.
       - Reset must not write learner summaries, learner memory events, profile,
         progress, goals, wallet, capability route state, or turn/session state.
-  change_password:
+  password_change:
     path: /api/v1/auth/change-password
     authority: MemberConsoleService -> external_auth
     semantics:

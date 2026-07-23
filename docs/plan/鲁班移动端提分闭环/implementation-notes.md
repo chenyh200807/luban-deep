@@ -9,6 +9,11 @@
 
 ## Deviations
 
+### 2026-07-22（首跑签发 authority 纠偏）
+- **[当前终态]** 2026-07-12 的 owner delegate 字符串只证明历史授权与机械 gate 曾放行，不满足签发包既定的“两位不同真人教研”要求；该记录保留为 `Historical`，不再作为当前内容签发证据。
+- **[收权]** `script_manifest.v1.json` 已降为 `blocked_pending_human_verdict`，四题 `review_status=pending_dual_teacher_verdict`、`review_refs=[]`。签发只接受两份结构化、绑定同一 question/content hash 的 `human + teaching_reviewer + approve + delegated=false` attestation；agent、delegate 与 legacy 字符串均 fail-close。
+- **[边界]** 这次纠偏不撤销历史页面级或 auth-chain 验证，但当前内容启用、真实微信旅程与 production release 均重新等待两位真人教研签发；不得用本地测试绿灯替代该人闸。
+
 ### 2026-07-20（11 包全量修复 · owner 指令"全量修复,40 包最终全上线"）
 - **[终态]** 40/40 包 supply_ready、签发题 316、题池 641(补题 8 道)。三类修复:①短卷补题 4 包(C02/N02/F16/F02 各 6→8 题,新题全部教材/真题逐字锚+算例复算);②源病 6 包(S02 非常规限定词、S01 分档表/50m门/垫板、X01 五条清单+围挡限定、B02 JGJ120 七因素、F05 止水环改题、G03 超灌口径+坍孔病谱)——编译源逐字回填共 10+ 处采分点,全部带 repair_note 溯源 2026 教材 chunk;③A01 算术病(2017 真题金标裁决 30.5<30.8 不合格,叙事链 12 处改对)。
 - **[教材仲裁三判例]** S02:教材**有**限定词→修编译源;F05:教材**无**止水环机理(全书"渗径"0 次)→改题不补锚;S01:教材**无**"立杆步距≤Xm"数值限值→废编造数字改垫板题。原则:编译源修复只许教材原文逐字,教材没有的事实宁改题不造锚。

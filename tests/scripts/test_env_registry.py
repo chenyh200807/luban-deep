@@ -34,6 +34,13 @@ from scripts.check_env_registry import (
 )
 
 
+def test_registry_loads_transient_command_envs() -> None:
+    registry = load_env_registry()
+    assert "RELEASE_GIT_SHA" in registry["registered_envs"]
+    assert "RELEASE_COMMIT" in registry["registered_envs"]
+    assert "RELEASE_KEEP" in registry["registered_envs"]
+
+
 # ── Registry loads and exposes the single canonical list ─────────────────────
 def test_registry_loads_envs_flags_and_grandfathered() -> None:
     registry = load_env_registry()
@@ -227,6 +234,66 @@ def test_full_repo_scan_has_zero_false_positives() -> None:
     ).stdout.split()
     ok, message = evaluate_env_registry(tracked)
     assert ok is True, message
+
+
+def test_scan_all_is_repo_rooted_from_artifacts_cwd() -> None:
+    import subprocess
+
+    from scripts.check_env_registry import REPO_ROOT
+
+    artifacts = REPO_ROOT / "artifacts"
+    result = subprocess.run(
+        ["python", str(REPO_ROOT / "scripts" / "check_env_registry.py"), "--all"],
+        cwd=artifacts,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "env_refs=" in result.stdout
+    assert "no in-scope" not in result.stdout
+
+
+def test_sync_to_aliyun_shell_env_reads_are_registered() -> None:
+    ok, message = evaluate_env_registry(["scripts/sync_to_aliyun.sh"])
+    assert ok is True, message
+
+
+def test_shell_local_variables_are_not_treated_as_environment_reads() -> None:
+    code = """\
+LOCAL_RELEASE_ID=abc
+echo "${LOCAL_RELEASE_ID}"
+for LOOP_VALUE in one two; do echo "$LOOP_VALUE"; done
+"""
+    envs = collect_env_reference_usages([("scripts/example.sh", code)])
+    assert envs == []
+
+
+def test_shell_self_default_assignment_is_operator_env_input() -> None:
+    code = 'RELEASE_WINDOW="${RELEASE_WINDOW:-5}"\necho "$RELEASE_WINDOW"\n'
+    envs = collect_env_reference_usages([("scripts/example.sh", code)])
+    assert [(item.lineno, item.env_name) for item in envs] == [(1, "RELEASE_WINDOW")]
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is False
+    assert "RELEASE_WINDOW" in message
+
+
+def test_shell_read_before_later_assignment_is_environment_input() -> None:
+    code = 'echo "$LATE_ENV"\nLATE_ENV=local\necho "$LATE_ENV"\n'
+    envs = collect_env_reference_usages([("scripts/example.sh", code)])
+    assert [(item.lineno, item.env_name) for item in envs] == [(1, "LATE_ENV")]
+
+
+def test_shell_assignment_rhs_self_read_is_environment_input() -> None:
+    code = 'PATH_COPY="$PATH_COPY:/tool"\necho "$PATH_COPY"\n'
+    envs = collect_env_reference_usages([("scripts/example.sh", code)])
+    assert [(item.lineno, item.env_name) for item in envs] == [(1, "PATH_COPY")]
+
+
+def test_shell_assignment_then_same_line_read_is_local() -> None:
+    code = 'LOCAL_VALUE=ready; echo "$LOCAL_VALUE"\n'
+    envs = collect_env_reference_usages([("scripts/example.sh", code)])
+    assert envs == []
 
 
 # ═════════════════════════════════════════════════════════════════════════════

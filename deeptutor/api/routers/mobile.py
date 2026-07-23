@@ -257,7 +257,7 @@ def _points_to_micros(value: int | float | None) -> int:
 
 
 def _wallet_packages() -> list[dict[str, Any]]:
-    getter = getattr(member_service, "_default_packages", None)
+    getter = getattr(member_service, "list_membership_packages", None)
     if callable(getter):
         try:
             return list(getter() or [])
@@ -276,53 +276,6 @@ def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
     return None
 
 
-# 教学视频权益上限:按当前有效会员 tier 派生。None = 无限;整数 = 上限条数。
-# 分档(单一权威,便于单测):
-#   无有效会员 / 会员已过期            → 20
-#   有效 tier == starter_19            → 30
-#   有效 tier ∈ {light_98,vip,svip,supreme_svip} → None(无限)
-_TEACHING_VIDEO_DEFAULT_LIMIT = 20
-_TEACHING_VIDEO_STARTER_LIMIT = 30
-_TEACHING_VIDEO_UNLIMITED_TIERS = frozenset(
-    {"light_98", "vip", "svip", "supreme_svip"}
-)
-
-
-def resolve_teaching_video_limit(tier: str | None, is_active: bool) -> int | None:
-    """Pure teaching-video entitlement resolver (unit-testable, no IO)."""
-    if not is_active:
-        return _TEACHING_VIDEO_DEFAULT_LIMIT
-    getter = getattr(member_service, "canonical_membership_package_id", None)
-    normalized = str(tier or "").strip().lower()
-    if callable(getter):
-        try:
-            normalized = str(getter(tier) or "").strip().lower()
-        except Exception:
-            normalized = str(tier or "").strip().lower()
-    if normalized == "starter_19":
-        return _TEACHING_VIDEO_STARTER_LIMIT
-    if normalized in _TEACHING_VIDEO_UNLIMITED_TIERS:
-        return None
-    return _TEACHING_VIDEO_DEFAULT_LIMIT
-
-
-def _membership_is_active(expire_at: Any) -> bool:
-    """会员是否在有效期内:expire_at 在未来(含此刻)=有效;空/已过期=无效。
-
-    复用只读 entitlement read model 暴露的 expire_at 作为过期真值,避免自造第二权威。
-    """
-    text = str(expire_at or "").strip()
-    if not text:
-        return False
-    try:
-        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
-    except ValueError:
-        return False
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=_BILLING_USAGE_TZ)
-    return parsed >= datetime.now(_BILLING_USAGE_TZ)
-
-
 def _teaching_video_limit_for_user(user_id: str) -> int | None:
     """Resolve the current teaching-video limit for a member.
 
@@ -330,20 +283,11 @@ def _teaching_video_limit_for_user(user_id: str) -> int | None:
     read model. Any lookup failure fails safe to the no-membership default (20)
     rather than creating member state or 500-ing the wallet.
     """
-    tier = ""
-    status = ""
-    expire_at = ""
     try:
-        profile = member_service.get_billing_entitlement_read_model(user_id)
+        return member_service.get_teaching_video_limit(user_id)
     except Exception:
         logger.warning("teaching_video_limit profile lookup failed for user_id=%s", _log_safe_id(user_id), exc_info=True)
-        profile = None
-    if isinstance(profile, dict):
-        tier = str(profile.get("tier") or "")
-        status = str(profile.get("status") or "")
-        expire_at = str(profile.get("expire_at") or "")
-    is_active = status.strip().lower() == "active" and _membership_is_active(expire_at)
-    return resolve_teaching_video_limit(tier, is_active)
+        return 0
 
 
 def _price_to_fen(value: Any) -> int:
@@ -535,7 +479,7 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
 
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
-    return _BILLING_PLAN_ALIASES.get(raw, "vip")
+    return _BILLING_PLAN_ALIASES.get(raw, raw)
 
 
 def _billing_usage_reference_points_for_plan(
@@ -3060,7 +3004,7 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
-    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
+    wallet_payload["packages"] = _wallet_packages()
     wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")

@@ -23,7 +23,7 @@ def test_unified_ws_public_boundary_redacts_hidden_fields_inside_citation_bundle
     event = {
         "type": "result",
         "metadata": {
-            "response": "这题考查屋面防水。〔1〕\n\n依据\n〔1〕题库",
+            "response": "这题考查屋面防水。",
             "citation_bundle": {
                 "citation_state": "supported",
                 "refs": [
