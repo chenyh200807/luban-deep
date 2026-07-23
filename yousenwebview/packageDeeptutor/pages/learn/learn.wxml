@@ -38,8 +38,8 @@ module.exports = { daysTo: daysTo };
       </view>
       <text class="lr-brand-name">鲁班智考</text>
     </view>
-    <view class="lr-topbar-dots">
-      <view class="lr-dot"></view><view class="lr-dot"></view><view class="lr-dot"></view>
+    <view class="lr-host-home" bindtap="goHostHome">
+      <text>佑森首页</text>
     </view>
   </view>
 

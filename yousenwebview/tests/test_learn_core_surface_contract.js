@@ -13,6 +13,13 @@ var learnWxml = read("packageDeeptutor/pages/learn/learn.wxml");
 var learnVm = read("packageDeeptutor/utils/learn-view-model.js");
 
 assert(learnWxml.indexOf('bindtap="goTodayTask"') >= 0, "today task must own the primary action");
+assert(
+  learnWxml.indexOf('class="lr-host-home"') >= 0 &&
+    learnWxml.indexOf('bindtap="goHostHome"') >= 0 &&
+    learnWxml.indexOf("佑森首页") >= 0 &&
+    learnJs.indexOf("app.goHostHome") >= 0,
+  "learning home must expose one explicit return to the existing Yousen host-home authority",
+);
 // 10a fallback:任务卡唯一渲染源 = vm.taskCard(= todayTask || browseTask),
 // 让 day-0/首跑未完成/后端未部署等态下页面仍长成 10a 定稿(不塌成 hero+海报)。
 // 门不再挂 firstRunState(首跑卡仍在上方=第一视觉);禁掌握百分比不变。

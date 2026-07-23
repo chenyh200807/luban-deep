@@ -154,14 +154,18 @@ run("chat home button should target index with explicit forceHome flag", functio
   );
 });
 
-run("devtools normal compile should launch from the Yousen host home", function () {
+run("devtools normal compile should launch from the default learning entry", function () {
   var appConfig = JSON.parse(
     fs.readFileSync(path.join(__dirname, "../app.json"), "utf8"),
   );
 
   assert(
-    appConfig.pages && appConfig.pages[0] === "pages/freeCourse/freeCourse",
-    "app.json first page should preserve the Yousen host home",
+    appConfig.pages && appConfig.pages[0] === "pages/deeptutorEntry/deeptutorEntry",
+    "app.json first page should start from the default learning entry",
+  );
+  assert(
+    appConfig.pages && appConfig.pages.indexOf("pages/freeCourse/freeCourse") >= 0,
+    "app config should retain the Yousen host home as a reachable page",
   );
   assert(
     appConfig.lazyCodeLoading === "requiredComponents",
@@ -183,8 +187,8 @@ run("devtools normal compile should launch from the Yousen host home", function 
       configPath + " should enable DevTools compile conditions",
     );
     assert(
-      current && current.pathName === "pages/freeCourse/freeCourse",
-      configPath + " should launch the Yousen host home for normal compile",
+      current && current.pathName === "pages/deeptutorEntry/deeptutorEntry",
+      configPath + " should launch the default learning entry for normal compile",
     );
     assert(
       current && current.query === "",
