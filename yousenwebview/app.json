@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/deeptutorEntry/deeptutorEntry",
     "pages/freeCourse/freeCourse",
+    "pages/deeptutorEntry/deeptutorEntry",
     "pages/index/index",
     "pages/view/view",
     "pages/getpeople/getpeople",
