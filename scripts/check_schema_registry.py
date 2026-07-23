@@ -257,6 +257,7 @@ _FULLSET_NAMESPACE_RE = re.compile(
           | first_run                    # P2: signed script + authenticated completion boundary
           | grading_error_event          # P2: grading error-event, cross-domain consumed by learner_state
           | causal_oa
+          | deeptutor_observability      # cross-surface observability evidence contract
           | compiled_knowledge_registry
           | case_grading_artifact
           | compact_scoring_artifact

@@ -11,6 +11,8 @@ import pytest
 
 from deeptutor.services.observability.control_plane_store import get_control_plane_store
 from deeptutor.services.observability.control_plane_store import reset_control_plane_store
+from deeptutor.services.observability.evidence_bundle import REQUIRED_COMPLETE_RECORDS
+from deeptutor.services.observability.evidence_bundle import write_evidence_bundle
 
 
 def _load_script_module(script_name: str):
@@ -48,6 +50,9 @@ def _install_live_metrics(monkeypatch: pytest.MonkeyPatch, release: dict) -> Non
                 "status_code": 200,
             },
         },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE, "get_release_lineage_snapshot", lambda: dict(release)
     )
 
 
@@ -173,6 +178,7 @@ def test_daily_observability_metrics_failure_writes_blocked_preflight_without_ad
     store = get_control_plane_store()
     release = {
         "release_id": "rel-1",
+        "service_version": "1.0.0",
         "git_sha": "abc",
         "deployment_environment": "production",
         "prompt_version": "prompt-1",
@@ -219,6 +225,11 @@ def test_daily_observability_metrics_failure_writes_blocked_preflight_without_ad
     preflight = json.loads((output_dir / "runtime_authority_preflight.json").read_text(encoding="utf-8"))
     assert preflight["status"] == "BLOCKED"
     assert preflight["metrics_provenance"]["error_type"] == "ConnectionRefusedError"
+    manifests = list((output_dir / "evidence_bundles").glob("*/manifest.json"))
+    assert len(manifests) == 1
+    manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
+    assert manifest["status"] == "BLOCKED"
+    assert manifest["records"] == {}
 
 
 def test_daily_observability_metrics_auth_failure_is_not_silently_downgraded(
@@ -246,10 +257,139 @@ def test_daily_observability_metrics_auth_failure_is_not_silently_downgraded(
         )
 
 
+def test_daily_observability_consumes_validated_bundle_without_local_runtime(monkeypatch, tmp_path) -> None:
+    release = {
+        "release_id": "rel-remote",
+        "service_version": "1.0.0",
+        "git_sha": "abc",
+        "deployment_environment": "qa",
+        "prompt_version": "prompt-1",
+        "ff_snapshot_hash": "ff-1",
+        "deploy_manifest_hash": "manifest-1",
+        "git_dirty": "false",
+    }
+    authority = {
+        "status": "PASS",
+        "live_identity_verified": True,
+        "expected_release": release,
+        "runtime_release": release,
+        "metrics_provenance": {"source": "live_metrics_endpoint", "fallback_used": False},
+    }
+    window = DAILY_OBSERVABILITY_MODULE._resolve_report_window(
+        report_date="2026-07-21", timezone="Asia/Shanghai"
+    )
+    payloads = {
+        kind: {"run_id": f"{kind}-1", "release": release}
+        for kind in REQUIRED_COMPLETE_RECORDS
+    }
+    payloads["daily_trends"]["window"] = window
+    manifest = write_evidence_bundle(
+        output_dir=tmp_path / "remote",
+        status="COMPLETE",
+        release=release,
+        runtime_authority=authority,
+        api_base_url="https://qa.example.test",
+        source_store_uri="file:///app/data/runtime/observability/control_plane",
+        payloads=payloads,
+    )
+    output_dir = tmp_path / "consumer"
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            output_dir=str(output_dir),
+            evidence_bundle_manifest=str(manifest),
+            report_date="2026-07-21",
+            timezone="Asia/Shanghai",
+            expected_git_sha="abc",
+        ),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_load_metrics_snapshot",
+        lambda **_kwargs: (_ for _ in ()).throw(AssertionError("local runtime must not be contacted")),
+    )
+    DAILY_OBSERVABILITY_MODULE.main()
+
+    receipt = json.loads((output_dir / "evidence_bundle_validation.json").read_text(encoding="utf-8"))
+    assert receipt["bundle_id"]
+    assert receipt["status"] == "COMPLETE"
+    assert receipt["window"] == window
+    assert receipt["execution_surface"]["api_base_url"] == "https://qa.example.test"
+
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            output_dir=str(tmp_path / "foreign-candidate"),
+            evidence_bundle_manifest=str(manifest),
+            report_date="2026-07-21",
+            timezone="Asia/Shanghai",
+            expected_git_sha="foreign",
+        ),
+    )
+    with pytest.raises(SystemExit, match="candidate_release_mismatch"):
+        DAILY_OBSERVABILITY_MODULE.main()
+
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            output_dir=str(tmp_path / "stale-consumer"),
+            evidence_bundle_manifest=str(manifest),
+            report_date="2026-07-20",
+            timezone="Asia/Shanghai",
+            expected_git_sha="abc",
+        ),
+    )
+    with pytest.raises(SystemExit, match="window_mismatch"):
+        DAILY_OBSERVABILITY_MODULE.main()
+
+
+def test_daily_observability_preserves_blocked_bundle_reason(monkeypatch, tmp_path) -> None:
+    release = {
+        "release_id": "rel-remote",
+        "service_version": "1.0.0",
+        "git_sha": "abc",
+        "deployment_environment": "qa",
+        "prompt_version": "prompt-1",
+        "ff_snapshot_hash": "ff-1",
+        "deploy_manifest_hash": "manifest-1",
+        "git_dirty": "false",
+    }
+    manifest = write_evidence_bundle(
+        output_dir=tmp_path / "remote",
+        status="BLOCKED",
+        release=release,
+        runtime_authority={"status": "BLOCKED", "reason": "live metrics unavailable"},
+        api_base_url="https://qa.example.test",
+        source_store_uri="file:///app/data/runtime/observability/control_plane",
+    )
+    output_dir = tmp_path / "consumer"
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            output_dir=str(output_dir),
+            evidence_bundle_manifest=str(manifest),
+            report_date="2026-07-21",
+            timezone="Asia/Shanghai",
+            expected_git_sha="abc",
+        ),
+    )
+    with pytest.raises(SystemExit, match="evidence_bundle_blocked"):
+        DAILY_OBSERVABILITY_MODULE.main()
+
+    receipt = json.loads((output_dir / "evidence_bundle_validation.json").read_text(encoding="utf-8"))
+    assert receipt["status"] == "BLOCKED"
+    assert receipt["runtime_authority"]["reason"] == "live metrics unavailable"
+
+
 def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monkeypatch, tmp_path) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-current",
+        "service_version": "1.0.0",
         "git_sha": "sha-current",
         "deployment_environment": "dev",
         "prompt_version": "p-current",
@@ -296,7 +436,11 @@ def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monke
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
         "_ensure_benchmark_payload",
-        lambda **_kwargs: {"run_manifest": {"run_id": "bench-1"}, "summary": {"pass_rate": 1.0}},
+        lambda **_kwargs: {
+            "run_manifest": {"run_id": "bench-1"},
+            "release_spine": current_release,
+            "summary": {"pass_rate": 1.0},
+        },
     )
     monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_surface_readiness_rows", lambda **_kwargs: None)
     monkeypatch.setattr(
@@ -352,7 +496,7 @@ def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monke
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
         "build_current_release_readiness_matrix_payload",
-        lambda **_kwargs: {"checks": []},
+        lambda **_kwargs: {"run_id": "readiness-1", "release": current_release, "checks": []},
     )
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
@@ -503,6 +647,7 @@ def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tm
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-current",
+        "service_version": "1.0.0",
         "git_sha": "abc123",
         "deployment_environment": "eval",
         "prompt_version": "prompt-current",
@@ -561,6 +706,7 @@ def test_run_release_gate_report_only_ignores_stale_incident_latest(tmp_path, mo
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-current",
+        "service_version": "1.0.0",
         "git_sha": "abc123",
         "deployment_environment": "local",
         "prompt_version": "prompt-current",
@@ -1087,6 +1233,7 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-head",
+        "service_version": "1.0.0",
         "git_sha": "head123",
         "deployment_environment": "local",
         "prompt_version": "prompt-head",
@@ -1200,7 +1347,8 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
         },
     )
 
-    DAILY_OBSERVABILITY_MODULE.main()
+    with pytest.raises(SystemExit, match="evidence_bundle_blocked"):
+        DAILY_OBSERVABILITY_MODULE.main()
 
     latest = json.loads((tmp_path / "control_plane" / "daily_trends" / "latest.json").read_text(encoding="utf-8"))
     assert latest["payload"]["verdict"] == "STALE"
@@ -1213,6 +1361,7 @@ def test_run_observability_daily_passes_current_release_through_spine(
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-head",
+        "service_version": "1.0.0",
         "git_sha": "head123",
         "deployment_environment": "local",
         "prompt_version": "prompt-head",
@@ -1701,6 +1850,7 @@ def test_run_observability_daily_passes_manual_readiness_rows_to_release_gate(
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-head",
+        "service_version": "1.0.0",
         "git_sha": "head123",
         "deployment_environment": "local",
         "prompt_version": "prompt-head",

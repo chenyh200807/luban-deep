@@ -108,3 +108,40 @@ def test_product_behavior_persistence_failure_allows_same_event_id_retry(monkeyp
     assert second["accepted"] is True
     assert second["product_behavior_status"] == "accepted"
     assert attempts == ["evt-retry-1", "evt-retry-1"]
+
+
+def test_product_behavior_release_id_is_stamped_by_runtime(monkeypatch) -> None:
+    captured = []
+
+    class CapturingStore:
+        def record_event(self, event):
+            captured.append(event)
+            return {"accepted": True, "status": "accepted", "event_id": event["event_id"]}
+
+    surface_events_module = importlib.import_module(
+        "deeptutor.services.observability.surface_events"
+    )
+    monkeypatch.setattr(observability_module, "get_product_behavior_store", lambda: CapturingStore())
+    monkeypatch.setattr(
+        surface_events_module,
+        "get_release_lineage_snapshot",
+        lambda: {"release_id": "runtime-release"},
+    )
+
+    result = SurfaceEventStore().ingest(
+        {
+            "event_id": "evt-forged-release",
+            "surface": "web",
+            "event_name": "module_viewed",
+            "user_id": "member-1",
+            "metadata": {
+                "visit_id": "visit-1",
+                "module": "learning",
+                "action": "view",
+                "release_id": "client-forged-release",
+            },
+        }
+    )
+
+    assert result["accepted"] is True
+    assert captured[0]["properties_json"]["release_id"] == "runtime-release"
