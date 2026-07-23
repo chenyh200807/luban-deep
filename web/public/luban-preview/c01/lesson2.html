@@ -13,7 +13,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
-<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=b57b5ca5fbb99554"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=f02771c635d8398d"></script>
 <script data-luban-card-entry-bridge>
 (function(){
   var ticket="";
@@ -321,7 +321,7 @@
         <div style="flex:1;border-radius:11px;padding:11px;font-size:13px;font-weight:900;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(207,68,54,.28);">下集 · 当前</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px;">
-        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">追问AI</button>
         <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
       </div>
     </div>
@@ -445,7 +445,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ═══ 鲁班智考 · 动画学习卡（C01 施工缝留置与处理 · 下集 后浇带篇）═══
-   只改【内容区】，骨架（RAF/分页/QA/问追AI/全屏）未改。 */
+   只改【内容区】，骨架（RAF/分页/QA/追问AI/全屏）未改。 */
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askQuestion:"", askHistory:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/down/";

@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "S07",
   "source_pack_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
-  "source_bundle_sha256": "aef7a4ba9b9fcd062ba00b27dc1cc0a86989784e03d304698125a288a91bbfb9",
+  "source_bundle_sha256": "5e5233766a8fb8d0529ae1cc1ed5cb679ac64250c8db1c70b703d37c09661b85",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "format_kind": "pool_deck",
       "array_marker": "\\bPOOL\\s*=",
       "presentation_order": [
@@ -33,8 +33,8 @@
         "S07-html-practice-html-q8-c1a8087c1be3",
         "S07-html-practice-html-q9-5d741601affe"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjYxY2Y3ZGEyMmVkIiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzk2ZjM0YjFmYTciLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTA5YTg2MjViOGQzOSIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWRjMWMxNGZlMWVkIiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS02MjMzNGE4NWQzYWYiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiMTljNzM2ODc2MGNjMWYwOTBhNWM5Y2JhMDE0MzA4NWM2ZWUxYjMzZTNmMjMwY2NmZjQyOTVmZjQ1ODRhNTJjZiIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkMDZlMmFiMDdmOGFlNjc5N2JlNTRiYjgwMTExMDM4NWNjYzAxZGJlOWFlYzc0MGI4ZDc2MThhOTkxNTJkZDJjIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "713f6130bdf0d041d0ba97961f2f1a6033ffde18c0f69119a091ad2e418264fd"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTEtZjYxY2Y3ZGEyMmVkIiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04Yzk2ZjM0YjFmYTciLCJTMDctaHRtbC1wcmFjdGljZS1odG1sLXEzLTA5YTg2MjViOGQzOSIsIlMwNy1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWRjMWMxNGZlMWVkIiwiUzA3LWh0bWwtcHJhY3RpY2UtaHRtbC1xNS02MjMzNGE4NWQzYWYiXSwicGFja19pZCI6IlMwNyIsInByb2plY3Rpb25fZGlnZXN0IjoiOWFiNTZmMmExMjlkM2M2ZjJiYWQ2Yjc3ZjkyY2M5OGU5YjQyN2Q4N2JiN2FmMDNlYzgyNWE2MTY2ZTcxYTYyNyIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiJkMDZlMmFiMDdmOGFlNjc5N2JlNTRiYjgwMTExMDM4NWNjYzAxZGJlOWFlYzc0MGI4ZDc2MThhOTkxNTJkZDJjIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "05c73f9a1fa2bb84166daeef4b3e358ade1d116d430f6b81cb9d831c83bbccfe"
     }
   ],
   "items": [
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q1",
       "source_anchor": "kc:1A436000_129_0207:1",
       "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-death-threshold-grade",
       "skeleton_id": "s07-skel-死亡人数定级",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0f5718f8097bfeef45f52aa552b902803a6a057daf727c020c3d8435c1d5aca5",
+      "content_sha256": "c1823a7810a0ee9552e204dc0e513875cf833b3be72c7bbd1f60c29e64c8bf6f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "0f5718f8097bfeef45f52aa552b902803a6a057daf727c020c3d8435c1d5aca5",
+        "reviewed_content_sha256": "c1823a7810a0ee9552e204dc0e513875cf833b3be72c7bbd1f60c29e64c8bf6f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "死亡1人<3 落一般档, 教材 kc:...129_0207:1 三阈值表直引; 按给定维度定级=真题口径(exam:2016:案例2/exam:2017:案例三 参考答案先例)。工单: 题干宜写明损失轻微。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -487,27 +487,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q2",
       "source_anchor": "kc:1A436000_129_0207:1",
       "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-accident-grade-thresholds",
       "skeleton_id": "s07-skel-经济损失档判定",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "cfb23251339268ff96437c720fa5001ec1fca6fb10f0894521602155516dc061",
+      "content_sha256": "ded293badf0f457464540659f13da90462d74303a2ee4ece773f839fe6f1448f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "cfb23251339268ff96437c720fa5001ec1fca6fb10f0894521602155516dc061",
+        "reviewed_content_sha256": "ded293badf0f457464540659f13da90462d74303a2ee4ece773f839fe6f1448f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -517,7 +517,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "3000万落较大档(1000万-5000万), 教材三阈值表直引, 相对干扰项唯一。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -885,27 +885,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q3",
       "source_anchor": "exam:2019:第17题",
       "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-first-report-target",
       "skeleton_id": "s07-skel-现场第一报告对象",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "06b7ec48ad69dac5bad2cd66796e6992fa71fdde0ab3510bfffc54307e1b26ce",
+      "content_sha256": "1724344cd5509666d16291e8f24b338d725c6edd29d714b111817cfb37e7f167",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "06b7ec48ad69dac5bad2cd66796e6992fa71fdde0ab3510bfffc54307e1b26ce",
+        "reviewed_content_sha256": "1724344cd5509666d16291e8f24b338d725c6edd29d714b111817cfb37e7f167",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -915,7 +915,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "事故现场有关人员应立即报告本单位负责人, 真题 exam:2019:第17题 原题直判(D)。工单: 后续部门链宜另锚并限定事故类型。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1050,27 +1050,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q4",
       "source_anchor": "exam:2015:第19题",
       "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-30d-supplement-report",
       "skeleton_id": "s07-skel-30日补报与报告内容",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "72ab1c5cdeec23cc032ea75990fe8ad0adaef6ef7df5fa77bc8af1fc53e0abf2",
+      "content_sha256": "3ea2790dcee46eedc81097ca0be46a07d48be3aa8fedc236fdf06de88a898605",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "72ab1c5cdeec23cc032ea75990fe8ad0adaef6ef7df5fa77bc8af1fc53e0abf2",
+        "reviewed_content_sha256": "3ea2790dcee46eedc81097ca0be46a07d48be3aa8fedc236fdf06de88a898605",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1080,7 +1080,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "自事故发生之日起30日内伤亡变化及时补报, 真题 exam:2015:第19题 原题直判(D); 报告三项内容=exam:2016:案例2(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1215,27 +1215,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q5",
       "source_anchor": "exam:2017:案例三",
       "source_sha256": "9b67a908dcc5327243b4cf66a51c0c36360135cffefe13531efe2506ff1c3806",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-investigation-team",
       "skeleton_id": "s07-skel-调查组组成清单",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "59cd8191aa4a04a669768d0a372e79153c03e9b033217f5e2cbd847230e2fe65",
+      "content_sha256": "de7dc84491d467ff938aff8109682f261f35fd480784753011c4a9342e0e4f14",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "59cd8191aa4a04a669768d0a372e79153c03e9b033217f5e2cbd847230e2fe65",
+        "reviewed_content_sha256": "de7dc84491d467ff938aff8109682f261f35fd480784753011c4a9342e0e4f14",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1245,7 +1245,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "调查组成员清单, 真题 exam:2017:案例三 逐项支持, 相对干扰项唯一。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1427,17 +1427,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e405ca2fac6aaf223c607c66ad4f5c1504966d0ea3c7d26d950ee7d7088200a8",
+      "content_sha256": "67b6dc3008ec089e91af41d6b6ee4e1849781b2bc06d4feee6d23634ae42fba0",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e405ca2fac6aaf223c607c66ad4f5c1504966d0ea3c7d26d950ee7d7088200a8",
+        "reviewed_content_sha256": "67b6dc3008ec089e91af41d6b6ee4e1849781b2bc06d4feee6d23634ae42fba0",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1813,27 +1813,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q8",
       "source_anchor": "kc:1A436000_129_0207:1",
       "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-accident-grade-thresholds",
       "skeleton_id": "s07-skel-重伤人数档判定",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3a751bd3825dd6d063561066c6a285bc4412bb5bfb1a838f158acec846dd8252",
+      "content_sha256": "53243b978c8073ddf6aae3c4366dff104d3c63a6252926ed46553c6235c6a519",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "3a751bd3825dd6d063561066c6a285bc4412bb5bfb1a838f158acec846dd8252",
+        "reviewed_content_sha256": "53243b978c8073ddf6aae3c4366dff104d3c63a6252926ed46553c6235c6a519",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1843,7 +1843,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "重伤60人落重大档(50-100), 教材三阈值表直引; 按给定维度定级=真题口径(同 q1 裁决)。三联 immediate_confirm(同三阈值 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2211,27 +2211,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q9",
       "source_anchor": "kc:1A436000_129_0207:1",
       "source_sha256": "49ea73e39d17d2f3eda490427f18399a95a2d12fb2c4ca692b545c0caea9516c",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "s07-fact-accident-grade-thresholds",
       "skeleton_id": "s07-skel-临界数归档",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "cdfb6b43f3ee2445ac1d8456752842311e72124080f09701d6dbb9bc5d43bcb3",
+      "content_sha256": "9dfd6674c280e73902795c2aa73eebdac7b0ad2f9e168ee516b6c4be28306224",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "cdfb6b43f3ee2445ac1d8456752842311e72124080f09701d6dbb9bc5d43bcb3",
+        "reviewed_content_sha256": "9dfd6674c280e73902795c2aa73eebdac7b0ad2f9e168ee516b6c4be28306224",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2241,7 +2241,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "≥30/10-30/3-10/<3 四临界数归档, 教材 kc:...129_0207:1 直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2609,17 +2609,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "03553b370736a01739bb1b020c16b1ae0d166290714cff1a66f04879baa4a47c",
+      "content_sha256": "c073c11896fe497824110edd6f9376ec0a1c9f334ef1a40df2babfe84d014a76",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "03553b370736a01739bb1b020c16b1ae0d166290714cff1a66f04879baa4a47c",
+        "reviewed_content_sha256": "c073c11896fe497824110edd6f9376ec0a1c9f334ef1a40df2babfe84d014a76",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2762,17 +2762,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "033cf40483027ce76c94bd7ca5cb9e953fb272fbfe4f634428b1f00e893326bc",
+      "content_sha256": "cea15b63a41e9914e77ff38a93a801b450099617c0e28bf430b73a64745d86d3",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "033cf40483027ce76c94bd7ca5cb9e953fb272fbfe4f634428b1f00e893326bc",
+        "reviewed_content_sha256": "cea15b63a41e9914e77ff38a93a801b450099617c0e28bf430b73a64745d86d3",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2962,17 +2962,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "77fa06a430a132f7358a0016f5162e6dc552e4deeb632a2b6c13026484322119",
+      "content_sha256": "cf9f1e51c24b9e51d93eba22fe168d72f0bf7c2ee81886149ba7ded8de7d8a2b",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "77fa06a430a132f7358a0016f5162e6dc552e4deeb632a2b6c13026484322119",
+        "reviewed_content_sha256": "cf9f1e51c24b9e51d93eba22fe168d72f0bf7c2ee81886149ba7ded8de7d8a2b",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3162,17 +3162,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S07/P40_S07.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "637d7e6aa6c3e69a17d93e8f23929ed33192c93a97366a73a500f3573ab038d1",
+      "source_html_sha256": "464ee8388d76df036efe451727d728d1781b9daa57d173078373289ad58dd763",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0327cb3bc3848b82d81f9b6c585e3060edd1814a3a41259d2d5d16db6f9b0b78",
+      "content_sha256": "fdc3896edf7f700ad965e73576df36c5ad635e9df93958223e38bfae3fb08747",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0327cb3bc3848b82d81f9b6c585e3060edd1814a3a41259d2d5d16db6f9b0b78",
+        "reviewed_content_sha256": "fdc3896edf7f700ad965e73576df36c5ad635e9df93958223e38bfae3fb08747",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3265,5 +3265,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "c8c0501070ce792dd3d3f4094c294025814e28bff58aae8dee94ad1fa3c2cc50"
+  "published_lesson_sha256": "50ed7079891dc71c55bc5bab45a54aefa8bdb3102a733475bf9cf5b5cf8a8d5b"
 }

@@ -45,8 +45,8 @@
           "scene": null
         },
         {
-          "name": "pages/freeCourse/freeCourse",
-          "pathName": "pages/freeCourse/freeCourse",
+          "name": "pages/deeptutorEntry/deeptutorEntry",
+          "pathName": "pages/deeptutorEntry/deeptutorEntry",
           "query": "",
           "launchMode": "default",
           "scene": null,

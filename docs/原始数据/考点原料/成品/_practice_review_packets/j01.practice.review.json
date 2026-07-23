@@ -2,7 +2,7 @@
  "schema": "luban_practice_review_packet.v1",
  "pack_id": "J01",
  "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
- "source_bundle_sha256": "2c0b835d7812948a19a7bf6a1b491c55f0628f7b9f2733042aa0bef5ccb9aea6",
+ "source_bundle_sha256": "f4485080802aa719990fd86a85c9d5105024f39b9826653c6cc1bdc7af96cc52",
  "compiled_schema_version": "luban_compiled_practice.v3",
  "candidate_count": 16,
  "eligible_count": 7,
@@ -58,9 +58,9 @@
    ],
    "model_answer": "开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
    "rule_group": "判档·条件维",
-   "content_sha256": "7326e170bf9f4a9130ff93fa7d2f3832824305773d2c3331ffa6462878893cad",
+   "content_sha256": "ddf719415edd7156b6f25dbba10ba66475120686801a63049bd7a872b82e5ece",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q1",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-3m-dangerous-threshold",
     "skeleton_id": "j01-skel-4m两档判定",
@@ -70,17 +70,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "7326e170bf9f4a9130ff93fa7d2f3832824305773d2c3331ffa6462878893cad",
+     "reviewed_content_sha256": "ddf719415edd7156b6f25dbba10ba66475120686801a63049bd7a872b82e5ece",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -90,7 +90,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "4m≥3m 属危大应编专项方案(本锚 3m 阈值 grading_keywords 直证); 未达5m不需论证系括注, 5m线另有 kc:1A436000_009_0012:0 教材原文(复合多源工单)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -140,9 +140,9 @@
    ],
    "model_answer": "深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
    "rule_group": "判档·条件维",
-   "content_sha256": "e22798b2bf957a8e838cfd8f844fea7336ecfed2f5d0a4aa15f8e97e1b9723fc",
+   "content_sha256": "3273d1ffee2d09730ee0e4825e2f3d1da67778e6dfb3cf85f2a9c922119b01e2",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q2",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-5m-super-scale-threshold",
     "skeleton_id": "j01-skel-6m超规模判定",
@@ -152,17 +152,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "e22798b2bf957a8e838cfd8f844fea7336ecfed2f5d0a4aa15f8e97e1b9723fc",
+     "reviewed_content_sha256": "3273d1ffee2d09730ee0e4825e2f3d1da67778e6dfb3cf85f2a9c922119b01e2",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -172,7 +172,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "6m≥5m 属超规模危大(本锚教材原文直证); 超规模→组织专家论证后果另有 cc:1A437000_010_0013:1 逐字(复合多源工单)。干扰项(建设单位组织/8m界限)均显错。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -222,9 +222,9 @@
    ],
    "model_answer": "说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
    "rule_group": "混档辨析·条件维",
-   "content_sha256": "372a903d12f7076f6f1ce617356bb8d68aa797a04aef41f194a23dad111ddcea",
+   "content_sha256": "6db08a988166f985c996780f05d3f920678403d840d71e4d1ab1b507d132567e",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q3",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-two-tier-distinction",
     "skeleton_id": "j01-skel-3m论证误区纠正",
@@ -234,17 +234,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "372a903d12f7076f6f1ce617356bb8d68aa797a04aef41f194a23dad111ddcea",
+     "reviewed_content_sha256": "6db08a988166f985c996780f05d3f920678403d840d71e4d1ab1b507d132567e",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -254,7 +254,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "3m属危大编方案/5m才超规模需论证, 本锚 3m 标准教材原文+5m线 kc:1A436000_009_0012:0(复合多源工单)。『3~5m之间编方案不论证』表述与两档线一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -304,9 +304,9 @@
    ],
    "model_answer": "专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
    "rule_group": "编制主体·主体维",
-   "content_sha256": "76618072880a7a27cf0a38d986d2cc1a4dc266ad44c4ba097bd24a44cd1d8a26",
+   "content_sha256": "6bd9a024008557704c5b06475686f5791bc4d130feb6aadf504cab78d5bb513c",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q4",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-plan-author-responsibility",
     "skeleton_id": "j01-skel-专项方案编制主体",
@@ -316,17 +316,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "76618072880a7a27cf0a38d986d2cc1a4dc266ad44c4ba097bd24a44cd1d8a26",
+     "reviewed_content_sha256": "6bd9a024008557704c5b06475686f5791bc4d130feb6aadf504cab78d5bb513c",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -336,7 +336,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "总承包单位组织编制=本锚教材原文(『实行施工总承包的…』); 专业工程可由专业承包单位编制=cc:...008_0011:4 逐字。工单: 题干未给总承包前提(删限定词), 但相对3显错干扰项唯一正确(承 C06 先例), 建议题干补『实行施工总承包』。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -386,9 +386,9 @@
    ],
    "model_answer": "起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
    "rule_group": "编制主体·主体维",
-   "content_sha256": "786b9f91b8125ca5d36fb09a4aea83b1ef486277cb836407ac725eedd07ba0f1",
+   "content_sha256": "eed444a57a97824465d68a6f0e195809e08994edbbe291b2d53f1f799374a35d",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q5",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -398,7 +398,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "786b9f91b8125ca5d36fb09a4aea83b1ef486277cb836407ac725eedd07ba0f1",
+     "reviewed_content_sha256": "eed444a57a97824465d68a6f0e195809e08994edbbe291b2d53f1f799374a35d",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -456,9 +456,9 @@
    ],
    "model_answer": "专项方案应先经施工单位审核、再经总监理工程师审查，方可组织专家论证；顺序不可颠倒。",
    "rule_group": "前置程序·程序维",
-   "content_sha256": "1eb88f97fb2d5af659470e077b4d838983b636d13ff4504aa810a5c637ac608f",
+   "content_sha256": "f7f2635a8c2623a745e687885c29abc6ea887211bf3973d671523814f58fa3db",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q6",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-expert-panel-rules",
     "skeleton_id": "j01-skel-论证前程序顺序",
@@ -468,17 +468,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "1eb88f97fb2d5af659470e077b4d838983b636d13ff4504aa810a5c637ac608f",
+     "reviewed_content_sha256": "f7f2635a8c2623a745e687885c29abc6ea887211bf3973d671523814f58fa3db",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -488,7 +488,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "论证前须先施工单位审核再总监理工程师审查, 教材 cc:...010_0013:3 逐字(同 primary 专家论证单句多要点)。三联 d1_probe(同 fact, 第3独立 skeleton)。Codex severity none。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -538,9 +538,9 @@
    ],
    "model_answer": "不妥：审核后未经总监理工程师审查即论证。正确：应先经总监理工程师审查，方可组织专家论证。",
    "rule_group": "程序纠错·程序维",
-   "content_sha256": "24acf01004a144e16cd9a2e52afeb8c93967ed3545202ab3608efb4a3225ba37",
+   "content_sha256": "eaac8ed77b82f15d53713a4436797a755ff527065671ea6fe1612ec75d3dc36a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q7",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -550,7 +550,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "24acf01004a144e16cd9a2e52afeb8c93967ed3545202ab3608efb4a3225ba37",
+     "reviewed_content_sha256": "eaac8ed77b82f15d53713a4436797a755ff527065671ea6fe1612ec75d3dc36a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -608,9 +608,9 @@
    ],
    "model_answer": "本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
    "rule_group": "组织主体·主体维",
-   "content_sha256": "a418f11a7a5aeaff09d7d0e5b5e8711e0e69f24b622f35e5d5139a49efd28d31",
+   "content_sha256": "9b8c06d54f047bff7bd861cdb31f4a46f871098a2dd797acbcf7ed1264c176f6",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q8",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -620,7 +620,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "a418f11a7a5aeaff09d7d0e5b5e8711e0e69f24b622f35e5d5139a49efd28d31",
+     "reviewed_content_sha256": "9b8c06d54f047bff7bd861cdb31f4a46f871098a2dd797acbcf7ed1264c176f6",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -678,9 +678,9 @@
    ],
    "model_answer": "应含：①工程概况②编制依据③施工计划④施工工艺技术⑤施工保证措施⑥施工管理及人员配备⑦验收要求⑧应急处置措施。",
    "rule_group": "方案内容·记录维",
-   "content_sha256": "47de48494e5e6f9c0edf427ce598c670ea6217d9a8f2948e9bc9cd5d17760d5e",
+   "content_sha256": "18ade8b6559b9a56d9745e2e82a2b8940be29ae6ef280b06cef49d9c5e3b986e",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q9",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -690,7 +690,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "47de48494e5e6f9c0edf427ce598c670ea6217d9a8f2948e9bc9cd5d17760d5e",
+     "reviewed_content_sha256": "18ade8b6559b9a56d9745e2e82a2b8940be29ae6ef280b06cef49d9c5e3b986e",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -748,9 +748,9 @@
    ],
    "model_answer": "模板支撑方案应含工程概况、技术参数、工艺流程、施工方法、检查要求，特别是计算书及相关施工图纸。",
    "rule_group": "模板方案·记录维",
-   "content_sha256": "1afe8f07f4c79b23d8f5a2d7466461d3707aa049c4aefdaada9e845f864cebc7",
+   "content_sha256": "bae8822464c7951070b8ecc3217be1e2d046ceb084c0330dac1b944f008f3719",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q10",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -760,7 +760,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "1afe8f07f4c79b23d8f5a2d7466461d3707aa049c4aefdaada9e845f864cebc7",
+     "reviewed_content_sha256": "bae8822464c7951070b8ecc3217be1e2d046ceb084c0330dac1b944f008f3719",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -818,9 +818,9 @@
    ],
    "model_answer": "深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等。",
    "rule_group": "编案清单·记录维",
-   "content_sha256": "438ffe8fbac359ca2aabba977b88f25084f27180ce54ee95dbfa20f6db259fb1",
+   "content_sha256": "4ec8c736192f190f96be141f44533662cb8b0eb77edb47b7a38da38add007adc",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q11",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -830,7 +830,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "438ffe8fbac359ca2aabba977b88f25084f27180ce54ee95dbfa20f6db259fb1",
+     "reviewed_content_sha256": "4ec8c736192f190f96be141f44533662cb8b0eb77edb47b7a38da38add007adc",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -888,9 +888,9 @@
    ],
    "model_answer": "专家组成员应为 5 人以上，且与本工程无利害关系。",
    "rule_group": "专家组·主体维",
-   "content_sha256": "61a78b25ccd3be15d59076c7d4e41e917e2d7d7aff33de5d19dd7360a18838f9",
+   "content_sha256": "387cc3f84d6581a0e17ff3c969fdedb19004d077e3f696250d0cdc2a7d5afcb7",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q12",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -900,7 +900,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "61a78b25ccd3be15d59076c7d4e41e917e2d7d7aff33de5d19dd7360a18838f9",
+     "reviewed_content_sha256": "387cc3f84d6581a0e17ff3c969fdedb19004d077e3f696250d0cdc2a7d5afcb7",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -958,9 +958,9 @@
    ],
    "model_answer": "不妥：本项目参建各方人员不得以专家身份参加，总包技术负责人属参建方、不能当专家；且专家应为 5 人以上。",
    "rule_group": "专家回避·主体维",
-   "content_sha256": "5f35fdba799d740c57632a800e955cb15d5b661382af49ef98b5701c66de29b0",
+   "content_sha256": "d84cc5649c7a895b9af6dca66497d9bc775184f7947a9c0f7757ae7c7c4b3c55",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q13",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-expert-panel-rules",
     "skeleton_id": "j01-skel-论证组成不妥纠正",
@@ -970,17 +970,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "5f35fdba799d740c57632a800e955cb15d5b661382af49ef98b5701c66de29b0",
+     "reviewed_content_sha256": "d84cc5649c7a895b9af6dca66497d9bc775184f7947a9c0f7757ae7c7c4b3c55",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -990,7 +990,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "总承包技术负责人属参建方不得当专家+专家组5人以上, 真题 exam:2019:第2题 逐字。三联 immediate_confirm(同专家论证规则 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []
@@ -1040,9 +1040,9 @@
    ],
    "model_answer": "①方案是否完整、可行②计算书及验算依据、施工图是否符合标准规范③是否满足现场实际、确保施工安全。",
    "rule_group": "论证内容·记录维",
-   "content_sha256": "590c53205c618f23c6aaea5976f3dc54b63b92c8185a5fd4a299a1c6b2637a1e",
+   "content_sha256": "1083978bb5b55289ba19b2a67ff598520b4514fbf5cae5d1bd28aad947e9d143",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q14",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1052,7 +1052,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "590c53205c618f23c6aaea5976f3dc54b63b92c8185a5fd4a299a1c6b2637a1e",
+     "reviewed_content_sha256": "1083978bb5b55289ba19b2a67ff598520b4514fbf5cae5d1bd28aad947e9d143",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1110,9 +1110,9 @@
    ],
    "model_answer": "施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证后方可执行。",
    "rule_group": "实施控制·后果维",
-   "content_sha256": "52bbadccfa96ad4cd7d6ace8f9ef95bb27e606f3ffcc4959b75b315bbbb578d3",
+   "content_sha256": "4fa6e09cd68593ca840521d5b89ee606f92b7856d475e3499b56c213f0c5219a",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q15",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "",
     "skeleton_id": "",
@@ -1122,7 +1122,7 @@
     "review": {
      "status": "pending",
      "verdict": "pending",
-     "reviewed_content_sha256": "52bbadccfa96ad4cd7d6ace8f9ef95bb27e606f3ffcc4959b75b315bbbb578d3",
+     "reviewed_content_sha256": "4fa6e09cd68593ca840521d5b89ee606f92b7856d475e3499b56c213f0c5219a",
      "signatures": [],
      "checks": {
       "source_verified": false,
@@ -1180,9 +1180,9 @@
    ],
    "model_answer": "漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
    "rule_group": "采分诊断·末题",
-   "content_sha256": "2d3dcd4d5d4538fc68c8091af2d7d9c3f0d906cced255a26aae90dc13e5ba1d9",
+   "content_sha256": "efc564dc50480ad802bbe8a7d51d45198355cb85d48e0d738be6059700bdef85",
    "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_J01/P40_J01.practice.dc.html#Q16",
-   "authoring_sha256": "a43e8321be48a034c7d62ce1dc8628021c65801db430d932b0b01022bb4b349b",
+   "authoring_sha256": "c5cd93b708402b294d6223a9983561a48f4bf809920473882615b6d66d150532",
    "decision": {
     "fact_id": "j01-fact-expert-panel-rules",
     "skeleton_id": "j01-skel-论证组成诊断补写",
@@ -1192,17 +1192,17 @@
     "review": {
      "status": "signed",
      "verdict": "approved",
-     "reviewed_content_sha256": "2d3dcd4d5d4538fc68c8091af2d7d9c3f0d906cced255a26aae90dc13e5ba1d9",
+     "reviewed_content_sha256": "efc564dc50480ad802bbe8a7d51d45198355cb85d48e0d738be6059700bdef85",
      "signatures": [
       {
        "role": "teaching",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       },
       {
        "role": "scoring",
        "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-       "signed_at": "2026-07-18T19:31:39+08:00"
+       "signed_at": "2026-07-23T16:56:58+08:00"
       }
      ],
      "checks": {
@@ -1212,7 +1212,7 @@
       "longest_option_checked": true,
       "template_leakage_checked": true
      },
-     "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+     "note": "回避(参建方不得以专家身份参加)+5人以上, 真题 exam:2019:第2题 标准答案逐字(本题即由该真题改编)。三联 anchor。工单: 正确项最长。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
     },
     "revoked": false,
     "revocation_refs": []

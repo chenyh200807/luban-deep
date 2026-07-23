@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "F05",
   "source_pack_sha256": "eeb066fb568138d8358817e5fd9e05b9e6283ec175664ded3edf965cc80c3bf0",
-  "source_bundle_sha256": "f9e34799db8b22af09eddb8283348682d76982f97d9e8b7a96189c8470e27ab9",
+  "source_bundle_sha256": "c64eb53ff29fbaf791b35bb99a00735eed23fc898b4bca234ba2d0fff787a6a4",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -34,8 +34,8 @@
         "F05-html-practice-html-q15-39783533e6f3",
         "F05-html-practice-html-q16-865ae327e250"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTMtZmFmN2Y3NjVkZWFiIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xNC01NDVmY2U5NGE0NTQiLCJGMDUtaHRtbC1wcmFjdGljZS1odG1sLXE1LTMxMTBjMThmNzJhNyIsIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTYtZWJhODBmYzdjNTkwIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODY1YWUzMjdlMjUwIl0sInBhY2tfaWQiOiJGMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjdlNWZhNzkzY2UzOGY5NGFiODkzYzZiNjUxNzZkOGUzMDM5YTYxNmVkNzQ0NzZiMzg0MGY2MjhjODdiMjNkMWUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzI5Mjc4MjllNjA5ZmI1ZTg0Nzk0NTYwZTg3ODhjMGJiMGIwNjNkZjYyNDIzYjIwNDM5MmU0YTE4YWYzOTgzNCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "7e7795df7a7313fa9f683a79783192ee512d93a12761ce8c9e0056e7d4619cc5"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTMtZmFmN2Y3NjVkZWFiIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xNC01NDVmY2U5NGE0NTQiLCJGMDUtaHRtbC1wcmFjdGljZS1odG1sLXE1LTMxMTBjMThmNzJhNyIsIkYwNS1odG1sLXByYWN0aWNlLWh0bWwtcTYtZWJhODBmYzdjNTkwIiwiRjA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtODY1YWUzMjdlMjUwIl0sInBhY2tfaWQiOiJGMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjdmMjlmMmE1MDA4MjBjMzhmOTNjMjk2YTczYzMzMDVlYjgzYjc0NGMyN2FkNmYwZmNiYTAxYzlhY2E0YjEyYTUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiNzI5Mjc4MjllNjA5ZmI1ZTg0Nzk0NTYwZTg3ODhjMGJiMGIwNjNkZjYyNDIzYjIwNDM5MmU0YTE4YWYzOTgzNCIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "e68828ed4cc5ac3066fdd3b89db3138c196f6a541db1bc782999d32b8018e5cf"
     }
   ],
   "items": [
@@ -90,17 +90,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q1",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "775d0498edc6142ccf5f538b7bc8af488b66bae7f740b9c9c09b7d4afcbde7fe",
+      "content_sha256": "c9d15d4e1b5fe5fc59a5f6d0518c8c3f8362cf597c43bf49af5d4e6ee6efa624",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "775d0498edc6142ccf5f538b7bc8af488b66bae7f740b9c9c09b7d4afcbde7fe",
+        "reviewed_content_sha256": "c9d15d4e1b5fe5fc59a5f6d0518c8c3f8362cf597c43bf49af5d4e6ee6efa624",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -376,17 +376,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q2",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "48a36cc669e0e088a38d0cbfbfa84c0dd34d77fad5476856d52c6fefc78d240f",
+      "content_sha256": "68c909c8e6aee3118b97eec726c5c2412b417d7ae27d51bd218e405ad33ce10e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "48a36cc669e0e088a38d0cbfbfa84c0dd34d77fad5476856d52c6fefc78d240f",
+        "reviewed_content_sha256": "68c909c8e6aee3118b97eec726c5c2412b417d7ae27d51bd218e405ad33ce10e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -662,27 +662,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q3",
       "source_anchor": "kc:1A434000_075_0117:0",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-crack-multiline-defense",
       "skeleton_id": "f05-skel-裂缝治理三件",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c310228c02a6ba902a3a7b49101bfd353bce20d5c14d135f3d27e6934333c2bb",
+      "content_sha256": "ee2ceef274d9273769d7c910741aca8ead009ebb8403665042ab895d3760029e",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c310228c02a6ba902a3a7b49101bfd353bce20d5c14d135f3d27e6934333c2bb",
+        "reviewed_content_sha256": "ee2ceef274d9273769d7c910741aca8ead009ebb8403665042ab895d3760029e",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -692,7 +692,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "防水混凝土裂缝渗漏治理三件=及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。锚 kc:1A434000_075_0117:0 quote 直引('混凝土浇筑后必须及时保湿养护;应设置多道设防、刚柔结合的防水层;确保防水层保护层质量'), match 0.5082 机器首选。干扰项漏采分句(E02)/止水环张冠李戴(E07)/口号化(E04)辨析正确。"
+        "note": "防水混凝土裂缝渗漏治理三件=及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。锚 kc:1A434000_075_0117:0 quote 直引('混凝土浇筑后必须及时保湿养护;应设置多道设防、刚柔结合的防水层;确保防水层保护层质量'), match 0.5082 机器首选。干扰项漏采分句(E02)/止水环张冠李戴(E07)/口号化(E04)辨析正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -858,27 +858,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q4",
       "source_anchor": "kc:1A434000_075_0117:0",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-crack-multiline-defense",
       "skeleton_id": "f05-skel-刚柔结合概念",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e5917ce44cc441957bb89a24f3a56bd2e1026f68bfba4fea509c4ec7ae4d05ce",
+      "content_sha256": "6530c6f621495fe185975516e2ae3203869305715706c081327da600ead42d53",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "e5917ce44cc441957bb89a24f3a56bd2e1026f68bfba4fea509c4ec7ae4d05ce",
+        "reviewed_content_sha256": "6530c6f621495fe185975516e2ae3203869305715706c081327da600ead42d53",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -888,7 +888,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "'多道设防、刚柔结合'概念题: 正确项=刚性混凝土自防水与柔性卷材/涂膜多道叠合冗余, 是教材关键句'应设置多道设防、刚柔结合的防水层'(kc:1A434000_075_0117:0 quote 逐字含)的定义级 gloss。工单: 本题默认阈值空手, prefill 0.12 召回该锚(match 0.1887); 干扰项(单道做厚M03/抹灰顺序E07/同料多刷E02)均明确错, 单选唯一正确。同 crack fact 与 q3 并列 anchor(skeleton 互异), 不与三件套串组。"
+        "note": "'多道设防、刚柔结合'概念题: 正确项=刚性混凝土自防水与柔性卷材/涂膜多道叠合冗余, 是教材关键句'应设置多道设防、刚柔结合的防水层'(kc:1A434000_075_0117:0 quote 逐字含)的定义级 gloss。工单: 本题默认阈值空手, prefill 0.12 召回该锚(match 0.1887); 干扰项(单道做厚M03/抹灰顺序E07/同料多刷E02)均明确错, 单选唯一正确。同 crack fact 与 q3 并列 anchor(skeleton 互异), 不与三件套串组。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1054,27 +1054,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q5",
       "source_anchor": "kc:1A434000_075_0117:1",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-pipe-through-wall",
       "skeleton_id": "f05-skel-穿墙五步程序",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "aea6f3337dc9fe296d7ce8bf5362a571764c51537646d720cafcad2757e66165",
+      "content_sha256": "dbad80066487db8ce63f5ae9e35ec1151eb7603a2f6d771851c3db3f27b27c7e",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "aea6f3337dc9fe296d7ce8bf5362a571764c51537646d720cafcad2757e66165",
+        "reviewed_content_sha256": "dbad80066487db8ce63f5ae9e35ec1151eb7603a2f6d771851c3db3f27b27c7e",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1084,7 +1084,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "管道穿墙渗漏治理五步程序=清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏。锚 kc:1A434000_075_0117:1 quote 逐字直引五步链, match 0.5357 机器首选。干扰项只灌浆(E02)/顺序颠倒(E06)/流淌方法张冠李戴(E07)辨析正确。"
+        "note": "管道穿墙渗漏治理五步程序=清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏。锚 kc:1A434000_075_0117:1 quote 逐字直引五步链, match 0.5357 机器首选。干扰项只灌浆(E02)/顺序颠倒(E06)/流淌方法张冠李戴(E07)辨析正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1216,27 +1216,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q6",
       "source_anchor": "kc:1A434000_075_0117:1",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-pipe-through-wall",
       "skeleton_id": "f05-skel-止水环构件定位",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "23f2037c5070f95dcecf54ec57c584b84baceb8e99055e97559332884753354f",
+      "content_sha256": "2e765e81ac23b8a6002693e1319e6e0e490510016a421f4b8e7dad4a6ada645a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "23f2037c5070f95dcecf54ec57c584b84baceb8e99055e97559332884753354f",
+        "reviewed_content_sha256": "2e765e81ac23b8a6002693e1319e6e0e490510016a421f4b8e7dad4a6ada645a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1246,7 +1246,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "改题重裁(前轮 NO-GO 病灶): 原正确项'延长渗径、增加渗流阻力'机理经教材原始数据仲裁零支撑(渗径全教材0次), 已改为源内事实'止水环是设在穿墙管上的止水构件,应在振捣密实、灌浆堵漏之前设置'——逐点回源: '设在穿墙管上'=教材 content_blocks[116]'③穿墙管设置止水环'逐字; '先于振捣/灌浆'=锚 kc:1A434000_075_0117:1 五步序(设置止水环在振捣密实、灌浆堵漏之前)。prefill 重召回该锚 match 0.2542 真实机器候选。skeleton(构件定位辨析)异于 q5(五步程序排序)与 q16(诊断补写); 三题同 pipe fact 全 anchor 不成三件套。干扰项埋错与解析一致且解析零机理残留。"
+        "note": "改题重裁(前轮 NO-GO 病灶): 原正确项'延长渗径、增加渗流阻力'机理经教材原始数据仲裁零支撑(渗径全教材0次), 已改为源内事实'止水环是设在穿墙管上的止水构件,应在振捣密实、灌浆堵漏之前设置'——逐点回源: '设在穿墙管上'=教材 content_blocks[116]'③穿墙管设置止水环'逐字; '先于振捣/灌浆'=锚 kc:1A434000_075_0117:1 五步序(设置止水环在振捣密实、灌浆堵漏之前)。prefill 重召回该锚 match 0.2542 真实机器候选。skeleton(构件定位辨析)异于 q5(五步程序排序)与 q16(诊断补写); 三题同 pipe fact 全 anchor 不成三件套。干扰项埋错与解析一致且解析零机理残留。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1378,17 +1378,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "263684b43dc8416a0d0af9f7e91428f08a76d82fa91e5b56e1e0591d510e45a4",
+      "content_sha256": "ea1b617d1abb6eeb9bdbce09fea41e17e7bb1b21fad62c688355dffeef9fc66e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "263684b43dc8416a0d0af9f7e91428f08a76d82fa91e5b56e1e0591d510e45a4",
+        "reviewed_content_sha256": "ea1b617d1abb6eeb9bdbce09fea41e17e7bb1b21fad62c688355dffeef9fc66e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1664,17 +1664,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ac14d6e75b313620f0cf5a81287ecd6cc6ed7e0e81a6bb09f6d2f21da7137ac9",
+      "content_sha256": "45e5f59db7076d71bf94e61cde7625e982e1b91349112cb95868cce83b107ebd",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "ac14d6e75b313620f0cf5a81287ecd6cc6ed7e0e81a6bb09f6d2f21da7137ac9",
+        "reviewed_content_sha256": "45e5f59db7076d71bf94e61cde7625e982e1b91349112cb95868cce83b107ebd",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1933,17 +1933,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "22b5804f4e90943aee34f01f7b4a2ab7142adf6f8796fef4aa1ef34a992bc3e0",
+      "content_sha256": "e1c5db9e05ef8400b67bdcfd163aa5d34ddaf1dd294ec46ca8cd1d5345512baf",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "22b5804f4e90943aee34f01f7b4a2ab7142adf6f8796fef4aa1ef34a992bc3e0",
+        "reviewed_content_sha256": "e1c5db9e05ef8400b67bdcfd163aa5d34ddaf1dd294ec46ca8cd1d5345512baf",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2168,17 +2168,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dfe64af526f2c94c7f3d95902e05d3a0624eafb75ea9f829c8546deb5eac3e24",
+      "content_sha256": "cf255aee00d8eefee45a6664ff3edfe25d096baaf2eaf17377fcd9f475d27689",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "dfe64af526f2c94c7f3d95902e05d3a0624eafb75ea9f829c8546deb5eac3e24",
+        "reviewed_content_sha256": "cf255aee00d8eefee45a6664ff3edfe25d096baaf2eaf17377fcd9f475d27689",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2403,27 +2403,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q11",
       "source_anchor": "ca:1A434000_077_0120",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-parapet-wall-leak",
       "skeleton_id": "f05-skel-女儿墙成因诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "66aa84f4ddfb5373191be814986f98e1d8c5aa9c03f5b43466b0c7fddf95decc",
+      "content_sha256": "fd781f48229de6d4e9ef2b08c59f8bad82263ca63f1c441a31665088fa8141f4",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "66aa84f4ddfb5373191be814986f98e1d8c5aa9c03f5b43466b0c7fddf95decc",
+        "reviewed_content_sha256": "fd781f48229de6d4e9ef2b08c59f8bad82263ca63f1c441a31665088fa8141f4",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2433,7 +2433,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "山墙女儿墙渗漏成因诊断=收口/压条脱落、滴水线破损、拉结不牢、钝角等收头薄弱处失效。锚 ca:1A434000_077_0120('某项目山墙出现渗漏,请分析可能的原因并提出治理措施'含 grading_keywords)match 0.4364 机器首选, 直支成因维。三件套 anchor(parapet fact)。干扰项防水层笼统返工(E08)/施工缝成因错搬(E07)/单条成因(E02)辨析正确。"
+        "note": "山墙女儿墙渗漏成因诊断=收口/压条脱落、滴水线破损、拉结不牢、钝角等收头薄弱处失效。锚 ca:1A434000_077_0120('某项目山墙出现渗漏,请分析可能的原因并提出治理措施'含 grading_keywords)match 0.4364 机器首选, 直支成因维。三件套 anchor(parapet fact)。干扰项防水层笼统返工(E08)/施工缝成因错搬(E07)/单条成因(E02)辨析正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2650,27 +2650,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q12",
       "source_anchor": "kc:1A434000_077_0120:0",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-parapet-wall-leak",
       "skeleton_id": "f05-skel-女儿墙治理五步",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8ef848989132424220109078bd36c161f9dbd5911e9ee3abaa92c5e29f48aac5",
+      "content_sha256": "80a48168fee5a7f4f41eeb2d10ea92251327bf3b95dee617558ff77851326adf",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8ef848989132424220109078bd36c161f9dbd5911e9ee3abaa92c5e29f48aac5",
+        "reviewed_content_sha256": "80a48168fee5a7f4f41eeb2d10ea92251327bf3b95dee617558ff77851326adf",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2680,7 +2680,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "女儿墙治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口(+修复压顶砂浆)。锚 kc:1A434000_077_0120:0 quote 逐字直引五步(match 0.6364)。三件套 immediate_confirm(同 parapet fact, skeleton 治理程序维异于 q11 成因维)。干扰项省步(E06)/笼统重做(E02)/抽气灌胶误用(E07)辨析正确。"
+        "note": "女儿墙治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口(+修复压顶砂浆)。锚 kc:1A434000_077_0120:0 quote 逐字直引五步(match 0.6364)。三件套 immediate_confirm(同 parapet fact, skeleton 治理程序维异于 q11 成因维)。干扰项省步(E06)/笼统重做(E02)/抽气灌胶误用(E07)辨析正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2897,17 +2897,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "528aad6f246a5913e1254b82fce45fedcda30827097740a41394aac0d8e7f0bf",
+      "content_sha256": "230fd4d41c00b8afd3b4a9298ec7a3f8a88046a6494b9d406d869d8949f4f596",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "528aad6f246a5913e1254b82fce45fedcda30827097740a41394aac0d8e7f0bf",
+        "reviewed_content_sha256": "230fd4d41c00b8afd3b4a9298ec7a3f8a88046a6494b9d406d869d8949f4f596",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3132,17 +3132,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f30405a0ffb7ae5bfedda307edfc81412bea8ea4efb5516a0ebf317469c2da8e",
+      "content_sha256": "d9bfba504d1b16902c22137939717581c0425a69e71c71377b4a52391e93d33d",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "f30405a0ffb7ae5bfedda307edfc81412bea8ea4efb5516a0ebf317469c2da8e",
+        "reviewed_content_sha256": "d9bfba504d1b16902c22137939717581c0425a69e71c71377b4a52391e93d33d",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3299,27 +3299,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q15",
       "source_anchor": "ca:1A434000_077_0120",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-parapet-wall-leak",
       "skeleton_id": "f05-skel-女儿墙采分补写",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f00051140e90fa2940947ad4d138dab04066e8a58d81d564657ee633e816966e",
+      "content_sha256": "09e92f02f3f480906e398ac7822cf4f829a3851721e4055bc24d630cf8fc1978",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "f00051140e90fa2940947ad4d138dab04066e8a58d81d564657ee633e816966e",
+        "reviewed_content_sha256": "09e92f02f3f480906e398ac7822cf4f829a3851721e4055bc24d630cf8fc1978",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3329,7 +3329,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "采分诊断: 学生答女儿墙渗漏'重新做防水'——诊断成因未写+五步全缺, 补写成因(收口/压条/滴水线/钝角)+治理五步。锚 ca:1A434000_077_0120 match 0.3636, 成因+治理双维直支诊断补写。三件套 d1_probe(同 parapet fact, 第3独立 skeleton=诊断补写维)。干扰项酌情给分(E04)/只差材料(E02)/流淌起鼓错搬(E07)辨析正确。"
+        "note": "采分诊断: 学生答女儿墙渗漏'重新做防水'——诊断成因未写+五步全缺, 补写成因(收口/压条/滴水线/钝角)+治理五步。锚 ca:1A434000_077_0120 match 0.3636, 成因+治理双维直支诊断补写。三件套 d1_probe(同 parapet fact, 第3独立 skeleton=诊断补写维)。干扰项酌情给分(E04)/只差材料(E02)/流淌起鼓错搬(E07)辨析正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3444,27 +3444,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F05/P40_F05.practice.dc.html#Q16",
       "source_anchor": "kc:1A434000_075_0117:1",
       "source_sha256": "cf5fc525b952095f6473cf256621bf19aaf78d625138c404bf0bcf2641f59cac",
-      "source_html_sha256": "0aeb965347a1a90b3d3172d5126c3a6715f13f0e9486ed688186367bb335498f",
+      "source_html_sha256": "8735289ee922534843e676deaf6ee8476239630d8d6b6ff913d6e45a70819ca3",
       "fact_id": "f05-fact-pipe-through-wall",
       "skeleton_id": "f05-skel-穿墙采分补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "db3c6a043f1f5cb1c24b8916273f41d875ff3e34a252ea20dd00533fa33c8b05",
+      "content_sha256": "ebf0bff6278aec7dc7e5cd48ef3b45ed5a459a0582f0f04fb681ceb5a6f43a1c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "db3c6a043f1f5cb1c24b8916273f41d875ff3e34a252ea20dd00533fa33c8b05",
+        "reviewed_content_sha256": "ebf0bff6278aec7dc7e5cd48ef3b45ed5a459a0582f0f04fb681ceb5a6f43a1c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:24:02+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3474,7 +3474,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "采分诊断末题: 学生答穿墙渗漏'哪漏堵哪灌浆堵死', 诊断=漏前置流程, 补写=清理管面→设止水环→振捣密实→避免振动→灌浆堵漏。锚 kc:1A434000_075_0117:1 quote 逐字支撑补写五步(match 0.3485)。干扰项给分过宽(E02)/只调顺序(E06)/裂缝措施混淆(E07)辨析正确。"
+        "note": "采分诊断末题: 学生答穿墙渗漏'哪漏堵哪灌浆堵死', 诊断=漏前置流程, 补写=清理管面→设止水环→振捣密实→避免振动→灌浆堵漏。锚 kc:1A434000_075_0117:1 quote 逐字支撑补写五步(match 0.3485)。干扰项给分过宽(E02)/只调顺序(E06)/裂缝措施混淆(E07)辨析正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3539,5 +3539,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "b89c21f50818d68d452ae1abea67933721d3f4d5a8a3ed49332b0e608e51d7fe"
+  "published_lesson_sha256": "0f499db5a18d53838024e8fbe7492bb9b5d0bcdee2db5ffc56cdc081624c98f0"
 }

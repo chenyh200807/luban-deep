@@ -143,7 +143,7 @@
 
 **Design System 标签页（规范卡）**
 - `foundations/` — Colors(5) / Type(3) / Spacing(2) / Brand(2) 规范卡
-- `patterns/` — Components(6)：Header·Keycard·Caption / Timeline controls / QA bubbles / Quiz option states / Poster / 问追AI 弹层
+- `patterns/` — Components(6)：Header·Keycard·Caption / Timeline controls / QA bubbles / Quiz option states / Poster / 追问AI 弹层
 
 ---
 

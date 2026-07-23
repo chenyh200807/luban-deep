@@ -1,1243 +1,1234 @@
 {
-  "schema": "luban_practice_review_packet.v1",
-  "pack_id": "E05",
-  "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
-  "source_bundle_sha256": "dc3066edf474af6e8753d164624fa55a1f9daac146eec145ea4e012bb443cca6",
-  "compiled_schema_version": "luban_compiled_practice.v3",
-  "candidate_count": 16,
-  "eligible_count": 8,
-  "human_gate": {
-    "required_roles": [
-      "teaching",
-      "scoring"
-    ],
-    "machine_must_not_sign": true
-  },
-  "items": [
-    {
-      "variant_id": "E05-html-practice-html-q1-368ca609e03b",
-      "surface_id": "practice.html",
-      "stem": "挣值法三个基本参数中，BCWP（挣值）的构成式是哪一个？选出定义准确的作答。",
-      "options": [
-        {
-          "text": "BCWP = 已完成工程量 × 预算单价（已完成的量，按预算价计），即挣得的价值标尺。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "量取「已完成」、价取「预算」，BCWP 是把已干的活按预算价折算的挣值。",
-          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-1"
-        },
-        {
-          "text": "BCWP = 已完成工程量 × 实际单价（已完成的量，按实际花的价计），反映实际挣得。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「已完成」对了，顺手把价也配成「实际」。",
-          "loss_reason": "价用错：已完成量×实际单价是 ACWP，不是 BCWP；BCWP 必须用预算单价隔离价格波动。",
-          "fix": "BCWP=已完成量×预算单价；已完成量×实际单价那是 ACWP。",
-          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-2"
-        },
-        {
-          "text": "BCWP = 计划工程量 × 预算单价（计划的量，按预算价计），代表计划应挣的价值。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「预算价」对了，量却配成「计划」。",
-          "loss_reason": "量用错：计划量×预算单价是 BCWS，不是 BCWP；BCWP 的量必须是「已完成」。",
-          "fix": "BCWP=已完成量×预算单价；计划量×预算单价那是 BCWS。",
-          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-3"
-        },
-        {
-          "text": "BCWP = 计划工程量 × 实际单价（计划的量，按实际价计），综合计划与实际。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把「计划」「实际」拼在一起，看着「兼顾两头」。",
-          "loss_reason": "量和价全错，且这个组合不对应任何一个基本参数，纯干扰项。",
-          "fix": "BCWP=已完成量×预算单价，量取已完成、价取预算，不掺计划量或实际价。",
-          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-4"
-        }
-      ],
-      "model_answer": "BCWP（已完成工作预算成本／挣值）= 已完成工程量 × 预算单价。",
-      "rule_group": "三值构成·概念维",
-      "content_sha256": "a06fc353b288677592a660afaef5f0b032353ffcc8bda84d57432495db904733",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q1",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-bcwp-构成式",
-        "skeleton_id": "e05-skel-bcwp构成式单选",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A435020_095_0156:0",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "a06fc353b288677592a660afaef5f0b032353ffcc8bda84d57432495db904733",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "BCWP=已完成工程量×预算单价, 教材 kc:1A435020_095_0156:0 三大核心成本值逐字直引(量取已完成/价取预算)。正确项忠实, 无数值复算。工单: 正确项恒首位=template artifact。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q2-b7eff7104a83",
-      "surface_id": "practice.html",
-      "stem": "ACWP（已完成工作实际成本）的构成式是哪一个？选出定义准确的作答。",
-      "options": [
-        {
-          "text": "ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「已完成」对了，价却配成「预算」。",
-          "loss_reason": "价用错：已完成量×预算单价是 BCWP（挣值），不是 ACWP；ACWP 必须用实际单价。",
-          "fix": "ACWP=已完成量×实际单价；已完成量×预算单价那是 BCWP。",
-          "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-1"
-        },
-        {
-          "text": "ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「实际价」对了，量却配成「计划」。",
-          "loss_reason": "量用错：ACWP 的量是「已完成」，不是「计划」；计划量×任何价都不是 ACWP。",
-          "fix": "ACWP=已完成量×实际单价，量取已完成、不取计划量。",
-          "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-2"
-        },
-        {
-          "text": "ACWP = 预算总成本，即项目开工前编制的全部预算金额。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「实际成本」听着像个总额，误当预算总账。",
-          "loss_reason": "ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。",
-          "fix": "ACWP=已完成量×实际单价，只算已干部分的实际花费。",
-          "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-3"
-        },
-        {
-          "text": "ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。",
-          "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-4"
-        }
-      ],
-      "model_answer": "ACWP = 已完成工程量 × 实际单价（已经花出去的钱）。",
-      "rule_group": "三值构成·概念维",
-      "content_sha256": "ae962dea5052f99eec6c665907d4e0310796ee7b49d180ce4d1820d997ae7526",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q2",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-acwp-构成式",
-        "skeleton_id": "e05-skel-acwp构成式单选",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A435020_095_0156:0",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "ae962dea5052f99eec6c665907d4e0310796ee7b49d180ce4d1820d997ae7526",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "ACWP=已完成工程量×实际单价, 教材 kc:1A435020_095_0156:0 逐字直引(量取已完成/价取实际)。3 个干扰项(预算价/计划量/预算总成本)均可证伪。工单: 正确项在末位。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q3-a27747a1aaaf",
-      "surface_id": "practice.html",
-      "stem": "第20周末检查：挣值 BCWP=6370 万元、已完成实际成本 ACWP=6240 万元、计划值 BCWS=5340 万元。下列把三值放入指标公式，哪一组位置正确？",
-      "options": [
-        {
-          "text": "CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340，三值按定义各归其位。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "BCWP 恒作被减数/分子，ACWP 配成本、BCWS 配进度，位置不互换。",
-          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-1"
-        },
-        {
-          "text": "CV=ACWP−BCWP=6240−6370、SV=BCWS−BCWP=5340−6370，用实际/计划减挣值。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "记成「实际减挣值」，被减数减数顺序反了。",
-          "loss_reason": "被减数减数颠倒会让 CV=−130、SV=−1030，方向整个判反成超支延误。",
-          "fix": "CV=BCWP−ACWP、SV=BCWP−BCWS，挣值 BCWP 永远作被减数。",
-          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-2"
-        },
-        {
-          "text": "CV=BCWP−BCWS=6370−5340、SV=BCWP−ACWP=6370−6240，成本用计划、进度用实际。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "记得都用 BCWP 减，却把 ACWP 和 BCWS 的分工调换了。",
-          "loss_reason": "成本偏差要减实际 ACWP、进度偏差要减计划 BCWS；两者互换后 CV/SV 全错。",
-          "fix": "成本 CV 减 ACWP、进度 SV 减 BCWS，别把两个减数换位置。",
-          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-3"
-        },
-        {
-          "text": "把 BCWS 与 ACWP 互换代入：CV=BCWP−BCWS、CPI=BCWP/BCWS，成本一律配计划值。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "题干数字多，没读清哪个是实际、哪个是计划就代入。",
-          "loss_reason": "BCWS(计划)与 ACWP(实际)互换，成本侧四指标系统性全错。",
-          "fix": "先认清 ACWP=实际、BCWS=计划；成本侧一律用 ACWP。",
-          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-4"
-        }
-      ],
-      "model_answer": "CV=BCWP−ACWP=6370−6240；SV=BCWP−BCWS=6370−5340，三值各归其位不互换。",
-      "rule_group": "三值代入·背景提取维",
-      "content_sha256": "8ae7afcae4aef33774d178a7b87b7866ca7e29ae3beb9120818c71d54c243e06",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q3",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-三值代入位置",
-        "skeleton_id": "e05-skel-三值代入四公式定位",
-        "probe_role": "anchor",
-        "source_anchor": "ca:1A435020_095_0156",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "8ae7afcae4aef33774d178a7b87b7866ca7e29ae3beb9120818c71d54c243e06",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "考三值代入位置: CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340, BCWP 恒作被减数。数值与场景直引教材EP ca:1A435020_095_0156(第20周末 BCWP6370/ACWP6240/BCWS5340)。位置规则原句另见 kc:1A435020_095_0156:1, 但该 point 未进本题机器候选, 故锚挂含同数值的 EP 候选(provenance 可溯)。复算 6370−6240=130、6370−5340=1030 位置正确。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q4-65ed25e57b8f",
-      "surface_id": "practice.html",
-      "stem": "已知 BCWP=6370 万元、ACWP=6240 万元。求成本偏差 CV 并判读成本状态，选出能得分的作答。",
-      "options": [
-        {
-          "text": "CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "「实际花的减挣的」听着顺，算出负数就判超支。",
-          "loss_reason": "被减数减数反了，把节支的项目判成超支——方向彻底错。",
-          "fix": "CV=BCWP−ACWP=+130 万元，挣的减花的、正数是节支。",
-          "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-1"
-        },
-        {
-          "text": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "算式对、结果对，却把「正数」的方向记反了。",
-          "loss_reason": "数值对但方向判反：CV>0 是节支不是超支，方向分丢光。",
-          "fix": "CV>0 → 成本节支；正数是省钱，不是超支。",
-          "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-2"
-        },
-        {
-          "text": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。",
-          "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-3"
-        },
-        {
-          "text": "CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "结果对，用「控制得不错」口语带过。",
-          "loss_reason": "没写规范判读词「节支」、结果漏「万元」单位，口号化不给分。",
-          "fix": "补规范词与单位：CV=130 万元，CV>0 → 成本节支。",
-          "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-4"
-        }
-      ],
-      "model_answer": "CV=BCWP−ACWP=6370−6240=130 万元；CV>0 → 成本节支。",
-      "rule_group": "成本偏差CV·计算判读维",
-      "content_sha256": "2b1ec7b44293864d8ae2f6954d86334e97001bb3fed126df3d36265ab1d5548b",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q4",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-cv计算判读",
-        "skeleton_id": "e05-skel-cv偏差计算判读",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A435020_095_0156:1",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "2b1ec7b44293864d8ae2f6954d86334e97001bb3fed126df3d36265ab1d5548b",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "CV=BCWP−ACWP=6370−6240=130 万元, CV>0→成本节支, 教材 kc:1A435020_095_0156:1 逐字直引(CV=BCWP-ACWP / CV>0节支)。复算 6370−6240=130✅ >0→节支✅。数值背景取自EP ca:1A435020_095_0156。干扰项覆盖颠倒(E09)/方向反(E07)/漏单位判读词(E04)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q5-72c30a95bccf",
-      "surface_id": "practice.html",
-      "stem": "已知 BCWP=6370 万元、BCWS=5340 万元。求进度偏差 SV 并判读进度状态，选出能得分的作答。",
-      "options": [
-        {
-          "text": "SV=BCWP−ACWP=6370−6240=130 万元，SV>0，进度提前。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把进度偏差的减数配成了 ACWP（实际）。",
-          "loss_reason": "SV 要减计划值 BCWS，不是实际 ACWP；减错对象，那其实是 CV。",
-          "fix": "SV=BCWP−BCWS=1030 万元，进度偏差减的是计划值。",
-          "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-1"
-        },
-        {
-          "text": "SV=BCWP−BCWS=6370−5340=1030 万元，SV>0，进度提前。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "挣值减计划值、正数是提前；结果 1030 万元+方向齐。",
-          "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-2"
-        },
-        {
-          "text": "SV=BCWS−BCWP=5340−6370=−1030 万元，SV<0，进度延误。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "「计划减挣值」顺序反，算出负数判延误。",
-          "loss_reason": "被减数减数颠倒，把提前的项目判成延误，方向全错。",
-          "fix": "SV=BCWP−BCWS=+1030 万元，挣值作被减数、正数是提前。",
-          "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-3"
-        },
-        {
-          "text": "SV=BCWP−BCWS=6370−5340=1030，进度比计划快一些，形势不错。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "结果对，用「快一些、形势不错」带过。",
-          "loss_reason": "漏规范词「提前」、漏「万元」单位，口号化表达不得分。",
-          "fix": "补规范词与单位：SV=1030 万元，SV>0 → 进度提前。",
-          "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-4"
-        }
-      ],
-      "model_answer": "SV=BCWP−BCWS=6370−5340=1030 万元；SV>0 → 进度提前。",
-      "rule_group": "进度偏差SV·计算判读维",
-      "content_sha256": "0d5441453c1529a26a82520373aa5a1620f733ab219d2432bb081709c9c4e6b7",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q5",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "0d5441453c1529a26a82520373aa5a1620f733ab219d2432bb081709c9c4e6b7",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q6-c5a0b2262ef0",
-      "surface_id": "practice.html",
-      "stem": "已知 BCWP=6370 万元、ACWP=6240 万元。求成本绩效指数 CPI 并判读，选出能得分的作答。",
-      "options": [
-        {
-          "text": "CPI=ACWP/BCWP=6240/6370≈0.98，CPI<1，成本节支；用实际成本作分子，更能反映每花一块钱的产出效率。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "分子分母颠倒算出 0.98，方向却仍写节支。",
-          "loss_reason": "分子分母倒置使数值与判读自相矛盾；CPI 必须挣值作分子。",
-          "fix": "CPI=BCWP/ACWP≈1.02，挣值作分子、>1 才节支。",
-          "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-1"
-        },
-        {
-          "text": "CPI=BCWP/ACWP=6370/6240≈1.02，CPI>1，说明成本超支，效率偏低。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "算式对，却把「大于1」的方向记反。",
-          "loss_reason": "CPI>1 是节支/效率好，判成超支方向全反。",
-          "fix": "CPI>1 → 成本节支，大于1是每块钱挣回超过一块。",
-          "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-2"
-        },
-        {
-          "text": "CPI=BCWP/ACWP=6370/6240≈1.02，CPI>1，成本节支；指数为无量纲比值不带单位。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分子挣值、分母实际，>1 节支；并点明指数无单位。",
-          "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-3"
-        },
-        {
-          "text": "CPI=BCWP/ACWP=6370/6240≈1.02 万元，CPI>1，成本节支。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "判读对了，顺手给指数加了「万元」。",
-          "loss_reason": "绩效指数是无量纲比值，硬加单位反而扣分。",
-          "fix": "CPI≈1.02（无量纲、不带单位），偏差才带万元。",
-          "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-4"
-        }
-      ],
-      "model_answer": "CPI=BCWP/ACWP=6370/6240≈1.02；CPI>1 → 成本节支（无量纲）。",
-      "rule_group": "成本绩效CPI·计算判读维",
-      "content_sha256": "a2a644008f29e6faf1a9842285cd1a167ad75c5801e2accc7b65a3518c15788e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q6",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-绩效指数除法判读",
-        "skeleton_id": "e05-skel-绩效指数-cpi计算判读",
-        "probe_role": "immediate_confirm",
-        "source_anchor": "ca:1A435020_095_0156",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "a2a644008f29e6faf1a9842285cd1a167ad75c5801e2accc7b65a3518c15788e",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "三件套 immediate_confirm(同绩效指数 fact, 当日即时确认)。CPI=BCWP/ACWP=6370/6240≈1.02, CPI>1→成本节支, 无量纲; 数值取教材EP ca:1A435020_095_0156(要求算成本绩效指数CPI)。复算 6370÷6240=1.0208≈1.02✅。干扰项含分子分母颠倒(E09)/方向反(E07)/硬加万元单位(E03)。skeleton 与 q7/q8 互异。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q7-576365500963",
-      "surface_id": "practice.html",
-      "stem": "已知 BCWP=6370 万元、BCWS=5340 万元。求进度绩效指数 SPI 并判读，选出能得分的作答。",
-      "options": [
-        {
-          "text": "SPI=BCWS/BCWP=5340/6370≈0.84，SPI<1，进度提前；比值越小说明计划量越大、进度反而越靠前。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "分子分母颠倒得 0.84，方向仍照抄「提前」。",
-          "loss_reason": "倒置后数值<1、与「提前」矛盾；SPI 必须挣值作分子。",
-          "fix": "SPI=BCWP/BCWS≈1.19，挣值作分子、>1 才提前。",
-          "option_id": "E05-html-practice-html-q7-576365500963:option-1"
-        },
-        {
-          "text": "SPI=BCWP/ACWP=6370/6240≈1.02，SPI>1，进度提前。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把进度指数的分母配成了 ACWP（实际）。",
-          "loss_reason": "SPI 分母是计划值 BCWS，不是实际 ACWP；配错分母那算的是 CPI。",
-          "fix": "SPI=BCWP/BCWS≈1.19，进度指数分母用计划值。",
-          "option_id": "E05-html-practice-html-q7-576365500963:option-2"
-        },
-        {
-          "text": "SPI=BCWP/BCWS=6370/5340≈1.19，进度还行、比计划快，问题不大。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "数值对，用「还行、快」口语带过。",
-          "loss_reason": "漏规范判读词「提前」，口号化表达不得分。",
-          "fix": "补规范词：SPI>1 → 进度提前。",
-          "option_id": "E05-html-practice-html-q7-576365500963:option-3"
-        },
-        {
-          "text": "SPI=BCWP/BCWS=6370/5340≈1.19，SPI>1，进度提前；指数无量纲不带单位。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "分子挣值、分母计划值，>1 提前；指数无单位。",
-          "option_id": "E05-html-practice-html-q7-576365500963:option-4"
-        }
-      ],
-      "model_answer": "SPI=BCWP/BCWS=6370/5340≈1.19；SPI>1 → 进度提前（无量纲）。",
-      "rule_group": "进度绩效SPI·计算判读维",
-      "content_sha256": "341d7d593b410518ecbfcaa9905966a8ce83e36c2f942d86a3df10d465fe6104",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q7",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-绩效指数除法判读",
-        "skeleton_id": "e05-skel-绩效指数-spi计算判读",
-        "probe_role": "anchor",
-        "source_anchor": "ca:1A435020_096_0157",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "341d7d593b410518ecbfcaa9905966a8ce83e36c2f942d86a3df10d465fe6104",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "三件套 anchor。SPI=BCWP/BCWS=6370/5340≈1.19, SPI>1→进度提前, 指数无量纲不带单位; 教材EP ca:1A435020_096_0157(求SPI判进度, grading 1.19/进度提前)直支。复算 6370÷5340=1.1929≈1.19✅。fact=绩效指数为除法比值/>1为好/无量纲(CPI、SPI 同构)。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q8-bdad94d68d2c",
-      "surface_id": "practice.html",
-      "stem": "某工程第20周末 BCWP=6370 万元、BCWS=5340 万元（题目只问进度）。求 SPI 并判进度状态，选出能得分的作答。",
-      "options": [
-        {
-          "text": "SPI=BCWP/BCWS=6370/5340≈1.19，SPI>1，进度提前。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "进度问题用挣值除计划值，>1 提前，公式+结果+方向齐。",
-          "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-1"
-        },
-        {
-          "text": "只给这两个值算不了进度，必须先知道 ACWP 才能判断进度快慢。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "以为判进度也要用到实际成本 ACWP。",
-          "loss_reason": "进度只看 SPI=BCWP/BCWS，与 ACWP 无关；误判条件不足而放弃作答。",
-          "fix": "进度侧只需 BCWP 和 BCWS，SPI=1.19 即可判提前。",
-          "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-2"
-        },
-        {
-          "text": "SPI=BCWP−BCWS=6370−5340=1030，SPI>0，进度提前。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把绩效「指数」当成了偏差用减法。",
-          "loss_reason": "指数是除法比值不是减法差额；用减法算的是 SV，不是 SPI。",
-          "fix": "SPI 是除法：BCWP/BCWS≈1.19，不是相减。",
-          "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-3"
-        },
-        {
-          "text": "SPI=6370/5340≈1.19 万元，SPI>1，进度提前。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "数值方向都对，却给指数加了单位。",
-          "loss_reason": "SPI 是无量纲比值，加「万元」反而扣分。",
-          "fix": "SPI≈1.19（无量纲），指数不带单位。",
-          "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-4"
-        }
-      ],
-      "model_answer": "SPI=BCWP/BCWS=6370/5340≈1.19；SPI>1 → 进度提前。",
-      "rule_group": "进度小问·计算判读维",
-      "content_sha256": "d7303af9a66e5f7789a2b4cc8a2105e312ed7cdcac009bf1eb104296229c2508",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q8",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-绩效指数除法判读",
-        "skeleton_id": "e05-skel-绩效指数-spi单问变式",
-        "probe_role": "d1_probe",
-        "source_anchor": "ca:1A435020_096_0157",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "d7303af9a66e5f7789a2b4cc8a2105e312ed7cdcac009bf1eb104296229c2508",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "三件套 d1_probe(同 fact, D1 隔日再探, 变式=仅给两值+指数用除法非减法陷阱)。SPI=BCWP/BCWS=6370/5340≈1.19→进度提前, 无量纲; 教材EP ca:1A435020_096_0157 直支。复算≈1.19✅。干扰项含误判条件不足(E08)/指数当减法算成SV(E07)/加单位(E03)。skeleton 与 q7/q6 互异。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q9-4af4463ad833",
-      "surface_id": "practice.html",
-      "stem": "关于四指标方向判读，下列哪句表述正确、能作为判据得分？",
-      "options": [
-        {
-          "text": "CV、SV 大于 0 判超支/延误，CPI、SPI 大于 1 判节支/提前，两套方向相反。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把偏差和指数的方向记成「相反」。",
-          "loss_reason": "偏差与指数方向一致——都是正/大于1为好；记成相反会判反一半。",
-          "fix": "两套同向：正数、大于1 都好；不存在相反口径。",
-          "option_id": "E05-html-practice-html-q9-4af4463ad833:option-1"
-        },
-        {
-          "text": "CV、SV 大于 0，CPI、SPI 大于 1，都判节支/提前；反之小于则超支/延误。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "「正数、大于1 都是好」一句铁律，四指标方向统一记牢。",
-          "option_id": "E05-html-practice-html-q9-4af4463ad833:option-2"
-        },
-        {
-          "text": "指标数值越接近 0 越理想，说明实际与计划几乎没有偏差、控制得最到位。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「偏差小=控制好」的直觉迁移到判方向上。",
-          "loss_reason": "判方向看正负/与1的大小，不是「越接近0越好」；CV=0 只是打平，不等于节支。",
-          "fix": "看正负与1：CV>0 节支、CPI>1 节支，不是越接近0越好。",
-          "option_id": "E05-html-practice-html-q9-4af4463ad833:option-3"
-        },
-        {
-          "text": "只要算出数值就算到位，节支/超支、提前/延误属于分析性结论、可以不写。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "以为算出数就到位，方向词是「废话」。",
-          "loss_reason": "方向判读是与计算同等的采分点，漏写直接丢方向分。",
-          "fix": "算完必写方向：正数、大于1 → 节支/提前，一句都不能省。",
-          "option_id": "E05-html-practice-html-q9-4af4463ad833:option-4"
-        }
-      ],
-      "model_answer": "CV/SV>0 且 CPI/SPI>1 → 节支/提前；CV/SV<0 且 CPI/SPI<1 → 超支/延误。",
-      "rule_group": "方向判读·概念维",
-      "content_sha256": "84e0f52a37f98424ceafc22fa02aa025ba67b60814d7b87e4aa81ccf845e44e7",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q9",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "84e0f52a37f98424ceafc22fa02aa025ba67b60814d7b87e4aa81ccf845e44e7",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q10-74210d5347fd",
-      "surface_id": "practice.html",
-      "stem": "CV 和 CPI 都用来看成本，为什么阅卷要求两个都算？选出解释准确的作答。",
-      "options": [
-        {
-          "text": "CV 与 CPI 反映同一成本状况，两者必然同向，任选其中一个算出写清即可覆盖成本采分。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "两者常同向，误以为「算一个够了」。",
-          "loss_reason": "同向不代表可省略——绝对额和相对效率是两个采分点，少写一个扣一个。",
-          "fix": "两个都写：CV=130 万元（额）、CPI≈1.02（效率）。",
-          "option_id": "E05-html-practice-html-q10-74210d5347fd:option-1"
-        },
-        {
-          "text": "CV 更精确，CPI 只是估算，实际作答只写 CV 的绝对金额就够严谨了。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "觉得「带钱的更实在、比值是虚的」。",
-          "loss_reason": "两者都是精确计算、各有采分价值；CPI 提供可横比的效率信息，不是估算。",
-          "fix": "CV 与 CPI 都精确、都得写，一个看额一个看效率。",
-          "option_id": "E05-html-practice-html-q10-74210d5347fd:option-2"
-        },
-        {
-          "text": "CV 负责看成本、CPI 负责看进度，一个管钱一个管时间，所以两个指标都要算。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把「两个都算」的理由错记成分管成本与进度。",
-          "loss_reason": "CV 和 CPI 都看成本；看进度的是 SV/SPI。归错分工。",
-          "fix": "CV、CPI 同看成本（额 vs 效率）；进度侧才是 SV、SPI。",
-          "option_id": "E05-html-practice-html-q10-74210d5347fd:option-3"
-        },
-        {
-          "text": "CV 用减法给出省/超的绝对金额，CPI 用除法给出成本效率比值可横向对比，两者互补都要写。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "减法看「省多少钱」、除法看「效率」，一个绝对额一个相对比，缺一漏分。",
-          "option_id": "E05-html-practice-html-q10-74210d5347fd:option-4"
-        }
-      ],
-      "model_answer": "CV 用减法给绝对偏差额（省了多少钱），CPI 用除法给相对效率（每块钱挣回多少、可横比），两者互补都要写。",
-      "rule_group": "CV vs CPI 互补·概念维",
-      "content_sha256": "6a0f2d5a16bd64e2b65e2effb7ca8475fd95ccc3a528b07e9ce28b5e28bdd646",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q10",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "6a0f2d5a16bd64e2b65e2effb7ca8475fd95ccc3a528b07e9ce28b5e28bdd646",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q11-fd776e873c08",
-      "surface_id": "practice.html",
-      "stem": "关于挣值法作答的表达规范，下列哪一组完全合规、能拿到表达分？",
-      "options": [
-        {
-          "text": "偏差 CV=130 万元、SV=1030 万元带单位；CPI≈1.02、SPI≈1.19 无量纲不带单位；各指标公式/结果/方向成组。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "偏差带万元、指数不带单位、四件成组，三条规范全踩中。",
-          "option_id": "E05-html-practice-html-q11-fd776e873c08:option-1"
-        },
-        {
-          "text": "四个指标一律统一带上「万元」单位：CV=130 万元、SV=1030 万元、CPI=1.02 万元，口径整齐便于阅卷核对。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "图整齐，给所有指标都加万元。",
-          "loss_reason": "绩效指数是无量纲比值，加单位反而错；只有偏差带万元。",
-          "fix": "偏差带万元、指数不带单位，不能一刀切。",
-          "option_id": "E05-html-practice-html-q11-fd776e873c08:option-2"
-        },
-        {
-          "text": "四个指标一律不带单位，直接写 CV=130、SV=1030、CPI=1.02、SPI=1.19，阅卷核对的是数值对错，单位不影响给分。",
-          "is_correct": false,
-          "source_error_code": "E03",
-          "temptation": "图省事，全都不写单位。",
-          "loss_reason": "偏差 CV/SV 是金额，漏「万元」单位要扣表达分。",
-          "fix": "偏差补「万元」：CV=130 万元、SV=1030 万元；指数才不带单位。",
-          "option_id": "E05-html-practice-html-q11-fd776e873c08:option-3"
-        },
-        {
-          "text": "只需把四个指标的最终数值逐一写清楚，公式、代入过程与方向判读均可省略不写，阅卷时按数值结果直接评定给分。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为「数对了」就够，省略过程。",
-          "loss_reason": "公式、代入、方向都是采分点，省略过程会大面积丢分。",
-          "fix": "每指标公式+代入+结果+方向成组，缺一扣一。",
-          "option_id": "E05-html-practice-html-q11-fd776e873c08:option-4"
-        }
-      ],
-      "model_answer": "偏差 CV/SV 带金额单位（万元）；绩效指数 CPI/SPI 无量纲不带单位；每指标公式+代入+结果+方向成组。",
-      "rule_group": "作答表达·规范维",
-      "content_sha256": "08335128eeaa52c77d9e4b057a7d5cb9ca278f3aa6300e1ea4973154bd971adc",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q11",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "08335128eeaa52c77d9e4b057a7d5cb9ca278f3aa6300e1ea4973154bd971adc",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q12-125dd241d942",
-      "surface_id": "practice.html",
-      "stem": "母题要求「分析成本与进度状态」。下列作答，哪一个采分点覆盖完整？",
-      "options": [
-        {
-          "text": "CV=130 万元、CPI≈1.02，成本节支——成本与进度本是一回事，判了成本进度自然提前，再单列 SV、SPI 属于重复。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "以为成本好进度必然好，省掉进度侧。",
-          "loss_reason": "成本与进度相互独立，必须分别算 SV/SPI；漏进度侧丢一半采分点。",
-          "fix": "补进度侧：SV=1030 万元、SPI≈1.19 → 进度提前。",
-          "option_id": "E05-html-practice-html-q12-125dd241d942:option-1"
-        },
-        {
-          "text": "SV=1030 万元、SPI≈1.19，进度提前——项目进度提前，成本状态可不必再单独判。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "只算了进度侧，觉得成本可略。",
-          "loss_reason": "漏成本侧 CV/CPI；进度提前不代表成本一定节支，须分别判。",
-          "fix": "补成本侧：CV=130 万元、CPI≈1.02 → 成本节支。",
-          "option_id": "E05-html-practice-html-q12-125dd241d942:option-2"
-        },
-        {
-          "text": "CV=130 万元、CPI≈1.02 判成本节支；SV=1030 万元、SPI≈1.19 判进度提前，成本进度都答。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "成本侧 CV/CPI + 进度侧 SV/SPI 全算全判，覆盖完整。",
-          "option_id": "E05-html-practice-html-q12-125dd241d942:option-3"
-        },
-        {
-          "text": "结论可直接写成：本项目成本节支、进度提前；四个指标的具体数值与过程不必一一列出，方向到位即可。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "结论方向对，图省事跳过计算过程。",
-          "loss_reason": "四指标的公式/代入/结果都是采分点，只给结论会丢大量过程分。",
-          "fix": "逐项列 CV/SV/CPI/SPI 的公式代入结果，再下结论。",
-          "option_id": "E05-html-practice-html-q12-125dd241d942:option-4"
-        }
-      ],
-      "model_answer": "CV=130 万元、CPI≈1.02（成本节支）+ SV=1030 万元、SPI≈1.19（进度提前），成本进度两侧四指标齐全。",
-      "rule_group": "采分完整·遗漏维",
-      "content_sha256": "e123dc34e0c6056f77324801ab8034edebbc00b32829fd26b94522fd3b6d513e",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q12",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "e123dc34e0c6056f77324801ab8034edebbc00b32829fd26b94522fd3b6d513e",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q13-c03dc700cc30",
-      "surface_id": "practice.html",
-      "stem": "若题干只给「已完成工程量、计划工程量、预算单价、实际单价」而未直接给三值，正确的作答步骤是？",
-      "options": [
-        {
-          "text": "把「已完成量×预算单价」的乘积直接当作最终答案，题目给了量和价，要求的正是这一个乘积。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "看到量×价算出一个数就以为完事。",
-          "loss_reason": "那只是 BCWP 一个值；还要求 BCWS、ACWP 并套四公式判读，提取不全。",
-          "fix": "三值都要求出，再算 CV/SV/CPI/SPI 并判方向。",
-          "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-1"
-        },
-        {
-          "text": "用实际单价乘所有工程量得到总成本，再和预算比大小即可判断盈亏，这样一步到位，比分别求三个成本值省事得多。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "图省事，绕开三值直接「实际比预算」。",
-          "loss_reason": "跳过 BCWP/BCWS/ACWP 的规范构成，无法分离成本与进度偏差。",
-          "fix": "按构成式分别求三值，别用笼统的总成本比较。",
-          "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-2"
-        },
-        {
-          "text": "题干没有直接给出三值时便无法继续计算，作答时应写明所给条件不足，并据此放弃求解。",
-          "is_correct": false,
-          "source_error_code": "E08",
-          "temptation": "觉得没直接给三值就是条件不够。",
-          "loss_reason": "给了量与价就足以求三值，误判条件不足会整题丢分。",
-          "fix": "量×价即可求三值，条件充分，照常计算。",
-          "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-3"
-        },
-        {
-          "text": "先按构成式求出 BCWP、BCWS、ACWP 三值，再代入 CV/SV/CPI/SPI 四公式计算判读。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "先「量×价」提三值、再套四公式，两步分明不跳步。",
-          "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-4"
-        }
-      ],
-      "model_answer": "先求 BCWP=已完成量×预算单价、BCWS=计划量×预算单价、ACWP=已完成量×实际单价，再套 CV/SV/CPI/SPI。",
-      "rule_group": "先求三值·背景提取维",
-      "content_sha256": "3b5e8001baecf91713583c3d7c6b242e85686db19b6e6ec0a06475f1381b9874",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q13",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "3b5e8001baecf91713583c3d7c6b242e85686db19b6e6ec0a06475f1381b9874",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q14-92472b7c1d53",
-      "surface_id": "practice.html",
-      "stem": "另一项目：BCWP=5000、ACWP=5200、BCWS=5300 万元。求 CV 并判成本状态，选出正确作答。",
-      "options": [
-        {
-          "text": "CV=BCWP−ACWP=5000−5200=−200 万元，CV<0，但成本仍节支 200 万。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "算出负数，方向却仍写「节支」。",
-          "loss_reason": "CV<0 是超支，负数判成节支方向反了。",
-          "fix": "CV<0 → 成本超支；负数是多花了钱。",
-          "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-1"
-        },
-        {
-          "text": "CV=ACWP−BCWP=5200−5000=200 万元，CV>0，成本节支。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "怕出负数，把减数顺序调成正数。",
-          "loss_reason": "被减数减数颠倒，把超支的项目算成节支，方向全错。",
-          "fix": "CV=BCWP−ACWP=−200 万元，不能为了正数调换顺序。",
-          "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-2"
-        },
-        {
-          "text": "CV=BCWP−ACWP=5000−5200=−200 万元，CV<0，成本超支。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "挣值减实际得负数，负数就是超支，方向随数值走。",
-          "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-3"
-        },
-        {
-          "text": "实际 5200 比挣值 5000 高，说明干得多、成本节约，判成本节支。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "「实际高=干得多」的错觉。",
-          "loss_reason": "实际成本高是多花钱=超支，不是干得多；混淆实际成本与工程量。",
-          "fix": "ACWP 高于 BCWP 是超支；量的多少看 SV/SPI。",
-          "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-4"
-        }
-      ],
-      "model_answer": "CV=BCWP−ACWP=5000−5200=−200 万元；CV<0 → 成本超支。",
-      "rule_group": "方向反例·计算判读维",
-      "content_sha256": "8875d66b726d26d97ef89e9cb0362f659a56400f933a12ace3a838ab31a5b152",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q14",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "8875d66b726d26d97ef89e9cb0362f659a56400f933a12ace3a838ab31a5b152",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q15-14d59e799591",
-      "surface_id": "practice.html",
-      "stem": "第20周末 BCWP=6370、ACWP=6240、BCWS=5340 万元。综合判读成本与进度，选出四指标与结论都正确的作答。",
-      "options": [
-        {
-          "text": "CV=130 万元、CPI≈1.02（成本超支）；SV=1030 万元、SPI≈1.19（进度延误）；结论：成本超支、进度延误。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "数值算对了，四个方向却整体判反。",
-          "loss_reason": "正数、大于1 应判节支/提前，却全写成超支/延误，方向系统性反。",
-          "fix": "正数、大于1 → 节支/提前；结论应为成本节支、进度提前。",
-          "option_id": "E05-html-practice-html-q15-14d59e799591:option-1"
-        },
-        {
-          "text": "CV=130 万元、CPI≈1.02（成本节支）；SV=1030 万元、SPI≈1.19（进度提前）；结论：成本节支、进度提前。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "四指标数值、方向、总结论全部正确且成组，标准满分作答。",
-          "option_id": "E05-html-practice-html-q15-14d59e799591:option-2"
-        },
-        {
-          "text": "CV=130 万元（节支）、SV=1030 万元（提前），结论成本节支进度提前；CPI、SPI 意义重复可不算。",
-          "is_correct": false,
-          "source_error_code": "E02",
-          "temptation": "算完 CV/SV 觉得指数「重复」省掉。",
-          "loss_reason": "CPI/SPI 是独立采分点（相对效率），漏算丢分。",
-          "fix": "补 CPI≈1.02、SPI≈1.19，指数与偏差都要写。",
-          "option_id": "E05-html-practice-html-q15-14d59e799591:option-3"
-        },
-        {
-          "text": "CV=130、SV=1030、CPI≈1.02、SPI≈1.19，四个数都算对，成本进度总体情况良好。",
-          "is_correct": false,
-          "source_error_code": "E04",
-          "temptation": "四个数全对，用「总体良好」收尾。",
-          "loss_reason": "漏规范判读词（节支/提前）与偏差单位，口号化收尾丢方向/表达分。",
-          "fix": "落规范词与单位：成本节支、进度提前，偏差带万元。",
-          "option_id": "E05-html-practice-html-q15-14d59e799591:option-4"
-        }
-      ],
-      "model_answer": "CV=130 万元、CPI≈1.02 → 成本节支；SV=1030 万元、SPI≈1.19 → 进度提前；结论：成本节支、进度提前。",
-      "rule_group": "综合母题·计算判读维",
-      "content_sha256": "dcea6c04b26149f1203af26e4b7ff5d69bd9ad0c3d01070f7232dc8598211e94",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q15",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "",
-        "skeleton_id": "",
-        "probe_role": "",
-        "source_anchor": "",
-        "source_sha256": "",
-        "review": {
-          "status": "pending",
-          "verdict": "pending",
-          "reviewed_content_sha256": "dcea6c04b26149f1203af26e4b7ff5d69bd9ad0c3d01070f7232dc8598211e94",
-          "signatures": [],
-          "checks": {
-            "source_verified": false,
-            "answer_verified": false,
-            "diagnosis_verified": false,
-            "longest_option_checked": false,
-            "template_leakage_checked": false
-          }
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    },
-    {
-      "variant_id": "E05-html-practice-html-q16-c4d93d1c98c8",
-      "surface_id": "practice.html",
-      "stem": "某学生作答如图：①CV 写成 ACWP−BCWP=−130；②判成本超支；③未算进度。选出最准确的诊断与补写。",
-      "options": [
-        {
-          "text": "计算与方向均无问题，学生的 CV 算式和成本超支判断本身都成立、不用改，只是漏了进度部分，把 SV、SPI 补齐就是满分作答。",
-          "is_correct": false,
-          "source_error_code": "E09",
-          "temptation": "只盯着「漏进度」，没发现 CV 公式本身写反。",
-          "loss_reason": "CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。",
-          "fix": "先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。",
-          "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-1"
-        },
-        {
-          "text": "CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。",
-          "is_correct": true,
-          "source_error_code": "",
-          "temptation": "",
-          "loss_reason": "",
-          "fix": "揪出「公式颠倒→方向反」和「漏进度侧」两类失分，补写即成满分采分句。",
-          "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-2"
-        },
-        {
-          "text": "CV 算出 −130、判定成本超支，这一步的结论并没有错，无须改动；诊断时只需提醒学生补写一句「进度提前」，整份作答即可视为完整。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "把颠倒得到的 −130/超支当成正确结论。",
-          "loss_reason": "−130/超支正是公式颠倒造成的错误方向，不是正确结论。",
-          "fix": "CV 应=+130 万元、成本节支；方向要改回来。",
-          "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-3"
-        },
-        {
-          "text": "该学生的思路完全正确：CV 用实际减挣值更直观，据此判定成本超支也顺理成章，这份三步作答无须再作修改，可以直接给予满分。",
-          "is_correct": false,
-          "source_error_code": "E07",
-          "temptation": "被「实际减挣值更直观」的错觉带偏。",
-          "loss_reason": "CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。",
-          "fix": "CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。",
-          "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-4"
-        }
-      ],
-      "model_answer": "CV 被减数减数颠倒（应 BCWP−ACWP=+130 万元，成本节支）、方向随之判反、且漏算进度 SV=1030 万元/SPI≈1.19（进度提前）；三处都要补。",
-      "rule_group": "采分诊断·末题",
-      "content_sha256": "30f1dcab5c45530ad3daae66e3aa014ed8e1b69279b21c59c754ce34df7cb99d",
-      "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q16",
-      "authoring_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
-      "decision": {
-        "fact_id": "e05-fact-cv颠倒采分诊断",
-        "skeleton_id": "e05-skel-cv颠倒诊断补写",
-        "probe_role": "anchor",
-        "source_anchor": "kc:1A435020_095_0156:1",
-        "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-        "review": {
-          "status": "signed",
-          "verdict": "approved",
-          "reviewed_content_sha256": "30f1dcab5c45530ad3daae66e3aa014ed8e1b69279b21c59c754ce34df7cb99d",
-          "signatures": [
-            {
-              "role": "teaching",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            },
-            {
-              "role": "scoring",
-              "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-              "signed_at": "2026-07-20T17:19:21+08:00"
-            }
-          ],
-          "checks": {
-            "source_verified": true,
-            "answer_verified": true,
-            "diagnosis_verified": true,
-            "longest_option_checked": true,
-            "template_leakage_checked": true
-          },
-          "note": "采分诊断末题: 学生 CV=ACWP−BCWP=−130 判超支(被减数颠倒)+漏进度; 正解 CV=BCWP−ACWP=+130 万元成本节支, 补 SV=6370−5340=1030、SPI≈1.19 进度提前。教材 kc:1A435020_095_0156:1 定 CV=BCWP-ACWP 方向为权威。复算 +130 节支✅ / SV1030✅ / SPI 6370÷5340≈1.19✅。"
-        },
-        "revoked": false,
-        "revocation_refs": []
-      }
-    }
+ "schema": "luban_practice_review_packet.v1",
+ "pack_id": "E05",
+ "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
+ "source_bundle_sha256": "1d4ebbe395bf5473a95ec29217cce2e0e6f22bf262add0e65ebcb2df7bd60d04",
+ "compiled_schema_version": "luban_compiled_practice.v3",
+ "candidate_count": 16,
+ "eligible_count": 8,
+ "human_gate": {
+  "required_roles": [
+   "teaching",
+   "scoring"
   ],
-  "verdict_authority": {
-    "mode": "owner_delegated",
-    "delegated_at": "2026-07-16",
-    "delegated_to": "claude-main-control",
-    "owner_instruction": "不用我拍板,你直接拍板,这个我都没你专业,你多考虑你的未知和盲区,也考虑我的未知和盲区",
-    "adversarial_gate": "opus-adjudication 2026-07-20 全量清尾批(owner指令); 逐题引文回 _E05_compiled_source.json(sha 4861d87c…) 原文核对+挣值法数值复算(BCWP6370/ACWP6240/BCWS5340→CV130节支/SV1030提前/CPI≈1.02/SPI≈1.19); 真题命中0故全教材锚; 待 fable 对抗核验",
-    "campaign": "practice-mass-signing 2026-07-18 (39-pack)",
-    "note": "本批 human_gate 的人审职责由 owner 明示委托主控履行;巡逻 agent 请勿按 machine_must_not_sign 回滚,先读本字段与账本。"
+  "machine_must_not_sign": true
+ },
+ "items": [
+  {
+   "variant_id": "E05-html-practice-html-q1-368ca609e03b",
+   "surface_id": "practice.html",
+   "stem": "挣值法三个基本参数中，BCWP（挣值）的构成式是哪一个？选出定义准确的作答。",
+   "options": [
+    {
+     "text": "BCWP = 已完成工程量 × 预算单价（已完成的量，按预算价计），即挣得的价值标尺。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "量取「已完成」、价取「预算」，BCWP 是把已干的活按预算价折算的挣值。",
+     "option_id": "E05-html-practice-html-q1-368ca609e03b:option-1"
+    },
+    {
+     "text": "BCWP = 已完成工程量 × 实际单价（已完成的量，按实际花的价计），反映实际挣得。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「已完成」对了，顺手把价也配成「实际」。",
+     "loss_reason": "价用错：已完成量×实际单价是 ACWP，不是 BCWP；BCWP 必须用预算单价隔离价格波动。",
+     "fix": "BCWP=已完成量×预算单价；已完成量×实际单价那是 ACWP。",
+     "option_id": "E05-html-practice-html-q1-368ca609e03b:option-2"
+    },
+    {
+     "text": "BCWP = 计划工程量 × 预算单价（计划的量，按预算价计），代表计划应挣的价值。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「预算价」对了，量却配成「计划」。",
+     "loss_reason": "量用错：计划量×预算单价是 BCWS，不是 BCWP；BCWP 的量必须是「已完成」。",
+     "fix": "BCWP=已完成量×预算单价；计划量×预算单价那是 BCWS。",
+     "option_id": "E05-html-practice-html-q1-368ca609e03b:option-3"
+    },
+    {
+     "text": "BCWP = 计划工程量 × 实际单价（计划的量，按实际价计），综合计划与实际。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把「计划」「实际」拼在一起，看着「兼顾两头」。",
+     "loss_reason": "量和价全错，且这个组合不对应任何一个基本参数，纯干扰项。",
+     "fix": "BCWP=已完成量×预算单价，量取已完成、价取预算，不掺计划量或实际价。",
+     "option_id": "E05-html-practice-html-q1-368ca609e03b:option-4"
+    }
+   ],
+   "model_answer": "BCWP（已完成工作预算成本／挣值）= 已完成工程量 × 预算单价。",
+   "rule_group": "三值构成·概念维",
+   "content_sha256": "d16f3eeca42666ce6e5c1f7f82474942f7a99ee944a1248cdddc3c2229ad65b4",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q1",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-bcwp-构成式",
+    "skeleton_id": "e05-skel-bcwp构成式单选",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A435020_095_0156:0",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "d16f3eeca42666ce6e5c1f7f82474942f7a99ee944a1248cdddc3c2229ad65b4",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "BCWP=已完成工程量×预算单价, 教材 kc:1A435020_095_0156:0 三大核心成本值逐字直引(量取已完成/价取预算)。正确项忠实, 无数值复算。工单: 正确项恒首位=template artifact。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q2-b7eff7104a83",
+   "surface_id": "practice.html",
+   "stem": "ACWP（已完成工作实际成本）的构成式是哪一个？选出定义准确的作答。",
+   "options": [
+    {
+     "text": "ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「已完成」对了，价却配成「预算」。",
+     "loss_reason": "价用错：已完成量×预算单价是 BCWP（挣值），不是 ACWP；ACWP 必须用实际单价。",
+     "fix": "ACWP=已完成量×实际单价；已完成量×预算单价那是 BCWP。",
+     "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-1"
+    },
+    {
+     "text": "ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「实际价」对了，量却配成「计划」。",
+     "loss_reason": "量用错：ACWP 的量是「已完成」，不是「计划」；计划量×任何价都不是 ACWP。",
+     "fix": "ACWP=已完成量×实际单价，量取已完成、不取计划量。",
+     "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-2"
+    },
+    {
+     "text": "ACWP = 预算总成本，即项目开工前编制的全部预算金额。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「实际成本」听着像个总额，误当预算总账。",
+     "loss_reason": "ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。",
+     "fix": "ACWP=已完成量×实际单价，只算已干部分的实际花费。",
+     "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-3"
+    },
+    {
+     "text": "ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。",
+     "option_id": "E05-html-practice-html-q2-b7eff7104a83:option-4"
+    }
+   ],
+   "model_answer": "ACWP = 已完成工程量 × 实际单价（已经花出去的钱）。",
+   "rule_group": "三值构成·概念维",
+   "content_sha256": "11db6217a2c1d15dd82b1a32f30ea3979e0210f457a48bd2e104c035200fa6e7",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q2",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-acwp-构成式",
+    "skeleton_id": "e05-skel-acwp构成式单选",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A435020_095_0156:0",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "11db6217a2c1d15dd82b1a32f30ea3979e0210f457a48bd2e104c035200fa6e7",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "ACWP=已完成工程量×实际单价, 教材 kc:1A435020_095_0156:0 逐字直引(量取已完成/价取实际)。3 个干扰项(预算价/计划量/预算总成本)均可证伪。工单: 正确项在末位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q3-a27747a1aaaf",
+   "surface_id": "practice.html",
+   "stem": "第20周末检查：挣值 BCWP=6370 万元、已完成实际成本 ACWP=6240 万元、计划值 BCWS=5340 万元。下列把三值放入指标公式，哪一组位置正确？",
+   "options": [
+    {
+     "text": "CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340，三值按定义各归其位。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "BCWP 恒作被减数/分子，ACWP 配成本、BCWS 配进度，位置不互换。",
+     "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-1"
+    },
+    {
+     "text": "CV=ACWP−BCWP=6240−6370、SV=BCWS−BCWP=5340−6370，用实际/计划减挣值。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "记成「实际减挣值」，被减数减数顺序反了。",
+     "loss_reason": "被减数减数颠倒会让 CV=−130、SV=−1030，方向整个判反成超支延误。",
+     "fix": "CV=BCWP−ACWP、SV=BCWP−BCWS，挣值 BCWP 永远作被减数。",
+     "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-2"
+    },
+    {
+     "text": "CV=BCWP−BCWS=6370−5340、SV=BCWP−ACWP=6370−6240，成本用计划、进度用实际。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "记得都用 BCWP 减，却把 ACWP 和 BCWS 的分工调换了。",
+     "loss_reason": "成本偏差要减实际 ACWP、进度偏差要减计划 BCWS；两者互换后 CV/SV 全错。",
+     "fix": "成本 CV 减 ACWP、进度 SV 减 BCWS，别把两个减数换位置。",
+     "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-3"
+    },
+    {
+     "text": "把 BCWS 与 ACWP 互换代入：CV=BCWP−BCWS、CPI=BCWP/BCWS，成本一律配计划值。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "题干数字多，没读清哪个是实际、哪个是计划就代入。",
+     "loss_reason": "BCWS(计划)与 ACWP(实际)互换，成本侧四指标系统性全错。",
+     "fix": "先认清 ACWP=实际、BCWS=计划；成本侧一律用 ACWP。",
+     "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-4"
+    }
+   ],
+   "model_answer": "CV=BCWP−ACWP=6370−6240；SV=BCWP−BCWS=6370−5340，三值各归其位不互换。",
+   "rule_group": "三值代入·背景提取维",
+   "content_sha256": "684e52bacacc1675c83285f3a249dbad626e311c0302dfd0ba7faa0db9744b43",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q3",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-三值代入位置",
+    "skeleton_id": "e05-skel-三值代入四公式定位",
+    "probe_role": "anchor",
+    "source_anchor": "ca:1A435020_095_0156",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "684e52bacacc1675c83285f3a249dbad626e311c0302dfd0ba7faa0db9744b43",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "考三值代入位置: CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340, BCWP 恒作被减数。数值与场景直引教材EP ca:1A435020_095_0156(第20周末 BCWP6370/ACWP6240/BCWS5340)。位置规则原句另见 kc:1A435020_095_0156:1, 但该 point 未进本题机器候选, 故锚挂含同数值的 EP 候选(provenance 可溯)。复算 6370−6240=130、6370−5340=1030 位置正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q4-65ed25e57b8f",
+   "surface_id": "practice.html",
+   "stem": "已知 BCWP=6370 万元、ACWP=6240 万元。求成本偏差 CV 并判读成本状态，选出能得分的作答。",
+   "options": [
+    {
+     "text": "CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "「实际花的减挣的」听着顺，算出负数就判超支。",
+     "loss_reason": "被减数减数反了，把节支的项目判成超支——方向彻底错。",
+     "fix": "CV=BCWP−ACWP=+130 万元，挣的减花的、正数是节支。",
+     "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-1"
+    },
+    {
+     "text": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "算式对、结果对，却把「正数」的方向记反了。",
+     "loss_reason": "数值对但方向判反：CV>0 是节支不是超支，方向分丢光。",
+     "fix": "CV>0 → 成本节支；正数是省钱，不是超支。",
+     "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-2"
+    },
+    {
+     "text": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。",
+     "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-3"
+    },
+    {
+     "text": "CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "结果对，用「控制得不错」口语带过。",
+     "loss_reason": "没写规范判读词「节支」、结果漏「万元」单位，口号化不给分。",
+     "fix": "补规范词与单位：CV=130 万元，CV>0 → 成本节支。",
+     "option_id": "E05-html-practice-html-q4-65ed25e57b8f:option-4"
+    }
+   ],
+   "model_answer": "CV=BCWP−ACWP=6370−6240=130 万元；CV>0 → 成本节支。",
+   "rule_group": "成本偏差CV·计算判读维",
+   "content_sha256": "28cb7cb443a45b3d706ea063870a86e6c5e7662ec37f78c493d778cb13c3218d",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q4",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-cv计算判读",
+    "skeleton_id": "e05-skel-cv偏差计算判读",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A435020_095_0156:1",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "28cb7cb443a45b3d706ea063870a86e6c5e7662ec37f78c493d778cb13c3218d",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "CV=BCWP−ACWP=6370−6240=130 万元, CV>0→成本节支, 教材 kc:1A435020_095_0156:1 逐字直引(CV=BCWP-ACWP / CV>0节支)。复算 6370−6240=130✅ >0→节支✅。数值背景取自EP ca:1A435020_095_0156。干扰项覆盖颠倒(E09)/方向反(E07)/漏单位判读词(E04)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q5-72c30a95bccf",
+   "surface_id": "practice.html",
+   "stem": "已知 BCWP=6370 万元、BCWS=5340 万元。求进度偏差 SV 并判读进度状态，选出能得分的作答。",
+   "options": [
+    {
+     "text": "SV=BCWP−ACWP=6370−6240=130 万元，SV>0，进度提前。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把进度偏差的减数配成了 ACWP（实际）。",
+     "loss_reason": "SV 要减计划值 BCWS，不是实际 ACWP；减错对象，那其实是 CV。",
+     "fix": "SV=BCWP−BCWS=1030 万元，进度偏差减的是计划值。",
+     "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-1"
+    },
+    {
+     "text": "SV=BCWP−BCWS=6370−5340=1030 万元，SV>0，进度提前。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "挣值减计划值、正数是提前；结果 1030 万元+方向齐。",
+     "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-2"
+    },
+    {
+     "text": "SV=BCWS−BCWP=5340−6370=−1030 万元，SV<0，进度延误。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "「计划减挣值」顺序反，算出负数判延误。",
+     "loss_reason": "被减数减数颠倒，把提前的项目判成延误，方向全错。",
+     "fix": "SV=BCWP−BCWS=+1030 万元，挣值作被减数、正数是提前。",
+     "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-3"
+    },
+    {
+     "text": "SV=BCWP−BCWS=6370−5340=1030，进度比计划快一些，形势不错。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "结果对，用「快一些、形势不错」带过。",
+     "loss_reason": "漏规范词「提前」、漏「万元」单位，口号化表达不得分。",
+     "fix": "补规范词与单位：SV=1030 万元，SV>0 → 进度提前。",
+     "option_id": "E05-html-practice-html-q5-72c30a95bccf:option-4"
+    }
+   ],
+   "model_answer": "SV=BCWP−BCWS=6370−5340=1030 万元；SV>0 → 进度提前。",
+   "rule_group": "进度偏差SV·计算判读维",
+   "content_sha256": "ad80b4fc5303c6e5f765a90123e2eead68ff399994f7fd55136c13f413024686",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q5",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "ad80b4fc5303c6e5f765a90123e2eead68ff399994f7fd55136c13f413024686",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q6-c5a0b2262ef0",
+   "surface_id": "practice.html",
+   "stem": "已知 BCWP=6370 万元、ACWP=6240 万元。求成本绩效指数 CPI 并判读，选出能得分的作答。",
+   "options": [
+    {
+     "text": "CPI=ACWP/BCWP=6240/6370≈0.98，CPI<1，成本节支；用实际成本作分子，更能反映每花一块钱的产出效率。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "分子分母颠倒算出 0.98，方向却仍写节支。",
+     "loss_reason": "分子分母倒置使数值与判读自相矛盾；CPI 必须挣值作分子。",
+     "fix": "CPI=BCWP/ACWP≈1.02，挣值作分子、>1 才节支。",
+     "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-1"
+    },
+    {
+     "text": "CPI=BCWP/ACWP=6370/6240≈1.02，CPI>1，说明成本超支，效率偏低。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "算式对，却把「大于1」的方向记反。",
+     "loss_reason": "CPI>1 是节支/效率好，判成超支方向全反。",
+     "fix": "CPI>1 → 成本节支，大于1是每块钱挣回超过一块。",
+     "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-2"
+    },
+    {
+     "text": "CPI=BCWP/ACWP=6370/6240≈1.02，CPI>1，成本节支；指数为无量纲比值不带单位。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分子挣值、分母实际，>1 节支；并点明指数无单位。",
+     "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-3"
+    },
+    {
+     "text": "CPI=BCWP/ACWP=6370/6240≈1.02 万元，CPI>1，成本节支。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "判读对了，顺手给指数加了「万元」。",
+     "loss_reason": "绩效指数是无量纲比值，硬加单位反而扣分。",
+     "fix": "CPI≈1.02（无量纲、不带单位），偏差才带万元。",
+     "option_id": "E05-html-practice-html-q6-c5a0b2262ef0:option-4"
+    }
+   ],
+   "model_answer": "CPI=BCWP/ACWP=6370/6240≈1.02；CPI>1 → 成本节支（无量纲）。",
+   "rule_group": "成本绩效CPI·计算判读维",
+   "content_sha256": "f07e02f53a7321d6db466d47d15e7e14ce532a7104688b1c03aa5b158c9a005a",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q6",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-绩效指数除法判读",
+    "skeleton_id": "e05-skel-绩效指数-cpi计算判读",
+    "probe_role": "immediate_confirm",
+    "source_anchor": "ca:1A435020_095_0156",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "f07e02f53a7321d6db466d47d15e7e14ce532a7104688b1c03aa5b158c9a005a",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "三件套 immediate_confirm(同绩效指数 fact, 当日即时确认)。CPI=BCWP/ACWP=6370/6240≈1.02, CPI>1→成本节支, 无量纲; 数值取教材EP ca:1A435020_095_0156(要求算成本绩效指数CPI)。复算 6370÷6240=1.0208≈1.02✅。干扰项含分子分母颠倒(E09)/方向反(E07)/硬加万元单位(E03)。skeleton 与 q7/q8 互异。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q7-576365500963",
+   "surface_id": "practice.html",
+   "stem": "已知 BCWP=6370 万元、BCWS=5340 万元。求进度绩效指数 SPI 并判读，选出能得分的作答。",
+   "options": [
+    {
+     "text": "SPI=BCWS/BCWP=5340/6370≈0.84，SPI<1，进度提前；比值越小说明计划量越大、进度反而越靠前。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "分子分母颠倒得 0.84，方向仍照抄「提前」。",
+     "loss_reason": "倒置后数值<1、与「提前」矛盾；SPI 必须挣值作分子。",
+     "fix": "SPI=BCWP/BCWS≈1.19，挣值作分子、>1 才提前。",
+     "option_id": "E05-html-practice-html-q7-576365500963:option-1"
+    },
+    {
+     "text": "SPI=BCWP/ACWP=6370/6240≈1.02，SPI>1，进度提前。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把进度指数的分母配成了 ACWP（实际）。",
+     "loss_reason": "SPI 分母是计划值 BCWS，不是实际 ACWP；配错分母那算的是 CPI。",
+     "fix": "SPI=BCWP/BCWS≈1.19，进度指数分母用计划值。",
+     "option_id": "E05-html-practice-html-q7-576365500963:option-2"
+    },
+    {
+     "text": "SPI=BCWP/BCWS=6370/5340≈1.19，进度还行、比计划快，问题不大。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "数值对，用「还行、快」口语带过。",
+     "loss_reason": "漏规范判读词「提前」，口号化表达不得分。",
+     "fix": "补规范词：SPI>1 → 进度提前。",
+     "option_id": "E05-html-practice-html-q7-576365500963:option-3"
+    },
+    {
+     "text": "SPI=BCWP/BCWS=6370/5340≈1.19，SPI>1，进度提前；指数无量纲不带单位。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "分子挣值、分母计划值，>1 提前；指数无单位。",
+     "option_id": "E05-html-practice-html-q7-576365500963:option-4"
+    }
+   ],
+   "model_answer": "SPI=BCWP/BCWS=6370/5340≈1.19；SPI>1 → 进度提前（无量纲）。",
+   "rule_group": "进度绩效SPI·计算判读维",
+   "content_sha256": "b705f10de478b85c4def12060923565e2d2ba575986c72b44e8a0f81301707bb",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q7",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-绩效指数除法判读",
+    "skeleton_id": "e05-skel-绩效指数-spi计算判读",
+    "probe_role": "anchor",
+    "source_anchor": "ca:1A435020_096_0157",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "b705f10de478b85c4def12060923565e2d2ba575986c72b44e8a0f81301707bb",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "三件套 anchor。SPI=BCWP/BCWS=6370/5340≈1.19, SPI>1→进度提前, 指数无量纲不带单位; 教材EP ca:1A435020_096_0157(求SPI判进度, grading 1.19/进度提前)直支。复算 6370÷5340=1.1929≈1.19✅。fact=绩效指数为除法比值/>1为好/无量纲(CPI、SPI 同构)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q8-bdad94d68d2c",
+   "surface_id": "practice.html",
+   "stem": "某工程第20周末 BCWP=6370 万元、BCWS=5340 万元（题目只问进度）。求 SPI 并判进度状态，选出能得分的作答。",
+   "options": [
+    {
+     "text": "SPI=BCWP/BCWS=6370/5340≈1.19，SPI>1，进度提前。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "进度问题用挣值除计划值，>1 提前，公式+结果+方向齐。",
+     "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-1"
+    },
+    {
+     "text": "只给这两个值算不了进度，必须先知道 ACWP 才能判断进度快慢。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "以为判进度也要用到实际成本 ACWP。",
+     "loss_reason": "进度只看 SPI=BCWP/BCWS，与 ACWP 无关；误判条件不足而放弃作答。",
+     "fix": "进度侧只需 BCWP 和 BCWS，SPI=1.19 即可判提前。",
+     "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-2"
+    },
+    {
+     "text": "SPI=BCWP−BCWS=6370−5340=1030，SPI>0，进度提前。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把绩效「指数」当成了偏差用减法。",
+     "loss_reason": "指数是除法比值不是减法差额；用减法算的是 SV，不是 SPI。",
+     "fix": "SPI 是除法：BCWP/BCWS≈1.19，不是相减。",
+     "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-3"
+    },
+    {
+     "text": "SPI=6370/5340≈1.19 万元，SPI>1，进度提前。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "数值方向都对，却给指数加了单位。",
+     "loss_reason": "SPI 是无量纲比值，加「万元」反而扣分。",
+     "fix": "SPI≈1.19（无量纲），指数不带单位。",
+     "option_id": "E05-html-practice-html-q8-bdad94d68d2c:option-4"
+    }
+   ],
+   "model_answer": "SPI=BCWP/BCWS=6370/5340≈1.19；SPI>1 → 进度提前。",
+   "rule_group": "进度小问·计算判读维",
+   "content_sha256": "add373b05d7982c8318ff861ab9742dfd7a23bb3fdd01b2ce5472707d04b4c31",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q8",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-绩效指数除法判读",
+    "skeleton_id": "e05-skel-绩效指数-spi单问变式",
+    "probe_role": "d1_probe",
+    "source_anchor": "ca:1A435020_096_0157",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "add373b05d7982c8318ff861ab9742dfd7a23bb3fdd01b2ce5472707d04b4c31",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "三件套 d1_probe(同 fact, D1 隔日再探, 变式=仅给两值+指数用除法非减法陷阱)。SPI=BCWP/BCWS=6370/5340≈1.19→进度提前, 无量纲; 教材EP ca:1A435020_096_0157 直支。复算≈1.19✅。干扰项含误判条件不足(E08)/指数当减法算成SV(E07)/加单位(E03)。skeleton 与 q7/q6 互异。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q9-4af4463ad833",
+   "surface_id": "practice.html",
+   "stem": "关于四指标方向判读，下列哪句表述正确、能作为判据得分？",
+   "options": [
+    {
+     "text": "CV、SV 大于 0 判超支/延误，CPI、SPI 大于 1 判节支/提前，两套方向相反。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把偏差和指数的方向记成「相反」。",
+     "loss_reason": "偏差与指数方向一致——都是正/大于1为好；记成相反会判反一半。",
+     "fix": "两套同向：正数、大于1 都好；不存在相反口径。",
+     "option_id": "E05-html-practice-html-q9-4af4463ad833:option-1"
+    },
+    {
+     "text": "CV、SV 大于 0，CPI、SPI 大于 1，都判节支/提前；反之小于则超支/延误。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "「正数、大于1 都是好」一句铁律，四指标方向统一记牢。",
+     "option_id": "E05-html-practice-html-q9-4af4463ad833:option-2"
+    },
+    {
+     "text": "指标数值越接近 0 越理想，说明实际与计划几乎没有偏差、控制得最到位。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「偏差小=控制好」的直觉迁移到判方向上。",
+     "loss_reason": "判方向看正负/与1的大小，不是「越接近0越好」；CV=0 只是打平，不等于节支。",
+     "fix": "看正负与1：CV>0 节支、CPI>1 节支，不是越接近0越好。",
+     "option_id": "E05-html-practice-html-q9-4af4463ad833:option-3"
+    },
+    {
+     "text": "只要算出数值就算到位，节支/超支、提前/延误属于分析性结论、可以不写。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "以为算出数就到位，方向词是「废话」。",
+     "loss_reason": "方向判读是与计算同等的采分点，漏写直接丢方向分。",
+     "fix": "算完必写方向：正数、大于1 → 节支/提前，一句都不能省。",
+     "option_id": "E05-html-practice-html-q9-4af4463ad833:option-4"
+    }
+   ],
+   "model_answer": "CV/SV>0 且 CPI/SPI>1 → 节支/提前；CV/SV<0 且 CPI/SPI<1 → 超支/延误。",
+   "rule_group": "方向判读·概念维",
+   "content_sha256": "ebf1709aa84f4aa2289712c4f1e69104ff16dc27fb21d2885fad10eca76d40e5",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q9",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "ebf1709aa84f4aa2289712c4f1e69104ff16dc27fb21d2885fad10eca76d40e5",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q10-74210d5347fd",
+   "surface_id": "practice.html",
+   "stem": "CV 和 CPI 都用来看成本，为什么阅卷要求两个都算？选出解释准确的作答。",
+   "options": [
+    {
+     "text": "CV 与 CPI 反映同一成本状况，两者必然同向，任选其中一个算出写清即可覆盖成本采分。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "两者常同向，误以为「算一个够了」。",
+     "loss_reason": "同向不代表可省略——绝对额和相对效率是两个采分点，少写一个扣一个。",
+     "fix": "两个都写：CV=130 万元（额）、CPI≈1.02（效率）。",
+     "option_id": "E05-html-practice-html-q10-74210d5347fd:option-1"
+    },
+    {
+     "text": "CV 更精确，CPI 只是估算，实际作答只写 CV 的绝对金额就够严谨了。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "觉得「带钱的更实在、比值是虚的」。",
+     "loss_reason": "两者都是精确计算、各有采分价值；CPI 提供可横比的效率信息，不是估算。",
+     "fix": "CV 与 CPI 都精确、都得写，一个看额一个看效率。",
+     "option_id": "E05-html-practice-html-q10-74210d5347fd:option-2"
+    },
+    {
+     "text": "CV 负责看成本、CPI 负责看进度，一个管钱一个管时间，所以两个指标都要算。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把「两个都算」的理由错记成分管成本与进度。",
+     "loss_reason": "CV 和 CPI 都看成本；看进度的是 SV/SPI。归错分工。",
+     "fix": "CV、CPI 同看成本（额 vs 效率）；进度侧才是 SV、SPI。",
+     "option_id": "E05-html-practice-html-q10-74210d5347fd:option-3"
+    },
+    {
+     "text": "CV 用减法给出省/超的绝对金额，CPI 用除法给出成本效率比值可横向对比，两者互补都要写。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "减法看「省多少钱」、除法看「效率」，一个绝对额一个相对比，缺一漏分。",
+     "option_id": "E05-html-practice-html-q10-74210d5347fd:option-4"
+    }
+   ],
+   "model_answer": "CV 用减法给绝对偏差额（省了多少钱），CPI 用除法给相对效率（每块钱挣回多少、可横比），两者互补都要写。",
+   "rule_group": "CV vs CPI 互补·概念维",
+   "content_sha256": "e585378ff066739249a851fad393173824db4758a01424f666a7f57d7ea84814",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q10",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "e585378ff066739249a851fad393173824db4758a01424f666a7f57d7ea84814",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q11-fd776e873c08",
+   "surface_id": "practice.html",
+   "stem": "关于挣值法作答的表达规范，下列哪一组完全合规、能拿到表达分？",
+   "options": [
+    {
+     "text": "偏差 CV=130 万元、SV=1030 万元带单位；CPI≈1.02、SPI≈1.19 无量纲不带单位；各指标公式/结果/方向成组。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "偏差带万元、指数不带单位、四件成组，三条规范全踩中。",
+     "option_id": "E05-html-practice-html-q11-fd776e873c08:option-1"
+    },
+    {
+     "text": "四个指标一律统一带上「万元」单位：CV=130 万元、SV=1030 万元、CPI=1.02 万元，口径整齐便于阅卷核对。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "图整齐，给所有指标都加万元。",
+     "loss_reason": "绩效指数是无量纲比值，加单位反而错；只有偏差带万元。",
+     "fix": "偏差带万元、指数不带单位，不能一刀切。",
+     "option_id": "E05-html-practice-html-q11-fd776e873c08:option-2"
+    },
+    {
+     "text": "四个指标一律不带单位，直接写 CV=130、SV=1030、CPI=1.02、SPI=1.19，阅卷核对的是数值对错，单位不影响给分。",
+     "is_correct": false,
+     "source_error_code": "E03",
+     "temptation": "图省事，全都不写单位。",
+     "loss_reason": "偏差 CV/SV 是金额，漏「万元」单位要扣表达分。",
+     "fix": "偏差补「万元」：CV=130 万元、SV=1030 万元；指数才不带单位。",
+     "option_id": "E05-html-practice-html-q11-fd776e873c08:option-3"
+    },
+    {
+     "text": "只需把四个指标的最终数值逐一写清楚，公式、代入过程与方向判读均可省略不写，阅卷时按数值结果直接评定给分。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为「数对了」就够，省略过程。",
+     "loss_reason": "公式、代入、方向都是采分点，省略过程会大面积丢分。",
+     "fix": "每指标公式+代入+结果+方向成组，缺一扣一。",
+     "option_id": "E05-html-practice-html-q11-fd776e873c08:option-4"
+    }
+   ],
+   "model_answer": "偏差 CV/SV 带金额单位（万元）；绩效指数 CPI/SPI 无量纲不带单位；每指标公式+代入+结果+方向成组。",
+   "rule_group": "作答表达·规范维",
+   "content_sha256": "8f9c8a03632e4ce6f8a9ae16706dece7befd7c1c54adcda61fcd77d65137737e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q11",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "8f9c8a03632e4ce6f8a9ae16706dece7befd7c1c54adcda61fcd77d65137737e",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q12-125dd241d942",
+   "surface_id": "practice.html",
+   "stem": "母题要求「分析成本与进度状态」。下列作答，哪一个采分点覆盖完整？",
+   "options": [
+    {
+     "text": "CV=130 万元、CPI≈1.02，成本节支——成本与进度本是一回事，判了成本进度自然提前，再单列 SV、SPI 属于重复。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "以为成本好进度必然好，省掉进度侧。",
+     "loss_reason": "成本与进度相互独立，必须分别算 SV/SPI；漏进度侧丢一半采分点。",
+     "fix": "补进度侧：SV=1030 万元、SPI≈1.19 → 进度提前。",
+     "option_id": "E05-html-practice-html-q12-125dd241d942:option-1"
+    },
+    {
+     "text": "SV=1030 万元、SPI≈1.19，进度提前——项目进度提前，成本状态可不必再单独判。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "只算了进度侧，觉得成本可略。",
+     "loss_reason": "漏成本侧 CV/CPI；进度提前不代表成本一定节支，须分别判。",
+     "fix": "补成本侧：CV=130 万元、CPI≈1.02 → 成本节支。",
+     "option_id": "E05-html-practice-html-q12-125dd241d942:option-2"
+    },
+    {
+     "text": "CV=130 万元、CPI≈1.02 判成本节支；SV=1030 万元、SPI≈1.19 判进度提前，成本进度都答。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "成本侧 CV/CPI + 进度侧 SV/SPI 全算全判，覆盖完整。",
+     "option_id": "E05-html-practice-html-q12-125dd241d942:option-3"
+    },
+    {
+     "text": "结论可直接写成：本项目成本节支、进度提前；四个指标的具体数值与过程不必一一列出，方向到位即可。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "结论方向对，图省事跳过计算过程。",
+     "loss_reason": "四指标的公式/代入/结果都是采分点，只给结论会丢大量过程分。",
+     "fix": "逐项列 CV/SV/CPI/SPI 的公式代入结果，再下结论。",
+     "option_id": "E05-html-practice-html-q12-125dd241d942:option-4"
+    }
+   ],
+   "model_answer": "CV=130 万元、CPI≈1.02（成本节支）+ SV=1030 万元、SPI≈1.19（进度提前），成本进度两侧四指标齐全。",
+   "rule_group": "采分完整·遗漏维",
+   "content_sha256": "484f44376e9995296030e72f4d1c7adb2e27e3cec5275ca36bc3aaa9021d32f9",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q12",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "484f44376e9995296030e72f4d1c7adb2e27e3cec5275ca36bc3aaa9021d32f9",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q13-c03dc700cc30",
+   "surface_id": "practice.html",
+   "stem": "若题干只给「已完成工程量、计划工程量、预算单价、实际单价」而未直接给三值，正确的作答步骤是？",
+   "options": [
+    {
+     "text": "把「已完成量×预算单价」的乘积直接当作最终答案，题目给了量和价，要求的正是这一个乘积。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "看到量×价算出一个数就以为完事。",
+     "loss_reason": "那只是 BCWP 一个值；还要求 BCWS、ACWP 并套四公式判读，提取不全。",
+     "fix": "三值都要求出，再算 CV/SV/CPI/SPI 并判方向。",
+     "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-1"
+    },
+    {
+     "text": "用实际单价乘所有工程量得到总成本，再和预算比大小即可判断盈亏，这样一步到位，比分别求三个成本值省事得多。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "图省事，绕开三值直接「实际比预算」。",
+     "loss_reason": "跳过 BCWP/BCWS/ACWP 的规范构成，无法分离成本与进度偏差。",
+     "fix": "按构成式分别求三值，别用笼统的总成本比较。",
+     "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-2"
+    },
+    {
+     "text": "题干没有直接给出三值时便无法继续计算，作答时应写明所给条件不足，并据此放弃求解。",
+     "is_correct": false,
+     "source_error_code": "E08",
+     "temptation": "觉得没直接给三值就是条件不够。",
+     "loss_reason": "给了量与价就足以求三值，误判条件不足会整题丢分。",
+     "fix": "量×价即可求三值，条件充分，照常计算。",
+     "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-3"
+    },
+    {
+     "text": "先按构成式求出 BCWP、BCWS、ACWP 三值，再代入 CV/SV/CPI/SPI 四公式计算判读。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "先「量×价」提三值、再套四公式，两步分明不跳步。",
+     "option_id": "E05-html-practice-html-q13-c03dc700cc30:option-4"
+    }
+   ],
+   "model_answer": "先求 BCWP=已完成量×预算单价、BCWS=计划量×预算单价、ACWP=已完成量×实际单价，再套 CV/SV/CPI/SPI。",
+   "rule_group": "先求三值·背景提取维",
+   "content_sha256": "c4aa2e736e2184ec059120440425465e411f4e013aff5ebef0ed1a5dc33fc165",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q13",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "c4aa2e736e2184ec059120440425465e411f4e013aff5ebef0ed1a5dc33fc165",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q14-92472b7c1d53",
+   "surface_id": "practice.html",
+   "stem": "另一项目：BCWP=5000、ACWP=5200、BCWS=5300 万元。求 CV 并判成本状态，选出正确作答。",
+   "options": [
+    {
+     "text": "CV=BCWP−ACWP=5000−5200=−200 万元，CV<0，但成本仍节支 200 万。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "算出负数，方向却仍写「节支」。",
+     "loss_reason": "CV<0 是超支，负数判成节支方向反了。",
+     "fix": "CV<0 → 成本超支；负数是多花了钱。",
+     "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-1"
+    },
+    {
+     "text": "CV=ACWP−BCWP=5200−5000=200 万元，CV>0，成本节支。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "怕出负数，把减数顺序调成正数。",
+     "loss_reason": "被减数减数颠倒，把超支的项目算成节支，方向全错。",
+     "fix": "CV=BCWP−ACWP=−200 万元，不能为了正数调换顺序。",
+     "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-2"
+    },
+    {
+     "text": "CV=BCWP−ACWP=5000−5200=−200 万元，CV<0，成本超支。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "挣值减实际得负数，负数就是超支，方向随数值走。",
+     "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-3"
+    },
+    {
+     "text": "实际 5200 比挣值 5000 高，说明干得多、成本节约，判成本节支。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "「实际高=干得多」的错觉。",
+     "loss_reason": "实际成本高是多花钱=超支，不是干得多；混淆实际成本与工程量。",
+     "fix": "ACWP 高于 BCWP 是超支；量的多少看 SV/SPI。",
+     "option_id": "E05-html-practice-html-q14-92472b7c1d53:option-4"
+    }
+   ],
+   "model_answer": "CV=BCWP−ACWP=5000−5200=−200 万元；CV<0 → 成本超支。",
+   "rule_group": "方向反例·计算判读维",
+   "content_sha256": "ebe1ec7655b04253452eba8a6cfd9ec26fc3a7841e6814249ede9547c722836e",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q14",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "ebe1ec7655b04253452eba8a6cfd9ec26fc3a7841e6814249ede9547c722836e",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q15-14d59e799591",
+   "surface_id": "practice.html",
+   "stem": "第20周末 BCWP=6370、ACWP=6240、BCWS=5340 万元。综合判读成本与进度，选出四指标与结论都正确的作答。",
+   "options": [
+    {
+     "text": "CV=130 万元、CPI≈1.02（成本超支）；SV=1030 万元、SPI≈1.19（进度延误）；结论：成本超支、进度延误。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "数值算对了，四个方向却整体判反。",
+     "loss_reason": "正数、大于1 应判节支/提前，却全写成超支/延误，方向系统性反。",
+     "fix": "正数、大于1 → 节支/提前；结论应为成本节支、进度提前。",
+     "option_id": "E05-html-practice-html-q15-14d59e799591:option-1"
+    },
+    {
+     "text": "CV=130 万元、CPI≈1.02（成本节支）；SV=1030 万元、SPI≈1.19（进度提前）；结论：成本节支、进度提前。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "四指标数值、方向、总结论全部正确且成组，标准满分作答。",
+     "option_id": "E05-html-practice-html-q15-14d59e799591:option-2"
+    },
+    {
+     "text": "CV=130 万元（节支）、SV=1030 万元（提前），结论成本节支进度提前；CPI、SPI 意义重复可不算。",
+     "is_correct": false,
+     "source_error_code": "E02",
+     "temptation": "算完 CV/SV 觉得指数「重复」省掉。",
+     "loss_reason": "CPI/SPI 是独立采分点（相对效率），漏算丢分。",
+     "fix": "补 CPI≈1.02、SPI≈1.19，指数与偏差都要写。",
+     "option_id": "E05-html-practice-html-q15-14d59e799591:option-3"
+    },
+    {
+     "text": "CV=130、SV=1030、CPI≈1.02、SPI≈1.19，四个数都算对，成本进度总体情况良好。",
+     "is_correct": false,
+     "source_error_code": "E04",
+     "temptation": "四个数全对，用「总体良好」收尾。",
+     "loss_reason": "漏规范判读词（节支/提前）与偏差单位，口号化收尾丢方向/表达分。",
+     "fix": "落规范词与单位：成本节支、进度提前，偏差带万元。",
+     "option_id": "E05-html-practice-html-q15-14d59e799591:option-4"
+    }
+   ],
+   "model_answer": "CV=130 万元、CPI≈1.02 → 成本节支；SV=1030 万元、SPI≈1.19 → 进度提前；结论：成本节支、进度提前。",
+   "rule_group": "综合母题·计算判读维",
+   "content_sha256": "8be7f48d3f26927503d70b33b0eecda5fd11fb03253043a01580f53125ee9218",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q15",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "",
+    "skeleton_id": "",
+    "probe_role": "",
+    "source_anchor": "",
+    "source_sha256": "",
+    "review": {
+     "status": "pending",
+     "verdict": "pending",
+     "reviewed_content_sha256": "8be7f48d3f26927503d70b33b0eecda5fd11fb03253043a01580f53125ee9218",
+     "signatures": [],
+     "checks": {
+      "source_verified": false,
+      "answer_verified": false,
+      "diagnosis_verified": false,
+      "longest_option_checked": false,
+      "template_leakage_checked": false
+     }
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
+  },
+  {
+   "variant_id": "E05-html-practice-html-q16-c4d93d1c98c8",
+   "surface_id": "practice.html",
+   "stem": "某学生作答如图：①CV 写成 ACWP−BCWP=−130；②判成本超支；③未算进度。选出最准确的诊断与补写。",
+   "options": [
+    {
+     "text": "计算与方向均无问题，学生的 CV 算式和成本超支判断本身都成立、不用改，只是漏了进度部分，把 SV、SPI 补齐就是满分作答。",
+     "is_correct": false,
+     "source_error_code": "E09",
+     "temptation": "只盯着「漏进度」，没发现 CV 公式本身写反。",
+     "loss_reason": "CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。",
+     "fix": "先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。",
+     "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-1"
+    },
+    {
+     "text": "CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。",
+     "is_correct": true,
+     "source_error_code": "",
+     "temptation": "",
+     "loss_reason": "",
+     "fix": "揪出「公式颠倒→方向反」和「漏进度侧」两类失分，补写即成满分采分句。",
+     "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-2"
+    },
+    {
+     "text": "CV 算出 −130、判定成本超支，这一步的结论并没有错，无须改动；诊断时只需提醒学生补写一句「进度提前」，整份作答即可视为完整。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "把颠倒得到的 −130/超支当成正确结论。",
+     "loss_reason": "−130/超支正是公式颠倒造成的错误方向，不是正确结论。",
+     "fix": "CV 应=+130 万元、成本节支；方向要改回来。",
+     "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-3"
+    },
+    {
+     "text": "该学生的思路完全正确：CV 用实际减挣值更直观，据此判定成本超支也顺理成章，这份三步作答无须再作修改，可以直接给予满分。",
+     "is_correct": false,
+     "source_error_code": "E07",
+     "temptation": "被「实际减挣值更直观」的错觉带偏。",
+     "loss_reason": "CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。",
+     "fix": "CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。",
+     "option_id": "E05-html-practice-html-q16-c4d93d1c98c8:option-4"
+    }
+   ],
+   "model_answer": "CV 被减数减数颠倒（应 BCWP−ACWP=+130 万元，成本节支）、方向随之判反、且漏算进度 SV=1030 万元/SPI≈1.19（进度提前）；三处都要补。",
+   "rule_group": "采分诊断·末题",
+   "content_sha256": "7830f1ef1c0f932d658381b604d9c191fb43eba9862296659109129795343ded",
+   "authoring_anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q16",
+   "authoring_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
+   "decision": {
+    "fact_id": "e05-fact-cv颠倒采分诊断",
+    "skeleton_id": "e05-skel-cv颠倒诊断补写",
+    "probe_role": "anchor",
+    "source_anchor": "kc:1A435020_095_0156:1",
+    "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
+    "review": {
+     "status": "signed",
+     "verdict": "approved",
+     "reviewed_content_sha256": "7830f1ef1c0f932d658381b604d9c191fb43eba9862296659109129795343ded",
+     "signatures": [
+      {
+       "role": "teaching",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      },
+      {
+       "role": "scoring",
+       "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
+       "signed_at": "2026-07-23T16:56:58+08:00"
+      }
+     ],
+     "checks": {
+      "source_verified": true,
+      "answer_verified": true,
+      "diagnosis_verified": true,
+      "longest_option_checked": true,
+      "template_leakage_checked": true
+     },
+     "note": "采分诊断末题: 学生 CV=ACWP−BCWP=−130 判超支(被减数颠倒)+漏进度; 正解 CV=BCWP−ACWP=+130 万元成本节支, 补 SV=6370−5340=1030、SPI≈1.19 进度提前。教材 kc:1A435020_095_0156:1 定 CV=BCWP-ACWP 方向为权威。复算 +130 节支✅ / SV1030✅ / SPI 6370÷5340≈1.19✅。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
+    },
+    "revoked": false,
+    "revocation_refs": []
+   }
   }
+ ]
 }

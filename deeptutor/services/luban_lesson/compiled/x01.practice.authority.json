@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "X01",
   "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
-  "source_bundle_sha256": "c7dc51577b3118bb3419fc53f1134b1095044af026816e15d4714cf85eb3feab",
+  "source_bundle_sha256": "6352ff631d775ab0790f55c29ef520104be261f85ffa88f63d884e689a6bcd90",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -33,8 +33,8 @@
         "X01-html-practice-html-q14-8ebb154eff21",
         "X01-html-practice-html-q15-d9636803396c"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjYwOGQ2NTFmZWU3IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wODVlNzE1NDNiOWQiLCJYMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYzNWZhN2FhY2QzZSIsIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWU0OGViY2ExMWM1IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZDk2MzY4MDMzOTZjIl0sInBhY2tfaWQiOiJYMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjM0Mzc2ZTE1ZWM5YzJlY2UxY2IyMGY4YjVjNTNiMWIwMDdhZjI1OGFlZGU2ZTdmNTBkNjNjNDM1NTk1ZDU3M2YiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZDk4ZTEzYzcwOTYxYTJmMjNmOGEwYTVlMmU3OTE0NDQwMGI3ZDQ3YzRjOTg0NWVmY2ZlMDFlZjc2NzM3YTc0YiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "490f559fd314df9d7481e361f0e3df5cdf779c285b122389510fa106e39f5854"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTEtYjYwOGQ2NTFmZWU3IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi0wODVlNzE1NDNiOWQiLCJYMDEtaHRtbC1wcmFjdGljZS1odG1sLXEzLWYzNWZhN2FhY2QzZSIsIlgwMS1odG1sLXByYWN0aWNlLWh0bWwtcTQtMWU0OGViY2ExMWM1IiwiWDAxLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTUtZDk2MzY4MDMzOTZjIl0sInBhY2tfaWQiOiJYMDEiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImE4ZTljODEwMzBlNjdmNjFiN2FlMmU2Y2I1YzQ4YWIzYmFmZTlkZTFiOGUyNDI1YjJjMjQ4MTllMmFjNzE5YjUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiZDk4ZTEzYzcwOTYxYTJmMjNmOGEwYTVlMmU3OTE0NDQwMGI3ZDQ3YzRjOTg0NWVmY2ZlMDFlZjc2NzM3YTc0YiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "73b26174ba890f82cc30e94ae6527b7570fce7285879b144faa6c21bd8b9b8f0"
     }
   ],
   "items": [
@@ -89,27 +89,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q1",
       "source_anchor": "kc:1A431011_011_0012:1",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-layout-design-principles",
       "skeleton_id": "x01-skel-设计原则七条枚举",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "60170eb99bb89331b16eed339e3f15e518cddb8e046817a82e8dcbe04f95cc71",
+      "content_sha256": "50a247f71f0d8b7791c03c84f32021eb8cbfa361f5999ae9093ff8147976f0b5",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "60170eb99bb89331b16eed339e3f15e518cddb8e046817a82e8dcbe04f95cc71",
+        "reviewed_content_sha256": "50a247f71f0d8b7791c03c84f32021eb8cbfa361f5999ae9093ff8147976f0b5",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -119,7 +119,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "施工总平面图设计原则七条。教材0012逐字七条((1)占地少/(2)合理组织运输减少二次搬运/(3)减少相互干扰/(4)利用既有设施/(5)分区设置/(6)节能环保安全消防/(7)遵守规定)与正确项七条口径零损失对应;前轮终裁已核'(减少二次搬运)挂运输合理'与教材原文(2)一致。三干扰项(E04口号/E02单条/E07施工顺序原则)确误。前轮判可签级,本轮未动,variant_id 未变。"
+        "note": "施工总平面图设计原则七条。教材0012逐字七条((1)占地少/(2)合理组织运输减少二次搬运/(3)减少相互干扰/(4)利用既有设施/(5)分区设置/(6)节能环保安全消防/(7)遵守规定)与正确项七条口径零损失对应;前轮终裁已核'(减少二次搬运)挂运输合理'与教材原文(2)一致。三干扰项(E04口号/E02单条/E07施工顺序原则)确误。前轮判可签级,本轮未动,variant_id 未变。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -285,27 +285,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q2",
       "source_anchor": "kc:1A431011_011_0012:0",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-siteplan-content-list",
       "skeleton_id": "x01-skel-图内容五条最全作答",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7c0fac487fddfb753b413aceafae386f1dc3d4d6dfd9dbae1116718da12df542",
+      "content_sha256": "d331ccaee7cdfb2c085a6f9bc8dab06ff2d098449357f3d8ea7728c15daa187c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7c0fac487fddfb753b413aceafae386f1dc3d4d6dfd9dbae1116718da12df542",
+        "reviewed_content_sha256": "d331ccaee7cdfb2c085a6f9bc8dab06ff2d098449357f3d8ea7728c15daa187c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -315,7 +315,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "施工总平面布置图内容。锚为本轮修复后的教材五条清单原文逐字((3)含供电、供水供热、排水排污,(4)含保卫,repair_note在编译源);正确项五条口径与教材(1)~(5)逐条一致,不再用卡片'六项'压缩句;E02漏项干扰lose点名漏地形/供电供水排污/保卫/周边环境=真采分点回填。机器候选rank1(0.8167)。"
+        "note": "施工总平面布置图内容。锚为本轮修复后的教材五条清单原文逐字((3)含供电、供水供热、排水排污,(4)含保卫,repair_note在编译源);正确项五条口径与教材(1)~(5)逐条一致,不再用卡片'六项'压缩句;E02漏项干扰lose点名漏地形/供电供水排污/保卫/周边环境=真采分点回填。机器候选rank1(0.8167)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -464,27 +464,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q3",
       "source_anchor": "kc:1A431011_011_0012:0",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-siteplan-content-list",
       "skeleton_id": "x01-skel-图内容不属于辨识",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "1996e619e2e8b002d4549c0dc26fb25e532ee26d74a6fa0d83feff39d0a306d4",
+      "content_sha256": "5f1329713a571facf8ec32577432e55f0082cc5145de117b297e6bbd0ac37a1d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "1996e619e2e8b002d4549c0dc26fb25e532ee26d74a6fa0d83feff39d0a306d4",
+        "reviewed_content_sha256": "5f1329713a571facf8ec32577432e55f0082cc5145de117b297e6bbd0ac37a1d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -494,7 +494,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "不属于图内容辨识。'只表达六项'自铸全称已废,改'不在布置图应表达的教材五条内容之列';正确判断(混凝土配合比设计=施工技术文件,不在教材五条清单)成立;三干扰lose逐条定位教材清单第三/五条原文。锚=修复后教材五条清单逐字,机器候选在列。与q2同fact不同skeleton(最全作答vs反向辨识),均anchor,不占三件套。"
+        "note": "不属于图内容辨识。'只表达六项'自铸全称已废,改'不在布置图应表达的教材五条内容之列';正确判断(混凝土配合比设计=施工技术文件,不在教材五条清单)成立;三干扰lose逐条定位教材清单第三/五条原文。锚=修复后教材五条清单逐字,机器候选在列。与q2同fact不同skeleton(最全作答vs反向辨识),均anchor,不占三件套。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -643,27 +643,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q4",
       "source_anchor": "kc:1A431011_011_0012:2",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-gate-layout",
       "skeleton_id": "x01-skel-大门数量三因素",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a985d4c493610f6e8451d27294499655ccb51bb4106f8c522bc7e93a5b661f0f",
+      "content_sha256": "674136d5515f88d168000d1a11d77317748dcc62fba9919c11004017f8c7a521",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a985d4c493610f6e8451d27294499655ccb51bb4106f8c522bc7e93a5b661f0f",
+        "reviewed_content_sha256": "674136d5515f88d168000d1a11d77317748dcc62fba9919c11004017f8c7a521",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -673,7 +673,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "大门布置。教材0012逐字'宜考虑设置两个以上大门。大门位置应考虑周边路网情况、转弯半径和坡度限制,大门的高度和宽度应满足车辆运输需要';正确项数量+三因素齐;E07干扰4m/6m道路宽度经chunk 012_0013原文证实为真实规格(埋错真实)。前轮判可签级,本轮未动,variant_id 未变。机器候选rank1。"
+        "note": "大门布置。教材0012逐字'宜考虑设置两个以上大门。大门位置应考虑周边路网情况、转弯半径和坡度限制,大门的高度和宽度应满足车辆运输需要';正确项数量+三因素齐;E07干扰4m/6m道路宽度经chunk 012_0013原文证实为真实规格(埋错真实)。前轮判可签级,本轮未动,variant_id 未变。机器候选rank1。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -873,17 +873,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2d9ebe3f18b2dad958b696c5a02611086835a880408a9ba51cd95c607e06d2ee",
+      "content_sha256": "afefdbdbd7995239f6a37ff9fef698147d6445fcab30242de16cc8a1215a89e4",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "2d9ebe3f18b2dad958b696c5a02611086835a880408a9ba51cd95c607e06d2ee",
+        "reviewed_content_sha256": "afefdbdbd7995239f6a37ff9fef698147d6445fcab30242de16cc8a1215a89e4",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1074,17 +1074,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q6",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "646fd950e38ee2941d312dcb0c6697c8a68c1e963a59f9d0e0b7a20abffcad93",
+      "content_sha256": "3880f07cb24a35d36bafca9194cd1752e1772dfabaa96f15686d3709397fc013",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "646fd950e38ee2941d312dcb0c6697c8a68c1e963a59f9d0e0b7a20abffcad93",
+        "reviewed_content_sha256": "3880f07cb24a35d36bafca9194cd1752e1772dfabaa96f15686d3709397fc013",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1241,17 +1241,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q7",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dee5ae34c8c8f99a87f0927563e913805c87b7342f7469334a6f04aee0f96903",
+      "content_sha256": "67595c0f7baa49f4eaad515bf217f7230e3e427308788e10895693f375eefb01",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "dee5ae34c8c8f99a87f0927563e913805c87b7342f7469334a6f04aee0f96903",
+        "reviewed_content_sha256": "67595c0f7baa49f4eaad515bf217f7230e3e427308788e10895693f375eefb01",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1442,17 +1442,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q8",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5d876e960a548eba2e01a837be7b800b39ad33cca0a5bce6e93bcd4b69ce241d",
+      "content_sha256": "9fb4a8712b7e2df2164fdf7f2629d04a6e5d68c412eaa336780c3579511dce4c",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "5d876e960a548eba2e01a837be7b800b39ad33cca0a5bce6e93bcd4b69ce241d",
+        "reviewed_content_sha256": "9fb4a8712b7e2df2164fdf7f2629d04a6e5d68c412eaa336780c3579511dce4c",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1694,17 +1694,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b0348a003b57a7c8bb7f2ccbb83359f225a043e2449dab880f93cc73c935cdb6",
+      "content_sha256": "1c136083e7742a30638bf92323eb9b88c68025e6d76f88269cdf86ce98d4a250",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b0348a003b57a7c8bb7f2ccbb83359f225a043e2449dab880f93cc73c935cdb6",
+        "reviewed_content_sha256": "1c136083e7742a30638bf92323eb9b88c68025e6d76f88269cdf86ce98d4a250",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1912,27 +1912,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q10",
       "source_anchor": "kc:1A431011_013_0014:0",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-fence-height-tiers",
       "skeleton_id": "x01-skel-围挡三档分档",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "f3bb23884289521739d857c78486d6142ecec596dedf94aa27ac2854f2e380b5",
+      "content_sha256": "3afdded6ffeeeede241f44d2ea9541c5edaf0757176587aa3383f4df2953ec25",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "f3bb23884289521739d857c78486d6142ecec596dedf94aa27ac2854f2e380b5",
+        "reviewed_content_sha256": "3afdded6ffeeeede241f44d2ea9541c5edaf0757176587aa3383f4df2953ec25",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1942,7 +1942,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "围挡高度三档(fact三件套immediate_confirm腿)。正确项与教材0014修复后原文逐字对应: 市区主要路段≥2.5m/一般≥1.8m/距路口20m内占据道路施工设置的围挡0.8m以上通透——限定词本轮回填,不再过度普遍化。干扰项M08不分路段/E07路口加高反通透/E03漏两档均确误。机器候选rank1(0.7889)。"
+        "note": "围挡高度三档(fact三件套immediate_confirm腿)。正确项与教材0014修复后原文逐字对应: 市区主要路段≥2.5m/一般≥1.8m/距路口20m内占据道路施工设置的围挡0.8m以上通透——限定词本轮回填,不再过度普遍化。干扰项M08不分路段/E07路口加高反通透/E03漏两档均确误。机器候选rank1(0.7889)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2159,17 +2159,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "b17a00eb7ab4c12a3443e09700c881e7e1a9fc8d00b96f86d9c159feeeab1222",
+      "content_sha256": "1a88ef59c40bfe0e536ed66fa77359fe6477a7ab5c6dcfc617ec0a10f5ae1cbe",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "b17a00eb7ab4c12a3443e09700c881e7e1a9fc8d00b96f86d9c159feeeab1222",
+        "reviewed_content_sha256": "1a88ef59c40bfe0e536ed66fa77359fe6477a7ab5c6dcfc617ec0a10f5ae1cbe",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2343,17 +2343,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "559b0a36f6b8cce0fb8ee6ef6a29cbfd55b9d460e627d365117415b489f13369",
+      "content_sha256": "0b8a358deecae4973b3d5010cae77fbd06a73fe29c3bd9299ff3f08e1d484a39",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "559b0a36f6b8cce0fb8ee6ef6a29cbfd55b9d460e627d365117415b489f13369",
+        "reviewed_content_sha256": "0b8a358deecae4973b3d5010cae77fbd06a73fe29c3bd9299ff3f08e1d484a39",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2595,17 +2595,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6912e0805785c329f22ac33cd37cf5026d84ea2157285f6a1b9cbed18ed6d94f",
+      "content_sha256": "c0d9acfc9cf47eb73608b23fb26a5cac6c4ff9c361891449b2822f6f90ea4278",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6912e0805785c329f22ac33cd37cf5026d84ea2157285f6a1b9cbed18ed6d94f",
+        "reviewed_content_sha256": "c0d9acfc9cf47eb73608b23fb26a5cac6c4ff9c361891449b2822f6f90ea4278",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2779,27 +2779,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q14",
       "source_anchor": "kc:1A431011_013_0014:0",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-fence-height-tiers",
       "skeleton_id": "x01-skel-围挡纠错三段式",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8b545483aad6c06ec031b55a1feeca9773bcfc7d5c5f77cff2c854a0fce29311",
+      "content_sha256": "bcde83c410c6358930f78a322c52479251d4491cf77928a9c246cca5a7aa4368",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8b545483aad6c06ec031b55a1feeca9773bcfc7d5c5f77cff2c854a0fce29311",
+        "reviewed_content_sha256": "bcde83c410c6358930f78a322c52479251d4491cf77928a9c246cca5a7aa4368",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2809,7 +2809,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "围挡判断纠错三段式(fact三件套d1_probe腿)。本轮stem补市区+主要路段+路口占道场景前提,'统一1.8m'才构成教材可判的不妥;正确做法带占道限定与分档数值,教材0014逐字支撑。三skeleton互异(分档作答/纠错三段式/末题综合诊断)。机器候选rank1。"
+        "note": "围挡判断纠错三段式(fact三件套d1_probe腿)。本轮stem补市区+主要路段+路口占道场景前提,'统一1.8m'才构成教材可判的不妥;正确做法带占道限定与分档数值,教材0014逐字支撑。三skeleton互异(分档作答/纠错三段式/末题综合诊断)。机器候选rank1。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3026,27 +3026,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q15",
       "source_anchor": "kc:1A431011_013_0014:0",
       "source_sha256": "6d3041e68136889ce5815c5f4e3a9957f1672081c9cbfd04c46fdbb6095ab6c3",
-      "source_html_sha256": "aa482df6e5fdaf695ddab9fd4ab25cf24086fdc4b18ced4b69839c0ca3a32f0c",
+      "source_html_sha256": "b7a1eb7e9c8076a1131bc6e185c46e5c8a0017249d4fbfaaffb77d7462cad67a",
       "fact_id": "x01-fact-fence-height-tiers",
       "skeleton_id": "x01-skel-围挡三处采分诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7b6a4363ee92dfc9e642206c05240153041d4a0d7203ecc909f58c902c0a2908",
+      "content_sha256": "e70d0b457a05e09c8ebfe0791592dce5048cf8b42f3e915a62525b9c107b651a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7b6a4363ee92dfc9e642206c05240153041d4a0d7203ecc909f58c902c0a2908",
+        "reviewed_content_sha256": "e70d0b457a05e09c8ebfe0791592dce5048cf8b42f3e915a62525b9c107b651a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:46:32+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -3056,7 +3056,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "采分诊断末题(投影第5锚+围挡fact三件套anchor腿)。本轮stem补'市区某项目沿主要路段施工、围挡在路口占道设置'场景前提,正确项③改'市区主要路段应≥2.5m、路口占道围挡0.8m以上应通透'=教材忠实(锚quote修复后含'占据道路施工设置的'限定原文);①口号化补因果/②大门≥2另有教材0012支撑(见q1/q4锚)。机器候选rank1。"
+        "note": "采分诊断末题(投影第5锚+围挡fact三件套anchor腿)。本轮stem补'市区某项目沿主要路段施工、围挡在路口占道设置'场景前提,正确项③改'市区主要路段应≥2.5m、路口占道围挡0.8m以上应通透'=教材忠实(锚quote修复后含'占据道路施工设置的'限定原文);①口号化补因果/②大门≥2另有教材0012支撑(见q1/q4锚)。机器候选rank1。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -3121,5 +3121,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "0a6a05a7bf0aa29e4dab7e481084bf8f2cce457538b3bcee19026177fbe11b2d"
+  "published_lesson_sha256": "fcd246ffe844c5eb54ad6a4e1efd2fe94f1fdda9f7c24702ada046ac2ef77aa6"
 }

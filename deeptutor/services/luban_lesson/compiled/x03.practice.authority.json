@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "X03",
   "source_pack_sha256": "6da4f10de5f46af7abdb5f1665d3a6db44e1cc6f870000a5c9e70fcc620769e1",
-  "source_bundle_sha256": "070c61d804bf2b68414de2479d5f647096b18a599e77a57d206c63dbe5bb66a4",
+  "source_bundle_sha256": "bab8fb9489cfa119f66927f40608c87922d317be60b77b04b54cdd848b211969",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -40,8 +40,8 @@
         "X03-html-practice-html-q15-adb9aff306e7",
         "X03-html-practice-html-q16-3c13f34dbc94"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzkyYjJjNjlkYzIwIiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODllNDMwMjljNmQiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTU0MzVmY2JlYWQxNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYTUwYWQxZTdiMWI2IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtM2MxM2YzNGRiYzk0Il0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjcwOGM5ZDIxODg3YWI4NTg3ZmYyM2M1NmI3YjNjOTlhYWVjYzE2MjUwNGUxN2MxNjIzZTljNTAzODkyZjZiODYiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "7aa03cbe8895d19d78c7ae8f97a7a8f5a0201e0ae7383eb344d313ba20164a59"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzkyYjJjNjlkYzIwIiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi04ODllNDMwMjljNmQiLCJYMDMtaHRtbC1wcmFjdGljZS1odG1sLXEzLTU0MzVmY2JlYWQxNSIsIlgwMy1odG1sLXByYWN0aWNlLWh0bWwtcTQtYTUwYWQxZTdiMWI2IiwiWDAzLWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtM2MxM2YzNGRiYzk0Il0sInBhY2tfaWQiOiJYMDMiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjcxZmI4YzYzMDYyYjE5ZWVlYTBmMWM2Y2I1ODljZTE3MTIzOWY0MTM3ZWM0OGVmNWZjNGUzMmQyYzUzNGVhZDUiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYjVkZDBmN2ZjOTBlYjYxZGJlZmZmYjgzY2NhNzQ1Y2QzOWYzMmFkYWY5N2E5NzZjMDA3ZDNjODJkN2NjZmVmZiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "5b2d7a4d27209c8c0d5c7e49ecf2ecbb0340e933b83864e3ab0a8f701d55c23a"
     }
   ],
   "items": [
@@ -96,27 +96,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q1",
       "source_anchor": "kc:1A437000_143_0229:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-site-zoning-rules",
       "skeleton_id": "x03-skel-文明施工错误项辨析",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "33fa23c7a5cba527a6f4838fc2143f52aca15c9bffe054d52825c20efe77935d",
+      "content_sha256": "debb64a2ae613c926637c55703f32f8f6a486b7a6b3cac2addfe8b1205c539b3",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "33fa23c7a5cba527a6f4838fc2143f52aca15c9bffe054d52825c20efe77935d",
+        "reviewed_content_sha256": "debb64a2ae613c926637c55703f32f8f6a486b7a6b3cac2addfe8b1205c539b3",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -126,7 +126,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "选错误项: 三真项教材逐字(本锚: 施工区与办公生活区划分清晰隔离+在建严禁住人); 错误项『办公生活必须分开否则违规』教材无此强制规定(外延句『应相对隔离』印证)。工单: 辨析印证句属 X01 邻接 territory。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "选错误项: 三真项教材逐字(本锚: 施工区与办公生活区划分清晰隔离+在建严禁住人); 错误项『办公生活必须分开否则违规』教材无此强制规定(外延句『应相对隔离』印证)。工单: 辨析印证句属 X01 邻接 territory。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -275,27 +275,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q2",
       "source_anchor": "kc:1A437000_143_0229:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-civilized-six-standards",
       "skeleton_id": "x03-skel-文明施工要求成组",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "07913e35217ba9d2e60f0a73f8685475e5eb46514766542d03fd24a5b04f6c37",
+      "content_sha256": "63f7bc766a39f4aabfea903fa0cf9755d05cca0759fc3b3a887b6d03f2754489",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "07913e35217ba9d2e60f0a73f8685475e5eb46514766542d03fd24a5b04f6c37",
+        "reviewed_content_sha256": "63f7bc766a39f4aabfea903fa0cf9755d05cca0759fc3b3a887b6d03f2754489",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -305,7 +305,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "六化+分区隔离+严禁住人, 教材 kc:...143_0229:1 直引。工单: 五牌一图/主入口内侧可补真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "六化+分区隔离+严禁住人, 教材 kc:...143_0229:1 直引。工单: 五牌一图/主入口内侧可补真题锚。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -471,27 +471,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q3",
       "source_anchor": "kc:1A437000_141_0225:0",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-enclosure-standards",
       "skeleton_id": "x03-skel-围挡材料高度",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "20bdc65ef46e71b1a7b71ba506c730ceb76f2c59c565b6772c70b87b17bbdf11",
+      "content_sha256": "6ebac5c7bb94b694485f5fe8384f471f8fab6e27cda925288a628375b7cb7fda",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "20bdc65ef46e71b1a7b71ba506c730ceb76f2c59c565b6772c70b87b17bbdf11",
+        "reviewed_content_sha256": "6ebac5c7bb94b694485f5fe8384f471f8fab6e27cda925288a628375b7cb7fda",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -501,7 +501,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "围挡可循环/可拆卸/标准化定型材料且≥1.8m, 教材 kc:...141_0225:0 逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "围挡可循环/可拆卸/标准化定型材料且≥1.8m, 教材 kc:...141_0225:0 逐字。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -684,27 +684,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q4",
       "source_anchor": "exam:2017:案例三",
       "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-five-boards-one-map",
       "skeleton_id": "x03-skel-五牌一图位置纠错",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "94173bec70b5f79c830a8813bfce693e501bec718f13521b0de7ce89b9a5ab61",
+      "content_sha256": "729fdc9294487df37fe59bb719ca536e21b6d2c8b4b7d6a01f006aa2addbc95e",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "94173bec70b5f79c830a8813bfce693e501bec718f13521b0de7ce89b9a5ab61",
+        "reviewed_content_sha256": "729fdc9294487df37fe59bb719ca536e21b6d2c8b4b7d6a01f006aa2addbc95e",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -714,7 +714,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "五牌一图应布置主入口内侧(围墙外侧不妥), 真题 exam:2017:案例三 背景+整改逐字。工单: 牌数口径按真题原句收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "五牌一图应布置主入口内侧(围墙外侧不妥), 真题 exam:2017:案例三 背景+整改逐字。工单: 牌数口径按真题原句收紧。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -914,27 +914,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q6",
       "source_anchor": "exam:2017:第16题",
       "source_sha256": "8939c266a8e9de9abfa95ff7155c0121e2f355d18a2fb57ad2a597cdf1a3f40a",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-four-savings",
       "skeleton_id": "x03-skel-节地归类判断",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "bb78ddbf3907961e980e68c4834e9b4b276819d07456cdfba8a1d03b9e7f171b",
+      "content_sha256": "a5b7e110d0d81797e5dd524506adaf2a8932007857d68663cc6e13fdbc99a00a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "bb78ddbf3907961e980e68c4834e9b4b276819d07456cdfba8a1d03b9e7f171b",
+        "reviewed_content_sha256": "a5b7e110d0d81797e5dd524506adaf2a8932007857d68663cc6e13fdbc99a00a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -944,7 +944,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "绿化代替场地硬化=节地与施工用地保护,2017真题B逐字核对。"
+        "note": "绿化代替场地硬化=节地与施工用地保护,2017真题B逐字核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1093,27 +1093,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q7",
       "source_anchor": "kc:1A437000_140_0223:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-four-savings",
       "skeleton_id": "x03-skel-节水循环回灌",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8583b0252f68d8503a7427ffe7b71465e0bbdcc4be7c52d16e89aa3cd306bd8b",
+      "content_sha256": "6ed0fa3f529f688d959ff48bec3de80e83685e7ac6b019799f96e479bbb5fbbd",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8583b0252f68d8503a7427ffe7b71465e0bbdcc4be7c52d16e89aa3cd306bd8b",
+        "reviewed_content_sha256": "6ed0fa3f529f688d959ff48bec3de80e83685e7ac6b019799f96e479bbb5fbbd",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1123,7 +1123,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "冲洗用水设循环装置/抽水量>50万m³须回灌地下水,教材逐字核对。"
+        "note": "冲洗用水设循环装置/抽水量>50万m³须回灌地下水,教材逐字核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1238,27 +1238,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q8",
       "source_anchor": "kc:1A437000_140_0223:2",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-four-savings",
       "skeleton_id": "x03-skel-节能四节措施",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "7cede91efb97db9dffd4fbc2485f35ac0215b97dee8c3f58bb16469ff192fb65",
+      "content_sha256": "3da3db76784be2a8cf22361137cf48f2daced468a61f51282c9c4c81ef6ddcb0",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "7cede91efb97db9dffd4fbc2485f35ac0215b97dee8c3f58bb16469ff192fb65",
+        "reviewed_content_sha256": "3da3db76784be2a8cf22361137cf48f2daced468a61f51282c9c4c81ef6ddcb0",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1268,7 +1268,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "四节节能=节能设备/最低照度/分时段/可再生能源,教材逐字核对;与建筑节能工程(围护验收)辨析正确。新fact非surface仅d1可达。"
+        "note": "四节节能=节能设备/最低照度/分时段/可再生能源,教材逐字核对;与建筑节能工程(围护验收)辨析正确。新fact非surface仅d1可达。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1400,17 +1400,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "602509fad108fbbf996259fd968cb0c9ed6722ac1c99f93a1f090ad3a3b6c1c0",
+      "content_sha256": "ea37efee4bf451c14dad4e87827d2a722f98e4b7f89009f802d7120d02269783",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "602509fad108fbbf996259fd968cb0c9ed6722ac1c99f93a1f090ad3a3b6c1c0",
+        "reviewed_content_sha256": "ea37efee4bf451c14dad4e87827d2a722f98e4b7f89009f802d7120d02269783",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1601,27 +1601,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q10",
       "source_anchor": "kc:1A437000_141_0225:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-env-protection-measures",
       "skeleton_id": "x03-skel-扬尘三环节",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "c5589dd2c0586d63b3311f1ad9613b775e860178635482b02e6985b5c90bdc56",
+      "content_sha256": "c28598795bf39b68d133bdcfd338368810be00592bff09f9f221315af069f383",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "c5589dd2c0586d63b3311f1ad9613b775e860178635482b02e6985b5c90bdc56",
+        "reviewed_content_sha256": "c28598795bf39b68d133bdcfd338368810be00592bff09f9f221315af069f383",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1631,7 +1631,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "扬尘控制:源头覆盖固化绿化/物料篷盖(教材防尘卡逐字)+路径自动喷淋雾炮(kc:149_0293扬尘三件套)+出口冲洗池。新fact非surface仅d1可达。"
+        "note": "扬尘控制:源头覆盖固化绿化/物料篷盖(教材防尘卡逐字)+路径自动喷淋雾炮(kc:149_0293扬尘三件套)+出口冲洗池。新fact非surface仅d1可达。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1848,27 +1848,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q11",
       "source_anchor": "kc:1A437000_149_0294:0",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-env-protection-measures",
       "skeleton_id": "x03-skel-噪声四措施",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "66b15a3d9b26b9360d8901cd69c80655af2c8706c360745352ff374c4aa0c41c",
+      "content_sha256": "c32535b947c5c2c828c2d82686370e8751bdab3830f76311001e6d21ec8eaa02",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "66b15a3d9b26b9360d8901cd69c80655af2c8706c360745352ff374c4aa0c41c",
+        "reviewed_content_sha256": "c32535b947c5c2c828c2d82686370e8751bdab3830f76311001e6d21ec8eaa02",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1878,7 +1878,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "噪声控制:低噪声设备→隔声屏/罩→封闭木工房→优化工艺,教材逐字核对。"
+        "note": "噪声控制:低噪声设备→隔声屏/罩→封闭木工房→优化工艺,教材逐字核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2044,27 +2044,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q12",
       "source_anchor": "kc:1A437000_139_0222:2",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-env-protection-measures",
       "skeleton_id": "x03-skel-夜间光污染三动作",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "9009bf1fe054c784fa89be1e548846d4db4c67e09796eee452be867d59b4278f",
+      "content_sha256": "a0acdaa94543a15710623bb617e9046af84a31e2c5ea994cae1fdc192ec92b6c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "9009bf1fe054c784fa89be1e548846d4db4c67e09796eee452be867d59b4278f",
+        "reviewed_content_sha256": "a0acdaa94543a15710623bb617e9046af84a31e2c5ea994cae1fdc192ec92b6c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2074,7 +2074,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "夜间施工办许可证公告居民/照明加灯罩透光集中/电焊遮挡防弧光,教材逐字核对+2017真题案例印证。"
+        "note": "夜间施工办许可证公告居民/照明加灯罩透光集中/电焊遮挡防弧光,教材逐字核对+2017真题案例印证。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2223,27 +2223,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q13",
       "source_anchor": "kc:1A437000_013_0019:1",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-env-protection-measures",
       "skeleton_id": "x03-skel-污水泥浆处置",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "641a9eb69dfa052822926b2e370b863ac7731b2d5a2ccf4f86f2c542a3d7e9b1",
+      "content_sha256": "70d066016418abfbb6277a17fed80f2bb3276980c2b0135c56580960cc39d0e7",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "641a9eb69dfa052822926b2e370b863ac7731b2d5a2ccf4f86f2c542a3d7e9b1",
+        "reviewed_content_sha256": "70d066016418abfbb6277a17fed80f2bb3276980c2b0135c56580960cc39d0e7",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-21",
-            "signed_at": "2026-07-21T09:53:26+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2253,7 +2253,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "工程泥浆经泥浆池/封闭容器收集未处理不得排放(教材逐字);临时排水许可证由市政管理部门发证经编译源真题注{2020,第16题}D市政核实。"
+        "note": "工程泥浆经泥浆池/封闭容器收集未处理不得排放(教材逐字);临时排水许可证由市政管理部门发证经编译源真题注{2020,第16题}D市政核实。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2385,27 +2385,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q14",
       "source_anchor": "kc:1A437000_013_0019:0",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-waste-management-resourceization",
       "skeleton_id": "x03-skel-垃圾堆高计量再利用",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ce39e85cd79000b5ef93162ae3cdadc63fc4add349fd9d17a845c02d44799d18",
+      "content_sha256": "ece972854500696388d5b0342cf7ce28a8c38aabc06424dac3f4c96f52d10261",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "ce39e85cd79000b5ef93162ae3cdadc63fc4add349fd9d17a845c02d44799d18",
+        "reviewed_content_sha256": "ece972854500696388d5b0342cf7ce28a8c38aabc06424dac3f4c96f52d10261",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2415,7 +2415,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "堆放≤3m/超限稳定性验算/分类计量台账/再生利用, 教材 kc:...013_0019 判分眼直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "堆放≤3m/超限稳定性验算/分类计量台账/再生利用, 教材 kc:...013_0019 判分眼直引。三联 d1_probe(同 fact, 第3独立 skeleton)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2581,27 +2581,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q15",
       "source_anchor": "ca:1A437000_149_0294",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-waste-management-resourceization",
       "skeleton_id": "x03-skel-建筑垃圾五组完整性",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dd4b0c533f88c86333c3a68a9a2fc6aabe76d78d6cc2114de8f7fdba3da2b821",
+      "content_sha256": "65169d178ec0b579ba4d5c7d69ae5d03aa6e77b948708a463d7ba4e9c3789370",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "dd4b0c533f88c86333c3a68a9a2fc6aabe76d78d6cc2114de8f7fdba3da2b821",
+        "reviewed_content_sha256": "65169d178ec0b579ba4d5c7d69ae5d03aa6e77b948708a463d7ba4e9c3789370",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2611,7 +2611,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "资源化核心子事实+污染控制子事实各有锚(建筑垃圾=kc:013_0019/噪声=本锚), 五组齐复合 provenance 待补(工单)。相对判据唯一。三联 immediate_confirm(同建筑垃圾 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "资源化核心子事实+污染控制子事实各有锚(建筑垃圾=kc:013_0019/噪声=本锚), 五组齐复合 provenance 待补(工单)。相对判据唯一。三联 immediate_confirm(同建筑垃圾 fact)。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2777,27 +2777,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q16",
       "source_anchor": "kc:1A437000_013_0019:4",
       "source_sha256": "1daefbe67ef052e45fef1a69fa203bba8285d7988cf66767694335da39b76ff2",
-      "source_html_sha256": "bb0f6b87feefff3a9ea5f8cb040bbf9a4b441bef49f30d6dcaff805ab2330d1a",
+      "source_html_sha256": "11c53e7af486782c1d7694065d4394f3aa9898cd4cab61c2dd8da8b75c871ce6",
       "fact_id": "x03-fact-waste-management-resourceization",
       "skeleton_id": "x03-skel-绿色施工缺口诊断",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "af2dcae30c8c3379e8bce17bf5c3d32c5c6944075966b066a8d0dab529835d09",
+      "content_sha256": "fe41ec057171c237f2caeb67ed9b84b62797b9603ed27e7933dd886a06288d88",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "af2dcae30c8c3379e8bce17bf5c3d32c5c6944075966b066a8d0dab529835d09",
+        "reviewed_content_sha256": "fe41ec057171c237f2caeb67ed9b84b62797b9603ed27e7933dd886a06288d88",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-18T19:31:39+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2807,7 +2807,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "泥浆/建筑垃圾补写子事实=本锚(分类计量台账)直引; 扬尘/噪声等复合诊断多源(kc:141_0225/149_0294)=复合多源工单。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。"
+        "note": "泥浆/建筑垃圾补写子事实=本锚(分类计量台账)直引; 扬尘/噪声等复合诊断多源(kc:141_0225/149_0294)=复合多源工单。三联 anchor。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-18 选项反可猜性均衡重签:干扰项重写拉平长度并去除口语破绽词,正确项文本/题干/model_answer/事实锚逐字节未动(机械断言);正确项存储位按确定性分配重排;埋错语义经逐题对抗核验与原 code/temptation/loss_reason 一致。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2872,5 +2872,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "97e33724b18d85628f9cb01cf2dcfd2306597365fa2e02811f6e336bedca21e8"
+  "published_lesson_sha256": "69c3a377df9d327b12825d7b1b852fe201763c8c787ed3182daf29e59f99b7dd"
 }

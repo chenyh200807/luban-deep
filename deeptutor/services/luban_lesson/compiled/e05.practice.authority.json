@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "E05",
   "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
-  "source_bundle_sha256": "dc3066edf474af6e8753d164624fa55a1f9daac146eec145ea4e012bb443cca6",
+  "source_bundle_sha256": "1d4ebbe395bf5473a95ec29217cce2e0e6f22bf262add0e65ebcb2df7bd60d04",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "format_kind": "ord_method",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -34,8 +34,8 @@
         "E05-html-practice-html-q8-bdad94d68d2c",
         "E05-html-practice-html-q16-c4d93d1c98c8"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iN2VmZjcxMDRhODMiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjVlZDI1ZTU3YjhmIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzRkOTNkMWM5OGM4Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6IjE4YjVlMzg0NGM4YjVmOGYwM2Y4NDQxNDMxNDIyYTlkYmEzYWVhYTU4MmViN2VhZDdmZmM2MGVkNzIzMzBiN2UiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYzZkYTg0MDU4NzA2NzFmOThhZjJjN2JhNzdkNDI3OTEyODFiZjYwMzcyYmM0NjdkYmRhNzYwNzczYTMyYTMxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
-      "published_practice_sha256": "0229e2ff8fcd90d5cb5f26121a29494a5fe4c12e8b774ca3985cec424b8bf24d"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTEtMzY4Y2E2MDllMDNiIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iN2VmZjcxMDRhODMiLCJFMDUtaHRtbC1wcmFjdGljZS1odG1sLXEzLWEyNzc0N2ExYWFhZiIsIkUwNS1odG1sLXByYWN0aWNlLWh0bWwtcTQtNjVlZDI1ZTU3YjhmIiwiRTA1LWh0bWwtcHJhY3RpY2UtaHRtbC1xMTYtYzRkOTNkMWM5OGM4Il0sInBhY2tfaWQiOiJFMDUiLCJwcm9qZWN0aW9uX2RpZ2VzdCI6ImY5NGJiZDVkZmIwOTUyZGMwMDI1YThhZmFiMGMwNmY1YzAzZjQ2ZGRhMGZjYWE3ZGU3NGQ2OTM4NjQ0ZDk1NmIiLCJzY2hlbWEiOiJsdWJhbl9wcmFjdGljZV9wcm9qZWN0aW9uX3JlY2VpcHQudjEiLCJzb3VyY2VfZGlnZXN0IjoiYzZkYTg0MDU4NzA2NzFmOThhZjJjN2JhNzdkNDI3OTEyODFiZjYwMzcyYmM0NjdkYmRhNzYwNzczYTMyYTMxMiIsInN1cmZhY2VfaWQiOiJwcmFjdGljZS5odG1sIn0",
+      "published_practice_sha256": "0dd40d052e022f09549cb504539de4516db9c34e71240cc1f86afe1fb2d8b519"
     }
   ],
   "items": [
@@ -90,27 +90,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q1",
       "source_anchor": "kc:1A435020_095_0156:0",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-bcwp-构成式",
       "skeleton_id": "e05-skel-bcwp构成式单选",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a06fc353b288677592a660afaef5f0b032353ffcc8bda84d57432495db904733",
+      "content_sha256": "d16f3eeca42666ce6e5c1f7f82474942f7a99ee944a1248cdddc3c2229ad65b4",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a06fc353b288677592a660afaef5f0b032353ffcc8bda84d57432495db904733",
+        "reviewed_content_sha256": "d16f3eeca42666ce6e5c1f7f82474942f7a99ee944a1248cdddc3c2229ad65b4",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -120,7 +120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "BCWP=已完成工程量×预算单价, 教材 kc:1A435020_095_0156:0 三大核心成本值逐字直引(量取已完成/价取预算)。正确项忠实, 无数值复算。工单: 正确项恒首位=template artifact。"
+        "note": "BCWP=已完成工程量×预算单价, 教材 kc:1A435020_095_0156:0 三大核心成本值逐字直引(量取已完成/价取预算)。正确项忠实, 无数值复算。工单: 正确项恒首位=template artifact。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -439,27 +439,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q2",
       "source_anchor": "kc:1A435020_095_0156:0",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-acwp-构成式",
       "skeleton_id": "e05-skel-acwp构成式单选",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "ae962dea5052f99eec6c665907d4e0310796ee7b49d180ce4d1820d997ae7526",
+      "content_sha256": "11db6217a2c1d15dd82b1a32f30ea3979e0210f457a48bd2e104c035200fa6e7",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "ae962dea5052f99eec6c665907d4e0310796ee7b49d180ce4d1820d997ae7526",
+        "reviewed_content_sha256": "11db6217a2c1d15dd82b1a32f30ea3979e0210f457a48bd2e104c035200fa6e7",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -469,7 +469,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "ACWP=已完成工程量×实际单价, 教材 kc:1A435020_095_0156:0 逐字直引(量取已完成/价取实际)。3 个干扰项(预算价/计划量/预算总成本)均可证伪。工单: 正确项在末位。"
+        "note": "ACWP=已完成工程量×实际单价, 教材 kc:1A435020_095_0156:0 逐字直引(量取已完成/价取实际)。3 个干扰项(预算价/计划量/预算总成本)均可证伪。工单: 正确项在末位。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -788,27 +788,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q3",
       "source_anchor": "ca:1A435020_095_0156",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-三值代入位置",
       "skeleton_id": "e05-skel-三值代入四公式定位",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8ae7afcae4aef33774d178a7b87b7866ca7e29ae3beb9120818c71d54c243e06",
+      "content_sha256": "684e52bacacc1675c83285f3a249dbad626e311c0302dfd0ba7faa0db9744b43",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "8ae7afcae4aef33774d178a7b87b7866ca7e29ae3beb9120818c71d54c243e06",
+        "reviewed_content_sha256": "684e52bacacc1675c83285f3a249dbad626e311c0302dfd0ba7faa0db9744b43",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -818,7 +818,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "考三值代入位置: CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340, BCWP 恒作被减数。数值与场景直引教材EP ca:1A435020_095_0156(第20周末 BCWP6370/ACWP6240/BCWS5340)。位置规则原句另见 kc:1A435020_095_0156:1, 但该 point 未进本题机器候选, 故锚挂含同数值的 EP 候选(provenance 可溯)。复算 6370−6240=130、6370−5340=1030 位置正确。"
+        "note": "考三值代入位置: CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340, BCWP 恒作被减数。数值与场景直引教材EP ca:1A435020_095_0156(第20周末 BCWP6370/ACWP6240/BCWS5340)。位置规则原句另见 kc:1A435020_095_0156:1, 但该 point 未进本题机器候选, 故锚挂含同数值的 EP 候选(provenance 可溯)。复算 6370−6240=130、6370−5340=1030 位置正确。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1086,27 +1086,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q4",
       "source_anchor": "kc:1A435020_095_0156:1",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-cv计算判读",
       "skeleton_id": "e05-skel-cv偏差计算判读",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "2b1ec7b44293864d8ae2f6954d86334e97001bb3fed126df3d36265ab1d5548b",
+      "content_sha256": "28cb7cb443a45b3d706ea063870a86e6c5e7662ec37f78c493d778cb13c3218d",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "2b1ec7b44293864d8ae2f6954d86334e97001bb3fed126df3d36265ab1d5548b",
+        "reviewed_content_sha256": "28cb7cb443a45b3d706ea063870a86e6c5e7662ec37f78c493d778cb13c3218d",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1116,7 +1116,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "CV=BCWP−ACWP=6370−6240=130 万元, CV>0→成本节支, 教材 kc:1A435020_095_0156:1 逐字直引(CV=BCWP-ACWP / CV>0节支)。复算 6370−6240=130✅ >0→节支✅。数值背景取自EP ca:1A435020_095_0156。干扰项覆盖颠倒(E09)/方向反(E07)/漏单位判读词(E04)。"
+        "note": "CV=BCWP−ACWP=6370−6240=130 万元, CV>0→成本节支, 教材 kc:1A435020_095_0156:1 逐字直引(CV=BCWP-ACWP / CV>0节支)。复算 6370−6240=130✅ >0→节支✅。数值背景取自EP ca:1A435020_095_0156。干扰项覆盖颠倒(E09)/方向反(E07)/漏单位判读词(E04)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1384,17 +1384,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q5",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "0d5441453c1529a26a82520373aa5a1620f733ab219d2432bb081709c9c4e6b7",
+      "content_sha256": "ad80b4fc5303c6e5f765a90123e2eead68ff399994f7fd55136c13f413024686",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "0d5441453c1529a26a82520373aa5a1620f733ab219d2432bb081709c9c4e6b7",
+        "reviewed_content_sha256": "ad80b4fc5303c6e5f765a90123e2eead68ff399994f7fd55136c13f413024686",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -1670,27 +1670,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q6",
       "source_anchor": "ca:1A435020_095_0156",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-绩效指数除法判读",
       "skeleton_id": "e05-skel-绩效指数-cpi计算判读",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "a2a644008f29e6faf1a9842285cd1a167ad75c5801e2accc7b65a3518c15788e",
+      "content_sha256": "f07e02f53a7321d6db466d47d15e7e14ce532a7104688b1c03aa5b158c9a005a",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "a2a644008f29e6faf1a9842285cd1a167ad75c5801e2accc7b65a3518c15788e",
+        "reviewed_content_sha256": "f07e02f53a7321d6db466d47d15e7e14ce532a7104688b1c03aa5b158c9a005a",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1700,7 +1700,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "三件套 immediate_confirm(同绩效指数 fact, 当日即时确认)。CPI=BCWP/ACWP=6370/6240≈1.02, CPI>1→成本节支, 无量纲; 数值取教材EP ca:1A435020_095_0156(要求算成本绩效指数CPI)。复算 6370÷6240=1.0208≈1.02✅。干扰项含分子分母颠倒(E09)/方向反(E07)/硬加万元单位(E03)。skeleton 与 q7/q8 互异。"
+        "note": "三件套 immediate_confirm(同绩效指数 fact, 当日即时确认)。CPI=BCWP/ACWP=6370/6240≈1.02, CPI>1→成本节支, 无量纲; 数值取教材EP ca:1A435020_095_0156(要求算成本绩效指数CPI)。复算 6370÷6240=1.0208≈1.02✅。干扰项含分子分母颠倒(E09)/方向反(E07)/硬加万元单位(E03)。skeleton 与 q7/q8 互异。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1968,27 +1968,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q7",
       "source_anchor": "ca:1A435020_096_0157",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-绩效指数除法判读",
       "skeleton_id": "e05-skel-绩效指数-spi计算判读",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "341d7d593b410518ecbfcaa9905966a8ce83e36c2f942d86a3df10d465fe6104",
+      "content_sha256": "b705f10de478b85c4def12060923565e2d2ba575986c72b44e8a0f81301707bb",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "341d7d593b410518ecbfcaa9905966a8ce83e36c2f942d86a3df10d465fe6104",
+        "reviewed_content_sha256": "b705f10de478b85c4def12060923565e2d2ba575986c72b44e8a0f81301707bb",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1998,7 +1998,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "三件套 anchor。SPI=BCWP/BCWS=6370/5340≈1.19, SPI>1→进度提前, 指数无量纲不带单位; 教材EP ca:1A435020_096_0157(求SPI判进度, grading 1.19/进度提前)直支。复算 6370÷5340=1.1929≈1.19✅。fact=绩效指数为除法比值/>1为好/无量纲(CPI、SPI 同构)。"
+        "note": "三件套 anchor。SPI=BCWP/BCWS=6370/5340≈1.19, SPI>1→进度提前, 指数无量纲不带单位; 教材EP ca:1A435020_096_0157(求SPI判进度, grading 1.19/进度提前)直支。复算 6370÷5340=1.1929≈1.19✅。fact=绩效指数为除法比值/>1为好/无量纲(CPI、SPI 同构)。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2266,27 +2266,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q8",
       "source_anchor": "ca:1A435020_096_0157",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-绩效指数除法判读",
       "skeleton_id": "e05-skel-绩效指数-spi单问变式",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "d7303af9a66e5f7789a2b4cc8a2105e312ed7cdcac009bf1eb104296229c2508",
+      "content_sha256": "add373b05d7982c8318ff861ab9742dfd7a23bb3fdd01b2ce5472707d04b4c31",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "d7303af9a66e5f7789a2b4cc8a2105e312ed7cdcac009bf1eb104296229c2508",
+        "reviewed_content_sha256": "add373b05d7982c8318ff861ab9742dfd7a23bb3fdd01b2ce5472707d04b4c31",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -2296,7 +2296,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "三件套 d1_probe(同 fact, D1 隔日再探, 变式=仅给两值+指数用除法非减法陷阱)。SPI=BCWP/BCWS=6370/5340≈1.19→进度提前, 无量纲; 教材EP ca:1A435020_096_0157 直支。复算≈1.19✅。干扰项含误判条件不足(E08)/指数当减法算成SV(E07)/加单位(E03)。skeleton 与 q7/q6 互异。"
+        "note": "三件套 d1_probe(同 fact, D1 隔日再探, 变式=仅给两值+指数用除法非减法陷阱)。SPI=BCWP/BCWS=6370/5340≈1.19→进度提前, 无量纲; 教材EP ca:1A435020_096_0157 直支。复算≈1.19✅。干扰项含误判条件不足(E08)/指数当减法算成SV(E07)/加单位(E03)。skeleton 与 q7/q6 互异。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -2564,17 +2564,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q9",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "84e0f52a37f98424ceafc22fa02aa025ba67b60814d7b87e4aa81ccf845e44e7",
+      "content_sha256": "ebf1709aa84f4aa2289712c4f1e69104ff16dc27fb21d2885fad10eca76d40e5",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "84e0f52a37f98424ceafc22fa02aa025ba67b60814d7b87e4aa81ccf845e44e7",
+        "reviewed_content_sha256": "ebf1709aa84f4aa2289712c4f1e69104ff16dc27fb21d2885fad10eca76d40e5",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -2850,17 +2850,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q10",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "6a0f2d5a16bd64e2b65e2effb7ca8475fd95ccc3a528b07e9ce28b5e28bdd646",
+      "content_sha256": "e585378ff066739249a851fad393173824db4758a01424f666a7f57d7ea84814",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "6a0f2d5a16bd64e2b65e2effb7ca8475fd95ccc3a528b07e9ce28b5e28bdd646",
+        "reviewed_content_sha256": "e585378ff066739249a851fad393173824db4758a01424f666a7f57d7ea84814",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3136,17 +3136,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q11",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "08335128eeaa52c77d9e4b057a7d5cb9ca278f3aa6300e1ea4973154bd971adc",
+      "content_sha256": "8f9c8a03632e4ce6f8a9ae16706dece7befd7c1c54adcda61fcd77d65137737e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "08335128eeaa52c77d9e4b057a7d5cb9ca278f3aa6300e1ea4973154bd971adc",
+        "reviewed_content_sha256": "8f9c8a03632e4ce6f8a9ae16706dece7befd7c1c54adcda61fcd77d65137737e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3269,17 +3269,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q12",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "e123dc34e0c6056f77324801ab8034edebbc00b32829fd26b94522fd3b6d513e",
+      "content_sha256": "484f44376e9995296030e72f4d1c7adb2e27e3cec5275ca36bc3aaa9021d32f9",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "e123dc34e0c6056f77324801ab8034edebbc00b32829fd26b94522fd3b6d513e",
+        "reviewed_content_sha256": "484f44376e9995296030e72f4d1c7adb2e27e3cec5275ca36bc3aaa9021d32f9",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3555,17 +3555,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q13",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "3b5e8001baecf91713583c3d7c6b242e85686db19b6e6ec0a06475f1381b9874",
+      "content_sha256": "c4aa2e736e2184ec059120440425465e411f4e013aff5ebef0ed1a5dc33fc165",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "3b5e8001baecf91713583c3d7c6b242e85686db19b6e6ec0a06475f1381b9874",
+        "reviewed_content_sha256": "c4aa2e736e2184ec059120440425465e411f4e013aff5ebef0ed1a5dc33fc165",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -3892,17 +3892,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q14",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "8875d66b726d26d97ef89e9cb0362f659a56400f933a12ace3a838ab31a5b152",
+      "content_sha256": "ebe1ec7655b04253452eba8a6cfd9ec26fc3a7841e6814249ede9547c722836e",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "8875d66b726d26d97ef89e9cb0362f659a56400f933a12ace3a838ab31a5b152",
+        "reviewed_content_sha256": "ebe1ec7655b04253452eba8a6cfd9ec26fc3a7841e6814249ede9547c722836e",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -4178,17 +4178,17 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q15",
       "source_anchor": "",
       "source_sha256": "",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "",
       "skeleton_id": "",
       "probe_role": "",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "dcea6c04b26149f1203af26e4b7ff5d69bd9ad0c3d01070f7232dc8598211e94",
+      "content_sha256": "8be7f48d3f26927503d70b33b0eecda5fd11fb03253043a01580f53125ee9218",
       "review": {
         "status": "pending",
         "verdict": "pending",
-        "reviewed_content_sha256": "dcea6c04b26149f1203af26e4b7ff5d69bd9ad0c3d01070f7232dc8598211e94",
+        "reviewed_content_sha256": "8be7f48d3f26927503d70b33b0eecda5fd11fb03253043a01580f53125ee9218",
         "signatures": [],
         "checks": {
           "source_verified": false,
@@ -4464,27 +4464,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q16",
       "source_anchor": "kc:1A435020_095_0156:1",
       "source_sha256": "4861d87cf9e735be383aaed3a6cec3f912776820d9fac7cb6038e3fd9a7de9bd",
-      "source_html_sha256": "c3a9267538194152b9ae6dbcb90d365bbf3966e38c732eb833ac5a3a81cc557f",
+      "source_html_sha256": "ad39d95cdcdf8254e583dafa68184d7335f5f28c40c7277469d59b491cfbb7e7",
       "fact_id": "e05-fact-cv颠倒采分诊断",
       "skeleton_id": "e05-skel-cv颠倒诊断补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "30f1dcab5c45530ad3daae66e3aa014ed8e1b69279b21c59c754ce34df7cb99d",
+      "content_sha256": "7830f1ef1c0f932d658381b604d9c191fb43eba9862296659109129795343ded",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "30f1dcab5c45530ad3daae66e3aa014ed8e1b69279b21c59c754ce34df7cb99d",
+        "reviewed_content_sha256": "7830f1ef1c0f932d658381b604d9c191fb43eba9862296659109129795343ded",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T17:19:21+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -4494,7 +4494,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "采分诊断末题: 学生 CV=ACWP−BCWP=−130 判超支(被减数颠倒)+漏进度; 正解 CV=BCWP−ACWP=+130 万元成本节支, 补 SV=6370−5340=1030、SPI≈1.19 进度提前。教材 kc:1A435020_095_0156:1 定 CV=BCWP-ACWP 方向为权威。复算 +130 节支✅ / SV1030✅ / SPI 6370÷5340≈1.19✅。"
+        "note": "采分诊断末题: 学生 CV=ACWP−BCWP=−130 判超支(被减数颠倒)+漏进度; 正解 CV=BCWP−ACWP=+130 万元成本节支, 补 SV=6370−5340=1030、SPI≈1.19 进度提前。教材 kc:1A435020_095_0156:1 定 CV=BCWP-ACWP 方向为权威。复算 +130 节支✅ / SV1030✅ / SPI 6370÷5340≈1.19✅。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -4559,5 +4559,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "763e59f96f8215a2ad855904657202ece4faec6cfde6bd16089351a9e4a19f08"
+  "published_lesson_sha256": "b513212aef0e9e69f9820038fcc5859512e82d32843b2b707dd30c88e82375e0"
 }

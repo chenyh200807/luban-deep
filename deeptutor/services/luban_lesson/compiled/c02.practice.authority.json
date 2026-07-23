@@ -2,12 +2,12 @@
   "schema_version": "luban_compiled_practice.v3",
   "pack_id": "C02",
   "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
-  "source_bundle_sha256": "ec14c95505f305db67699911b063806fba7b333e302a1521d043370ef21497b2",
+  "source_bundle_sha256": "1458df71e3de765cb20998c3bbac686a465c349f7bf26c120e39ac6f1c2bbccf",
   "surfaces": [
     {
       "surface_id": "practice.html",
       "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "format_kind": "q_direct",
       "array_marker": "\\bQ\\s*=",
       "presentation_order": [
@@ -34,8 +34,8 @@
         "C02-html-practice-html-q7-72e2f6f82400",
         "C02-html-practice-html-q8-d04dc9544381"
       ],
-      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNmE1NDI5MjI0NTgwIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iODBhMzQ1ZjhkNWIiLCJDMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWMzZDRiYjM0OTIwZiIsIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZmRmYTBkNDRkOTVlIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wMWJkNTNiNzVmNDgiXSwicGFja19pZCI6IkMwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiMjYwYmE5MjhkMzJiNWExNGFlY2U4MTJiYjRhMmU3MmRiYmUxNDBhYTlhNTZhNTFlMGYyMWVkMGQzZTZhOGNjNSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI3ZTc0YmM5NGY3YTJlMGIwMDUxZjU4YzAwODJmYWY5ZGFjM2Q1OTUyN2JhYzA5NThhYzNmZWJkYTcwNjA0M2VhIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
-      "published_practice_sha256": "8944b7c0dec79645676eef139ab2b542bdd8e00889bf60b39952885201c6551d"
+      "projection_receipt": "eyJvcmRlcmVkX3ZhcmlhbnRfaWRzIjpbIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTEtNmE1NDI5MjI0NTgwIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xMi1iODBhMzQ1ZjhkNWIiLCJDMDItaHRtbC1wcmFjdGljZS1odG1sLXEzLWMzZDRiYjM0OTIwZiIsIkMwMi1odG1sLXByYWN0aWNlLWh0bWwtcTQtZmRmYTBkNDRkOTVlIiwiQzAyLWh0bWwtcHJhY3RpY2UtaHRtbC1xNi0wMWJkNTNiNzVmNDgiXSwicGFja19pZCI6IkMwMiIsInByb2plY3Rpb25fZGlnZXN0IjoiMDEwMmJlOWZlYjFkMGYzNWM4OTE0OTUxNTlhZWJjZWFiOGIxZTA1ODk1ZmNhYzgwZjY5MzcxYTUyM2FjOGZhOSIsInNjaGVtYSI6Imx1YmFuX3ByYWN0aWNlX3Byb2plY3Rpb25fcmVjZWlwdC52MSIsInNvdXJjZV9kaWdlc3QiOiI3ZTc0YmM5NGY3YTJlMGIwMDUxZjU4YzAwODJmYWY5ZGFjM2Q1OTUyN2JhYzA5NThhYzNmZWJkYTcwNjA0M2VhIiwic3VyZmFjZV9pZCI6InByYWN0aWNlLmh0bWwifQ",
+      "published_practice_sha256": "06a0cf61b544686d1a9488bfdbcc7a3b093cc04dbcb16e201c5b6994f33e0695"
     }
   ],
   "items": [
@@ -90,27 +90,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q1",
       "source_anchor": "kc:1A432002_035_0046:0",
       "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-comprehensive-unit-price-taxfree",
       "skeleton_id": "c02-skel-综合单价口径计税",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "fa6cbe4ab83a61a878a3f74e948e3f27d1897b454fcfc816553b55a203f0cad7",
+      "content_sha256": "0bca163e83347de4ebc99ee1f8972d5204bbe2b019c98b334e0ca083f0369c44",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "fa6cbe4ab83a61a878a3f74e948e3f27d1897b454fcfc816553b55a203f0cad7",
+        "reviewed_content_sha256": "0bca163e83347de4ebc99ee1f8972d5204bbe2b019c98b334e0ca083f0369c44",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -120,7 +120,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "综合单价为不含增值税税前全费用价(含人材机+管理+利润+风险),税最末整体计提一次。教材 kc:1A432002_035_0046:0 statement 逐字直引。"
+        "note": "综合单价为不含增值税税前全费用价(含人材机+管理+利润+风险),税最末整体计提一次。教材 kc:1A432002_035_0046:0 statement 逐字直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -320,27 +320,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q2",
       "source_anchor": "exam:2019:第1题",
       "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-advance-payment-base-deduct-provisional",
       "skeleton_id": "c02-skel-预付款先扣暂列金",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "820596468bdcbed24afe00458e76e43dd022e56464f2e90fb7a6cbc393ee3b47",
+      "content_sha256": "85813d9a2d4977f097c512d9b127b1ae24762130d6ea3f04c0bb24726e84bc18",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "820596468bdcbed24afe00458e76e43dd022e56464f2e90fb7a6cbc393ee3b47",
+        "reviewed_content_sha256": "85813d9a2d4977f097c512d9b127b1ae24762130d6ea3f04c0bb24726e84bc18",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -350,7 +350,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "预付款=(5800-580)×20%=1044,基数先扣暂列金。exam:2019:第1题 官方解「预付款为(5800-580)×20%=1044.00」逐字直引。"
+        "note": "预付款=(5800-580)×20%=1044,基数先扣暂列金。exam:2019:第1题 官方解「预付款为(5800-580)×20%=1044.00」逐字直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -482,27 +482,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q3",
       "source_anchor": "exam:2019:第1题",
       "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-recovery-point-formula",
       "skeleton_id": "c02-skel-起扣点公式基数减预付款除占比",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "774bf28eedee13a52dda3706c8c40a7861ecb775df5faad39497f3e5392d795c",
+      "content_sha256": "21a3a9b00433ac14423ac1941a60c3dc6416dd810c8143989d62432f86d50092",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "774bf28eedee13a52dda3706c8c40a7861ecb775df5faad39497f3e5392d795c",
+        "reviewed_content_sha256": "21a3a9b00433ac14423ac1941a60c3dc6416dd810c8143989d62432f86d50092",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -512,7 +512,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "起扣点=基数-预付款÷占比=5220-1044÷60%=3480。exam:2019:第1题 官方解「起扣点为：(5800-580)-1044/60%=3480.00」逐字直引;教材 kc:1A435000_043_0058:1 亦证公式结构。"
+        "note": "起扣点=基数-预付款÷占比=5220-1044÷60%=3480。exam:2019:第1题 官方解「起扣点为：(5800-580)-1044/60%=3480.00」逐字直引;教材 kc:1A435000_043_0058:1 亦证公式结构。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -661,27 +661,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q4",
       "source_anchor": "exam:2019:第1题",
       "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-cumulative-vs-recovery-point",
       "skeleton_id": "c02-skel-逐月累计判扣回两刀",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "351d8b6ded8d8bde3720bd75dec4607c3d4c52554ec80209bcc4919017729205",
+      "content_sha256": "e66a34015f3813d9daadd50a64154727dfad3b71533d6f10f4c0639ea9432d75",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "351d8b6ded8d8bde3720bd75dec4607c3d4c52554ec80209bcc4919017729205",
+        "reviewed_content_sha256": "e66a34015f3813d9daadd50a64154727dfad3b71533d6f10f4c0639ea9432d75",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -691,7 +691,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "累计3830＞起扣点3480,5月除扣3%质保金外还扣回预付款。exam:2019:第1题 官方解「累计…=3830万元＞起扣点3480万元…5月不仅仅扣除质保金还应当扣回预付款」逐字直引。"
+        "note": "累计3830＞起扣点3480,5月除扣3%质保金外还扣回预付款。exam:2019:第1题 官方解「累计…=3830万元＞起扣点3480万元…5月不仅仅扣除质保金还应当扣回预付款」逐字直引。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -959,27 +959,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q5",
       "source_anchor": "kc:1A435000_044_0059:0",
       "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-retention-money-cap",
       "skeleton_id": "c02-skel-质保金上限结算总价3",
       "probe_role": "immediate_confirm",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "581bf328e4b26ea377c2a077622e603cf83c4aa62cb2ad6c015c27015ce71019",
+      "content_sha256": "a3c3ad59a97335b453775e45b1cea6c6b158681dec5680f6f2d4547bd036b900",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "581bf328e4b26ea377c2a077622e603cf83c4aa62cb2ad6c015c27015ce71019",
+        "reviewed_content_sha256": "a3c3ad59a97335b453775e45b1cea6c6b158681dec5680f6f2d4547bd036b900",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -989,7 +989,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "累计预留质保金不得超过工程结算总价3%,以结算总价为基数。教材 kc:1A435000_044_0059:0「…不得超过工程结算总价的 3%」逐字直引。retention fact 三件套的 immediate_confirm 一员。"
+        "note": "累计预留质保金不得超过工程结算总价3%,以结算总价为基数。教材 kc:1A435000_044_0059:0「…不得超过工程结算总价的 3%」逐字直引。retention fact 三件套的 immediate_confirm 一员。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1104,27 +1104,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q6",
       "source_anchor": "exam:2019:第1题",
       "source_sha256": "fdaee7811935be9eee534a670c03f1fb043c19b67fb3ee7690b11bdcca59be63",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-scoring-diagnosis",
       "skeleton_id": "c02-skel-采分诊断三处补写",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "96a0d4f59524ac39e4a67cfe6258762b2578fa7a24d820ede8a5f8aa858eaefd",
+      "content_sha256": "45ddc09e5c8347a306a9e6f3644750dc11765e18240b59701d78ad71ca60e874",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "96a0d4f59524ac39e4a67cfe6258762b2578fa7a24d820ede8a5f8aa858eaefd",
+        "reviewed_content_sha256": "45ddc09e5c8347a306a9e6f3644750dc11765e18240b59701d78ad71ca60e874",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1134,7 +1134,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "诊断三处(基数未扣暂列/起扣点公式反/漏列累计)均由 exam:2019:第1题 官方解逐字支撑。"
+        "note": "诊断三处(基数未扣暂列/起扣点公式反/漏列累计)均由 exam:2019:第1题 官方解逐字支撑。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1249,27 +1249,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q7",
       "source_anchor": "kc:1A435000_044_0059:0",
       "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-retention-money-cap",
       "skeleton_id": "c02-skel-质保金上限数值代入结算总价3pct",
       "probe_role": "anchor",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "12b67129c76b9f2c789804bc7efcac112ff9c94e5193845730590f6c74d24a33",
+      "content_sha256": "db967e3540a66f5fe0dc4a2545fec5fb675e7f8a59be50266a60b2b4758b844f",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "12b67129c76b9f2c789804bc7efcac112ff9c94e5193845730590f6c74d24a33",
+        "reviewed_content_sha256": "db967e3540a66f5fe0dc4a2545fec5fb675e7f8a59be50266a60b2b4758b844f",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1279,7 +1279,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "新补编。数值代入型:结算总价6000×3%=180万,基数=结算总价、上限3%。规则源 kc:1A435000_044_0059:0「累计预留的质量保证金…不得超过工程结算总价的3%」;算例数值(合同价5000/结算总价6000)为题给算例、非事实断言,复算 6000×3%=180、5000×3%=150、6000×5%=300 自洽。retention fact 三件套 anchor 员,skeleton 与 q5/q8 互异。锚出自本题机器候选(match 0.2904,top5内)回原文核对。"
+        "note": "新补编。数值代入型:结算总价6000×3%=180万,基数=结算总价、上限3%。规则源 kc:1A435000_044_0059:0「累计预留的质量保证金…不得超过工程结算总价的3%」;算例数值(合同价5000/结算总价6000)为题给算例、非事实断言,复算 6000×3%=180、5000×3%=150、6000×5%=300 自洽。retention fact 三件套 anchor 员,skeleton 与 q5/q8 互异。锚出自本题机器候选(match 0.2904,top5内)回原文核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1394,27 +1394,27 @@
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/C02/C02.practice.dc.html#Q8",
       "source_anchor": "kc:1A435000_044_0059:0",
       "source_sha256": "1d6fc554754c0bb4f51c91b49c9b0b2b4932aeeceaa1784ade771beb96f7fb45",
-      "source_html_sha256": "426adf39e4ae26ba577c449691d323defcf1ceec7312aa19c206ca54b2298a13",
+      "source_html_sha256": "9d4bdbb0b73174e95d91eb1bdc82ff5c9286f4107bf0ddb2f8497618a1ce1021",
       "fact_id": "c02-fact-retention-money-cap",
       "skeleton_id": "c02-skel-质保金保函替代上限同结算总价3pct",
       "probe_role": "d1_probe",
       "revoked": false,
       "revocation_refs": [],
-      "content_sha256": "5d86fa8e92db14b5e5301c556e24f5e18e59d9dc4491d3c4bb083d9e3d7fbcdd",
+      "content_sha256": "ba4a8af5c6c2c1f612cdbac75cf9f91d9ce347d47fe056a416a57ef33c58f51c",
       "review": {
         "status": "signed",
         "verdict": "approved",
-        "reviewed_content_sha256": "5d86fa8e92db14b5e5301c556e24f5e18e59d9dc4491d3c4bb083d9e3d7fbcdd",
+        "reviewed_content_sha256": "ba4a8af5c6c2c1f612cdbac75cf9f91d9ce347d47fe056a416a57ef33c58f51c",
         "signatures": [
           {
             "role": "teaching",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           },
           {
             "role": "scoring",
             "reviewer_id": "owner-delegated:claude-main-control:2026-07-18",
-            "signed_at": "2026-07-20T19:23:24+08:00"
+            "signed_at": "2026-07-23T16:56:58+08:00"
           }
         ],
         "checks": {
@@ -1424,7 +1424,7 @@
           "longest_option_checked": true,
           "template_leakage_checked": true
         },
-        "note": "新补编。保函替代迁移型:以担保保函替代保证金的,保函金额同样不超工程结算总价3%、基数不变。规则源 kc:1A435000_044_0059:0「累计预留的质量保证金或以担保保函替代…不得超过工程结算总价的3%」逐字支撑;10%干扰=履约担保值(pack已载质保≤3%/履约≤10%)。retention fact 三件套 d1_probe 员,skeleton 与 q5/q7 互异。锚出自本题机器候选(match 0.6145,#1)回原文核对。"
+        "note": "新补编。保函替代迁移型:以担保保函替代保证金的,保函金额同样不超工程结算总价3%、基数不变。规则源 kc:1A435000_044_0059:0「累计预留的质量保证金或以担保保函替代…不得超过工程结算总价的3%」逐字支撑;10%干扰=履约担保值(pack已载质保≤3%/履约≤10%)。retention fact 三件套 d1_probe 员,skeleton 与 q5/q7 互异。锚出自本题机器候选(match 0.6145,#1)回原文核对。 | 2026-07-23 追问AI文案勘误重签：仅修正统一的跟进答疑 CTA 文案；题干、model_answer、正确项文本与事实锚逐字节未变（机械断言）。"
       },
       "eligible": true,
       "figure": {
@@ -1489,5 +1489,5 @@
       }
     }
   ],
-  "published_lesson_sha256": "d8218467dcde6b0930cc0e2ae69da4fc498661f07cf1f72f233ba58792fca302"
+  "published_lesson_sha256": "802b5d27cbf12a85dcc1e7bccdeb4b86e197ecfaa688aecbf9709179f3a72fd4"
 }
