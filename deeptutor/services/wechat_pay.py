@@ -14,6 +14,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+from deeptutor.services.member_console.service import DEFAULT_MEMBERSHIP_DAYS
+
 
 WECHAT_PAY_API_BASE = "https://api.mch.weixin.qq.com"
 WECHAT_PAY_NOTIFY_PATH = "/api/v1/billing/wechat/notify"
@@ -78,13 +80,13 @@ def build_wechat_pay_attach(
     user_id: str,
     package_id: str,
     amount_fen: int,
-    days: int = 365,
+    days: int = DEFAULT_MEMBERSHIP_DAYS,
 ) -> str:
     payload = {
         "u": str(user_id or "").strip(),
         "p": str(package_id or "").strip(),
         "a": int(amount_fen or 0),
-        "d": max(1, int(days or 365)),
+        "d": max(1, int(days or DEFAULT_MEMBERSHIP_DAYS)),
     }
     attach = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     if len(attach) > WECHAT_PAY_ATTACH_MAX_CHARS:
@@ -111,7 +113,7 @@ def parse_wechat_pay_attach(value: Any) -> dict[str, Any]:
         "user_id": user_id,
         "package_id": package_id,
         "amount_fen": int(source.get("a") or source.get("amount_fen") or 0),
-        "days": max(1, int(source.get("d") or source.get("days") or 365)),
+        "days": max(1, int(source.get("d") or source.get("days") or DEFAULT_MEMBERSHIP_DAYS)),
     }
 
 

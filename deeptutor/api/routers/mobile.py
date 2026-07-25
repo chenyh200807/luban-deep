@@ -64,6 +64,7 @@ from deeptutor.services.learner_state.learning_report_read_model import (
 )
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.member_console.service import DEFAULT_MEMBERSHIP_DAYS
 from deeptutor.services.member_usage_meter import (
     FREE_TRIAL_CONSUMED_STATUS,
     FREE_TRIAL_REASON,
@@ -257,20 +258,63 @@ def _points_to_micros(value: int | float | None) -> int:
 
 
 def _wallet_packages() -> list[dict[str, Any]]:
-    getter = getattr(member_service, "_default_packages", None)
+    """消费者可售目录 —— 展示与售卖的唯一来源。
+
+    在归一化后的 canonical 目录上只保留 `status == "active"`。
+
+    此前这里直接读 `_default_packages()` 原始种子:那份 dict 不带 `status` 键,
+    于是 checkout 结构上不可能看到"已下架",造成两个后果 ——
+    ①运营把档位下架后用户仍能付款,兑付侧却拒绝发货 → 503 → 支付渠道无限重试
+      → 钱已扣、点数永不到账;
+    ②"998 档不对 C 端售卖"这条产品边界只存在于前端白名单,服务端零过滤。
+    收敛成同一份 normalized 目录后,`status` 第一次成为可执行的可售性权威,
+    且展示/售卖/发点三侧读同一真值。
+    """
+    return [
+        package
+        for package in _membership_catalog()
+        if str(package.get("status") or "active").strip() == "active"
+    ]
+
+
+def _membership_catalog() -> list[dict[str, Any]]:
+    """全部 canonical 档位(含已下架),经归一化 —— 零 IO、零锁。
+
+    读的是**归一化后的种子目录**,不是持久化目录。归一化会补出 `status` 并把
+    经济字段锚定成种子真值,而发点路径 `_resolve_membership_package` 对种子档
+    锚定的是同一批值(见 `_normalize_membership_package` 的白名单),所以这里
+    拿到的定价与实际发点逐字段一致 —— 不需要为了一份可信目录去做一次全量
+    JSON 解析并持进程内锁(那条路径在生产上还会因规范化差异触发整文件回写)。
+
+    代价与边界:运营自建的非种子档不出现在消费者目录,因此仍不可自助购买
+    (与改动前一致,不是回归);它们通过运营手动开通发放。
+    """
+    getter = getattr(member_service, "_normalize_package_catalog", None)
     if callable(getter):
         try:
-            return list(getter() or [])
+            return [dict(package) for package in (getter(None) or []) if isinstance(package, dict)]
         except Exception:
+            logger.warning("membership package catalog normalization failed", exc_info=True)
             return []
     return []
 
 
-def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
+def _billing_package_by_id(
+    package_id: str, *, sellable_only: bool = True
+) -> dict[str, Any] | None:
+    """按 id 取档位定义。
+
+    `sellable_only=True`(默认,售卖决策):只认可售档,下架档返回 None → 404。
+    `sellable_only=False`(兑付校验):连下架档一起认。兑付发生在钱已到账之后,
+    此时"查不到档位"会让通知处理抛错 → 503 → 支付渠道无限重试 → 资金滞留。
+    用户下单后、回调到达前运营刚好下架该档,就会命中这个竞态,所以兑付侧必须
+    仍能解析出档位来完成金额校验与发货。
+    """
     normalized_package_id = str(package_id or "").strip()
     if not normalized_package_id:
         return None
-    for package in _wallet_packages():
+    catalog = _wallet_packages() if sellable_only else _membership_catalog()
+    for package in catalog:
         if str(package.get("id") or "").strip() == normalized_package_id:
             return dict(package)
     return None
@@ -1073,6 +1117,10 @@ def _build_local_checkout_payload(
             "price": price,
             "points": int(package.get("points") or 0),
             "turns": int(package.get("turns") or 0),
+            # 会员时长必须随 checkout payload 一起下传:下游 `_billing_package_days`
+            # 从这个子字典取 days,此前这里漏了该键,于是目录声明的时长永远读不到,
+            # 每笔支付都落到兜底值 —— 目录里的 days 因此是死字段。
+            "days": _billing_package_days(package),
             "original_price": str(package.get("original_price") or ""),
         },
         "amount_fen": amount_fen,
@@ -1144,9 +1192,12 @@ def _resolve_wechat_checkout_openid(authorization: str | None, user_id: str) -> 
 
 def _billing_package_days(package: dict[str, Any]) -> int:
     try:
-        return max(1, int(package.get("days") or package.get("duration_days") or 365))
+        return max(
+            1,
+            int(package.get("days") or package.get("duration_days") or DEFAULT_MEMBERSHIP_DAYS),
+        )
     except (TypeError, ValueError):
-        return 365
+        return DEFAULT_MEMBERSHIP_DAYS
 
 
 async def _create_wechat_pay_order(
@@ -1199,7 +1250,9 @@ def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]
     if trade_state and trade_state != "SUCCESS":
         return {"ignored": True, "trade_state": trade_state}
     attach = parse_wechat_pay_attach(transaction.get("attach"))
-    package = _billing_package_by_id(attach["package_id"])
+    # 兑付侧:钱已到账,连已下架档也必须能解析出来完成金额校验与发货。
+    # 若按"可售"过滤,用户下单后运营下架就会让这里抛错 → 503 → 微信无限重试 → 资金滞留。
+    package = _billing_package_by_id(attach["package_id"], sellable_only=False)
     if package is None:
         raise WechatPayNotificationError("unknown package")
     expected_fen = _price_to_fen(str(package.get("price") or ""))
@@ -1212,7 +1265,7 @@ def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]
     return member_service.settled_membership_purchase(
         user_id=attach["user_id"],
         package_id=attach["package_id"],
-        days=int(attach.get("days") or 365),
+        days=int(attach.get("days") or DEFAULT_MEMBERSHIP_DAYS),
         idempotency_key=f"wechat_pay:{transaction_id}",
         amount_cny=actual_fen / 100,
         settlement_evidence={
@@ -3076,7 +3129,6 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
-    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
     wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
