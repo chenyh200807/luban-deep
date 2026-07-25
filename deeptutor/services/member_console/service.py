@@ -227,9 +227,46 @@ DEFAULT_MEMBERSHIP_DAYS = 365
 # 刻意**不含** label / badge / audience / desc / original_price:
 # 这些是营销文案与划线价,运营在 BI 商业面板编辑它们是合法动作。把它们一起钉
 # 会静默吞掉运营编辑(保存提示成功、下次读回旧值、且无 audit 记录)。
+# 无有效会员(或会员已过期)时的教学视频上限。它不属于任何档位,所以不在目录里;
+# 各档位自己的上限由目录的 `teaching_video_limit` 声明。此处是该兜底值的唯一定义。
+NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT = 20
+
 _PINNED_SEED_FIELDS = frozenset(
-    {"points", "turns", "days", "price", "per_turn_price", "per", "tier", "status"}
+    {
+        "points",
+        "turns",
+        "days",
+        "price",
+        "per_turn_price",
+        "per",
+        "tier",
+        "status",
+        # 教学视频权益:发放什么就是经济向量,必须锚定。
+        "teaching_video_limit",
+        # `desc` 是**对外权益承诺清单**(小程序付费墙直接渲染),属产品定义而非营销
+        # 包装:运营不该能把它改成承诺一项系统并不提供的服务。改文案走改种子目录。
+        # (label / badge / audience / original_price 仍是营销包装,保持运营可编辑。)
+        "desc",
+    }
 )
+
+
+def _coerce_teaching_video_limit(item: dict[str, Any]) -> int | None:
+    """把任意写法的教学视频上限归一成 `None`(全部)或正整数。
+
+    未声明该字段的档位(运营自建档)按"无额外视频权益"处理,与无会员用户同档,
+    避免自建档静默获得无限权益。
+    """
+    if "teaching_video_limit" not in item:
+        return NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT
+    raw = item.get("teaching_video_limit")
+    if raw is None:
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT
+    return max(1, value)
 
 
 @lru_cache(maxsize=1)
@@ -969,7 +1006,10 @@ class MemberConsoleService:
                 "per": "20 次 AI 学习额度",
                 "per_turn_price": "0.495",
                 "audience": "刚开始体验、偶尔答疑的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、学习记录",
+                "desc": "AI智能答疑、AI案例批改、错因专训、学习记录、30 个教学视频",
+                # 教学视频权益上限:整数 = 上限条数,None = 全部(无限)。
+                # 这是该权益的唯一声明处,`resolve_teaching_video_limit` 直接读它。
+                "teaching_video_limit": 30,
             },
             {
                 "id": "light_98",
@@ -983,7 +1023,8 @@ class MemberConsoleService:
                 "per": "150 次 AI 学习额度",
                 "per_turn_price": "0.453",
                 "audience": "阶段备考、需要稳定答疑的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告、全部教学视频",
+                "teaching_video_limit": None,
             },
             {
                 "id": "vip",
@@ -997,7 +1038,8 @@ class MemberConsoleService:
                 "per": "450 次 AI 学习额度",
                 "per_turn_price": "0.44",
                 "audience": "有基础的、二战的、在职的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、全部教学视频",
+                "teaching_video_limit": None,
             },
             {
                 # 顶档(消费者面 4 档最高档):598→268 重定价(去掉 598/998,supreme_svip 仅留管理端手动开通)。
@@ -1013,7 +1055,8 @@ class MemberConsoleService:
                 "per": "625 次 AI 学习额度",
                 "per_turn_price": "0.429",
                 "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
-                "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、全部教学视频",
+                "teaching_video_limit": None,
             },
             {
                 # 管理端专属档:仅供运营手动开通,不对 C 端售卖。`status="archived"` 是
@@ -1033,7 +1076,8 @@ class MemberConsoleService:
                 "per": "2500 次 AI 学习额度",
                 "per_turn_price": "0.399",
                 "audience": "零基础纯自学，对考试没信心，处处需答疑的考生",
-                "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、全部教学视频",
+                "teaching_video_limit": None,
             },
         ]
 
@@ -1080,6 +1124,11 @@ class MemberConsoleService:
             "audience": str(item.get("audience") or "").strip(),
             "desc": str(item.get("desc") or item.get("description") or "").strip(),
             "status": status,
+            # 教学视频权益上限:None = 全部(无限),正整数 = 上限条数。
+            # 必须区分「显式 None」与「缺失」—— 不能用 `or`,那会把 None 和 0 混为一谈。
+            # 归一化保留该字段是**幂等性要求**:此前它不被认识而被丢弃,导致
+            # `_load_unlocked` 每次都判定"目录变了"并全量回写(持跨进程 LOCK_EX)。
+            "teaching_video_limit": _coerce_teaching_video_limit(item),
         }
         if not package["per"] and package["turns"] > 0:
             package["per"] = f"{package['turns']} 次 AI 学习额度"

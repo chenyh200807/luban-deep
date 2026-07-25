@@ -771,7 +771,7 @@ def test_commerce_uses_managed_membership_packages(store: SQLiteSessionStore) ->
                     "original_price": "898",
                     "badge": "高频答疑",
                     "per": "1800 次 AI 学习额度",
-                    "desc": "AI答疑、案例批改、错因专训、班主任督学服务",
+                    "desc": "AI智能答疑、AI案例批改、错因专训",
                     "status": "active",
                 }
             ]
