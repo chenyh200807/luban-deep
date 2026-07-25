@@ -6903,7 +6903,7 @@ def test_managed_membership_package_persists_and_can_be_purchased(
         original_price="898",
         badge="高频答疑",
         per="1800 次 AI 学习额度",
-        desc="AI答疑、案例批改、错因专训、班主任督学服务",
+        desc="AI智能答疑、AI案例批改、错因专训",
         status="active",
         operator="admin_demo",
         reason="新增高阶套餐",
@@ -8048,19 +8048,24 @@ def test_membership_tier_rank_normalizes_case_like_entitlement_does() -> None:
 
 
 def test_seed_package_marketing_copy_stays_editable_by_operator() -> None:
-    """反例:防漂移只锚定经济向量与可售性,营销文案必须留给运营。
+    """反例:防漂移只锚定经济向量、可售性与权益承诺,营销包装必须留给运营。
 
-    把文案一起钉会静默吞掉 BI 商业面板的编辑(提示保存成功、下次读回旧值、
+    把营销包装一起钉会静默吞掉 BI 商业面板的编辑(提示保存成功、下次读回旧值、
     且不留 audit),那是把资损防线扩成了越权。
+
+    边界:`desc` **不在**营销包装内 —— 它是对外权益承诺清单(付费墙直接渲染它),
+    属产品定义,已纳入锚定,见下方断言与
+    `test_package_desc_promise_matches_teaching_video_entitlement`。
     """
     edited = dict(_CANONICAL_PACKAGES["vip"])
     edited.update(
         {
             "label": "VIP 暑期特惠",
             "badge": "限时",
-            "desc": "运营自定义卖点",
+            "audience": "运营自定义受众",
             "original_price": "388",
             "points": 99999,  # 经济字段:必须被钉回
+            "desc": "赠送班主任一对一督学服务",  # 权益承诺:必须被钉回
         }
     )
 
@@ -8068,9 +8073,12 @@ def test_seed_package_marketing_copy_stays_editable_by_operator() -> None:
 
     assert normalized["label"] == "VIP 暑期特惠"
     assert normalized["badge"] == "限时"
-    assert normalized["desc"] == "运营自定义卖点"
+    assert normalized["audience"] == "运营自定义受众"
     assert normalized["original_price"] == "388"
     assert normalized["points"] == _CANONICAL_PACKAGES["vip"]["points"]
+    # 运营不得把权益承诺改成系统并不提供的服务
+    assert normalized["desc"] == _CANONICAL_PACKAGES["vip"]["desc"]
+    assert "班主任督学" not in normalized["desc"]
 
 
 def test_cold_start_catalog_still_hides_admin_only_package(tmp_path: Path) -> None:
@@ -8243,3 +8251,62 @@ def test_settled_purchase_delivers_when_package_archived(tmp_path: Path) -> None
 
     assert result["points"] == 9000
     assert wallet_service.grants[-1]["amount_micros"] == 9000 * 1_000_000
+
+
+# ---------------------------------------------------------------------------
+# 权益承诺必须是可执行的数据,不是自由文案
+#
+# `desc` 是对外的权益承诺清单(小程序付费墙直接渲染它)。此前它是自由文案,而真正
+# 发放的教学视频权益写在 router 的一个手写 frozenset 里 —— 两处独立维护,所以
+# 「承诺 30 个视频但实际给 20 个」这类偏差结构上无人能发现;而 desc 里长期承诺的
+# 「班主任督学服务」在全仓零实现。这几条把承诺与发放钉在一起。
+# ---------------------------------------------------------------------------
+
+
+def test_no_package_promises_unimplemented_service() -> None:
+    """未实现的服务不得出现在任何档位的对外承诺里(消费者权益纠纷面)。"""
+    for package in MemberConsoleService._default_packages():
+        assert "班主任督学" not in str(package.get("desc") or ""), package["id"]
+
+
+@pytest.mark.parametrize("package_id", _CANONICAL_PACKAGE_IDS)
+def test_package_desc_promise_matches_teaching_video_entitlement(package_id: str) -> None:
+    """desc 承诺的教学视频数量必须等于该档实际发放的上限。
+
+    None = 无限 → 必须写"全部教学视频";整数 N → 必须写"N 个教学视频"。
+    """
+    package = _CANONICAL_PACKAGES[package_id]
+    desc = str(package.get("desc") or "")
+    limit = package["teaching_video_limit"]
+
+    if limit is None:
+        assert "全部教学视频" in desc, f"{package_id} 承诺无限但 desc 未写明"
+    else:
+        assert f"{limit} 个教学视频" in desc, f"{package_id} 应承诺 {limit} 个,desc={desc!r}"
+
+
+def test_every_canonical_package_declares_teaching_video_entitlement() -> None:
+    """教学视频权益必须由档位目录声明,不能留给下游各自枚举。"""
+    for package in MemberConsoleService._default_packages():
+        assert "teaching_video_limit" in package, package["id"]
+        limit = package["teaching_video_limit"]
+        assert limit is None or (isinstance(limit, int) and limit > 0), package["id"]
+
+
+def test_normalized_catalog_is_idempotent() -> None:
+    """归一化必须幂等 —— 否则每次 `_load()` 都判定"目录变了"并全量回写。
+
+    实测过的后果:磁盘上带 `teaching_video_limit` 的目录被归一化丢弃该字段 ⇒
+    `packages_changed` 恒真 ⇒ **每个读请求都在写盘并持跨进程 `LOCK_EX`**,
+    还会不断改 mtime 让任何基于 mtime 的缓存永不命中。
+    """
+    once = MemberConsoleService._normalize_package_catalog(None)
+    twice = MemberConsoleService._normalize_package_catalog(once)
+
+    assert twice == once
+
+
+def test_teaching_video_entitlement_survives_persisted_round_trip() -> None:
+    """持久化目录回读后权益字段必须还在(否则等价于每次读都判定目录变了)。"""
+    for package in MemberConsoleService._normalize_package_catalog(None):
+        assert "teaching_video_limit" in package, package["id"]

@@ -124,7 +124,19 @@ mobile_http_read_models:
     path: /api/v1/billing/wallet
     authority: canonical entitlement read model + membership package catalog
     semantics:
-      - teaching_video_limit is 20 for users without a valid membership or with an expired membership, 30 for starter_19, and null for light_98/vip/svip/supreme_svip.
+      - teaching_video_limit is declared per tier by the canonical package catalog
+        via a `teaching_video_limit` field — null means all videos, a positive int
+        means a capped count.
+        Users without a valid membership, with an expired membership, or on a tier the
+        catalog does not declare fall back to NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT.
+        Today the catalog grants 20 without membership, 30 for starter_19, and all
+        videos for light_98/vip/svip/supreme_svip — but the catalog is the authority,
+        not this sentence. Adding a tier means declaring the field on that tier,
+        never editing a tier list in a consumer.
+      - A package's `desc` is its outward entitlement promise and is rendered directly on
+        the paywall, so it is pinned to the canonical seed like the economics are. It must
+        stay consistent with the entitlement actually granted, and must not promise a
+        capability the system does not implement.
       - The wallet adapter only projects this entitlement; clients must not recompute the limit from tier or wallet plan_id.
       - The packages list is the consumer-sellable catalog only. It projects the
         normalized membership package catalog filtered to status=active. Admin-only

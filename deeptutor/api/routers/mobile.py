@@ -64,7 +64,10 @@ from deeptutor.services.learner_state.learning_report_read_model import (
 )
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.member_console import get_member_console_service
-from deeptutor.services.member_console.service import DEFAULT_MEMBERSHIP_DAYS
+from deeptutor.services.member_console.service import (
+    DEFAULT_MEMBERSHIP_DAYS,
+    NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT,
+)
 from deeptutor.services.member_usage_meter import (
     FREE_TRIAL_CONSUMED_STATUS,
     FREE_TRIAL_REASON,
@@ -310,14 +313,25 @@ def _billing_package_by_id(
     用户下单后、回调到达前运营刚好下架该档,就会命中这个竞态,所以兑付侧必须
     仍能解析出档位来完成金额校验与发货。
     """
-    normalized_package_id = str(package_id or "").strip()
+    normalized_package_id = _canonical_package_id(package_id)
     if not normalized_package_id:
         return None
     catalog = _wallet_packages() if sellable_only else _membership_catalog()
     for package in catalog:
-        if str(package.get("id") or "").strip() == normalized_package_id:
+        if _canonical_package_id(package.get("id")) == normalized_package_id:
             return dict(package)
     return None
+
+
+def _canonical_package_id(package_id: Any) -> str:
+    """归一化档位 id/tier(别名 + 大小写)。alias 只在入口层归一,不参与执行决策。"""
+    getter = getattr(member_service, "canonical_membership_package_id", None)
+    if callable(getter):
+        try:
+            return str(getter(package_id) or "").strip()
+        except Exception:
+            pass
+    return str(package_id or "").strip().lower()
 
 
 # 教学视频权益上限:按当前有效会员 tier 派生。None = 无限;整数 = 上限条数。
@@ -325,29 +339,24 @@ def _billing_package_by_id(
 #   无有效会员 / 会员已过期            → 20
 #   有效 tier == starter_19            → 30
 #   有效 tier ∈ {light_98,vip,svip,supreme_svip} → None(无限)
-_TEACHING_VIDEO_DEFAULT_LIMIT = 20
-_TEACHING_VIDEO_STARTER_LIMIT = 30
-_TEACHING_VIDEO_UNLIMITED_TIERS = frozenset(
-    {"light_98", "vip", "svip", "supreme_svip"}
-)
-
-
 def resolve_teaching_video_limit(tier: str | None, is_active: bool) -> int | None:
-    """Pure teaching-video entitlement resolver (unit-testable, no IO)."""
+    """按会员档位派生教学视频上限。None = 全部(无限);整数 = 上限条数。
+
+    上限**由档位目录声明**(`teaching_video_limit` 字段),此处不再维护第二份档位
+    清单。原实现是一个手写 frozenset `{light_98, vip, svip, supreme_svip}` + 一条
+    `starter_19` 特判 —— 与目录里的对外承诺(`desc`)两处独立维护,所以"承诺 30 个
+    却发 20 个"这类偏差无人能发现,新增付费档忘记登记也会被静默限到无会员档。
+
+    无有效会员、会员过期、以及目录里查不到的档位,统一回落无会员上限(不放权)。
+    """
     if not is_active:
-        return _TEACHING_VIDEO_DEFAULT_LIMIT
-    getter = getattr(member_service, "canonical_membership_package_id", None)
-    normalized = str(tier or "").strip().lower()
-    if callable(getter):
-        try:
-            normalized = str(getter(tier) or "").strip().lower()
-        except Exception:
-            normalized = str(tier or "").strip().lower()
-    if normalized == "starter_19":
-        return _TEACHING_VIDEO_STARTER_LIMIT
-    if normalized in _TEACHING_VIDEO_UNLIMITED_TIERS:
-        return None
-    return _TEACHING_VIDEO_DEFAULT_LIMIT
+        return NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT
+    package = _billing_package_by_id(tier or "", sellable_only=False)
+    if package is None:
+        return NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT
+    if "teaching_video_limit" not in package:
+        return NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT
+    return package["teaching_video_limit"]
 
 
 def _membership_is_active(expire_at: Any) -> bool:

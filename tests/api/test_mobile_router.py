@@ -6890,6 +6890,54 @@ def test_settlement_still_resolves_non_sellable_package() -> None:
     assert str(resolved["id"]) == "supreme_svip"
 
 
+# ---------------------------------------------------------------------------
+# 教学视频权益必须由档位目录派生
+#
+# 原实现在 router 里维护第二份档位清单(一个 frozenset + 一条 starter_19 特判),
+# 与目录里的对外承诺(desc)两处独立维护 —— 新增付费档忘记登记就会被静默限到
+# 无会员档,而"承诺 30 个却发 20 个"这类偏差没有任何一侧能发现。
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "package_id",
+    [item["id"] for item in _member_console_service_module.MemberConsoleService._default_packages()],
+)
+def test_teaching_video_limit_derives_from_catalog(package_id: str) -> None:
+    seed = {
+        item["id"]: item
+        for item in _member_console_service_module.MemberConsoleService._default_packages()
+    }[package_id]
+
+    assert (
+        mobile_module.resolve_teaching_video_limit(package_id, True)
+        == seed["teaching_video_limit"]
+    )
+
+
+def test_teaching_video_limit_normalizes_tier_aliases() -> None:
+    """tier 写入侧是自由文本(BI 可传 "VIP",历史别名 light_99 仍在)。
+
+    归一化失效会让付费用户被静默降级到无会员档 —— 这类降级没有任何响应标记。
+    """
+    assert mobile_module.resolve_teaching_video_limit("VIP", True) is None
+    assert mobile_module.resolve_teaching_video_limit("light_99", True) is None
+    assert mobile_module.resolve_teaching_video_limit("STARTER_19", True) == 30
+
+
+def test_router_holds_no_second_tier_list() -> None:
+    """router 不得再持有第二份档位清单:新增档位只改目录,不改消费者。"""
+    assert not hasattr(mobile_module, "_TEACHING_VIDEO_UNLIMITED_TIERS")
+    assert not hasattr(mobile_module, "_TEACHING_VIDEO_STARTER_LIMIT")
+
+
+def test_unknown_tier_never_gains_entitlement() -> None:
+    """反例:目录里查不到的档位一律回落无会员上限,不放权。"""
+    assert mobile_module.resolve_teaching_video_limit("campus_49", True) == 20
+    assert mobile_module.resolve_teaching_video_limit("trial", True) == 20
+    assert mobile_module.resolve_teaching_video_limit("", True) == 20
+
+
 def test_billing_checkout_rejects_non_sellable_package(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

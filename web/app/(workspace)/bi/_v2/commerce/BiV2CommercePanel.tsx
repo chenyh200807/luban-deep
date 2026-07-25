@@ -1039,7 +1039,7 @@ function PackageManagementPanel({
                 value={form.badge}
                 onChange={event => patchForm('badge', event.target.value)}
                 className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
-                placeholder="班主任督学"
+                placeholder="每次 AI 学习额度"
               />
             </PackageField>
             <PackageField label="每次说明">
@@ -1065,7 +1065,7 @@ function PackageManagementPanel({
               value={form.desc}
               onChange={event => patchForm('desc', event.target.value)}
               className="min-h-[72px] w-full resize-y rounded-lg border border-white/10 bg-[#0e1624] px-3 py-2 text-xs text-white outline-none focus:border-cyan-300/60"
-              placeholder="AI答疑、案例批改、错因专训、班主任督学服务"
+              placeholder="AI智能答疑、AI案例批改、错因专训、全部教学视频"
             />
           </PackageField>
         </form>
