@@ -148,6 +148,20 @@ BI v1（`BiPageClient` 及其 `loadBiWorkbench` 的 8× 同参放大、8 个无 
    `next build` + DevTools network 定论浏览器到底下不下载 v1，再决定是否把不走的那支
    改成 `dynamic()`。（受内存护栏约束，本地不跑 build。）
 
+5. **性能预算门结构上不可能 FAIL —— 它比「`/bi` 没登记」严重得多。**
+   `route_budgets.mjs:158` 的判定是
+   `budget && row.comparableBudget && sizeKb > budget ? "FAIL" : "OK"`，
+   而 `comparableBudget`（:111）= `manifest.entryJSFiles` 存在与否 —— 那是 **Turbopack**
+   的 client-reference-manifest 字段。项目的 `npm run build` 是 `next build --webpack`，
+   webpack manifest 没有该字段 ⇒ `comparableBudget` **恒 false** ⇒ **status 恒 OK**。
+   CI 日志里的铁证：`OK /settings 364KB / budget 180KB (estimated webpack)` —— 超预算
+   一倍仍然 OK；那句 "(estimated webpack)" 就是脚本自己在声明"这个数字不可比"。
+   ⇒ 所以「把 `/bi` 加进 `ROUTE_BUDGETS_KB`」**并不能**让门生效，登记了也照样恒绿。
+   这是 dormant authority 的教科书形态：门接在 CI 上、每次都跑、每次都绿、
+   结构上永远拦不住任何东西。修它要先决定量测口径（改用 turbopack 构建取真值，
+   还是让脚本支持 webpack manifest），属独立议题。
+   **在它被修好之前，任何"CI 会挡住体积回归"的说法都不成立。**
+
 另有一条治理缺口：**`tests/web/` 不在任何 CI 分片里**（全 workflow 零命中），
 所以新增的两个 web 守卫只在本地生效。直接接进 shard 会立刻变红
 （该目录已有 4 个 pre-existing failure），正确顺序是先修那 4 个再接。
