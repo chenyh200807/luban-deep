@@ -20,6 +20,7 @@ review time, before any smoke runs.
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -187,4 +188,70 @@ def test_flag_enabled_branches_do_not_call_mock_as_live() -> None:
         "live/mock discriminator and no honest 'flag 已开启 · 数据源待 ... 接入' "
         "escape phrase. This is the OpsPanel regression pattern (Round 4 S5).\n"
         + "\n".join(f"  - {o}" for o in offenders)
+    )
+
+
+# --- provenance 文案不得由客户端时钟伪造 -------------------------------------
+
+# `generatedAt: Date.now()` 是同一个 copy-vs-code drift 的另一种形态:banner 上
+# 写着数据溯源时刻,值却取自浏览器时钟。数据陈旧时它谎报成"刚刚",而这正是本文件
+# 要防的那类"文案声称的事实,代码并不提供"。
+_CLIENT_CLOCK_PROVENANCE = re.compile(r"generatedAt\s*:\s*Date\.now\(\)")
+
+
+def test_panels_do_not_fabricate_snapshot_time_from_client_clock() -> None:
+    offenders: list[str] = []
+    for path in sorted(V2_ROOT.rglob("*.tsx")):
+        if _CLIENT_CLOCK_PROVENANCE.search(path.read_text(encoding="utf-8")):
+            offenders.append(str(path.relative_to(REPO_ROOT)))
+
+    assert not offenders, (
+        "Snapshot provenance must come from the server's `generated_at`, not the "
+        "browser clock — otherwise a stale panel reports itself as just-generated:\n"
+        + "\n".join(f"  - {o}" for o in offenders)
+    )
+
+
+_OVERVIEW_FIXTURE = REPO_ROOT / "tests" / "scripts" / "bi_reconciliation" / "fixtures" / "bi_overview.json"
+_SHADOWING_KEYS = ("overview", "data", "summary")
+_GENERATED_AT_READ = re.compile(r"generatedAt:\s*toNumber\(([^)]*)\)")
+
+
+def test_overview_generated_at_is_read_from_the_payload_root() -> None:
+    """`generated_at` must be read from the payload root, not from `firstRecord`.
+
+    The test above only proves `Date.now()` is gone, which deleting the feature
+    satisfies just as well. This one proves the replacement actually resolves.
+
+    `parseBiOverviewBundle` derives `record` from
+    `firstRecord(raw, ['overview','data','summary'])`, which returns the first of
+    those keys holding a non-array object. The real /overview payload carries a
+    top-level `summary` object, so `record` points at `summary` -- while
+    `generated_at` sits at the root. Reading it off `record` therefore yields
+    undefined on every request, and the banner silently renders "unknown"
+    forever.
+    """
+    payload = json.loads(_OVERVIEW_FIXTURE.read_text(encoding="utf-8"))
+    assert "generated_at" in payload, (
+        f"{_OVERVIEW_FIXTURE.name} no longer carries a root generated_at; this "
+        "guard's premise changed and the parser needs rechecking."
+    )
+
+    shadowing = next((k for k in _SHADOWING_KEYS if isinstance(payload.get(k), dict)), None)
+    assert shadowing is not None and "generated_at" not in payload[shadowing], (
+        "The shadowing condition this guard protects against no longer holds; "
+        "re-derive it before trusting the assertion below."
+    )
+
+    source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
+    match = _GENERATED_AT_READ.search(source)
+    assert match, "could not find the generatedAt assignment in bi-api.ts"
+    expression = match.group(1)
+    assert "record." not in expression, (
+        f"generatedAt reads `{expression}`, but `record` resolves to the payload's "
+        f"`{shadowing}` object, which has no generated_at -- this parses to 0 on "
+        "every request and the banner shows 'unknown' forever."
+    )
+    assert "raw" in expression, (
+        f"generatedAt must read from the payload root; got `{expression}`."
     )

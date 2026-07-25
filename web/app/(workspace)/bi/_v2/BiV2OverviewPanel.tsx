@@ -266,7 +266,9 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
         cards: overview.cards,
         alerts: overview.alerts,
         trend: overview.activeTrend ?? [],
-        generatedAt: Date.now(),
+        // 服务端快照时刻，不是浏览器时钟：这块 UI 标的是数据溯源，用 Date.now()
+        // 会在数据陈旧时谎报成"刚刚"。后端没给就留 0，由渲染层说"未知"。
+        generatedAt: overview.generatedAt,
         partial: false,
         errors: [],
         overview,
@@ -681,7 +683,9 @@ function DataSourceBanner({
           </BiButton>
         }
       >
-        实时数据 · generated_at: {new Date(bundle.generatedAt).toLocaleString('zh-CN')}
+        {bundle.generatedAt
+          ? `数据截至 ${new Date(bundle.generatedAt).toLocaleString('zh-CN')}（服务端 generated_at）`
+          : '服务端未提供 generated_at，快照时刻未知'}
       </BiV2DataSourceBanner>
     )
   }

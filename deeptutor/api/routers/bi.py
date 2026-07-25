@@ -564,10 +564,12 @@ def _record_bi_member_ops_action(
 
 
 @router.get("/member/dashboard")
-async def bi_member_dashboard(
+def bi_member_dashboard(
     days: int = Query(30, ge=1, le=3650),
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
+    # Sync `def` on purpose (病B-4): `get_dashboard` does blocking ledger-lock and
+    # Supabase reads, so FastAPI must run it on the threadpool rather than the loop.
     return get_member_console_service().get_dashboard(days=days)
 
 

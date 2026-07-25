@@ -53,3 +53,88 @@
 - Backend owner：`BIService` / `MemberConsoleService` 单一读模型与测试。
 - Frontend owner：BI v2 thin renderer、会员 360 状态机与浏览器回归。
 - Release owner：PR → main 后记录 merge SHA、部署 SHA，再执行 test2 live 验收；部署前不得宣称已上线。
+
+## 7. 2026-07-25 续轮：执行模型与快照时刻（本计划的下半程）
+
+本轮不是新主线，是第 3、4 节的补完。上一轮立的是「读模型**怎么算**」的单一权威，
+没有立「**算几次 / 存在哪 / 能多旧**」的权威，因此收权之后成本仍随消费者数量线性增长
+（`_load_all_members` 调用点由 3 涨到 8 即是判决性证据）。
+
+### 7.1 本轮完成（全部零新鲜度语义变化）
+
+- **执行模型**：`_load_context_since` 降为同步 `def`（实测 awaits=0，纯删减），
+  `_load_business_context` 成为**context 路径**的 `asyncio.to_thread` 边界（与 `sqlite_store._run_read`
+  同范式）；`get_overview` 的会员快照、`get_commerce` 全方法一并离开事件循环。
+  **注意这不是「全 BI 的唯一边界」**——全仓 `to_thread` 共 9 处（本轮新增 5 处），
+  且 `get_overview` 自身仍有阻塞 IO 留在循环上，见 §7.4。
+- **补完病B-4**：`bi.py:/member/dashboard` 与 `member.py:/dashboard` 降同步 `def`——
+  2026-07-05 那轮只改了 mobile 三条，这两条调同一个 3–5s 的 `get_dashboard` 却被漏下。
+  守卫 `tests/api/test_mobile_event_loop_discipline.py` 泛化为 `(router, path)` 映射，
+  成为事件循环纪律的唯一权威；BI 那半用行为断言（执行期间事件循环必须继续 tick）。
+- **物理物化**：`turn_events(type, created_at DESC)` 与 `turns(created_at DESC)` 索引。
+  实测（SQL 从源码 AST 提取、fresh connection）：整条 `_load_context_since` 的 SQL
+  **17.10ms → 0.66ms**，其中 `turn_events` 两条 8.28/8.20ms → 0.11/0.04ms。
+- **会员池派生收权**：`get_overview` / `get_member_stats` / `get_commerce` 过去各写一遍
+  「取会员 + 过滤 registered」，收敛为单一 `_registered_members_snapshot`，
+  重算判断点 **3 → 1**。
+- **快照时刻接线**：后端 `generated_at` 此前在前端整条链是断的——类型无字段、builder 不读、
+  面板用 `Date.now()` 现编却标注「实时数据」。这违反 §1「禁止前端估算 authority」，
+  且使任何缓存都无法验证。现已接通，缺失时显式显示「快照时刻未知」。
+- 传输轴（与读模型正交）：ECharts 改按需注册，brotli 309,807 → 173,732（−43.9%）。
+
+### 7.2 本轮未做，且**必须先由 owner 拍板**
+
+会员快照与 `_BiContext` 的物化（TTL + 文件 mtime 双失效信号）**未实施**。
+它是单请求延迟的大头（会员链每次 3~12 次同步 Supabase 往返），但它改变一件
+owner 可感知的事：**BI 读数可以陈旧到 60 秒**。判例是 §1 已对「谁算内部账号」
+接受了同样的 60s，但那是既有决定，不构成本轮的自动授权。
+
+放行条件（缺一不可）：① 物化必须同时输出快照时刻——7.1 的接线已使其可行；
+② 失效必须同时接受 TTL 与 `member_console.json` 的 mtime（只 TTL 则运营改完等 60s，
+只 mtime 则 Supabase 侧变更永不可见）；③ 失败必须 fail-open 且自报 `stale`，
+不得沿用现状把目录故障洗白成「0 个会员」。
+
+**④ 必须先修 `packages_changed` 恒真——这是本轮实测出的前置阻塞，也是一个独立的现存缺陷。**
+
+`_load_unlocked`（`member_console/service.py`）在 `packages_changed` 为真时于**读路径**调
+`_save_unlocked`。用生产快照实测（`md5=a40f905…`）：`_normalize_package_catalog` 把磁盘上
+`starter_19.teaching_video_limit` 的 `30` 规范化成 `None`，两者永不相等 ⇒ **条件恒真**。
+
+后果有三层，依次加重：
+1. 每个 BI / member dashboard 请求都做一次全量 `json.dumps(indent=2)`（实测 11ms）+ `os.fsync`；
+2. 该写盘**全程持 `LOCK_EX`**，是跨 worker 的串行化点（生产 `UVICORN_WORKERS=2`）；
+3. 它每次都改 mtime，因此**上面 ②的 mtime 失效信号会永远命中失效分支，缓存等于没加**。
+
+不可顺手改：`teaching_video_limit` 是计费权益字段（30 / null 决定教学视频额度），
+磁盘值与规范化结果分歧属于数据-代码分歧，改哪一边都要 owner 按计费口径拍板，
+误改是资损。故本轮只留证据，不动代码。
+
+### 7.3 本轮明确不做
+
+BI v1（`BiPageClient` 及其 `loadBiWorkbench` 的 8× 同参放大、8 个无 debounce 输入）——
+线上 `BI_BACKOFFICE_V2_SHELL_ENABLED` 已开，v1 是死路径，改它属超范围。
+`directory.py` 的 `in.(...)` URL 长度墙（会员数约 250~450 触发 414）是正确性悬崖不是性能问题，
+应单独立项。全仓 222 个零 await handler 的体检同理。
+
+### 7.4 对抗性 review 发现、本轮未修（下一轮的输入）
+
+本轮的对抗性 review 给出 1 BLOCKER + 6 MAJOR。BLOCKER（`generated_at` 读错对象导致 §7.1 第 4 条
+形同虚设）与两条 MAJOR（无用的 `turns(updated_at)` 索引、被夸大 18 倍的性能数字）已在本轮修掉。
+以下四条留给下一轮，都不是本轮改动引入的回归，而是**收口未完成的部分**：
+
+1. **`get_overview` 自身仍有 4 处阻塞 IO 在事件循环上**：两次 usage-ledger 读、
+   经 `get_non_business_identity_ids` 的会员目录取数、一次文件读。它们在
+   `_load_business_context` 边界之外，而本轮的行为守卫孤立调用
+   `_load_business_context`、从不调 `get_overview`，**结构上看不见它们**。
+   下一轮应让守卫直接打 `get_overview`。
+2. **`asyncio.to_thread` 用的是事件循环默认 executor，与 `sqlite_store._run_read` 同一个池**
+   （22 workers）。BI 的长扫描会占住一个 slot，TutorBot 的 session 读排在它后面
+   ——比阻塞循环好，但是**部分位移而非隔离**。代码库已有专用 executor 的样板
+   （`sqlite_store.py` 的 writer executor），下一轮按它接。
+3. **`member.py` 的 `list_members` 裸调，而 `bi.py` 同一方法已包 `to_thread`**：
+   本轮修的那对不对称，隔一个路由还活着。根因是修法与守卫都按**手工维护的 path 白名单**
+   匹配，而非按不变量匹配；真正的收口需要按「调用了哪些已知阻塞方法」判定。
+
+另有一条治理缺口：**`tests/web/` 不在任何 CI 分片里**（全 workflow 零命中），
+所以本轮新增的两个 web 守卫只在本地生效。直接接进 shard 会立刻变红
+（该目录已有 4 个 pre-existing failure），正确顺序是先修那 4 个再接。
