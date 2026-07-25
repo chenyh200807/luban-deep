@@ -71,7 +71,12 @@
   2026-07-05 那轮只改了 mobile 三条，这两条调同一个 3–5s 的 `get_dashboard` 却被漏下。
   守卫 `tests/api/test_mobile_event_loop_discipline.py` 泛化为 `(router, path)` 映射，
   成为事件循环纪律的唯一权威；BI 那半用行为断言（执行期间事件循环必须继续 tick）。
-- **物理物化**：`turn_events(type, created_at DESC)` 与 `turns(updated_at DESC)` 索引。
+- **物理物化**：`turn_events(type, created_at DESC)` 与 `turns(created_at DESC)` 索引。
+  实测（SQL 从源码 AST 提取、fresh connection）：整条 `_load_context_since` 的 SQL
+  **17.10ms → 0.66ms**，其中 `turn_events` 两条 8.28/8.20ms → 0.11/0.04ms。
+- **会员池派生收权**：`get_overview` / `get_member_stats` / `get_commerce` 过去各写一遍
+  「取会员 + 过滤 registered」，收敛为单一 `_registered_members_snapshot`，
+  重算判断点 **3 → 1**。
 - **快照时刻接线**：后端 `generated_at` 此前在前端整条链是断的——类型无字段、builder 不读、
   面板用 `Date.now()` 现编却标注「实时数据」。这违反 §1「禁止前端估算 authority」，
   且使任何缓存都无法验证。现已接通，缺失时显式显示「快照时刻未知」。
@@ -126,10 +131,7 @@ BI v1（`BiPageClient` 及其 `loadBiWorkbench` 的 8× 同参放大、8 个无 
    （22 workers）。BI 的长扫描会占住一个 slot，TutorBot 的 session 读排在它后面
    ——比阻塞循环好，但是**部分位移而非隔离**。代码库已有专用 executor 的样板
    （`sqlite_store.py` 的 writer executor），下一轮按它接。
-3. **registered-member 过滤现有 3 份副本**（`_registered_members_snapshot`、
-   `get_member_stats`、`_commerce_sync`）。本轮为下沉新增了第一份，未收敛后两份——
-   与本计划把「调用点 3→8」当作根因证据的立场不一致，应一并收权。
-4. **`member.py` 的 `list_members` 裸调，而 `bi.py` 同一方法已包 `to_thread`**：
+3. **`member.py` 的 `list_members` 裸调，而 `bi.py` 同一方法已包 `to_thread`**：
    本轮修的那对不对称，隔一个路由还活着。根因是修法与守卫都按**手工维护的 path 白名单**
    匹配，而非按不变量匹配；真正的收口需要按「调用了哪些已知阻塞方法」判定。
 

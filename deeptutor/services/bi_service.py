@@ -1353,8 +1353,18 @@ class BIService:
             members=members,
         )
 
-    def _registered_members_snapshot(self) -> list[dict[str, Any]]:
-        return [item for item in self._load_all_members() if self._is_registered_member(item)]
+    def _registered_members_snapshot(
+        self,
+        members: list[dict[str, Any]] | None = None,
+    ) -> list[dict[str, Any]]:
+        """BI 注册会员池的唯一派生点。
+
+        给了 snapshot 就复用（调用方已经付过一次会员目录的钱），否则自己取。
+        `get_overview` / `get_member_stats` / `get_commerce` 过去各写一遍同样的
+        "取数 + 过滤 registered"，收到这里，重算判断点由 3 处降为 1 处。
+        """
+        source = members if members is not None else self._load_all_members()
+        return [item for item in source if self._is_registered_member(item)]
 
     def _load_all_members(self) -> list[dict[str, Any]]:
         """BI 会员口径唯一入口。
@@ -2177,13 +2187,7 @@ class BIService:
         tier: str | None = None,
         _members_snapshot: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        members = [
-            item
-            for item in (
-                _members_snapshot if _members_snapshot is not None else self._load_all_members()
-            )
-            if self._is_registered_member(item)
-        ]
+        members = self._registered_members_snapshot(_members_snapshot)
         tier_filter = str(tier or "").strip().lower()
         if tier_filter:
             members = [
@@ -3938,13 +3942,7 @@ class BIService:
         _members_snapshot: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         safe_limit = max(1, min(int(limit or 100), 500))
-        members = [
-            item
-            for item in (
-                _members_snapshot if _members_snapshot is not None else self._load_all_members()
-            )
-            if self._is_registered_member(item)
-        ]
+        members = self._registered_members_snapshot(_members_snapshot)
         package_authority, packages = self._load_commerce_packages(members)
         (
             wallet_status,
