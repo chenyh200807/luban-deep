@@ -677,8 +677,12 @@ def test_normalize_repriced_svip_overrides_stale_persisted_catalog() -> None:
     assert normalized["points"] == 12500
     assert normalized["turns"] == 625
     assert normalized["price"] == "268"
-    assert normalized["original_price"] == "398"
+    # per 与 turns 强耦合,必须一起锚定,否则会出现"标 1400 次实发 625 次"的误导
     assert normalized["per"] == "625 次 AI 学习额度"
+    # original_price 是划线价(营销字段),**刻意不在**防漂移白名单内:运营在 BI 商业
+    # 面板编辑它是合法动作,钉回去会静默吞掉编辑(提示保存成功、下次读回旧值、无
+    # audit)。资损向量是 price/points/turns/days/tier,已在上面逐条断言。
+    assert normalized["original_price"] == "798"
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
@@ -7970,3 +7974,272 @@ def test_list_members_for_bi_derives_conversation_activity_from_sqlite_sessions(
     assert [member["user_id"] for member in members] == ["dir_member_1"]
     expected_iso = service._session_time_to_iso(session_ts)
     assert members[0]["last_active_at"] == expected_iso
+
+
+# ---------------------------------------------------------------------------
+# 档位真值防漂移 / 付费权益不丢失
+#
+# 这些测试的 parametrize **直接吃 `_default_packages()`**,不手写档位清单。
+# 原因:此前防漂移 pinning 只覆盖 3 档,而唯一的 pinning 测试恰好也只测那 3 档
+# 里的 svip —— 两份手写枚举同源,所以 vip / supreme_svip 的定价漂移无法被证伪。
+# 同理档位排序表漏了 starter_19 / light_98,而合号测试只测排序表里已有的档。
+# 参数化到 canonical 目录后,新增档位自动进入覆盖,同源枚举不可能再复现。
+# ---------------------------------------------------------------------------
+
+_CANONICAL_PACKAGES = {item["id"]: item for item in MemberConsoleService._default_packages()}
+_CANONICAL_PACKAGE_IDS = list(_CANONICAL_PACKAGES)
+
+# 写死的档位金标表:id → (price, points, turns, days, status)。
+#
+# 上面那些 parametrize 从 `_default_packages()` 派生的只是**覆盖范围**(跑哪些档),
+# 真值必须静态钉死在这里 —— 否则"期望值"和"被测值"同源,谁把种子 points 改成 1
+# 也全绿(自证)。改价是产品决策,必须同时改这张表,让 diff 里看得见钱变了。
+_MEMBERSHIP_PACKAGE_GOLD = {
+    "starter_19": ("9.9", 400, 20, 365, "active"),
+    "light_98": ("68", 3000, 150, 365, "active"),
+    "vip": ("198", 9000, 450, 365, "active"),
+    "svip": ("268", 12500, 625, 365, "active"),
+    # 管理端专属:不对 C 端售卖
+    "supreme_svip": ("998", 50000, 2500, 365, "archived"),
+}
+
+
+def test_canonical_package_catalog_matches_gold_table() -> None:
+    """种子目录必须逐字段等于金标表(定价/发点/额度/时长/可售性)。"""
+    actual = {
+        item["id"]: (
+            str(item["price"]),
+            int(item["points"]),
+            int(item["turns"]),
+            int(item["days"]),
+            str(item.get("status") or "active"),
+        )
+        for item in MemberConsoleService._default_packages()
+    }
+
+    assert actual == _MEMBERSHIP_PACKAGE_GOLD
+
+
+def test_membership_tier_rank_is_monotonic_in_price() -> None:
+    """档位高低必须与价格单调:合号"取高档"依赖它,重排目录不得改变结论。"""
+    ranks = [
+        (
+            float(_MEMBERSHIP_PACKAGE_GOLD[pid][0]),
+            MemberConsoleService._membership_tier_rank(pid),
+        )
+        for pid in _MEMBERSHIP_PACKAGE_GOLD
+    ]
+    by_price = sorted(ranks, key=lambda pair: pair[0])
+
+    assert [rank for _, rank in by_price] == sorted(rank for _, rank in by_price)
+    # trial 与未知档必须严格低于任何付费档
+    assert MemberConsoleService._membership_tier_rank("trial") == 0
+    assert MemberConsoleService._membership_tier_rank("campus_49") == 0
+    assert min(rank for _, rank in ranks) > 0
+
+
+def test_membership_tier_rank_normalizes_case_like_entitlement_does() -> None:
+    """tier 写入侧是自由文本(BI 可传 "VIP")。档位排序与视频权益必须同口径,
+    否则同一个值在合号里算未知档(被 trial 清掉)、在视频权益里算 vip(无限)。"""
+    assert MemberConsoleService._membership_tier_rank("VIP") == (
+        MemberConsoleService._membership_tier_rank("vip")
+    )
+    assert MemberConsoleService.canonical_membership_package_id("VIP") == "vip"
+
+
+def test_seed_package_marketing_copy_stays_editable_by_operator() -> None:
+    """反例:防漂移只锚定经济向量与可售性,营销文案必须留给运营。
+
+    把文案一起钉会静默吞掉 BI 商业面板的编辑(提示保存成功、下次读回旧值、
+    且不留 audit),那是把资损防线扩成了越权。
+    """
+    edited = dict(_CANONICAL_PACKAGES["vip"])
+    edited.update(
+        {
+            "label": "VIP 暑期特惠",
+            "badge": "限时",
+            "desc": "运营自定义卖点",
+            "original_price": "388",
+            "points": 99999,  # 经济字段:必须被钉回
+        }
+    )
+
+    normalized = MemberConsoleService._normalize_membership_package(edited)
+
+    assert normalized["label"] == "VIP 暑期特惠"
+    assert normalized["badge"] == "限时"
+    assert normalized["desc"] == "运营自定义卖点"
+    assert normalized["original_price"] == "388"
+    assert normalized["points"] == _CANONICAL_PACKAGES["vip"]["points"]
+
+
+def test_cold_start_catalog_still_hides_admin_only_package(tmp_path: Path) -> None:
+    """全新部署(无 member_console.json)时可售性仍必须成立。
+
+    冷启动路径下 `list_membership_packages()` 会回落到原始种子,那份 dict 只有
+    显式声明过 status 的档位带该键 —— 所以「998 不对 C 端售卖」必须由种子自身
+    声明,不能依赖归一化补字段,否则新部署的第一天 998 就是可售的。
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    sellable = [
+        str(item["id"])
+        for item in service.list_membership_packages()
+        if str(item.get("status") or "active").strip() == "active"
+    ]
+
+    assert sellable == ["starter_19", "light_98", "vip", "svip"]
+
+
+def test_operator_created_package_keeps_its_own_pricing() -> None:
+    """反例:非种子档(运营自建)不受防漂移锚定,仍可自定义定价。"""
+    normalized = MemberConsoleService._normalize_membership_package(
+        {
+            "id": "campus_49",
+            "label": "校园版",
+            "points": 1200,
+            "turns": 60,
+            "price": "49",
+            "days": 90,
+        }
+    )
+
+    assert normalized["points"] == 1200
+    assert normalized["price"] == "49"
+    assert normalized["days"] == 90
+
+
+@pytest.mark.parametrize("package_id", _CANONICAL_PACKAGE_IDS)
+def test_persisted_catalog_cannot_drift_canonical_package_economics(package_id: str) -> None:
+    """任何 canonical 档位:持久化目录里的经济字段被篡改后必须钉回种子真值。"""
+    seed = _CANONICAL_PACKAGES[package_id]
+    tampered = dict(seed)
+    tampered.update(
+        {
+            "points": int(seed["points"]) * 10,
+            "turns": 99999,
+            "price": "1",
+            "days": 1,
+            "tier": "__tampered_tier__",
+        }
+    )
+
+    normalized = MemberConsoleService._normalize_membership_package(tampered)
+
+    assert normalized["points"] == seed["points"]
+    assert normalized["turns"] == seed["turns"]
+    assert normalized["price"] == seed["price"]
+    assert normalized["days"] == seed["days"]
+    assert normalized["tier"] == package_id
+
+
+@pytest.mark.parametrize("package_id", _CANONICAL_PACKAGE_IDS)
+def test_purchase_grants_canonical_points_when_persisted_catalog_tampered(
+    tmp_path: Path, package_id: str
+) -> None:
+    """构造「持久化目录 ≠ canonical 目录」后真实购买。
+
+    此前的"资损防线"测试在 tmp_path 新库上跑,两份目录恒等,所以连风险场景
+    都没构造过 —— 扩 parametrize 也测不出漂移。这条先篡改再购买。
+    """
+    seed = _CANONICAL_PACKAGES[package_id]
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet_service  # type: ignore[method-assign]
+
+    service.upsert_membership_package(
+        package_id=package_id,
+        label="被篡改的档位",
+        tier=package_id,
+        points=int(seed["points"]) * 10,
+        turns=99999,
+        price=str(seed["price"]),
+        idempotency_key=f"tamper-{package_id}",
+    )
+
+    result = service.manual_membership_purchase(
+        user_id=f"buyer_{package_id}",
+        package_id=package_id,
+        days=int(seed["days"]),
+        idempotency_key=f"buy-{package_id}",
+    )
+
+    assert result["points"] == seed["points"]
+    assert wallet_service.grants[-1]["amount_micros"] == int(seed["points"]) * 1_000_000
+
+
+@pytest.mark.parametrize("package_id", _CANONICAL_PACKAGE_IDS)
+def test_merge_keeps_paid_tier_when_target_is_trial(tmp_path: Path, package_id: str) -> None:
+    """付费档账号合并进 trial 目标时,付费档必须胜出。
+
+    合并不只发生在 BI 管理端:微信绑手机登录会自动触发
+    (`wechat_bind_phone` / `bind_phone_alias_merge`),所以档位排序漏档
+    等于用户自助路径上的静默权益丢失(视频上限从无限掉回 20 集)。
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet_service  # type: ignore[method-assign]
+
+    paid_uid = f"paid_{package_id}"
+    trial_uid = f"trial_{package_id}"
+    service.manual_membership_purchase(
+        user_id=paid_uid,
+        package_id=package_id,
+        days=int(_CANONICAL_PACKAGES[package_id]["days"]),
+        idempotency_key=f"merge-buy-{package_id}",
+    )
+    service._mutate(lambda data: service._ensure_member(data, trial_uid))
+
+    result = service.merge_member_accounts(
+        target_user_id=trial_uid,
+        source_user_ids=[paid_uid],
+        operator="wechat_mp",
+        reason="bind_phone_merge",
+        idempotency_key=f"merge-{package_id}",
+    )
+
+    assert result["member"]["tier"] == package_id
+
+
+def test_settled_purchase_delivers_when_package_archived(tmp_path: Path) -> None:
+    """钱已在支付渠道手里之后,拒绝发货严格劣于发货。
+
+    原实现对 archived 档抛 ValueError → notify 返回 503 → 微信无限重试
+    → 用户钱已扣、点数永不到账。下架的正确防线在 checkout(收钱前)。
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet_service  # type: ignore[method-assign]
+
+    service.upsert_membership_package(
+        package_id="vip",
+        label="VIP",
+        tier="vip",
+        points=9000,
+        turns=450,
+        price="198",
+        status="archived",
+        idempotency_key="archive-vip",
+    )
+
+    result = service.settled_membership_purchase(
+        user_id="archived_buyer",
+        package_id="vip",
+        days=365,
+        idempotency_key="wechat_pay:tx-archived-1",
+        amount_cny=198,
+        settlement_evidence={
+            "settlement_authority": "wechat_pay_notification",
+            "settlement_status": "settled",
+            "currency": "CNY",
+            "provider_transaction_id": "tx-archived-1",
+            "amount_minor": 19800,
+        },
+    )
+
+    assert result["points"] == 9000
+    assert wallet_service.grants[-1]["amount_micros"] == 9000 * 1_000_000

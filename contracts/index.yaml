@@ -126,6 +126,31 @@ mobile_http_read_models:
     semantics:
       - teaching_video_limit is 20 for users without a valid membership or with an expired membership, 30 for starter_19, and null for light_98/vip/svip/supreme_svip.
       - The wallet adapter only projects this entitlement; clients must not recompute the limit from tier or wallet plan_id.
+      - The packages list is the consumer-sellable catalog only. It projects the
+        normalized membership package catalog filtered to status=active. Admin-only
+        tiers (supreme_svip) are archived in the canonical seed and must not be offered
+        to consumer clients. That boundary is enforced server-side; a client-side
+        allowlist is a display convenience, never the authority.
+  billing_checkout:
+    path: /api/v1/billing/checkout
+    authority: normalized canonical seed catalog (economics pinned identically to the settlement writer)
+    semantics:
+      - Checkout resolves the package from the normalized canonical catalog and sells
+        only status=active packages; a non-sellable package id returns 404 rather than
+        creating an order that settlement would later have to refuse. Resolution stays
+        IO-free — it must not read the persisted member store on this path, because the
+        price charged is already guaranteed to equal what settlement grants for seed
+        tiers (the same fields are pinned on both sides).
+      - Operator-created non-seed packages are not part of the consumer sellable catalog
+        and are granted through operator provisioning, not self-service checkout.
+      - Package economics (price, points, turns, days, per_turn_price, tier) and
+        sellability of canonical seed tiers come from the seed catalog and cannot be
+        redefined by the persisted catalog, so the price charged and the points granted
+        are always read from one truth. Operator-created non-seed packages keep their
+        own pricing. Marketing copy (label, badge, desc, audience, original_price)
+        stays operator-editable and must not be pinned.
+      - Membership duration flows from the catalog into the payment attach; call sites
+        must not re-invent a duration default.
   billing_usage:
     path: /api/v1/billing/usage
     authority: wallet_snapshot_or_member_usage_meter
@@ -158,6 +183,12 @@ mobile_http_read_models:
         id fail closed; invalid or incomplete evidence grants neither points nor entitlement.
       - Operator-attested manual purchases remain a separate adapter over the same
         canonical purchase writer and must stay distinguishable from provider settlement.
+      - Settlement never refuses delivery because the package was archived after the
+        order was placed. Once funds have settled, withholding entitlement creates fund
+        limbo — the adapter fails, the provider retries indefinitely, and the payer
+        stays charged but uncredited. Sellability is enforced at checkout, before payment;
+        an archived package is still resolvable here so amount validation and delivery
+        can complete.
 
 mobile_http_auth_controls:
   password_reset:

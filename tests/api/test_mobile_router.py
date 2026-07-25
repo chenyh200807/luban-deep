@@ -6818,3 +6818,96 @@ def test_mobile_chat_start_turn_is_rate_limited(monkeypatch: pytest.MonkeyPatch)
 
     assert statuses[:10] == [200] * 10  # first 10 within the window pass
     assert statuses[10] == 429  # 11th over the limit is rejected
+
+
+# ---------------------------------------------------------------------------
+# 会员时长必须从 canonical 目录流到支付链路
+#
+# `_build_local_checkout_payload` 曾漏掉 days 键,于是 `_billing_package_days`
+# 永远读不到目录声明值、每笔支付都落到兜底常量 —— 目录里的 days 成了死字段,
+# "改目录时长"这个动作完全不生效。参数化直接吃 `_default_packages()`,
+# 新增档位自动纳入覆盖。
+# ---------------------------------------------------------------------------
+
+_member_console_service_module = importlib.import_module(
+    "deeptutor.services.member_console.service"
+)
+
+
+@pytest.mark.parametrize(
+    "package_id",
+    [item["id"] for item in _member_console_service_module.MemberConsoleService._default_packages()],
+)
+def test_checkout_payload_carries_canonical_package_days(package_id: str) -> None:
+    seed = {
+        item["id"]: item
+        for item in _member_console_service_module.MemberConsoleService._default_packages()
+    }[package_id]
+
+    payload = mobile_module._build_local_checkout_payload(
+        user_id="days_user",
+        wallet_user_id="days_wallet",
+        package=dict(seed),
+        channel="wechat",
+    )
+
+    # payload 必须带出目录声明的时长,而不是让下游落兜底
+    assert payload["package"]["days"] == int(seed["days"])
+    # 下游从 payload 子字典再取一次时,读到的仍是目录真值(接线闭合)
+    assert mobile_module._billing_package_days(payload["package"]) == int(seed["days"])
+
+
+# ---------------------------------------------------------------------------
+# 可售性(status)必须在服务端被执行
+#
+# 此前 checkout 读的是不带 status 键的原始种子,所以「已下架」在收钱侧结构上
+# 不可见:①运营下架后用户仍能付款,兑付侧却拒绝发货 → 503 → 支付渠道无限重试
+# → 钱已扣、点数永不到账;②「998 档不对 C 端售卖」只写在前端白名单里,
+# 服务端零过滤,构造一个请求即可自助下单。
+# ---------------------------------------------------------------------------
+
+
+def test_consumer_catalog_excludes_admin_only_package() -> None:
+    """消费者可售目录只含 active 档;管理端专属档(998)不下发、不可售。"""
+    sellable_ids = [str(item.get("id")) for item in mobile_module._wallet_packages()]
+
+    assert "supreme_svip" not in sellable_ids
+    assert sellable_ids == ["starter_19", "light_98", "vip", "svip"]
+    # 目录本身仍保留该档(BI 可见、可手动开通),只是不可售
+    assert "supreme_svip" in [str(item.get("id")) for item in mobile_module._membership_catalog()]
+
+
+def test_admin_only_package_is_not_self_purchasable() -> None:
+    assert mobile_module._billing_package_by_id("supreme_svip") is None
+
+
+def test_settlement_still_resolves_non_sellable_package() -> None:
+    """反例:兑付侧必须仍能解析不可售档 —— 钱已到账后解析失败会造成资金滞留
+    (用户下单后、回调到达前运营下架该档,就会命中这个竞态)。"""
+    resolved = mobile_module._billing_package_by_id("supreme_svip", sellable_only=False)
+
+    assert resolved is not None
+    assert str(resolved["id"]) == "supreme_svip"
+
+
+def test_billing_checkout_rejects_non_sellable_package(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/billing/checkout",
+            json={"package_id": "supreme_svip", "channel": "wechat"},
+        )
+
+    assert response.status_code == 404

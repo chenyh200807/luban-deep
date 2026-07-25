@@ -22,6 +22,7 @@ import uuid
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -129,10 +130,17 @@ _MEMBERSHIP_PACKAGE_ALIASES = {
 
 
 def _canonical_membership_package_id(package_id: str | None) -> str:
-    raw = str(package_id or "").strip()
+    """把任意档位写法归一成 canonical 档位 id(小写)。
+
+    未命中别名表时也必须小写化:档位 id 全是小写,而 tier 的写入侧是自由文本
+    (BI 手动开通/批量 grant 可传 "VIP")。此前未命中就原样返回,导致同一个 "VIP"
+    在档位排序里算未知档(rank 0,合号时被 trial 清掉),在教学视频权益里却因
+    消费侧自行 .lower() 而算 vip(无限视频)—— 同一个值两套口径。
+    """
+    raw = str(package_id or "").strip().lower()
     if not raw:
         return ""
-    return _MEMBERSHIP_PACKAGE_ALIASES.get(raw.lower(), raw)
+    return _MEMBERSHIP_PACKAGE_ALIASES.get(raw, raw)
 
 
 _NON_HUMAN_ACCOUNT_KINDS = {
@@ -205,12 +213,39 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     }
 )
 _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS = int(datetime(2026, 6, 22, 3, 3, tzinfo=timezone.utc).timestamp())
-_MEMBERSHIP_TIER_RANK = {
-    "trial": 0,
-    "vip": 1,
-    "svip": 2,
-    "supreme_svip": 3,
-}
+# 会员时长兜底天数 —— 目录未声明 days 时使用。365 是自 2026-07-07 原生微信支付
+# 上线起系统与运营侧的既成口径(支付 attach、BI 手动开通表单默认值都是 365);
+# 目录里曾写 180 但从未接线,是死字段。此常量是该兜底值的唯一定义处,
+# 支付链路(`api/routers/mobile.py`)引用它而不再各写一份字面量。
+DEFAULT_MEMBERSHIP_DAYS = 365
+
+# 种子档位中「不允许持久化目录改写」的字段白名单 —— 即经济向量与可售性:
+# 定价(price/per_turn_price)、发点(points)、额度(turns)、时长(days)、
+# 权益派生输入(tier)、能否售卖(status),外加与 turns 强耦合的展示串 per
+# (若 turns 被钉回而 per 保留运营值,会出现"标 1400 次实发 625 次"的误导)。
+#
+# 刻意**不含** label / badge / audience / desc / original_price:
+# 这些是营销文案与划线价,运营在 BI 商业面板编辑它们是合法动作。把它们一起钉
+# 会静默吞掉运营编辑(保存提示成功、下次读回旧值、且无 audit 记录)。
+_PINNED_SEED_FIELDS = frozenset(
+    {"points", "turns", "days", "price", "per_turn_price", "per", "tier", "status"}
+)
+
+
+@lru_cache(maxsize=1)
+def _seed_membership_packages() -> dict[str, dict[str, Any]]:
+    """canonical 档位种子,按 id 索引 —— 定价/权益/时长真值的唯一来源。
+
+    `MemberConsoleService._default_packages()` 是这份真值的字面定义;本函数只是
+    把它索引成 id → 档位,供防漂移覆盖与档位排序派生使用,不引入第二份数据。
+    档位高低由 `_membership_tier_rank` 按**价格**派生,不依赖本列表的顺序
+    (目录顺序同时是付费墙卡片展示顺序,营销重排不应影响权益优先级)。
+    """
+    return {
+        str(item["id"]): dict(item)
+        for item in MemberConsoleService._default_packages()
+        if str(item.get("id") or "").strip()
+    }
 _ADMIN_ROLE_RANK = {
     rbac.ROLE_ANALYST: 0,
     rbac.ROLE_OPERATOR: 1,
@@ -927,7 +962,7 @@ class MemberConsoleService:
                 "label": "入门体验",
                 "points": 400,
                 "turns": 20,
-                "days": 180,
+                "days": 365,
                 "price": "9.9",
                 "original_price": "29",
                 "badge": "新手体验",
@@ -941,7 +976,7 @@ class MemberConsoleService:
                 "label": "进阶",
                 "points": 3000,
                 "turns": 150,
-                "days": 180,
+                "days": 365,
                 "price": "68",
                 "original_price": "98",
                 "badge": "轻量优选",
@@ -955,7 +990,7 @@ class MemberConsoleService:
                 "label": "VIP",
                 "points": 9000,
                 "turns": 450,
-                "days": 180,
+                "days": 365,
                 "price": "198",
                 "original_price": "298",
                 "badge": "",
@@ -971,7 +1006,7 @@ class MemberConsoleService:
                 "label": "SVIP",
                 "points": 12500,
                 "turns": 625,
-                "days": 180,
+                "days": 365,
                 "price": "268",
                 "original_price": "398",
                 "badge": "最高性价比",
@@ -981,11 +1016,17 @@ class MemberConsoleService:
                 "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
             },
             {
+                # 管理端专属档:仅供运营手动开通,不对 C 端售卖。`status="archived"` 是
+                # 这条产品边界在服务端的唯一执行点 —— 此前该边界只写在前端白名单
+                # (yousenwebview 的 _isLaunchPackageId)里,服务端零过滤,任何已登录
+                # 用户构造一个 checkout 请求就能自助下 998 单。
+                # archived 档仍保留在目录中(BI 可见、可手动开通),只是不可售。
                 "id": "supreme_svip",
+                "status": "archived",
                 "label": "至尊SVIP",
                 "points": 50000,
                 "turns": 2500,
-                "days": 180,
+                "days": 365,
                 "price": "998",
                 "original_price": "1298",
                 "badge": "最高性价比",
@@ -1012,9 +1053,14 @@ class MemberConsoleService:
         except (TypeError, ValueError):
             turns = 0
         try:
-            days = int(item.get("days") or item.get("duration_days") or item.get("durationDays") or 180)
+            days = int(
+                item.get("days")
+                or item.get("duration_days")
+                or item.get("durationDays")
+                or DEFAULT_MEMBERSHIP_DAYS
+            )
         except (TypeError, ValueError):
-            days = 180
+            days = DEFAULT_MEMBERSHIP_DAYS
         price = str(item.get("price") or item.get("price_cny") or item.get("priceCny") or "0").strip()
         status = str(item.get("status") or item.get("state") or "active").strip() or "active"
         if status not in {"active", "draft", "archived"}:
@@ -1043,53 +1089,30 @@ class MemberConsoleService:
                 package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
             except (TypeError, ValueError, ZeroDivisionError):
                 package["per_turn_price"] = ""
-        # 消费者档位为「防漂移锚点」：无论来自 _default_packages 还是持久化 packages,
-        # 均在此处硬钉成唯一定价真值,消费/发点路径(_resolve_membership_package)也走这里,
-        # 因此改价必须同步改这里(否则发点会被钉回旧值 → 资损)。
-        if package["id"] == "starter_19":
+        # 消费者档位为「防漂移锚点」：canonical 种子目录(`_default_packages`)是定价、
+        # 时长与档位展示字段的唯一真值,持久化目录(运营可写)不得改写种子档 —— 发点
+        # 路径 `_resolve_membership_package` 读的正是持久化目录,所以这里是发点真值
+        # 的最后一道锚。
+        #
+        # 按 id 从种子整档覆盖,不再按档位手写 if/elif:保护因此对**全部**种子档对称,
+        # 新增种子档自动纳入。原实现只枚举 starter_19/light_98/svip,vip(198 元) 与
+        # supreme_svip(998 元) 裸放 → 运营改 points 会被真实发点采纳 → 资损。
+        # 改价只需改 `_default_packages()` 一处,不存在"忘记同步第二处"的漏点。
+        #
+        # `status` 不在覆盖范围:上架与否是运营决策,不是定价真值。
+        # 运营自助新增的非种子档不受影响,仍可自定义定价。
+        seed = _seed_membership_packages().get(package["id"])
+        if seed:
             package.update(
                 {
-                    "id": "starter_19",
-                    "tier": "starter_19",
-                    "label": "入门体验",
-                    "points": 400,
-                    "turns": 20,
-                    "days": 180,
-                    "price": "9.9",
-                    "per_turn_price": "0.495",
+                    key: value
+                    for key, value in seed.items()
+                    if key in _PINNED_SEED_FIELDS and key in seed
                 }
             )
-        elif package["id"] == "light_98":
-            package.update(
-                {
-                    "id": "light_98",
-                    "tier": "light_98",
-                    "label": "进阶",
-                    "points": 3000,
-                    "turns": 150,
-                    "days": 180,
-                    "price": "68",
-                    "per_turn_price": "0.453",
-                }
-            )
-        elif package["id"] == "svip":
-            package.update(
-                {
-                    "id": "svip",
-                    "tier": "svip",
-                    "label": "SVIP",
-                    "points": 12500,
-                    "turns": 625,
-                    "days": 180,
-                    "price": "268",
-                    "original_price": "398",
-                    "badge": "最高性价比",
-                    "per": "625 次 AI 学习额度",
-                    "per_turn_price": "0.429",
-                    "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
-                    "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
-                }
-            )
+            # 种子档的 tier 恒等于 id(种子 dict 不带 tier 键,原三个 pinning 块也都
+            # 显式钉成 id)。tier 是教学视频权益与档位排序的派生输入,必须一起锚定。
+            package["tier"] = package["id"]
         return package
 
     @classmethod
@@ -6040,7 +6063,17 @@ class MemberConsoleService:
             if _canonical_membership_package_id(item.get("id")) == normalized_package_id:
                 package = self._normalize_membership_package(item)
                 if str(package.get("status") or "active").strip() != "active":
-                    raise ValueError(f"Membership package is not active: {normalized_package_id}")
+                    # 兑付路径永不因下架而拒绝发货。本函数只在「钱已到账」或
+                    # 「运营已签核」之后被调用(唯一调用方是 _apply_membership_purchase),
+                    # 此时拒绝发货严格劣于发货:notify 会抛 → HTTP 503 → 支付渠道无限
+                    # 重试 → 用户钱已扣、点数永不到账(资金滞留 + 客诉),而运营只是把
+                    # 套餐下架这一个最平常的动作。
+                    # 「下架不可售」的正确防线在收钱之前(checkout),不在兑付之后。
+                    logger.warning(
+                        "membership package %s is not active but the purchase is already settled; "
+                        "delivering entitlement anyway to avoid fund limbo",
+                        normalized_package_id,
+                    )
                 return package
         raise ValueError(f"Unknown membership package: {normalized_package_id}")
 
@@ -6623,7 +6656,27 @@ class MemberConsoleService:
 
     @staticmethod
     def _membership_tier_rank(tier: Any) -> int:
-        return _MEMBERSHIP_TIER_RANK.get(str(tier or "").strip(), 0)
+        """档位高低 = canonical 目录顺序(价格递增);trial 与未知档 = 0。
+
+        原实现是手写枚举 `{trial, vip, svip, supreme_svip}`,漏了 starter_19 与
+        light_98 —— 这两档因此 rank 0、与 trial 同级,合号时
+        `rank(source) > rank(target)` 为假,付费档被 trial 静默覆盖(视频上限从
+        无限掉回 20 集)。而合号不只发生在管理端:微信绑手机登录会自动触发。
+        改为从种子目录顺序派生,新增档位自动获得正确排序,不再有第二份枚举。
+        """
+        normalized = _canonical_membership_package_id(tier)
+        if not normalized:
+            return 0
+        seed = _seed_membership_packages().get(normalized)
+        if seed is None:
+            return 0
+        # 按**价格**派生,不按目录列表下标:目录顺序同时是付费墙的卡片展示顺序,
+        # 纯营销动作(把"最高性价比"挪到首位)不该静默改变所有会员的合号优先级。
+        # 价格是经济事实、与权益单调,是档位高低的正确判据。
+        try:
+            return max(1, int(round(float(str(seed.get("price") or "0")) * 100)))
+        except (TypeError, ValueError):
+            return 0
 
     @staticmethod
     def _later_iso(left: Any, right: Any) -> str:
