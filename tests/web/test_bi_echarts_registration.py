@@ -78,7 +78,12 @@ TYPE_LITERAL = re.compile(r"""type:\s*['"]([A-Za-z]+)['"]""")
 # Option-level component keys sit at the start of a line inside an option
 # object literal; series-nested ones (e.g. a series' own `tooltip`) need the
 # same component, so matching both is intentional.
-OPTION_KEY = re.compile(r"^\s+(" + "|".join(OPTION_KEY_TO_COMPONENT) + r"):", re.MULTILINE)
+# A trailing quote means the value is a string, not an option block — `theme.ts`
+# has `grid: 'rgba(...)'` as a palette colour, which needs no component.
+OPTION_KEY = re.compile(
+    r"^\s+(" + "|".join(OPTION_KEY_TO_COMPONENT) + r"):\s*(?!['\"])",
+    re.MULTILINE,
+)
 
 
 def _registered_symbols() -> set[str]:

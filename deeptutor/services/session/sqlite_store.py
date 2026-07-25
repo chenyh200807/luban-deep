@@ -684,10 +684,10 @@ class SQLiteSessionStore:
                 CREATE INDEX IF NOT EXISTS idx_turns_session_status
                     ON turns(session_id, status, updated_at DESC);
 
-                -- BI window scans filter on updated_at alone (no session_id), so the
-                -- session-prefixed indexes above cannot serve them.
-                CREATE INDEX IF NOT EXISTS idx_turns_updated_at
-                    ON turns(updated_at DESC);
+                -- BI's window scan filters turns on created_at alone (no session_id),
+                -- so every session-prefixed index above is unusable for it.
+                CREATE INDEX IF NOT EXISTS idx_turns_created_at
+                    ON turns(created_at DESC);
 
                 CREATE TABLE IF NOT EXISTS turn_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,

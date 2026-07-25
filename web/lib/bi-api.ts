@@ -1673,9 +1673,12 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     highlights,
     entrypoints,
     alerts,
-    // 后端 `generated_at` 是 epoch 秒（BIService.get_overview），Date 要毫秒。
+    // 必须从 `raw` 顶层读，不能用上面的 `record`：`firstRecord` 会在
+    // ['overview','data','summary'] 里挑第一个对象,而 /overview 的 payload 恰好
+    // 有顶层 `summary` 对象,于是 `record` 指向 summary,里面没有 generated_at。
+    // 后端 `generated_at` 在顶层且是 epoch 秒（BIService.get_overview），Date 要毫秒。
     // 缺失时保持 0，交给渲染层说"未知"，不要在这里编一个时间出来。
-    generatedAt: toNumber(record.generated_at) * 1000,
+    generatedAt: toNumber(asRecord(raw).generated_at) * 1000,
     northStar: normalizeNorthStarPayload(raw),
     growthFunnel: normalizeGrowthFunnelPayload(raw),
     memberHealth: normalizeMemberHealthPayload(raw),

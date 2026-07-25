@@ -63,8 +63,10 @@
 ### 7.1 本轮完成（全部零新鲜度语义变化）
 
 - **执行模型**：`_load_context_since` 降为同步 `def`（实测 awaits=0，纯删减），
-  `_load_business_context` 成为唯一 `asyncio.to_thread` 边界（与 `sqlite_store._run_read` 同范式）；
-  `get_overview` 的会员快照、`get_commerce` 全方法一并离开事件循环。
+  `_load_business_context` 成为**context 路径**的 `asyncio.to_thread` 边界（与 `sqlite_store._run_read`
+  同范式）；`get_overview` 的会员快照、`get_commerce` 全方法一并离开事件循环。
+  **注意这不是「全 BI 的唯一边界」**——全仓 `to_thread` 共 9 处（本轮新增 5 处），
+  且 `get_overview` 自身仍有阻塞 IO 留在循环上，见 §7.4。
 - **补完病B-4**：`bi.py:/member/dashboard` 与 `member.py:/dashboard` 降同步 `def`——
   2026-07-05 那轮只改了 mobile 三条，这两条调同一个 3–5s 的 `get_dashboard` 却被漏下。
   守卫 `tests/api/test_mobile_event_loop_discipline.py` 泛化为 `(router, path)` 映射，
@@ -108,3 +110,29 @@ BI v1（`BiPageClient` 及其 `loadBiWorkbench` 的 8× 同参放大、8 个无 
 线上 `BI_BACKOFFICE_V2_SHELL_ENABLED` 已开，v1 是死路径，改它属超范围。
 `directory.py` 的 `in.(...)` URL 长度墙（会员数约 250~450 触发 414）是正确性悬崖不是性能问题，
 应单独立项。全仓 222 个零 await handler 的体检同理。
+
+### 7.4 对抗性 review 发现、本轮未修（下一轮的输入）
+
+本轮的对抗性 review 给出 1 BLOCKER + 6 MAJOR。BLOCKER（`generated_at` 读错对象导致 §7.1 第 4 条
+形同虚设）与两条 MAJOR（无用的 `turns(updated_at)` 索引、被夸大 18 倍的性能数字）已在本轮修掉。
+以下四条留给下一轮，都不是本轮改动引入的回归，而是**收口未完成的部分**：
+
+1. **`get_overview` 自身仍有 4 处阻塞 IO 在事件循环上**：两次 usage-ledger 读、
+   经 `get_non_business_identity_ids` 的会员目录取数、一次文件读。它们在
+   `_load_business_context` 边界之外，而本轮的行为守卫孤立调用
+   `_load_business_context`、从不调 `get_overview`，**结构上看不见它们**。
+   下一轮应让守卫直接打 `get_overview`。
+2. **`asyncio.to_thread` 用的是事件循环默认 executor，与 `sqlite_store._run_read` 同一个池**
+   （22 workers）。BI 的长扫描会占住一个 slot，TutorBot 的 session 读排在它后面
+   ——比阻塞循环好，但是**部分位移而非隔离**。代码库已有专用 executor 的样板
+   （`sqlite_store.py` 的 writer executor），下一轮按它接。
+3. **registered-member 过滤现有 3 份副本**（`_registered_members_snapshot`、
+   `get_member_stats`、`_commerce_sync`）。本轮为下沉新增了第一份，未收敛后两份——
+   与本计划把「调用点 3→8」当作根因证据的立场不一致，应一并收权。
+4. **`member.py` 的 `list_members` 裸调，而 `bi.py` 同一方法已包 `to_thread`**：
+   本轮修的那对不对称，隔一个路由还活着。根因是修法与守卫都按**手工维护的 path 白名单**
+   匹配，而非按不变量匹配；真正的收口需要按「调用了哪些已知阻塞方法」判定。
+
+另有一条治理缺口：**`tests/web/` 不在任何 CI 分片里**（全 workflow 零命中），
+所以本轮新增的两个 web 守卫只在本地生效。直接接进 shard 会立刻变红
+（该目录已有 4 个 pre-existing failure），正确顺序是先修那 4 个再接。

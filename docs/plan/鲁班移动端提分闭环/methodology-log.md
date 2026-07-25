@@ -25,7 +25,15 @@
 
 **④修法与理由**:全部零新鲜度语义变化。(a)`_load_context_since` 降同步 `def`(实测 awaits=0,纯删减),`_load_business_context` 成为**唯一** `to_thread` 边界——并发专家原建议沉在 `_load_context_since`,指挥官指出那会把 95% 延迟(会员目录 HTTP,在 await **之后**执行)留在循环上,这是实质修正不是措辞调整。(b)`bi.py`/`member.py` 两条 dashboard 降同步 `def`,**补完 2026-07-05 病B-4 只改了 mobile 三条的那次修复**;守卫泛化成 `(router, path)` 映射留在**同一个文件**(新建 = 第二套白名单必然漂移)。(c)`turn_events(type, created_at)` 索引——列序特意把等值谓词放前,范围谓词放后。(d)接通服务端 `generated_at`:此前类型无字段、builder 不读、面板 `Date.now()` 现编却标注"实时数据",是**今天就在骗运营的 provenance 谎报**,且它坏着就无法验证任何缓存。
 
-**⑤验证与教训**:索引在 86MB 真实库上 EXPLAIN QUERY PLAN 实测 `result_events` **147.3ms → 0.1ms**;ECharts 按需用**真实文件**打包实测 br **309,807 → 173,732(−43.9%)**,与前端专家独立最小样例(309,569→173,325)交叉验证一致。三个守卫全部做了**反向证伪**(注入 `scatter`/移除 `to_thread`/还原 `Date.now()` 各自精确报红)。**顺带实测出一个现存缺陷**:`packages_changed` 恒真(磁盘 `starter_19.teaching_video_limit=30` 规范化成 `None`)⇒ **每个 BI 请求都在读路径全量写盘 + 持 `LOCK_EX`**,且它每次改 mtime 会让未来的 mtime 缓存永不命中;但该字段是计费权益,改哪边都要 owner 按口径拍板,故只留证据不动代码。**未做(诚实边界):会员快照物化未实施——它是单请求延迟大头,但会让 BI 读数可陈旧 60s,属 owner 可感知的行为变更,需拍板;`bi_v2_contract_smoke.mjs` 那类运行时断言需要浏览器,受内存护栏约束本轮没跑,故不宣称"线上已验证"。**
+**⑤验证与教训**:索引在 86MB 真实库上 EXPLAIN QUERY PLAN 实测,整条 `_load_context_since` 的 SQL 部分 **17.10ms → 0.66ms**(其中 `turn_events` 两条 8.28/8.20ms → 0.11/0.04ms,fresh connection 逐条测,与生产 `_connect()` 每次新建连接的形状一致);ECharts 按需用**真实文件**打包实测 br **309,807 → 173,732(−43.9%)**,与前端专家独立最小样例(309,569→173,325)交叉验证一致。三个守卫全部做了**反向证伪**(注入 `scatter`/移除 `to_thread`/还原 `Date.now()` 各自精确报红)。**顺带实测出一个现存缺陷**:`packages_changed` 恒真(磁盘 `starter_19.teaching_video_limit=30` 规范化成 `None`)⇒ **每个 BI 请求都在读路径全量写盘 + 持 `LOCK_EX`**,且它每次改 mtime 会让未来的 mtime 缓存永不命中;但该字段是计费权益,改哪边都要 owner 按口径拍板,故只留证据不动代码。**未做(诚实边界):会员快照物化未实施——它是单请求延迟大头,但会让 BI 读数可陈旧 60s,属 owner 可感知的行为变更,需拍板;`bi_v2_contract_smoke.mjs` 那类运行时断言需要浏览器,受内存护栏约束本轮没跑,故不宣称"线上已验证"。**
+
+**⑥对抗性 review 推翻了我三件自认为已验证的事(歧路 6-8,比前五条更值钱,因为它们都通过了我自己的验证)**:
+
+- **歧路 6(BLOCKER):Step A 的接线根本没生效,而我的守卫为此绿灯。** `parseBiOverviewBundle` 的 `record` 来自 `firstRecord(raw, ['overview','data','summary'])`——取三个 key 里第一个非数组对象。而 `/overview` payload **恰好有顶层 `summary` 对象**,于是 `record` 指向 summary,`generated_at` 却在顶层 ⇒ `record.generated_at` 永远 undefined ⇒ 每次都解析成 0。用 repo 自己的 fixture(`bi_overview.json`,顶层 `generated_at=1781231207.48`)证实。**净效果是我把"能用但不诚实"换成了"永久空白"**。守卫绿是因为它只断言 `Date.now()` 的**缺席**——**删掉功能和修好功能同样满足它**。教训:provenance 类修复必须有**正向**断言(给定真实 payload 解析出非零值),只查"坏写法不在了"等于验尸体。新守卫已补,并反向证伪(改回 `record.` 精确报红)。
+- **歧路 7(MAJOR):我加的 `idx_turns_updated_at` 完全没用,注释还是假的。** 真实 turns query 过滤的是 `created_at`,不是 `updated_at`。根因是**我的验证脚本手写了 query 而没从真实代码提取**——所以我"实测"验证的是自己的假设。`updated_at` 每次 turn 状态变化都改,加索引纯属写放大。已改为 `turns(created_at DESC)`,复测确认命中(`SEARCH t USING INDEX idx_turns_created_at`)。**教训:测 SQL 性能必须从源码 AST 提取真实 SQL,手抄一遍就等于测了个别的东西。**
+- **歧路 8(MAJOR):我原报的 `147.3ms → 0.1ms` 夸大约 18 倍。** 同一原因(手写 query)。诚实数字见 ⑤:整条 SQL 17.10→0.66ms,即 3-5s 请求里省 ~16ms——**真实但有限,大头始终是会员链的 300-2000ms(未修)**。
+- 另外 reviewer 指出"唯一的 to_thread 边界"这个说法**错了 9 倍**(全仓 9 处,本轮加 5 处),且 `get_overview` 自己仍有 4 处阻塞 IO 在循环上(usage ledger ×2、非业务身份、文件读);行为守卫孤立调用 `_load_business_context`,结构上看不见它们。注释已改为诚实描述"这是 context 路径的边界,不是全 BI 的",剩余项进计划。
+- **攻击失败(经 reviewer 独立复测,这些站得住)**:计时守卫公差有 ~16× 余量(loadavg 57 下 max 0.0106s vs 阈值 0.15s,20/20 通过,10/10 真检测);`*1000` 单位正确;无跨线程连接共享;sync 端点 FastAPI 语义不变;计数点下移是**必要且加强**的;`turn_events(type, created_at)` 列序正确。
 
 ---
 

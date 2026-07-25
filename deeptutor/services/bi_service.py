@@ -1316,14 +1316,21 @@ class BIService:
             truncated_collections=truncated_collections,
         )
 
-    # Both entry points below are the single boundary where BI leaves the event
-    # loop.  `_load_context_since` and everything it feeds are plain synchronous
-    # work (SQLite scans, and — via scoping — the member directory's blocking
-    # HTTP), so running them under `async def` kept them *on* the loop: one BI
-    # request stalled every other request in the same worker, TutorBot streaming
-    # included.  Same shape as `sqlite_store._run_read`; the boundary sits here
-    # rather than deeper because scoping (the expensive part) runs after the
-    # scan, so sinking only the scan would leave most of the latency behind.
+    # `_load_context_since` and everything it feeds are plain synchronous work
+    # (SQLite scans, and — via scoping — the member directory's blocking HTTP),
+    # so running them under `async def` kept them *on* the loop: one BI request
+    # stalled every other request in the same worker, TutorBot streaming
+    # included.  Same shape as `sqlite_store._run_read`; the boundary sits at
+    # this level rather than deeper because scoping (the expensive part) runs
+    # after the scan, so sinking only the scan would leave most of the latency
+    # behind.
+    #
+    # This is the boundary for the *context* path, not for all of BI: several
+    # other blocking reads in `get_overview` (usage ledger, non-business
+    # identities, file reads) still run on the loop, and `to_thread` here hands
+    # the work to the loop's default executor — the same pool
+    # `sqlite_store._run_read` uses — so a long BI scan occupies a slot other
+    # readers queue behind. Better than blocking the loop, not yet isolation.
     async def _load_context(self, days: int) -> _BiContext:
         return await asyncio.to_thread(self._load_context_since, self._window_start(days))
 
