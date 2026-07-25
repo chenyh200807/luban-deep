@@ -684,6 +684,11 @@ class SQLiteSessionStore:
                 CREATE INDEX IF NOT EXISTS idx_turns_session_status
                     ON turns(session_id, status, updated_at DESC);
 
+                -- BI window scans filter on updated_at alone (no session_id), so the
+                -- session-prefixed indexes above cannot serve them.
+                CREATE INDEX IF NOT EXISTS idx_turns_updated_at
+                    ON turns(updated_at DESC);
+
                 CREATE TABLE IF NOT EXISTS turn_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     turn_id TEXT NOT NULL REFERENCES turns(id) ON DELETE CASCADE,
@@ -701,6 +706,13 @@ class SQLiteSessionStore:
 
                 CREATE INDEX IF NOT EXISTS idx_turn_events_turn_seq
                     ON turn_events(turn_id, seq);
+
+                -- BI reads only 'result' and tool events out of a time window, but
+                -- ~96% of this table is streaming content/thinking chunks it never
+                -- looks at.  Without a type-leading index every BI window scan reads
+                -- the whole table (measured: 92,512 rows scanned to return 509).
+                CREATE INDEX IF NOT EXISTS idx_turn_events_type_created
+                    ON turn_events(type, created_at DESC);
 
                 -- A hosted teaching card cannot receive the Mini Program's bearer
                 -- token.  These opaque, short-lived tickets are the one narrow
