@@ -188,3 +188,24 @@ def test_flag_enabled_branches_do_not_call_mock_as_live() -> None:
         "escape phrase. This is the OpsPanel regression pattern (Round 4 S5).\n"
         + "\n".join(f"  - {o}" for o in offenders)
     )
+
+
+# --- provenance 文案不得由客户端时钟伪造 -------------------------------------
+
+# `generatedAt: Date.now()` 是同一个 copy-vs-code drift 的另一种形态:banner 上
+# 写着数据溯源时刻,值却取自浏览器时钟。数据陈旧时它谎报成"刚刚",而这正是本文件
+# 要防的那类"文案声称的事实,代码并不提供"。
+_CLIENT_CLOCK_PROVENANCE = re.compile(r"generatedAt\s*:\s*Date\.now\(\)")
+
+
+def test_panels_do_not_fabricate_snapshot_time_from_client_clock() -> None:
+    offenders: list[str] = []
+    for path in sorted(V2_ROOT.rglob("*.tsx")):
+        if _CLIENT_CLOCK_PROVENANCE.search(path.read_text(encoding="utf-8")):
+            offenders.append(str(path.relative_to(REPO_ROOT)))
+
+    assert not offenders, (
+        "Snapshot provenance must come from the server's `generated_at`, not the "
+        "browser clock — otherwise a stale panel reports itself as just-generated:\n"
+        + "\n".join(f"  - {o}" for o in offenders)
+    )

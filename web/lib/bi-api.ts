@@ -307,6 +307,11 @@ export interface BiOverviewData {
   aiQuality?: BiAiQualityPayload
   unitEconomics?: BiUnitEconomicsPayload
   dataTrust?: BiDataTrustPayload
+  /**
+   * 服务端快照时刻（epoch 毫秒）。0 = 后端没给，渲染层必须显式表达"未知"，
+   * 不得用浏览器时钟顶替——那会把客户端时间伪装成数据溯源事实。
+   */
+  generatedAt: number
   /** Active trend projected from the same server snapshot as the overview cards. */
   activeTrend?: BiTrendPoint[]
   /** UsageLedger 逐日成本序列（成本日趋势图单源；reducer 透传，不再依赖 active-trend 的 cost） */
@@ -724,6 +729,8 @@ const DEFAULT_DATA: BiWorkbenchData = {
     highlights: [],
     entrypoints: [],
     alerts: [],
+    // 尚未从服务端取到任何快照，时刻只能是"未知"。
+    generatedAt: 0,
   },
   trend: { points: [] },
   retention: { cohorts: [], labels: ['D0', 'D1', 'D7', 'D30'] },
@@ -1666,6 +1673,9 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     highlights,
     entrypoints,
     alerts,
+    // 后端 `generated_at` 是 epoch 秒（BIService.get_overview），Date 要毫秒。
+    // 缺失时保持 0，交给渲染层说"未知"，不要在这里编一个时间出来。
+    generatedAt: toNumber(record.generated_at) * 1000,
     northStar: normalizeNorthStarPayload(raw),
     growthFunnel: normalizeGrowthFunnelPayload(raw),
     memberHealth: normalizeMemberHealthPayload(raw),
