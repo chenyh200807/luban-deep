@@ -81,6 +81,11 @@
   面板用 `Date.now()` 现编却标注「实时数据」。这违反 §1「禁止前端估算 authority」，
   且使任何缓存都无法验证。现已接通，缺失时显式显示「快照时刻未知」。
 - 传输轴（与读模型正交）：ECharts 改按需注册，brotli 309,807 → 173,732（−43.9%）。
+- 传输轴补轮（PR #564 合并后）：`BiV2MemberOpsPanel` 改 `dynamic()`。它是 `BiV2Surface`
+  里唯一还静态 import 的 panel（其余 6 个早已是 dynamic），而默认落地区是 overview，
+  于是这 3,866 行 TSX（panel 2,550 + Member360Drawer 747 + ConversationReviewDrawer 569）
+  被无条件放进 shell。实测确认它**不含** echarts（`MemberOpsCockpit` 自身已是 dynamic），
+  所以省下的是纯 TSX 体积。
 
 ### 7.2 本轮未做，且**必须先由 owner 拍板**
 
@@ -135,6 +140,32 @@ BI v1（`BiPageClient` 及其 `loadBiWorkbench` 的 8× 同参放大、8 个无 
    本轮修的那对不对称，隔一个路由还活着。根因是修法与守卫都按**手工维护的 path 白名单**
    匹配，而非按不变量匹配；真正的收口需要按「调用了哪些已知阻塞方法」判定。
 
+4. **`page.tsx` 把 BI v1 与 v2 两套都静态 import**（`BiPageClient` + `BiV2Surface`），
+   由服务端 flag 二选一渲染。App Router 只为 RSC payload 实际引用到的 client reference
+   发 script，所以浏览器**很可能不会**下载没被渲染的那一支——但两套都进
+   client-reference-manifest，而 `route_budgets.mjs` 是按 manifest 求和的，
+   于是 `/bi` 的预算把两套都算了进去。**这条不要照推断改**：需要一次
+   `next build` + DevTools network 定论浏览器到底下不下载 v1，再决定是否把不走的那支
+   改成 `dynamic()`。（受内存护栏约束，本地不跑 build。）
+
+5. **性能预算门结构上不可能 FAIL —— 它比「`/bi` 没登记」严重得多。**
+   `route_budgets.mjs:158` 的判定是
+   `budget && row.comparableBudget && sizeKb > budget ? "FAIL" : "OK"`，
+   而 `comparableBudget`（:111）= `manifest.entryJSFiles` 存在与否 —— 那是 **Turbopack**
+   的 client-reference-manifest 字段。项目的 `npm run build` 是 `next build --webpack`，
+   webpack manifest 没有该字段 ⇒ `comparableBudget` **恒 false** ⇒ **status 恒 OK**。
+   CI 日志里的铁证：`OK /settings 364KB / budget 180KB (estimated webpack)` —— 超预算
+   一倍仍然 OK；那句 "(estimated webpack)" 就是脚本自己在声明"这个数字不可比"。
+   ⇒ 所以「把 `/bi` 加进 `ROUTE_BUDGETS_KB`」**并不能**让门生效，登记了也照样恒绿。
+   这是 dormant authority 的教科书形态：门接在 CI 上、每次都跑、每次都绿、
+   结构上永远拦不住任何东西。修它要先决定量测口径（改用 turbopack 构建取真值，
+   还是让脚本支持 webpack manifest），属独立议题。
+   **在它被修好之前，任何"CI 会挡住体积回归"的说法都不成立。**
+
 另有一条治理缺口：**`tests/web/` 不在任何 CI 分片里**（全 workflow 零命中），
-所以本轮新增的两个 web 守卫只在本地生效。直接接进 shard 会立刻变红
+所以新增的两个 web 守卫只在本地生效。直接接进 shard 会立刻变红
 （该目录已有 4 个 pre-existing failure），正确顺序是先修那 4 个再接。
+**在接进 CI 之前不要再往 `tests/web/` 加守卫**——一个 CI 不跑的守卫只会制造
+"以为有保护"的假象，那正是本文件 §7.4 开头批评的那种控制回路缺陷。
+（补轮的 MemberOps `dynamic()` 因此**没有**配套守卫；等目录接进 CI 后再补
+"BiV2Surface 的每个 panel 都必须是 dynamic import" 这条断言。）
