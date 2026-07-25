@@ -1126,7 +1126,7 @@ class BIService:
             rows = rows[:limit]
         return list(rows), truncated
 
-    async def _load_context_since(self, window_start: float) -> _BiContext:
+    def _load_context_since(self, window_start: float) -> _BiContext:
         row_limit = max(1, int(_BI_CONTEXT_ROW_LIMIT))
         with self._connect() as conn:
             session_rows, sessions_truncated = self._load_limited_rows(
@@ -1316,8 +1316,16 @@ class BIService:
             truncated_collections=truncated_collections,
         )
 
+    # Both entry points below are the single boundary where BI leaves the event
+    # loop.  `_load_context_since` and everything it feeds are plain synchronous
+    # work (SQLite scans, and — via scoping — the member directory's blocking
+    # HTTP), so running them under `async def` kept them *on* the loop: one BI
+    # request stalled every other request in the same worker, TutorBot streaming
+    # included.  Same shape as `sqlite_store._run_read`; the boundary sits here
+    # rather than deeper because scoping (the expensive part) runs after the
+    # scan, so sinking only the scan would leave most of the latency behind.
     async def _load_context(self, days: int) -> _BiContext:
-        return await self._load_context_since(self._window_start(days))
+        return await asyncio.to_thread(self._load_context_since, self._window_start(days))
 
     async def _load_business_context(
         self,
@@ -1326,10 +1334,20 @@ class BIService:
         members: list[dict[str, Any]] | None = None,
     ) -> _BiContext:
         """Load the canonical registered-member cohort for operating BI."""
+        return await asyncio.to_thread(self._business_context_sync, days, members)
+
+    def _business_context_sync(
+        self,
+        days: int,
+        members: list[dict[str, Any]] | None,
+    ) -> _BiContext:
         return self._scope_context_to_registered_members(
-            await self._load_context(days),
+            self._load_context_since(self._window_start(days)),
             members=members,
         )
+
+    def _registered_members_snapshot(self) -> list[dict[str, Any]]:
+        return [item for item in self._load_all_members() if self._is_registered_member(item)]
 
     def _load_all_members(self) -> list[dict[str, Any]]:
         """BI 会员口径唯一入口。
@@ -1483,9 +1501,10 @@ class BIService:
         entrypoint: str | None = None,
         tier: str | None = None,
     ) -> dict[str, Any]:
-        member_snapshot = [
-            item for item in self._load_all_members() if self._is_registered_member(item)
-        ]
+        # Off the loop: `_load_all_members` reaches the member directory over
+        # blocking HTTP (3–12 round trips). It sits before the awaited context
+        # load, so it would otherwise stall the worker on its own.
+        member_snapshot = await asyncio.to_thread(self._registered_members_snapshot)
         context = self._apply_filters(
             await self._load_business_context(days, members=member_snapshot),
             self._normalize_filters(capability, entrypoint, tier),
@@ -2850,7 +2869,7 @@ class BIService:
         window_start = self._window_start(days)
         now_ts = time.time()
         context = self._apply_filters(
-            await self._load_context_since(window_start),
+            await asyncio.to_thread(self._load_context_since, window_start),
             self._normalize_filters(capability, entrypoint, tier),
         )
         provider_label = str(provider_name or "").strip()
@@ -3897,6 +3916,16 @@ class BIService:
         return {"packages": packages, "authority": authority}
 
     async def get_commerce(
+        self,
+        limit: int = 100,
+        _members_snapshot: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        # The whole method goes off the loop: it contains no awaits at all, and
+        # its member lookup blocks on the directory's HTTP. Sinking it once is
+        # cheaper in decision points than wrapping each blocking call inside.
+        return await asyncio.to_thread(self._commerce_sync, limit, _members_snapshot)
+
+    def _commerce_sync(
         self,
         limit: int = 100,
         _members_snapshot: list[dict[str, Any]] | None = None,

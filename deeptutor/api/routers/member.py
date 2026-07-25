@@ -124,7 +124,9 @@ async def member_health() -> dict[str, Any]:
 
 
 @router.get("/dashboard")
-async def member_dashboard(days: int = 30) -> dict[str, Any]:
+def member_dashboard(days: int = 30) -> dict[str, Any]:
+    # Sync `def` on purpose (病B-4): `get_dashboard` does blocking ledger-lock and
+    # Supabase reads, so FastAPI must run it on the threadpool rather than the loop.
     return service.get_dashboard(days=days)
 
 

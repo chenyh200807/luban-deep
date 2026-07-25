@@ -856,7 +856,7 @@ def test_bi_context_loader_caps_each_collection(
             )
 
     asyncio.run(_seed())
-    context = asyncio.run(service._load_context_since(0.0))
+    context = service._load_context_since(0.0)
 
     assert len(context.sessions) == 2
     assert len(context.turns) == 2
@@ -970,15 +970,20 @@ def test_boss_workbench_counts_only_registered_member_activity(
 
     context_loads = 0
     member_loads = 0
-    original_load_context = service._load_context
+    # Count at `_load_context_since` rather than at `_load_context`: it is the
+    # one function that actually scans the window, so every path reaches it —
+    # including `_business_context_sync`, which no longer routes through
+    # `_load_context`. Counting the scan itself keeps this assertion honest if
+    # another caller is added later.
+    original_load_context = service._load_context_since
     original_load_members = service._load_all_members
 
-    async def _count_context_loads(days: int):
+    def _count_context_loads(window_start: float):
         nonlocal context_loads
         context_loads += 1
-        return await original_load_context(days)
+        return original_load_context(window_start)
 
-    service._load_context = _count_context_loads  # type: ignore[method-assign]
+    service._load_context_since = _count_context_loads  # type: ignore[method-assign]
 
     def _count_member_loads():
         nonlocal member_loads
