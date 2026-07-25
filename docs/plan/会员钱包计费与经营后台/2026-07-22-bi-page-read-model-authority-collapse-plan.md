@@ -53,3 +53,58 @@
 - Backend owner：`BIService` / `MemberConsoleService` 单一读模型与测试。
 - Frontend owner：BI v2 thin renderer、会员 360 状态机与浏览器回归。
 - Release owner：PR → main 后记录 merge SHA、部署 SHA，再执行 test2 live 验收；部署前不得宣称已上线。
+
+## 7. 2026-07-25 续轮：执行模型与快照时刻（本计划的下半程）
+
+本轮不是新主线，是第 3、4 节的补完。上一轮立的是「读模型**怎么算**」的单一权威，
+没有立「**算几次 / 存在哪 / 能多旧**」的权威，因此收权之后成本仍随消费者数量线性增长
+（`_load_all_members` 调用点由 3 涨到 8 即是判决性证据）。
+
+### 7.1 本轮完成（全部零新鲜度语义变化）
+
+- **执行模型**：`_load_context_since` 降为同步 `def`（实测 awaits=0，纯删减），
+  `_load_business_context` 成为唯一 `asyncio.to_thread` 边界（与 `sqlite_store._run_read` 同范式）；
+  `get_overview` 的会员快照、`get_commerce` 全方法一并离开事件循环。
+- **补完病B-4**：`bi.py:/member/dashboard` 与 `member.py:/dashboard` 降同步 `def`——
+  2026-07-05 那轮只改了 mobile 三条，这两条调同一个 3–5s 的 `get_dashboard` 却被漏下。
+  守卫 `tests/api/test_mobile_event_loop_discipline.py` 泛化为 `(router, path)` 映射，
+  成为事件循环纪律的唯一权威；BI 那半用行为断言（执行期间事件循环必须继续 tick）。
+- **物理物化**：`turn_events(type, created_at DESC)` 与 `turns(updated_at DESC)` 索引。
+- **快照时刻接线**：后端 `generated_at` 此前在前端整条链是断的——类型无字段、builder 不读、
+  面板用 `Date.now()` 现编却标注「实时数据」。这违反 §1「禁止前端估算 authority」，
+  且使任何缓存都无法验证。现已接通，缺失时显式显示「快照时刻未知」。
+- 传输轴（与读模型正交）：ECharts 改按需注册，brotli 309,807 → 173,732（−43.9%）。
+
+### 7.2 本轮未做，且**必须先由 owner 拍板**
+
+会员快照与 `_BiContext` 的物化（TTL + 文件 mtime 双失效信号）**未实施**。
+它是单请求延迟的大头（会员链每次 3~12 次同步 Supabase 往返），但它改变一件
+owner 可感知的事：**BI 读数可以陈旧到 60 秒**。判例是 §1 已对「谁算内部账号」
+接受了同样的 60s，但那是既有决定，不构成本轮的自动授权。
+
+放行条件（缺一不可）：① 物化必须同时输出快照时刻——7.1 的接线已使其可行；
+② 失效必须同时接受 TTL 与 `member_console.json` 的 mtime（只 TTL 则运营改完等 60s，
+只 mtime 则 Supabase 侧变更永不可见）；③ 失败必须 fail-open 且自报 `stale`，
+不得沿用现状把目录故障洗白成「0 个会员」。
+
+**④ 必须先修 `packages_changed` 恒真——这是本轮实测出的前置阻塞，也是一个独立的现存缺陷。**
+
+`_load_unlocked`（`member_console/service.py`）在 `packages_changed` 为真时于**读路径**调
+`_save_unlocked`。用生产快照实测（`md5=a40f905…`）：`_normalize_package_catalog` 把磁盘上
+`starter_19.teaching_video_limit` 的 `30` 规范化成 `None`，两者永不相等 ⇒ **条件恒真**。
+
+后果有三层，依次加重：
+1. 每个 BI / member dashboard 请求都做一次全量 `json.dumps(indent=2)`（实测 11ms）+ `os.fsync`；
+2. 该写盘**全程持 `LOCK_EX`**，是跨 worker 的串行化点（生产 `UVICORN_WORKERS=2`）；
+3. 它每次都改 mtime，因此**上面 ②的 mtime 失效信号会永远命中失效分支，缓存等于没加**。
+
+不可顺手改：`teaching_video_limit` 是计费权益字段（30 / null 决定教学视频额度），
+磁盘值与规范化结果分歧属于数据-代码分歧，改哪一边都要 owner 按计费口径拍板，
+误改是资损。故本轮只留证据，不动代码。
+
+### 7.3 本轮明确不做
+
+BI v1（`BiPageClient` 及其 `loadBiWorkbench` 的 8× 同参放大、8 个无 debounce 输入）——
+线上 `BI_BACKOFFICE_V2_SHELL_ENABLED` 已开，v1 是死路径，改它属超范围。
+`directory.py` 的 `in.(...)` URL 长度墙（会员数约 250~450 触发 414）是正确性悬崖不是性能问题，
+应单独立项。全仓 222 个零 await handler 的体检同理。
