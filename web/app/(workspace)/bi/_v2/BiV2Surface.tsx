@@ -14,13 +14,18 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BiAppShell, BiSideNav, BiTopBar, type BiSideNavItem } from '@/components/bi-v2'
 import type { BiFlagSnapshot } from '@/lib/bi-feature-flags'
-import { BiV2MemberOpsPanel } from './member-ops/BiV2MemberOpsPanel'
 import { RequireBiAdmin } from './RequireBiAdmin'
 import { describeGlobalSearchActor, routeForGlobalSearch } from './global-search-route'
 import type { BiAdminIdentity } from './useBiAdminIdentity'
 
 const BiV2OverviewPanel = dynamic(() =>
   import('./BiV2OverviewPanel').then(module => module.BiV2OverviewPanel)
+)
+// Lazy like every other panel: this one is 3,866 lines of TSX once its two
+// drawers are counted, and the default landing section is overview, so a
+// static import put all of it in the shell for a section most visits never open.
+const BiV2MemberOpsPanel = dynamic(() =>
+  import('./member-ops/BiV2MemberOpsPanel').then(module => module.BiV2MemberOpsPanel)
 )
 const BiV2CommercePanel = dynamic(() =>
   import('./commerce/BiV2CommercePanel').then(module => module.BiV2CommercePanel)
