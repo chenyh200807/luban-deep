@@ -284,6 +284,18 @@ bi_admin_rbac:
       审计文件 bi_admin_audit.jsonl】(O_APPEND 原子追加、永不重写历史，防止被刷掉)；
       bi_admins.json 内 legacy 审计仍合并读取。
     - 权限存储是文件持久化 (bind-mount)，非 turn/session/capability/learner-state authority。
+    - 会员审计条目 (member_console 的 audit_log) 只记录**发生变化的字段**，不再存
+      before/after 两份完整 member 快照。理由：完整快照对追责没有额外证据力
+      (证据是"变了什么")，而 before 无任何程序化消费者、审计页也不渲染它，
+      却把手机号 / openid / 钱包余额复制两遍，与个人信息最小必要相悖。
+      条目旁存 before_digest / after_digest (各 32 hex)，使"diff 是否算错"事后可证伪。
+    - 例外：支付结算类 action (manual_membership_purchase / settled_membership_purchase /
+      manual_membership_reversal) 必须**整份保留 after**。冲正把原购买审计的 after
+      当作唯一金额权威 (purchase_id / points / amount_cny / days)，压成 diff 会让退款
+      fail-closed 或使重复退款保护失效。
+    - 因此审计日志同时承担交易台账职责：任何按时间的 retention / 轮转在把该职责
+      拆出去之前都不得启用 —— 只删掉 purchase 与 reversal 配对中的一条，会造成
+      同一笔被冲正两次或旧单静默不可冲正，且属于保留期到点才引爆的延迟故障。
 
 domains:
   turn:

@@ -262,6 +262,56 @@ _PINNED_SEED_FIELDS = frozenset(
 _UNSET_TEACHING_VIDEO_LIMIT: Any = object()
 
 
+# 审计条目里必须保留**完整 after** 的 action —— 冲正把原购买审计的 after 当作
+# 唯一金额权威(`_find_latest_manual_membership_purchase_audit` 读 purchase_id /
+# points / amount_cny / days)。这些必须整份留着,压成 diff 会让冲正读不到字段。
+_FULL_AFTER_AUDIT_ACTIONS = frozenset(
+    {
+        "manual_membership_purchase",
+        "settled_membership_purchase",
+        "manual_membership_reversal",
+    }
+)
+
+
+def _audit_change_payload(
+    action: str,
+    before: dict[str, Any] | None,
+    after: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """把 before/after 压成审计真正需要的最小形态。
+
+    此前每条审计存**两份完整 member 快照**(约 7 KB/条),而:
+    - `before` 全仓零程序化消费者,BI 审计页也不渲染它;
+    - 完整快照对追责没有额外证据力 —— "变了什么"才是证据,"没变的部分"只是噪音;
+    - 它还把手机号 / openid / 钱包余额复制两遍,与个人信息最小必要相悖。
+
+    所以:只留变化字段。支付结算类例外 —— 它们的 `after` 是冲正的金额权威,
+    必须整份保留(见 `_FULL_AFTER_AUDIT_ACTIONS`)。
+
+    刻意**不**旁存状态摘要:摘要要对 before/after 各做一次全量 `json.dumps`,
+    而本函数存在的理由正是消除全量序列化开销 —— 实测那两次序列化把 api-contract
+    smoke 从 3 分钟推到 12 分钟超时。完整性锚点若将来确有需要,应走增量哈希或
+    只覆盖低频的结算类,而不是给每条审计都加两次全量序列化。
+    """
+    before = before or {}
+    after = after or {}
+    changed_keys = {
+        key
+        for key in set(before) | set(after)
+        if before.get(key) != after.get(key)
+    }
+    payload: dict[str, Any] = {
+        "before": {key: before[key] for key in sorted(changed_keys) if key in before},
+        "after": (
+            dict(after)
+            if action in _FULL_AFTER_AUDIT_ACTIONS
+            else {key: after[key] for key in sorted(changed_keys) if key in after}
+        ),
+    }
+    return payload
+
+
 def _teaching_video_promise(limit: int | None) -> str:
     """把教学视频额度渲染成对外承诺短语。None = 全部(无限)。"""
     if limit is None:
@@ -4072,8 +4122,7 @@ class MemberConsoleService:
             "action": action,
             "target_user": target_user,
             "reason": reason,
-            "before": before or {},
-            "after": after or {},
+            **_audit_change_payload(action, before, after),
             "created_at": _iso(),
         }
         data["audit_log"].insert(0, entry)
