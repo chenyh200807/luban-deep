@@ -173,6 +173,19 @@ schedule the foreground assertion under shard load. Re-run the targeted test,
 the owning shard, and the same-SHA workflow; do not use repeated job reruns as
 the fix.
 
+### API Contract Shard Job Timeout
+
+If `Smoke Tests Shard (api-contract)` reaches the workflow job timeout without
+an assertion failure, reproduce its exact command from a clean worktree at the
+same SHA before changing product code. This shard intentionally runs the full
+API, CLI, registry, contract-guard, and practice-HTML suites and can exceed the
+smaller shards' runtime budget on GitHub-hosted runners.
+
+After two same-SHA CI timeouts with a clean local full-shard pass, treat the
+failure as a job-budget mismatch. Keep the test set unchanged and raise only
+the `api-contract` matrix entry's bounded timeout; do not increase the timeout
+for the faster shards or repeatedly rerun the job as the repair.
+
 ## Contract Index Copy Discipline
 
 `contracts/index.yaml` is the repo authority, and

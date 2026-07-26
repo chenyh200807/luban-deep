@@ -405,11 +405,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: change-scope
     if: github.event_name == 'push' || needs.change-scope.outputs.backend == 'true'
-    timeout-minutes: 12
+    timeout-minutes: ${{ matrix.timeout_minutes }}
     strategy:
       fail-fast: false
       matrix:
-        shard: [api-contract, runtime-capability, learner-grading]
+        include:
+          - shard: api-contract
+            timeout_minutes: 20
+          - shard: runtime-capability
+            timeout_minutes: 12
+          - shard: learner-grading
+            timeout_minutes: 12
     env:
       LANGFUSE_ENABLED: "false"
 
