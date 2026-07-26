@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from datetime import datetime, timedelta
 import json
 import logging
@@ -33,6 +34,11 @@ from deeptutor.services.assessment.session_repository import (
     AssessmentSessionExpired,
     AssessmentSessionNotFound,
     AssessmentSessionRateLimited,
+)
+from deeptutor.services.experience_invite import (
+    ExperienceInviteRejected,
+    ExperienceInviteUnavailable,
+    get_experience_invite_authority,
 )
 from deeptutor.services.feedback_service import (
     SupabaseFeedbackStore,
@@ -76,6 +82,7 @@ from deeptutor.services.member_usage_meter import (
     get_member_usage_meter,
 )
 from deeptutor.services.notebook_card.service import get_notebook_card_service
+from deeptutor.services.observability import get_surface_event_store
 from deeptutor.services.query_intent import (
     build_grounding_decision,
 )
@@ -118,6 +125,7 @@ mistake_book_service = MistakeBookService()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
 wallet_service = get_wallet_service()
+experience_invite_authority = get_experience_invite_authority()
 
 _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
@@ -145,6 +153,12 @@ _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
 MobileFeedbackSupabaseClient = SupabaseFeedbackStore
 _FEEDBACK_ATTACHMENT_MAX_BYTES = 20 * 1024 * 1024
+
+
+class ExperienceRedeemRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = Field(min_length=6, max_length=64)
 
 # H9: hard upper bound on the mobile HTTP /chat/start-turn query text, mirroring the
 # F5 WS frame cap (unified_ws._MAX_WS_INBOUND_FRAME_CHARS). start-turn is the second
@@ -376,7 +390,11 @@ def _membership_is_active(expire_at: Any) -> bool:
     return parsed >= datetime.now(_BILLING_USAGE_TZ)
 
 
-def _teaching_video_limit_for_user(user_id: str) -> int | None:
+def _teaching_video_limit_for_user(
+    user_id: str,
+    *,
+    experience_user_id: str = "",
+) -> int | None:
     """Resolve the current teaching-video limit for a member.
 
     Authority for tier + expiry = the persisted, non-bootstrapping entitlement
@@ -396,7 +414,23 @@ def _teaching_video_limit_for_user(user_id: str) -> int | None:
         status = str(profile.get("status") or "")
         expire_at = str(profile.get("expire_at") or "")
     is_active = status.strip().lower() == "active" and _membership_is_active(expire_at)
-    return resolve_teaching_video_limit(tier, is_active)
+    paid_limit = resolve_teaching_video_limit(tier, is_active)
+    # Paid package entitlement remains entirely authoritative and unchanged.
+    # The invite is a separate, temporary entitlement used only when there is
+    # no active paid membership.
+    if is_active:
+        return paid_limit
+    if experience_invite_authority.is_enabled and experience_invite_authority.is_configured:
+        try:
+            experience = experience_invite_authority.status(experience_user_id or user_id)
+        except ExperienceInviteUnavailable:
+            # Video gate fails safe to the existing non-member entitlement.
+            return paid_limit
+        if experience.get("active"):
+            limit = int(experience.get("video_access_limit") or 0)
+            if limit > 0:
+                return limit
+    return paid_limit
 
 
 def _price_to_fen(value: Any) -> int:
@@ -1397,6 +1431,69 @@ def _assert_billing_quota_available(
     ):
         return {}
     normalized_user_id = str(wallet_user_id or "").strip()
+    snapshot = None
+    available_micros = 0
+    if normalized_user_id and getattr(wallet_service, "is_configured", False):
+        snapshot = wallet_service.get_wallet(normalized_user_id)
+        available_micros = _wallet_available_micros(snapshot)
+        if available_micros >= _minimum_turn_charge_micros():
+            return {}
+    experience_turn_key = (
+        str(client_turn_id or "").strip()
+        or str(session_id or "").strip()
+        or f"experience:{normalized_user_id}:{uuid4().hex}"
+    )
+    if experience_invite_authority.is_enabled and experience_invite_authority.is_configured:
+        reservation = None
+        try:
+            reservation = experience_invite_authority.reserve_turn(
+                user_id=str(authenticated_user_id or normalized_user_id).strip(),
+                turn_key=experience_turn_key,
+            )
+        except ExperienceInviteRejected as exc:
+            _record_experience_product_event(
+                event_name="experience_access_blocked",
+                user_id=str(authenticated_user_id or normalized_user_id),
+                action="block",
+                result=exc.code,
+                turn_id=experience_turn_key,
+            )
+            duplicate_turn = exc.code in {"in_progress", "already_settled"}
+            if duplicate_turn:
+                message = "这次提问正在处理或已完成，请勿重复提交。"
+            elif exc.code == "daily_limit":
+                message = "今天的体验服务已用完，明天再来继续学习。"
+            else:
+                message = "体验已结束，开通学习权益后可继续使用。"
+            raise HTTPException(
+                status_code=409 if duplicate_turn else 429,
+                detail={"code": exc.code, "message": message, "limited_by": "experience"},
+            ) from exc
+        except ExperienceInviteUnavailable as exc:
+            logger.warning(
+                "experience quota authority unavailable: user_id=%s",
+                _log_safe_id(authenticated_user_id),
+            )
+            _record_experience_product_event(
+                event_name="experience_authority_unavailable",
+                user_id=str(authenticated_user_id or normalized_user_id),
+                action="reserve",
+                result="system_fault",
+                turn_id=experience_turn_key,
+            )
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "experience_authority_unavailable",
+                    "message": "体验状态暂时无法确认，请稍后重试。",
+                    "limited_by": "experience",
+                },
+            ) from exc
+        if reservation:
+            return {
+                **reservation,
+                "experience_user_id": str(authenticated_user_id or normalized_user_id).strip(),
+            }
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
         raise HTTPException(
             status_code=503,
@@ -1406,8 +1503,6 @@ def _assert_billing_quota_available(
                 "limited_by": "wallet_service",
             },
         )
-    snapshot = wallet_service.get_wallet(normalized_user_id)
-    available_micros = _wallet_available_micros(snapshot)
     if available_micros < _minimum_turn_charge_micros():
         balance_micros = int(getattr(snapshot, "balance_micros", 0) or 0)
         frozen_micros = int(getattr(snapshot, "frozen_micros", 0) or 0)
@@ -2734,7 +2829,7 @@ class WechatBindPhoneRequest(BaseModel):
 class MobileStartTurnRequest(BaseModel):
     query: str = Field(max_length=_MAX_MOBILE_START_TURN_QUERY_CHARS)
     conversation_id: str = ""
-    client_turn_id: str = ""
+    client_turn_id: str = Field(default="", max_length=128)
     capability: str = ""
     mode: str = "AUTO"
     language: str = "zh"
@@ -3131,6 +3226,132 @@ async def billing_points(authorization: str | None = Header(default=None)) -> di
     }
 
 
+def _public_experience_status(raw: dict[str, Any]) -> dict[str, Any]:
+    state = str(raw.get("state") or "not_redeemed")
+    message = {
+        "active": "精选体验进行中",
+        "expired": "体验已结束，开通学习权益后可继续使用",
+        "not_redeemed": "输入邀请码，开启 14 天精选体验",
+    }.get(state, "体验状态同步中")
+    video_access_limit = int(raw.get("video_access_limit") or 0) if raw.get("active") else 0
+    return {
+        "state": state,
+        "active": bool(raw.get("active")),
+        "expires_at": str(raw.get("expires_at") or ""),
+        "video_access_limit": video_access_limit or None,
+        "message": message,
+    }
+
+
+def _record_experience_product_event(
+    *,
+    event_name: str,
+    user_id: str,
+    action: str,
+    result: str,
+    turn_id: str = "",
+) -> None:
+    try:
+        get_surface_event_store().ingest(
+            {
+                "event_id": f"server-{uuid4().hex}",
+                "surface": "wechat_yousenwebview",
+                "event_name": event_name,
+                "user_id": str(user_id or "").strip(),
+                "turn_id": str(turn_id or "").strip(),
+                "metadata": {
+                    "visit_id": f"server-{uuid4().hex}",
+                    "module": "experience",
+                    "action": action,
+                    "object_type": "experience_invite",
+                    "result": str(result or "")[:64],
+                    "entry_source": "billing",
+                },
+            }
+        )
+    except Exception:
+        logger.debug("experience product behavior event failed", exc_info=True)
+
+
+@router.get("/billing/experience")
+async def billing_experience_status(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    if not experience_invite_authority.is_enabled:
+        raise HTTPException(status_code=404, detail="Experience invite is not enabled")
+    try:
+        status_payload = await run_in_threadpool(experience_invite_authority.status, user_id)
+    except ExperienceInviteUnavailable as exc:
+        await run_in_threadpool(
+            _record_experience_product_event,
+            event_name="experience_authority_unavailable",
+            user_id=user_id,
+            action="status",
+            result="system_fault",
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "experience_authority_unavailable", "message": "体验状态暂时无法确认，请稍后重试。"},
+        ) from exc
+    return _public_experience_status(status_payload)
+
+
+@router.post(
+    "/billing/experience/redeem",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_experience_redeem",
+                default_max_requests=5,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
+async def billing_experience_redeem(
+    body: ExperienceRedeemRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    if not experience_invite_authority.is_enabled:
+        raise HTTPException(status_code=404, detail="Experience invite is not enabled")
+    try:
+        result = await run_in_threadpool(
+            experience_invite_authority.redeem,
+            user_id=user_id,
+            code=body.code,
+        )
+    except ExperienceInviteRejected as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": exc.code,
+                "message": "邀请码无效或已失效，请联系佑森老师。",
+            },
+        ) from exc
+    except ExperienceInviteUnavailable as exc:
+        await run_in_threadpool(
+            _record_experience_product_event,
+            event_name="experience_authority_unavailable",
+            user_id=user_id,
+            action="redeem",
+            result="system_fault",
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "experience_authority_unavailable", "message": "兑换服务暂时不可用，请稍后重试。"},
+        ) from exc
+    await run_in_threadpool(
+        _record_experience_product_event,
+        event_name="experience_invite_redeemed",
+        user_id=user_id,
+        action="redeem",
+        result=str(result.get("state") or ""),
+    )
+    return _public_experience_status(result)
+
+
 @router.get("/billing/wallet")
 async def billing_wallet(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
@@ -3138,7 +3359,11 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
     snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
-    wallet_payload["teaching_video_limit"] = _teaching_video_limit_for_user(wallet_user_id)
+    wallet_payload["teaching_video_limit"] = await run_in_threadpool(
+        _teaching_video_limit_for_user,
+        wallet_user_id,
+        experience_user_id=user_id,
+    )
     if wallet_user_id:
         _shadow_compare_wallet_read(user_id, balance_points=wallet_payload["points"], source="billing_wallet")
     return wallet_payload
@@ -4084,7 +4309,8 @@ async def mobile_chat_start_turn(
         body.conversation_id,
         resolved_user_id,
     )
-    billing_context_overrides = _assert_billing_quota_available(
+    billing_context_overrides = await run_in_threadpool(
+        _assert_billing_quota_available,
         authorization,
         wallet_user_id=resolved_wallet_user_id,
         authenticated_user_id=resolved_user_id,
@@ -4105,6 +4331,14 @@ async def mobile_chat_start_turn(
     try:
         session, turn = await turn_runtime.start_turn(payload)
     except Exception:
+        if billing_context_overrides.get("experience") == "reserved":
+            with contextlib.suppress(Exception):
+                await run_in_threadpool(
+                    experience_invite_authority.release_turn,
+                    user_id=str(billing_context_overrides.get("experience_user_id") or resolved_user_id),
+                    turn_key=str(billing_context_overrides.get("experience_turn_key") or ""),
+                    reason="start_turn_failed",
+                )
         _release_free_trial_reservation(
             billing_context_overrides,
             reason="start_turn_failed",

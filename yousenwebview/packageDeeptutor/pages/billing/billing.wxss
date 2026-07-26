@@ -594,3 +594,58 @@
   color: var(--pk-ink-btn-t);
   flex-shrink: 0;
 }
+.experience-card {
+  margin: 24rpx 0;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.14);
+}
+
+.experience-copy,
+.experience-redeem {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.experience-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.experience-sub,
+.experience-expiry {
+  font-size: 24rpx;
+  opacity: 0.76;
+}
+
+.experience-redeem {
+  margin-top: 22rpx;
+  flex-direction: row;
+}
+
+.experience-input {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.experience-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160rpx;
+  height: 72rpx;
+  padding: 0 20rpx;
+  border-radius: 16rpx;
+  color: #fff;
+  background: #2f6fed;
+}
+
+.experience-button.loading {
+  opacity: 0.6;
+}

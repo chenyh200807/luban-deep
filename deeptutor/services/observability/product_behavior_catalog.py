@@ -67,6 +67,9 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         # d1_return 由 BI 按用户×日期从任意事件派生, 不设独立事件名。
         "first_run_started",
         "first_run_question_completed",
+        "experience_invite_redeemed",
+        "experience_access_blocked",
+        "experience_authority_unavailable",
     }
 )
 
@@ -103,6 +106,7 @@ PRODUCT_BEHAVIOR_OBJECT_TYPES = frozenset(
         # —— 本次新增：学习内容对象（②内容偏好的 object 级真值）——
         "microlesson",  # 微课/教学动画卡/考点讲解一集，object_id=<pack>:<teaching_point_id>:<episode>
         "concept_card",  # 考点卡翻卡，object_id=<card_id>
+        "experience_invite",
     }
 )
 
@@ -135,6 +139,7 @@ PRODUCT_BEHAVIOR_MODULES = frozenset(
         "login",
         # 首跑剧本（2026-07-10 登记，计划 §4 G0）。
         "first_run",
+        "experience",
     }
 )
 
@@ -183,6 +188,10 @@ PRODUCT_BEHAVIOR_ACTIONS = frozenset(
         "checkpoint",
         "exit",
         "replay",
+        "redeem",
+        "block",
+        "status",
+        "reserve",
     }
 )
 

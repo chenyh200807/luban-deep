@@ -54,6 +54,20 @@
         </view>
       </view>
 
+      <view class="experience-card" wx:if="{{experienceState !== 'unavailable'}}">
+        <view class="experience-copy">
+          <text class="experience-title">{{experienceMessage}}</text>
+          <text class="experience-sub" wx:if="{{experienceState === 'active'}}">{{experienceVideoAccessLabel}}，AI 学习服务在体验期内开放。</text>
+          <text class="experience-expiry" wx:if="{{experienceExpiresLabel}}">{{experienceExpiresLabel}}</text>
+        </view>
+        <view class="experience-redeem" wx:if="{{experienceState !== 'active'}}">
+          <input class="experience-input" value="{{inviteCode}}" bindinput="onInviteInput" maxlength="64" placeholder="输入佑森学员邀请码" />
+          <view class="experience-button {{redeemLoading ? 'loading' : ''}}" bindtap="redeemInvite" aria-role="button">
+            <text>{{redeemLoading ? '开启中' : '开启体验'}}</text>
+          </view>
+        </view>
+      </view>
+
       <view class="section-head">
         <text class="section-title">开通学习权益</text>
         <text class="section-sub">真实 AI 答疑、深度解析、批改和学习记录写回会消耗权益。</text>

@@ -28,6 +28,10 @@ from deeptutor.api.routers.member import (
 )
 from deeptutor.services.bi_service import get_bi_service
 from deeptutor.services.config import get_env_store
+from deeptutor.services.experience_invite import (
+    ExperienceInviteUnavailable,
+    get_experience_invite_authority,
+)
 from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.observability import get_product_behavior_store
 from deeptutor.services.observability.product_behavior_catalog import (
@@ -1569,6 +1573,57 @@ async def bi_cost_calibration_refresh(
     return await get_bi_service().refresh_cost_calibration(
         billing_cycle=billing_cycle, generated_at=now.isoformat()
     )
+
+
+@router.get("/experience-invites")
+async def bi_experience_invites(
+    limit: int = Query(100, ge=1, le=500),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+):
+    try:
+        return {
+            "items": await asyncio.to_thread(
+                get_experience_invite_authority().list_invites,
+                limit=limit,
+            )
+        }
+    except ExperienceInviteUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Experience invite authority unavailable",
+        ) from exc
+
+
+@router.post("/experience-invites")
+async def bi_create_experience_invite(
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+):
+    body = payload or {}
+    source = str(body.get("source") or "yousen_paid_student").strip()
+    if not source or len(source) > 64:
+        raise HTTPException(status_code=400, detail="source must be 1-64 characters")
+    try:
+        quantity = int(body["quantity"]) if "quantity" in body else 1
+        max_redemptions = (
+            int(body["max_redemptions"]) if "max_redemptions" in body else 1
+        )
+        items = await asyncio.to_thread(
+            get_experience_invite_authority().create_invites,
+            actor_id=auth.user_id,
+            source=source,
+            quantity=quantity,
+            max_redemptions=max_redemptions,
+            valid_until=str(body.get("valid_until") or "").strip() or None,
+        )
+        return {"count": len(items), "items": items}
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ExperienceInviteUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Experience invite authority unavailable",
+        ) from exc
 
 
 @router.get("/member-ops/internal-accounts")

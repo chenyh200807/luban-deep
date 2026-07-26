@@ -2236,6 +2236,12 @@ def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | N
         reservation_key = str(raw.get("free_trial_reservation_key", "") or "").strip()
         if reservation_key:
             normalized["free_trial_reservation_key"] = reservation_key
+    if str(raw.get("experience", "") or "").strip().lower() == "reserved":
+        normalized["experience"] = "reserved"
+        for key in ("experience_turn_key", "experience_user_id"):
+            value = str(raw.get(key, "") or "").strip()
+            if value:
+                normalized[key] = value
     return normalized
 
 
@@ -3180,6 +3186,68 @@ class TurnRuntimeManager:
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
             }, status="bypassed", reason="eval_billing_bypass")
+        if str(billing_context.get("experience") or "").strip().lower() == "reserved":
+            experience_user_id = str(
+                billing_context.get("experience_user_id")
+                or billing_context.get("learning_user_id")
+                or billing_context.get("user_id")
+                or ""
+            ).strip()
+            experience_turn_key = str(
+                billing_context.get("experience_turn_key") or turn_id or session_id
+            ).strip()
+            try:
+                from deeptutor.services.experience_invite import (
+                    experience_usage_has_incurred_cost,
+                    get_experience_invite_authority,
+                )
+
+                authority = get_experience_invite_authority()
+                incurred_cost = experience_usage_has_incurred_cost(usage_summary)
+                if not chargeable_assistant_content and not incurred_cost:
+                    authority.release_turn(
+                        user_id=experience_user_id,
+                        turn_key=experience_turn_key,
+                        reason=non_chargeable_release_reason,
+                    )
+                    return _finish(
+                        {"status": "released", "reason": non_chargeable_release_reason},
+                        status="released",
+                        reason=non_chargeable_release_reason,
+                    )
+                result = authority.settle_turn(
+                    user_id=experience_user_id,
+                    turn_key=experience_turn_key,
+                    usage_summary=usage_summary,
+                )
+                return _finish(
+                    {
+                        "status": "experience_settled",
+                        "reason": (
+                            "experience_failure_cost"
+                            if not chargeable_assistant_content
+                            else "experience_invite"
+                        ),
+                        "cost_provenance": str(result.get("provenance") or ""),
+                        "daily_blocked": bool(result.get("daily_blocked")),
+                    },
+                    status="experience_settled",
+                    reason=(
+                        "experience_failure_cost"
+                        if not chargeable_assistant_content
+                        else "experience_invite"
+                    ),
+                )
+            except Exception:
+                logger.exception(
+                    "Experience turn settlement failed closed: turn_id=%s",
+                    str(turn_id or "").strip(),
+                )
+                return _finish(
+                    {"status": "experience_settlement_unavailable", "reason": "fail_closed"},
+                    status="experience_settlement_unavailable",
+                    reason="fail_closed",
+                )
         if str(billing_context.get("free_trial") or "").strip().lower() == "reserved":
             result = self._finalize_free_trial_reservation(
                 billing_context,
@@ -3476,6 +3544,28 @@ class TurnRuntimeManager:
             "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
             "free_trial_reservation_key": reservation_key,
         }
+
+    def _release_experience_reservation(
+        self,
+        billing_context: dict[str, str] | None,
+        *,
+        reason: str,
+    ) -> None:
+        context = billing_context if isinstance(billing_context, dict) else {}
+        if str(context.get("experience") or "").strip().lower() != "reserved":
+            return
+        from deeptutor.services.experience_invite import get_experience_invite_authority
+
+        get_experience_invite_authority().release_turn(
+            user_id=str(
+                context.get("experience_user_id")
+                or context.get("learning_user_id")
+                or context.get("user_id")
+                or ""
+            ).strip(),
+            turn_key=str(context.get("experience_turn_key") or "").strip(),
+            reason=reason,
+        )
 
     async def _build_orchestrated_context_payload(
         self,
@@ -4752,6 +4842,12 @@ class TurnRuntimeManager:
                 "guardrail_level": security_decision.level,
                 "guardrail_signals": list(security_decision.signals),
             }
+            with contextlib.suppress(Exception):
+                await asyncio.to_thread(
+                    self._release_experience_reservation,
+                    billing_context,
+                    reason="security_guardrail",
+                )
             for security_event in (
                 StreamEvent(
                     type=StreamEventType.STAGE_START,
@@ -4846,6 +4942,12 @@ class TurnRuntimeManager:
                 # layer, and the previous bare reference raised NameError here,
                 # turning the clean "server busy" shed into a generic failure.
                 busy_text = "Unable to start the turn right now. Please try again later."
+                with contextlib.suppress(Exception):
+                    await asyncio.to_thread(
+                        self._release_experience_reservation,
+                        billing_context,
+                        reason="server_busy",
+                    )
                 await self._persist_and_publish(
                     execution,
                     StreamEvent(
@@ -6475,6 +6577,20 @@ class TurnRuntimeManager:
                 cancelled_message,
                 default=False,
             )
+            billing_capture = await asyncio.to_thread(
+                self._capture_mobile_points,
+                billing_context,
+                public_assistant_content,
+                session_id=session_id,
+                turn_id=turn_id,
+                usage_summary=usage_summary,
+                chargeable_assistant_content=False,
+                non_chargeable_release_reason=(
+                    "turn_timeout" if timed_out else "turn_cancelled"
+                ),
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
@@ -6492,20 +6608,6 @@ class TurnRuntimeManager:
                     metadata={"status": cancelled_status},
                 ),
             )
-            billing_capture = await asyncio.to_thread(
-                self._capture_mobile_points,
-                billing_context,
-                public_assistant_content,
-                session_id=session_id,
-                turn_id=turn_id,
-                usage_summary=usage_summary,
-                chargeable_assistant_content=False,
-                non_chargeable_release_reason=(
-                    "turn_timeout" if timed_out else "turn_cancelled"
-                ),
-            )
-            if billing_capture:
-                trace_metadata["billing_capture"] = billing_capture
             terminal_status = cancelled_status
             if not timed_out:
                 raise
@@ -6555,6 +6657,18 @@ class TurnRuntimeManager:
                 str(exc),
                 default=False,
             )
+            billing_capture = await asyncio.to_thread(
+                self._capture_mobile_points,
+                billing_context,
+                public_assistant_content,
+                session_id=session_id,
+                turn_id=turn_id,
+                usage_summary=usage_summary,
+                chargeable_assistant_content=False,
+                non_chargeable_release_reason="turn_exception",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
@@ -6572,18 +6686,6 @@ class TurnRuntimeManager:
                     metadata={"status": "failed"},
                 ),
             )
-            billing_capture = await asyncio.to_thread(
-                self._capture_mobile_points,
-                billing_context,
-                public_assistant_content,
-                session_id=session_id,
-                turn_id=turn_id,
-                usage_summary=usage_summary,
-                chargeable_assistant_content=False,
-                non_chargeable_release_reason="turn_exception",
-            )
-            if billing_capture:
-                trace_metadata["billing_capture"] = billing_capture
         finally:
             if turn_slot_acquired:
                 _release_turn_slot()
