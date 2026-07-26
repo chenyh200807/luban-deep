@@ -93,6 +93,7 @@ feature_flags:
   - {name: DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED, default: false, kind: rollout, read: env_flag}
   - {name: DEEPTUTOR_ENABLE_API_DOCS, default: false, kind: config}
   - {name: DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA, default: false, kind: dev}
+  - {name: DEEPTUTOR_EXPERIENCE_INVITE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: DEEPTUTOR_HOME_NEXT_STEP_ENABLED, default: false, kind: rollout}  # home 生命周期融合面总开关:next_step 仲裁 + mastery 证据 blend(首页/雷达/章节盘)一起开关
   - {name: DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT, default: false, kind: killswitch}  # security
   - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
@@ -327,6 +328,7 @@ grandfathered_envs:
   - DEEPTUTOR_ENV_PATH
   - DEEPTUTOR_EVAL_KEY_FILE
   - DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT
+  - DEEPTUTOR_EXPERIENCE_INVITE_ENABLED
   - DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE
   - DEEPTUTOR_FILE_LOG_LEVEL
   - DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD

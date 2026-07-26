@@ -120,6 +120,19 @@ member_console_controls:
       - The control is an audited admin write and requires X-Idempotency-Key.
 
 mobile_http_read_models:
+  experience_invite:
+    paths:
+      - /api/v1/billing/experience
+      - /api/v1/billing/experience/redeem
+      - /api/v1/bi/experience-invites
+    authority: ExperienceInviteAuthority -> Postgres transactional RPC
+    semantics:
+      - Invite qualification is a separate temporary entitlement and never uses wallet_ledger, points, member balance, or MemberUsageMeter as its authority.
+      - Redemption grants exactly 14 days from server time. Active invite access projects teaching_video_limit=30 only without active paid membership; paid package entitlement always wins unchanged.
+      - AI start reserves cost atomically and terminal settlement uses measured Langfuse cost, an explicit model estimate, or a conservative estimate. The daily hard cap is enforced only by the database transaction.
+      - Learner payloads expose only state, expiry, non-financial copy, and video_access_limit. Internal amounts, budget, invite hashes, redemption counts, and provenance stay server/admin-only.
+      - Playback and replay remain in the existing microlesson_playback -> product_behavior_events authority.
+      - DEEPTUTOR_EXPERIENCE_INVITE_ENABLED defaults off and may be enabled only after the migration exists; when enabled, an unavailable authority fails closed for zero-wallet experience admission.
   billing_wallet:
     path: /api/v1/billing/wallet
     authority: canonical entitlement read model + membership package catalog
@@ -358,6 +371,9 @@ domains:
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
     test_files:
+      - tests/api/test_experience_invite_contract.py
+      - tests/services/test_experience_invite.py
+      - yousenwebview/tests/test_experience_billing_contract.js
       - tests/services/learner_state/test_lesson_evidence.py
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
@@ -476,6 +492,7 @@ domains:
       - tests/api/test_unified_ws_connection_cap.py
       - tests/api/test_rate_limit.py
       - tests/api/test_mobile_router.py
+      - tests/api/test_experience_invite_contract.py
       - tests/api/test_mobile_first_run.py
       - tests/api/test_mobile_event_loop_discipline.py
       - tests/services/test_question_lifecycle_skills.py
@@ -653,6 +670,7 @@ domains:
       - deeptutor/api/routers/luban_preview.py
     test_files:
       - tests/services/observability/test_product_behavior_catalog.py
+      - tests/api/test_experience_invite_contract.py
       - tests/services/observability/test_product_behavior_store.py
       - tests/services/luban_lesson/test_playback.py
       - tests/api/test_observability_router.py

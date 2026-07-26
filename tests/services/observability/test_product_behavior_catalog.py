@@ -284,6 +284,37 @@ def test_first_experience_funnel_events_registered() -> None:
         assert record["module"] == meta["module"]
         assert record["action"] == meta["action"]
 
+
+@pytest.mark.parametrize(
+    ("event_name", "action", "result"),
+    [
+        ("experience_invite_redeemed", "redeem", "active"),
+        ("experience_access_blocked", "block", "daily_limit"),
+        ("experience_authority_unavailable", "status", "system_fault"),
+        ("experience_authority_unavailable", "reserve", "system_fault"),
+    ],
+)
+def test_experience_invite_events_are_catalog_valid(
+    event_name: str,
+    action: str,
+    result: str,
+) -> None:
+    record = validate_product_behavior_event(
+        event_name,
+        {
+            "visit_id": "server-qa-eval",
+            "module": "experience",
+            "action": action,
+            "object_type": "experience_invite",
+            "result": result,
+            "entry_source": "billing",
+            "surface": "wechat_yousenwebview",
+        },
+    )
+    assert record["action"] == action
+    assert record["result"] == result
+
+
 def test_first_run_script_events_registered():
     """首跑剧本（2026-07-10 登记）：2 个新事件名 + first_run module 过 catalog 校验。"""
     from deeptutor.services.observability.product_behavior_catalog import (

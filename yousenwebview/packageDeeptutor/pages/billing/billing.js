@@ -4,6 +4,7 @@ const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
+const telemetry = require("../../utils/surface-telemetry");
 
 Page({
   data: {
@@ -19,6 +20,12 @@ Page({
     selectedPackageId: "vip",
     selectedPackage: null,
     checkoutLoading: false,
+    experienceState: "loading",
+    experienceMessage: "体验状态同步中",
+    experienceExpiresLabel: "",
+    experienceVideoAccessLabel: "",
+    inviteCode: "",
+    redeemLoading: false,
   },
 
   onLoad() {
@@ -48,14 +55,38 @@ Page({
         api.getLedger(20).catch(function () {
           return null;
         }),
+        api.getExperienceStatus().catch(function () {
+          return null;
+        }),
       ]);
       var state = _normalizeUsage(results[0], results[1], results[2], this.data.selectedPackageId);
+      Object.assign(state, _normalizeExperience(results[3]));
       state.ledgerLoading = false;
       this.setData(state);
     } catch (_) {
       var degraded = _degradedUsageState();
       degraded.ledgerLoading = false;
       this.setData(degraded);
+    }
+  },
+
+  onInviteInput(e) {
+    this.setData({ inviteCode: String((e && e.detail && e.detail.value) || "").trim() });
+  },
+
+  async redeemInvite() {
+    var code = String(this.data.inviteCode || "").trim();
+    if (!code || this.data.redeemLoading) return;
+    this.setData({ redeemLoading: true });
+    try {
+      var result = await api.redeemExperience(code);
+      this.setData(Object.assign(_normalizeExperience(result), { inviteCode: "" }));
+      wx.showToast({ title: "体验已开启", icon: "success" });
+      this._loadUsage();
+    } catch (_) {
+      wx.showToast({ title: "邀请码无效或已失效", icon: "none" });
+    } finally {
+      this.setData({ redeemLoading: false });
     }
   },
 
@@ -86,6 +117,15 @@ Page({
     var selected = this.data.selectedPackage;
     if (!selected || this.data.checkoutLoading) return;
     this.setData({ checkoutLoading: true });
+    if (this.data.experienceState === "expired") {
+      telemetry.trackProductBehavior("learning_action_started", {
+        module: "experience",
+        action: "open_detail",
+        objectType: "experience_invite",
+        entrySource: "billing",
+        result: "upgrade",
+      });
+    }
     try {
       var raw = await api.createBillingCheckout({
         package_id: selected.id,
@@ -118,6 +158,28 @@ Page({
   },
 
 });
+
+function _normalizeExperience(raw) {
+  var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
+  var state = String(data.state || "unavailable");
+  var videoAccessLimit = Number(data.video_access_limit || 0);
+  if (isNaN(videoAccessLimit) || videoAccessLimit <= 0) videoAccessLimit = 0;
+  return {
+    experienceState: state,
+    experienceMessage: String(data.message || "体验状态暂时无法确认"),
+    experienceExpiresLabel: state === "active" ? _formatExperienceExpiry(data.expires_at) : "",
+    experienceVideoAccessLabel:
+      state === "active" && videoAccessLimit
+        ? "可观看 " + Math.floor(videoAccessLimit) + " 个精选核心视频"
+        : "",
+  };
+}
+
+function _formatExperienceExpiry(value) {
+  var date = new Date(value);
+  if (isNaN(date.getTime())) return "";
+  return "有效期至 " + (date.getMonth() + 1) + "月" + date.getDate() + "日";
+}
 
 function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};

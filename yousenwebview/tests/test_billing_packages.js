@@ -100,6 +100,18 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
               },
             );
           },
+          getExperienceStatus: function () {
+            return Promise.resolve({ state: "not_redeemed", active: false });
+          },
+          redeemExperience: function () {
+            return Promise.resolve({
+              state: "active",
+              active: true,
+              expires_at: "2099-01-01T00:00:00Z",
+              video_access_limit: 30,
+              message: "精选体验进行中",
+            });
+          },
           createBillingCheckout: function (payload) {
             checkoutCalls.push(payload);
             return Promise.resolve({
@@ -144,6 +156,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
           chat: function () {
             return "/packageDeeptutor/pages/chat/chat";
           },
+        };
+      }
+      if (request === "../../utils/surface-telemetry") {
+        return {
+          trackProductBehavior: function () {},
         };
       }
       throw new Error("unexpected require: " + request);

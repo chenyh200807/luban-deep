@@ -778,6 +778,18 @@ function getWallet() {
   return requestStateGet("/api/v1/billing/wallet");
 }
 
+function getExperienceStatus() {
+  return requestStateGet("/api/v1/billing/experience");
+}
+
+function redeemExperience(code) {
+  return request({
+    url: "/api/v1/billing/experience/redeem",
+    method: "POST",
+    data: { code: String(code || "").trim() },
+  });
+}
+
 /** 获取积分流水（支持分页） */
 function getLedger(limit, offset) {
   var q = "?limit=" + (limit || 20);
@@ -1207,6 +1219,8 @@ module.exports = {
   deleteConversation: deleteConversation,
   batchConversations: batchConversations,
   getWallet: getWallet,
+  getExperienceStatus: getExperienceStatus,
+  redeemExperience: redeemExperience,
   getLedger: getLedger,
   createBillingCheckout: createBillingCheckout,
   submitFeedback: submitFeedback,

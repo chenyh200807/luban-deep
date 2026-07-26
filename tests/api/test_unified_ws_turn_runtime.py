@@ -9714,6 +9714,155 @@ def test_turn_runtime_free_trial_reservation_skips_wallet_capture(
     ]
 
 
+def test_turn_runtime_settles_experience_reservation_from_usage(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    calls: list[dict[str, object]] = []
+
+    class RecordingAuthority:
+        def settle_turn(self, **kwargs):
+            calls.append(dict(kwargs))
+            return {
+                "status": "settled",
+                "provenance": "langfuse_measured_usd_fixed_fx_7_20",
+                "daily_blocked": False,
+            }
+
+    monkeypatch.setattr(
+        "deeptutor.services.experience_invite.get_experience_invite_authority",
+        lambda: RecordingAuthority(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "experience": "reserved",
+            "experience_user_id": "auth_student_demo",
+            "experience_turn_key": "client-turn-1",
+        },
+        "这是一次有效的学习回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_cost_usd": "0.0038"},
+    )
+
+    assert result == {
+        "status": "experience_settled",
+        "reason": "experience_invite",
+        "cost_provenance": "langfuse_measured_usd_fixed_fx_7_20",
+        "daily_blocked": False,
+    }
+    assert calls == [
+        {
+            "user_id": "auth_student_demo",
+            "turn_key": "client-turn-1",
+            "usage_summary": {"total_cost_usd": "0.0038"},
+        }
+    ]
+
+
+def test_turn_runtime_releases_experience_reservation_before_retryable_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    calls: list[dict[str, object]] = []
+
+    class RecordingAuthority:
+        def release_turn(self, **kwargs):
+            calls.append(dict(kwargs))
+
+    monkeypatch.setattr(
+        "deeptutor.services.experience_invite.get_experience_invite_authority",
+        lambda: RecordingAuthority(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "experience": "reserved",
+            "experience_user_id": "auth_student_demo",
+            "experience_turn_key": "client-turn-2",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-2",
+        chargeable_assistant_content=False,
+        non_chargeable_release_reason="turn_exception",
+    )
+
+    assert result == {"status": "released", "reason": "turn_exception"}
+    assert calls == [
+        {
+            "user_id": "auth_student_demo",
+            "turn_key": "client-turn-2",
+            "reason": "turn_exception",
+        }
+    ]
+
+
+def test_turn_runtime_settles_experience_failure_when_model_cost_was_incurred(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    settled: list[dict[str, object]] = []
+
+    class RecordingAuthority:
+        def settle_turn(self, **kwargs):
+            settled.append(dict(kwargs))
+            return {
+                "status": "settled",
+                "provenance": "langfuse_measured_usd_fixed_fx_7_20",
+                "daily_blocked": False,
+            }
+
+        def release_turn(self, **_kwargs):
+            raise AssertionError("incurred model cost must not be released")
+
+    monkeypatch.setattr(
+        "deeptutor.services.experience_invite.get_experience_invite_authority",
+        lambda: RecordingAuthority(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "experience": "reserved",
+            "experience_user_id": "auth_student_demo",
+            "experience_turn_key": "client-turn-costly-failure",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-costly-failure",
+        usage_summary={"total_cost_usd": "0.015"},
+        chargeable_assistant_content=False,
+        non_chargeable_release_reason="turn_exception",
+    )
+
+    assert result == {
+        "status": "experience_settled",
+        "reason": "experience_failure_cost",
+        "cost_provenance": "langfuse_measured_usd_fixed_fx_7_20",
+        "daily_blocked": False,
+    }
+    assert settled == [
+        {
+            "user_id": "auth_student_demo",
+            "turn_key": "client-turn-costly-failure",
+            "usage_summary": {"total_cost_usd": "0.015"},
+        }
+    ]
+
+
 def test_turn_runtime_releases_free_trial_reservation_for_non_chargeable_answer(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
