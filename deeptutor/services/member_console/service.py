@@ -227,9 +227,10 @@ DEFAULT_MEMBERSHIP_DAYS = 365
 # 刻意**不含** label / badge / audience / desc / original_price:
 # 这些是营销文案与划线价,运营在 BI 商业面板编辑它们是合法动作。把它们一起钉
 # 会静默吞掉运营编辑(保存提示成功、下次读回旧值、且无 audit 记录)。
-# 无有效会员(或会员已过期)时的教学视频上限。它不属于任何档位,所以不在目录里;
-# 各档位自己的上限由目录的 `teaching_video_limit` 声明。此处是该兜底值的唯一定义。
-NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT = 20
+# 无有效会员(或会员已过期)时的教学视频上限 —— 即"免费能看几个"。它不属于任何档位,
+# 所以不在目录里;各档位自己的上限由目录的 `teaching_video_limit` 声明。
+# 此处是该兜底值的唯一定义,改这一个数字即可调整免费额度。
+NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT = 10
 
 _PINNED_SEED_FIELDS = frozenset(
     {

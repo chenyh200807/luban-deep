@@ -8263,6 +8263,34 @@ def test_settled_purchase_delivers_when_package_archived(tmp_path: Path) -> None
 # ---------------------------------------------------------------------------
 
 
+def test_free_tier_teaching_video_allowance_is_ten() -> None:
+    """免费额度(无会员 / trial / 会员已过期 / 目录里查不到的档位)的真值。
+
+    数字**静态钉死在这里**:它是产品定价的一部分,改动必须在 diff 里看得见,
+    不能靠引用常量来"自动跟随"(那会让测试变成自证)。
+    """
+    from deeptutor.services.member_console.service import (
+        NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT,
+    )
+
+    assert NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT == 10
+
+
+def test_package_without_declared_entitlement_falls_back_to_free_tier() -> None:
+    """反例:运营自建档未声明视频权益 → 按免费额度处理,不得静默获得无限权益。"""
+    normalized = MemberConsoleService._normalize_membership_package(
+        {
+            "id": "campus_49",
+            "label": "校园版",
+            "points": 1200,
+            "turns": 60,
+            "price": "49",
+        }
+    )
+
+    assert normalized["teaching_video_limit"] == 10
+
+
 def test_no_package_promises_unimplemented_service() -> None:
     """未实现的服务不得出现在任何档位的对外承诺里(消费者权益纠纷面)。"""
     for package in MemberConsoleService._default_packages():
