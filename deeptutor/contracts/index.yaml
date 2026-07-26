@@ -134,9 +134,19 @@ mobile_http_read_models:
         not this sentence. Adding a tier means declaring the field on that tier,
         never editing a tier list in a consumer.
       - A package's `desc` is its outward entitlement promise and is rendered directly on
-        the paywall, so it is pinned to the canonical seed like the economics are. It must
-        stay consistent with the entitlement actually granted, and must not promise a
-        capability the system does not implement.
+        the paywall. Its **base** clause is pinned to the canonical seed like the economics
+        are, and must not promise a capability the system does not implement. The video
+        clause is **not** written by hand — it is derived from the tier's current
+        `teaching_video_limit` on every normalization, so adjusting the allowance keeps the
+        promise in step automatically and "advertise 30, grant 10" is structurally
+        impossible.
+      - The teaching_video_limit field is an operator-tunable commercial parameter, not a
+        product constant, so it is deliberately **not** pinned. Operators set it per
+        tier from the BI commerce panel. Omitting the field in an upsert means "leave this
+        tier's allowance untouched"; sending an explicit null means "grant all videos".
+        Callers must preserve that distinction — treating an omitted field as null would
+        silently widen a capped tier to unlimited, and treating it as absent would reset a
+        configured allowance back to the free-tier floor.
       - The wallet adapter only projects this entitlement; clients must not recompute the limit from tier or wallet plan_id.
       - The packages list is the consumer-sellable catalog only. It projects the
         normalized membership package catalog filtered to status=active. Admin-only

@@ -7986,7 +7986,12 @@ def test_list_members_for_bi_derives_conversation_activity_from_sqlite_sessions(
 # 参数化到 canonical 目录后,新增档位自动进入覆盖,同源枚举不可能再复现。
 # ---------------------------------------------------------------------------
 
-_CANONICAL_PACKAGES = {item["id"]: item for item in MemberConsoleService._default_packages()}
+# 用**归一化后**的目录而不是原始种子:对外承诺(desc 里的视频句)是归一化时从
+# `teaching_video_limit` 派生的,种子里只存不含视频句的基础文案。消费者拿到的、
+# 付费墙渲染的、发点路径读的,都是归一化后的这份。
+_CANONICAL_PACKAGES = {
+    item["id"]: item for item in MemberConsoleService._normalize_package_catalog(None)
+}
 _CANONICAL_PACKAGE_IDS = list(_CANONICAL_PACKAGES)
 
 # 写死的档位金标表:id → (price, points, turns, days, status)。
@@ -8289,6 +8294,60 @@ def test_package_without_declared_entitlement_falls_back_to_free_tier() -> None:
     )
 
     assert normalized["teaching_video_limit"] == 10
+
+
+def test_operator_can_configure_teaching_video_limit(tmp_path: Path) -> None:
+    """运营可为每档单独配置视频额度,且对外文案自动跟随 —— 不需要运营记得改两处。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def current() -> tuple[int | None, str]:
+        package = {item["id"]: item for item in service.list_membership_packages()}["starter_19"]
+        return package["teaching_video_limit"], package["desc"]
+
+    assert current()[0] == 30
+    assert "30 个教学视频" in current()[1]
+
+    service.upsert_membership_package(
+        package_id="starter_19", label="入门体验", tier="starter_19",
+        points=400, turns=20, price="9.9", teaching_video_limit=15, idempotency_key="op-15",
+    )
+    limit, desc = current()
+    assert limit == 15
+    assert "15 个教学视频" in desc and "30 个教学视频" not in desc
+
+    # 显式 None = 无限
+    service.upsert_membership_package(
+        package_id="starter_19", label="入门体验", tier="starter_19",
+        points=400, turns=20, price="9.9", teaching_video_limit=None, idempotency_key="op-none",
+    )
+    limit, desc = current()
+    assert limit is None
+    assert "全部教学视频" in desc
+
+
+def test_upsert_without_the_argument_keeps_configured_limit(tmp_path: Path) -> None:
+    """反例:调用方**没提**这个参数时必须保留档位现值。
+
+    归一化对"缺失该键"的默认是回落免费额度,若不区分「未传」与「显式 None」,
+    运营改个 badge 或老客户端提交一次,就会把已配置的额度静默重置。
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.upsert_membership_package(
+        package_id="starter_19", label="入门体验", tier="starter_19",
+        points=400, turns=20, price="9.9", teaching_video_limit=15, idempotency_key="set-15",
+    )
+
+    # 不传 teaching_video_limit,只改营销字段
+    service.upsert_membership_package(
+        package_id="starter_19", label="入门体验", tier="starter_19",
+        points=400, turns=20, price="9.9", badge="限时", idempotency_key="badge-only",
+    )
+
+    package = {item["id"]: item for item in service.list_membership_packages()}["starter_19"]
+    assert package["teaching_video_limit"] == 15, "未传该参数不得重置已配置额度"
+    assert "15 个教学视频" in package["desc"]
 
 
 def test_no_package_promises_unimplemented_service() -> None:
