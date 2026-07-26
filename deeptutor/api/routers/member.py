@@ -86,7 +86,22 @@ class MembershipPackageRequest(BaseModel):
     per: str = Field(default="", max_length=80)
     desc: str = Field(default="", max_length=400)
     status: str = Field(default="active", pattern=r"^(active|draft|archived)$")
+    # 教学视频额度:null = 全部(无限),正整数 = 上限条数。
+    # **省略该键**与**显式传 null** 语义不同 —— 省略 = 不改动该档现值,
+    # 显式 null = 把该档改成无限。调用点用 `model_fields_set` 区分这两者。
+    teaching_video_limit: int | None = Field(default=None, ge=0, le=100_000)
     reason: str = Field(default="", max_length=200)
+
+
+def _teaching_video_limit_kwargs(body: "MembershipPackageRequest") -> dict[str, Any]:
+    """只有请求显式带了该键才透传,否则让服务层保留档位现值。
+
+    不能无条件传 `body.teaching_video_limit`:未传时它是 None,而 None 在服务层
+    表示"无限",会把一个有上限的档位静默改成无限。
+    """
+    if "teaching_video_limit" not in body.model_fields_set:
+        return {}
+    return {"teaching_video_limit": body.teaching_video_limit}
 
 
 class UpdateRequest(BaseModel):
@@ -210,6 +225,7 @@ async def upsert_membership_package(
             operator=current_user.user_id,
             reason=body.reason,
             idempotency_key=_require_idempotency_key(idempotency_key),
+            **_teaching_video_limit_kwargs(body),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

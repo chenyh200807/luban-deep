@@ -242,14 +242,46 @@ _PINNED_SEED_FIELDS = frozenset(
         "per",
         "tier",
         "status",
-        # 教学视频权益:发放什么就是经济向量,必须锚定。
-        "teaching_video_limit",
-        # `desc` 是**对外权益承诺清单**(小程序付费墙直接渲染),属产品定义而非营销
-        # 包装:运营不该能把它改成承诺一项系统并不提供的服务。改文案走改种子目录。
+        # `desc` 这里锚定的是**基础权益清单**(小程序付费墙直接渲染),属产品定义而非
+        # 营销包装:运营不该能把它改成承诺一项系统并不提供的服务。
+        # 教学视频那一句**不在**基础文案里,而是从 `teaching_video_limit` 派生后追加
+        # (见 `_compose_package_desc`),所以运营调整额度时文案自动跟随,结构上不可能
+        # 出现"标 30 个实发 10 个"。
         # (label / badge / audience / original_price 仍是营销包装,保持运营可编辑。)
         "desc",
     }
 )
+
+# `teaching_video_limit` **刻意不在**上面的锚定白名单里:它是运营可调的经营参数
+# (BI 商业面板可为每档单独配置),不是产品定义。它的对外承诺一致性不靠"钉死",
+# 靠"文案从它派生"来保证。
+
+
+# 「未传该参数」与「显式传 None(= 无限)」必须可区分:前者应保留档位现值,
+# 后者是把该档改成无限。用 sentinel 而不是 None 作默认值。
+_UNSET_TEACHING_VIDEO_LIMIT: Any = object()
+
+
+def _teaching_video_promise(limit: int | None) -> str:
+    """把教学视频额度渲染成对外承诺短语。None = 全部(无限)。"""
+    if limit is None:
+        return "全部教学视频"
+    return f"{int(limit)} 个教学视频"
+
+
+def _compose_package_desc(base_desc: str, limit: int | None) -> str:
+    """基础权益清单 + 从额度派生的视频承诺 = 对外完整承诺。
+
+    只对 canonical 种子档合成:种子的 `desc` 存的是**不含视频句**的基础文案,
+    每次归一化都从当前 `teaching_video_limit` 重新派生视频句,因此
+    ①运营改额度 → 文案自动同步;②归一化幂等(基础文案恒定,派生结果恒定)。
+    运营自建的非种子档不合成,其 `desc` 完全由运营自己负责。
+    """
+    base = str(base_desc or "").strip().rstrip("、")
+    promise = _teaching_video_promise(limit)
+    if not base:
+        return promise
+    return f"{base}、{promise}"
 
 
 def _coerce_teaching_video_limit(item: dict[str, Any]) -> int | None:
@@ -1007,7 +1039,7 @@ class MemberConsoleService:
                 "per": "20 次 AI 学习额度",
                 "per_turn_price": "0.495",
                 "audience": "刚开始体验、偶尔答疑的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、学习记录、30 个教学视频",
+                "desc": "AI智能答疑、AI案例批改、错因专训、学习记录",
                 # 教学视频权益上限:整数 = 上限条数,None = 全部(无限)。
                 # 这是该权益的唯一声明处,`resolve_teaching_video_limit` 直接读它。
                 "teaching_video_limit": 30,
@@ -1024,7 +1056,7 @@ class MemberConsoleService:
                 "per": "150 次 AI 学习额度",
                 "per_turn_price": "0.453",
                 "audience": "阶段备考、需要稳定答疑的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告、全部教学视频",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
                 "teaching_video_limit": None,
             },
             {
@@ -1039,7 +1071,7 @@ class MemberConsoleService:
                 "per": "450 次 AI 学习额度",
                 "per_turn_price": "0.44",
                 "audience": "有基础的、二战的、在职的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、全部教学视频",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
                 "teaching_video_limit": None,
             },
             {
@@ -1056,7 +1088,7 @@ class MemberConsoleService:
                 "per": "625 次 AI 学习额度",
                 "per_turn_price": "0.429",
                 "audience": "基础偏弱、需要长期稳定答疑陪跑的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、全部教学视频",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
                 "teaching_video_limit": None,
             },
             {
@@ -1077,7 +1109,7 @@ class MemberConsoleService:
                 "per": "2500 次 AI 学习额度",
                 "per_turn_price": "0.399",
                 "audience": "零基础纯自学，对考试没信心，处处需答疑的考生",
-                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、全部教学视频",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
                 "teaching_video_limit": None,
             },
         ]
@@ -1161,8 +1193,11 @@ class MemberConsoleService:
                 }
             )
             # 种子档的 tier 恒等于 id(种子 dict 不带 tier 键,原三个 pinning 块也都
-            # 显式钉成 id)。tier 是教学视频权益与档位排序的派生输入,必须一起锚定。
+            # 显式钉成 id)。tier 是档位排序的派生输入,必须一起锚定。
             package["tier"] = package["id"]
+            # 视频承诺从**当前额度**派生并追加到被锚定的基础文案后。额度是运营可调的,
+            # 文案因此自动跟随 —— 不需要运营记得"改额度也要改文案"。
+            package["desc"] = _compose_package_desc(package["desc"], package["teaching_video_limit"])
         return package
 
     @classmethod
@@ -5931,7 +5966,13 @@ class MemberConsoleService:
         return self._mutate(_apply)
 
     def list_membership_packages(self) -> list[dict[str, Any]]:
-        return deepcopy(self._load().get("packages") or self._default_packages())
+        """归一化后的档位目录。
+
+        必须归一化:冷启动(或 packages 缺失)时会回落原始种子,那份 dict 不带
+        `status`、也没合成视频承诺句 —— 同一个方法返回两种形状会让调用方各自
+        补默认值,正是"每个消费点重新发明一遍"的起点。
+        """
+        return self._normalize_package_catalog(self._load().get("packages"))
 
     def get_billing_entitlement_read_model(self, user_id: str) -> dict[str, Any] | None:
         """Return the persisted billing entitlement without creating or repairing state."""
@@ -5980,27 +6021,29 @@ class MemberConsoleService:
         per: str = "",
         desc: str = "",
         status: str = "active",
+        teaching_video_limit: int | None | Any = _UNSET_TEACHING_VIDEO_LIMIT,
         operator: str = "admin",
         reason: str = "",
         idempotency_key: str = "",
     ) -> dict[str, Any]:
         normalized_operator = str(operator or "").strip() or "admin"
         normalized_key = str(idempotency_key or "").strip()
-        draft = self._normalize_membership_package(
-            {
-                "id": package_id,
-                "label": label,
-                "tier": tier,
-                "points": points,
-                "turns": turns,
-                "price": price,
-                "original_price": original_price,
-                "badge": badge,
-                "per": per,
-                "desc": desc,
-                "status": status,
-            }
-        )
+        draft_input: dict[str, Any] = {
+            "id": package_id,
+            "label": label,
+            "tier": tier,
+            "points": points,
+            "turns": turns,
+            "price": price,
+            "original_price": original_price,
+            "badge": badge,
+            "per": per,
+            "desc": desc,
+            "status": status,
+        }
+        if teaching_video_limit is not _UNSET_TEACHING_VIDEO_LIMIT:
+            draft_input["teaching_video_limit"] = teaching_video_limit
+        draft = self._normalize_membership_package(draft_input)
         if not re.fullmatch(r"[A-Za-z0-9_:-]{1,80}", draft["id"]):
             raise ValueError("package_id must be 1-80 chars of [a-zA-Z0-9_:-]")
         if draft["points"] <= 0:
@@ -6026,6 +6069,15 @@ class MemberConsoleService:
                 None,
             )
             before = deepcopy(packages[index]) if index is not None else {}
+            if teaching_video_limit is _UNSET_TEACHING_VIDEO_LIMIT and index is not None:
+                # 调用方没提这个参数 = 不打算改视频额度。归一化对"缺失"的默认是
+                # 回落免费额度,若直接落盘会把运营已配置的额度静默重置 —— 所以这里
+                # 显式保留档位现值(仅当该档已存在)。
+                draft["teaching_video_limit"] = _coerce_teaching_video_limit(before)
+                draft["desc"] = _compose_package_desc(
+                    _seed_membership_packages().get(draft["id"], {}).get("desc", draft["desc"]),
+                    draft["teaching_video_limit"],
+                )
             if index is None:
                 packages.append(deepcopy(draft))
             else:

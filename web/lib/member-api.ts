@@ -242,6 +242,8 @@ export interface MembershipPackagePayload {
   tier: string
   points: number
   turns: number
+  // null = 全部(无限);省略该键 = 不改动该档现值
+  teaching_video_limit?: number | null
   price: string
   original_price?: string
   badge?: string
@@ -257,6 +259,8 @@ export interface MembershipPackageResult {
   tier: string
   points: number
   turns: number
+  // null = 全部(无限);省略该键 = 不改动该档现值
+  teaching_video_limit?: number | null
   price: string
   original_price?: string
   badge?: string
