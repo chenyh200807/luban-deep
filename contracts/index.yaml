@@ -124,9 +124,45 @@ mobile_http_read_models:
     path: /api/v1/billing/wallet
     authority: canonical entitlement read model + membership package catalog
     semantics:
-      - teaching_video_limit is 20 for users without a valid membership or with an expired membership, 30 for starter_19, and null for light_98/vip/svip/supreme_svip.
-      - teaching_video_limit is owned by the persisted membership package catalog; admin package writes update that field through MemberConsoleService and clients must fail closed when the projection is unavailable.
+      - teaching_video_limit is declared per tier by the canonical package catalog
+        via a `teaching_video_limit` field — null means all videos, a positive int
+        means a capped count.
+        Users without a valid membership, with an expired membership, or on a tier the
+        catalog does not declare fall back to NO_MEMBERSHIP_TEACHING_VIDEO_LIMIT.
+        Today the catalog grants 10 without membership, 30 for starter_19, and all
+        videos for light_98/vip/svip/supreme_svip — but the catalog is the authority,
+        not this sentence. Adding a tier means declaring the field on that tier,
+        never editing a tier list in a consumer.
+      - A package's `desc` is its outward entitlement promise and is rendered directly on
+        the paywall, so it is pinned to the canonical seed like the economics are. It must
+        stay consistent with the entitlement actually granted, and must not promise a
+        capability the system does not implement.
       - The wallet adapter only projects this entitlement; clients must not recompute the limit from tier or wallet plan_id.
+      - The packages list is the consumer-sellable catalog only. It projects the
+        normalized membership package catalog filtered to status=active. Admin-only
+        tiers (supreme_svip) are archived in the canonical seed and must not be offered
+        to consumer clients. That boundary is enforced server-side; a client-side
+        allowlist is a display convenience, never the authority.
+  billing_checkout:
+    path: /api/v1/billing/checkout
+    authority: normalized canonical seed catalog (economics pinned identically to the settlement writer)
+    semantics:
+      - Checkout resolves the package from the normalized canonical catalog and sells
+        only status=active packages; a non-sellable package id returns 404 rather than
+        creating an order that settlement would later have to refuse. Resolution stays
+        IO-free — it must not read the persisted member store on this path, because the
+        price charged is already guaranteed to equal what settlement grants for seed
+        tiers (the same fields are pinned on both sides).
+      - Operator-created non-seed packages are not part of the consumer sellable catalog
+        and are granted through operator provisioning, not self-service checkout.
+      - Package economics (price, points, turns, days, per_turn_price, tier) and
+        sellability of canonical seed tiers come from the seed catalog and cannot be
+        redefined by the persisted catalog, so the price charged and the points granted
+        are always read from one truth. Operator-created non-seed packages keep their
+        own pricing. Marketing copy (label, badge, desc, audience, original_price)
+        stays operator-editable and must not be pinned.
+      - Membership duration flows from the catalog into the payment attach; call sites
+        must not re-invent a duration default.
   billing_usage:
     path: /api/v1/billing/usage
     authority: wallet_snapshot_or_member_usage_meter
@@ -145,6 +181,26 @@ mobile_http_read_models:
         public display labels remain percentage-based rather than exposing remaining turn counts.
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
+  wechat_payment_settlement:
+    path: /api/v1/billing/wechat/notify
+    authority: verified WeChat Pay notification -> MemberConsoleService settled purchase writer -> wallet_ledger
+    semantics:
+      - A provider-settled purchase must preserve settlement authority, channel,
+        currency, amount_minor, provider transaction id, provider order id, and paid_at
+        in the append-only wallet ledger event before entitlement is projected.
+      - The WeChat notification adapter may validate and normalize provider input but
+        must not route a verified provider settlement through the manual-membership
+        authority or overwrite it with manual source/channel metadata.
+      - Signature verification, package amount, CNY currency, and provider transaction
+        id fail closed; invalid or incomplete evidence grants neither points nor entitlement.
+      - Operator-attested manual purchases remain a separate adapter over the same
+        canonical purchase writer and must stay distinguishable from provider settlement.
+      - Settlement never refuses delivery because the package was archived after the
+        order was placed. Once funds have settled, withholding entitlement creates fund
+        limbo — the adapter fails, the provider retries indefinitely, and the payer
+        stays charged but uncredited. Sellability is enforced at checkout, before payment;
+        an archived package is still resolvable here so amount validation and delivery
+        can complete.
 
 mobile_http_auth_controls:
   password_reset:
@@ -159,7 +215,7 @@ mobile_http_auth_controls:
         SMS code, returns no token, and never auto-logs in.
       - Reset must not write learner summaries, learner memory events, profile,
         progress, goals, wallet, capability route state, or turn/session state.
-  password_change:
+  change_password:
     path: /api/v1/auth/change-password
     authority: MemberConsoleService -> external_auth
     semantics:
@@ -555,6 +611,34 @@ domains:
       # first-chunk wall-clock, observe-only fail-open).
       - tests/services/llm/test_factory_langfuse_usage.py
     schema_files: []
+
+  product_behavior_playback:
+    summary: Hosted microlesson playback and section progress facts for BI.
+    authority: published playback manifest -> scoped entry ticket -> SurfaceEventStore -> product_behavior_events
+    contract_files:
+      - contracts/product_behavior_playback.v1.json
+      - contracts/index.yaml
+    protected_patterns:
+      - deeptutor/services/observability/product_behavior_catalog.py
+      - deeptutor/services/observability/product_behavior_store.py
+      - deeptutor/services/observability/surface_events.py
+      - deeptutor/services/luban_lesson/playback.py
+      - deeptutor/api/routers/luban_preview.py
+      - scripts/publish_luban_preview_cards.py
+      - web/public/luban-preview/vendor/luban-playback-telemetry.js
+    sensitive_patterns:
+      - deeptutor/services/luban_lesson/playback.py
+      - deeptutor/api/routers/luban_preview.py
+    test_files:
+      - tests/services/observability/test_product_behavior_catalog.py
+      - tests/services/observability/test_product_behavior_store.py
+      - tests/services/luban_lesson/test_playback.py
+      - tests/api/test_observability_router.py
+      - tests/api/test_luban_preview_router.py
+      - tests/scripts/test_publish_luban_preview_cards.py
+    schema_files:
+      - contracts/product_behavior_playback.v1.json
+      - deeptutor/contracts/product_behavior_playback.v1.json
 
   learner_state:
     summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
