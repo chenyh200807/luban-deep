@@ -5,6 +5,21 @@ description: "Defines DeepTutor test and evidence requirements. Use when impleme
 
 # DeepTutor Test Verification Gate
 
+## 分层与进化
+
+本 skill 遵循 [agent-skills/README.md · Evolution Protocol](../README.md#evolution-protocol--所有-skill-共用的分层与进化合同)
+(canonical,不在此复制)。本 skill 的分层声明:
+
+| 层 | 本 skill 的内容 |
+|---|---|
+| **L1 内核** | 「测试通过 ≠ 测试有判别力」——新测试必须双向跑(修复版绿 + 还原版红) |
+| **L2 嗅觉** | 单轮 LLM 通过可能是运气、全量 pytest 有隔离污染、exit code 不等于 passed |
+| **L3 体系** | eval runner 身份四字段、连跑 ≥3 轮、失败文件先单独跑 |
+| **L4 实例** | 具体测试路径与当前基线数字 |
+
+**反向查表**:每次相关的真 bug/故障,先回查本 skill 有没有这一条。
+「没有」的频率 = 本 skill 的健康度。
+
 Use this skill to make completion evidence-based.
 
 ## Workflow

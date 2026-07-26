@@ -5,6 +5,21 @@ description: Use this for DeepTutor bugs involving TutorBot, WeChat, question au
 
 # DeepTutor Authority Debugging
 
+## 分层与进化
+
+本 skill 遵循 [agent-skills/README.md · Evolution Protocol](../README.md#evolution-protocol--所有-skill-共用的分层与进化合同)
+(canonical,不在此复制)。本 skill 的分层声明:
+
+| 层 | 本 skill 的内容 |
+|---|---|
+| **L1 内核** | 五项强制输出(one business fact / one authority / …)、shared failure shapes 的**形状定义** |
+| **L2 嗅觉** | Red Flags、"什么时候说明你已经想窄了" |
+| **L3 体系** | Start Gate frame、Investigation Order、宏观指挥官裁决 |
+| **L4 实例** | 各 shared shape 后面括号里的本仓实证(会过期,过期即删) |
+
+**反向查表**:每次相关的真 bug/故障,先回查本 skill 有没有这一条。
+「没有」的频率 = 本 skill 的健康度。
+
 Use this skill to debug authority failures without turning them into more
 fallbacks or regex patches.
 

@@ -5,6 +5,21 @@ description: "Controls DeepTutor release, merge-to-main, push, Aliyun deploy, ro
 
 # DeepTutor Release Launch Gate
 
+## 分层与进化
+
+本 skill 遵循 [agent-skills/README.md · Evolution Protocol](../README.md#evolution-protocol--所有-skill-共用的分层与进化合同)
+(canonical,不在此复制)。本 skill 的分层声明:
+
+| 层 | 本 skill 的内容 |
+|---|---|
+| **L1 内核** | 「同 SHA 是唯一发布真值」「未 rebuild = 未部署」这两条判据 |
+| **L2 嗅觉** | 假绿形态清单(脚本 exit 0 / metrics TRUSTED / 本地验证通过) |
+| **L3 体系** | 五层核验顺序、只读命令白名单、回滚路径 |
+| **L4 实例** | 具体主机名/路径/容器名/端口(环境一变就失效) |
+
+**反向查表**:每次相关的真 bug/故障,先回查本 skill 有没有这一条。
+「没有」的频率 = 本 skill 的健康度。
+
 Use this skill when a task moves from local correctness to release truth.
 
 ## Authority
