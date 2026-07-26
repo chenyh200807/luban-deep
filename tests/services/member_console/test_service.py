@@ -8296,6 +8296,74 @@ def test_package_without_declared_entitlement_falls_back_to_free_tier() -> None:
     assert normalized["teaching_video_limit"] == 10
 
 
+# ---------------------------------------------------------------------------
+# 审计条目只存"变了什么",不存两份完整快照
+#
+# 每条审计此前存 before/after 两份完整 member(约 7 KB/条),而 `before` 全仓零
+# 程序化消费者、BI 审计页也不渲染它。完整快照对追责没有额外证据力("变了什么"
+# 才是证据),却把用户手机号/openid/钱包余额复制两遍。唯一必须整份保留的是支付
+# 结算类的 `after` —— 冲正拿它当金额权威。
+# ---------------------------------------------------------------------------
+
+
+def test_audit_entry_keeps_only_changed_fields() -> None:
+    from deeptutor.services.member_console.service import _audit_change_payload
+
+    before = {"phone": "old", "display_name": "旧名", "points_balance": 100}
+    after = {"phone": "new", "display_name": "旧名", "points_balance": 100}
+
+    payload = _audit_change_payload("profile_update", before, after)
+
+    assert payload["before"] == {"phone": "old"}
+    assert payload["after"] == {"phone": "new"}
+    # 未变化的字段不得进入审计(它们既非证据,又是重复的个人信息)
+    assert "points_balance" not in payload["after"]
+    assert "display_name" not in payload["after"]
+
+
+def test_audit_entry_adds_no_full_serialization_cost() -> None:
+    """审计条目里不得出现需要全量序列化才能算出的字段。
+
+    曾经在这里加过 before/after 摘要来化解"diff 算错不可检测",但它要对两端各做
+    一次全量 `json.dumps` —— 而本函数存在的理由正是消除全量序列化开销。实测那两次
+    序列化把 api-contract smoke 从 3 分钟推到 12 分钟超时。这条守住这个教训。
+    """
+    from deeptutor.services.member_console.service import _audit_change_payload
+
+    payload = _audit_change_payload("profile_update", {"a": 1}, {"a": 2})
+
+    assert set(payload) == {"before", "after"}
+
+
+@pytest.mark.parametrize(
+    "action",
+    ["manual_membership_purchase", "settled_membership_purchase", "manual_membership_reversal"],
+)
+def test_settlement_audit_keeps_full_after_snapshot(action: str) -> None:
+    """反例:支付结算类必须整份保留 after —— 冲正读它取金额/点数/天数。
+
+    压成 diff 会让"只有部分字段变化"的那笔购买在冲正时读不到 purchase_id,
+    退款直接不可用(fail-closed)或重复保护失效(二次退款)。
+    """
+    from deeptutor.services.member_console.service import _audit_change_payload
+
+    before = {"tier": "trial", "points_balance": 0}
+    after = {
+        "tier": "trial",  # 故意不变:diff 会丢掉它
+        "points_balance": 0,  # 同上
+        "purchase_id": "p-1",
+        "points": 9000,
+        "amount_cny": 198,
+        "days": 365,
+    }
+
+    payload = _audit_change_payload(action, before, after)
+
+    assert payload["after"] == after, "支付结算审计不得压成 diff"
+    for key in ("purchase_id", "points", "amount_cny", "days", "tier"):
+        assert key in payload["after"]
+
+
 def test_operator_can_configure_teaching_video_limit(tmp_path: Path) -> None:
     """运营可为每档单独配置视频额度,且对外文案自动跟随 —— 不需要运营记得改两处。"""
     service = MemberConsoleService()
