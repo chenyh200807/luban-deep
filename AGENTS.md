@@ -39,9 +39,35 @@
 - alias 允许存在但必须在入口层立即归一化,不得参与执行决策。发现两个名字表达同一语义,优先删重复概念。
 - 新概念进代码前三问:是否旧概念换名?表达的是身份/工具/绑定/风格中的哪个?能否直接复用现有控制面?
 
+## Weight Gate — 先定档,再决定过不过门
+
+**这一节优先于下面两道门。** 简单的事情必须简单做——重型协议用在轻任务上,
+代价不只是慢,是**稀释了它在真正重要时候的严肃性**。
+
+分档判据只有一个,**不看任务类型(主观),看错了的代价(客观)**:
+
+| 档 | 判据:如果这次做错了…… | 该做什么 |
+|---|---|---|
+| **轻** | 重跑一次 / 改回来就好,用户看不到 | **直接做**。不写 Start Frame,不过 Stop Gate。收尾一句话说明改了什么 |
+| **中** | 需要回滚,或用户会看到错误状态 | Start Frame + Stop Gate。**不派专家,不做对抗审查** |
+| **重** | 资损 / 数据不可逆 / 信任损失 / 生产事故 | 全套:算子 + 专家并行 + 对抗证伪 + E3 以上验证 |
+
+**轻档的例子**(直接做):改文案、加日志、补注释、只读查询、单文件小改、
+调整格式、加一个测试、更新文档链接。
+
+**重档的例子**(全套):动 authority / 并发语义 / 持久化格式 / 钱相关 / 发布 / 删数据。
+
+**判不准就问一句「这次做错了会怎样」**——答不出「会怎样」的,按轻档做。
+**宁可轻档做错一次重跑,不要每件事都上全套。**
+
+> 反例警示(2026-07-26 实证):一轮 asyncio 调查用了 4 个专家 + 1 轮对抗 review,
+> 最终代码改动 1 行。那次**重档是对的**(涉及并发与持久化),但同一轮里我也用同样的
+> 重型流程去处理「改个注释」级别的事——那是浪费。
+
 ## Start Gate — 唯一启动门
 
 (取代旧 §0.0 Karpathy Gate、§5.6 六件事、§5.7 五件事、§5.8 六件事的全部重复门槛,只此一道。)
+**先过 Weight Gate 定档;轻档任务整节豁免。**
 
 - **非平凡任务**(会改代码/状态/路由/测试/发布/文档治理):动手前写
   [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)
@@ -49,13 +75,36 @@
 - **状态/路由/上下文承接/follow-up/authority 类设计或修复**:追加
   [deeptutor-authority-debugging](./agent-skills/deeptutor-authority-debugging/SKILL.md)
   的 root-cause frame(one business fact / one authority / competing authorities / canonical path / delete-or-demote)。
+- **blind spots(必填,不可留空)**:动手前写两栏——**我的盲区**(本次查不到/判不准/
+  没有雷达的层)与**你的盲区**(owner 这次请求隐含了什么假设、可能不成立)。
+  写「本次未发现」合法;泛泛提醒(注意测试/注意性能/注意兼容)**不合法**,按未填处理。
 - 写不出即不许编码。简单拼写、一行注释、只读查询豁免。
 - 修复完成后必须额外说明三件事:真正坏掉的一等业务事实;哪些地方曾争夺 authority;
   为何修完系统更接近单一 authority 而非多一层补丁。
 
+## Stop Gate — 唯一收工门
+
+(与 Start Gate 对称。Start Gate 管「能不能开始」,本门管「配不配说完成」。
+依据:`~/.codex/memories` 351 条实录失败聚类,绝大多数不发生在动手前,发生在收工时。)
+
+- 任何「完成/修好/已验证/已上线/查过了/没问题/ready」级声明,发出前过
+  [deeptutor-evidence-discipline](./agent-skills/deeptutor-evidence-discipline/SKILL.md)
+  的证据阶梯:写下 claim level(E0-E5)、evidence level、差的几级由谁承担。
+  **结论强度必须 ≤ 证据强度**;跨级即为 351 条里最高频的那个病。
+- 全称结论(整体/都/全部/基本没问题)必须显式写出**分母**与**未覆盖面**;写不出即降级
+  为「就已查项而言」。
+- 后端改 Python 未 rebuild、前端未 DevTools 上传 = **未部署**,claim 封顶 E1。
+- **交付末尾附「你没问但我必须说」**:①前提质疑 ②层盲区(本次改动落在哪个技术层、
+  该层还有哪些高频反模式本次没扫) ③坏消息(未做的/被阻塞的/我不确定的)。
+  同样:允许「本次未发现」,禁止泛泛提醒充数。
+- 未做的、被阻塞的、不确定的必须单列。省略坏消息按虚假声明处理。
+
 ## Principles(一遍,后文与其他文档不再复述)
 
 - **Thin wrappers, fat skills**(最高优先级):入口/router/adapter/wrapper 只做归一化、鉴权、转发、错误语义、观测;业务理解、教学/安全/评分策略、状态真相必须沉入明确命名的 skill/kernel/service authority。wrapper 里不断增长的 regex/fallback/特判/prompt 拼接默认是架构异味,优先下沉或删除。
+  薄还必须**薄在执行维度**:`async` 入口内不得内联同步 IO(含经由 service/store 的间接同步往返)。
+  **逻辑薄 ≠ 非阻塞,两者正交**——一个「只组装转发」的合规 handler 照样可以同步打 6 次 DB 把事件循环占死。
+  判据:`python scripts/scan_asyncio_blocking.py`;修法与坑见 [blindspot-asyncio](./agent-skills/deeptutor-evidence-discipline/references/blindspot-asyncio.md)。
 - **Single Authority Hard Gate(原 §5.7)**:同一业务事实只能有一个 canonical truth source,必须答得出"谁唯一写、唯一存、唯一恢复、唯一读"。默认修法是**先收权再补逻辑**:优先删 mirror state、重复决策点、旁路 reader、transport 层二次改写、参与决策的 alias。新增字段/state/router/classifier/interpreter/wrapper/fallback 一律有罪推定,加之前必须证明:①不造第二套 authority;②不把语义问题降级成模式匹配;③不会成为未来 patch anchor;④旧层确实不能删、主链路确实不能直接承担。
 - **First principles**:先回到业务事实再定实现;"目前代码就这么写"不是理由;现有设计本身是病因时先指出根因。
 - **Think before coding**:不默默假设需求;多种解释不静默选一;先给更简单的方案;带着疑问不编码。
@@ -90,6 +139,7 @@
 - [deeptutor-api-contract-design](./agent-skills/deeptutor-api-contract-design/SKILL.md)
 - [deeptutor-code-simplification](./agent-skills/deeptutor-code-simplification/SKILL.md)
 - [deeptutor-docs-adr-gate](./agent-skills/deeptutor-docs-adr-gate/SKILL.md)
+- [deeptutor-evidence-discipline](./agent-skills/deeptutor-evidence-discipline/SKILL.md)
 - [deeptutor-incremental-implementation](./agent-skills/deeptutor-incremental-implementation/SKILL.md)
 - [deeptutor-observability-gate](./agent-skills/deeptutor-observability-gate/SKILL.md)
 - [deeptutor-resource-registry-gate](./agent-skills/deeptutor-resource-registry-gate/SKILL.md)

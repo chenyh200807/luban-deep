@@ -37,6 +37,10 @@ skills:
     path: agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md
     lane: dispatcher
     expected_use: near-always
+  - name: deeptutor-evidence-discipline
+    path: agent-skills/deeptutor-evidence-discipline/SKILL.md
+    lane: qa
+    expected_use: conditional
   - name: deeptutor-git-workflow-gate
     path: agent-skills/deeptutor-git-workflow-gate/SKILL.md
     lane: git

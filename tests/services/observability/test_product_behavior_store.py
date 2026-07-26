@@ -1126,3 +1126,24 @@ def test_identity_collision_is_excluded_instead_of_double_attributed(tmp_path: P
     assert overview["identity_collision_member_count"] == 2
     assert summaries["member-a"]["identity_collision_count"] == 1
     assert summaries["member-a"]["trust_level"] == "C"
+
+
+def test_connect_enables_wal_without_downgrading_synchronous(tmp_path):
+    """WAL 必须开启,且 synchronous 不得被隐式降级。
+
+    2026-07-26 实测 sqlite 3.51:若 synchronous 停留在默认值,`journal_mode=WAL`
+    会把它从 FULL(2) **隐式降级**到 NORMAL(1)。本库承载埋点与 BI 读,降级会在
+    断电时丢最近若干已提交事务。故 _connect() 必须先钉 FULL 再切 WAL,顺序不能颠倒。
+
+    判别力:把 _connect() 里两行 PRAGMA 的顺序对调,synchronous 会变 1 而本测试变红。
+    """
+    store = SQLiteProductBehaviorStore(tmp_path / "pb.db")
+    conn = store._connect()
+    try:
+        journal = conn.execute("PRAGMA journal_mode").fetchone()[0]
+        synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+    finally:
+        conn.close()
+
+    assert journal.lower() == "wal", f"期望 WAL(读不被写阻塞),实得 {journal}"
+    assert synchronous == 2, f"synchronous 被降级到 {synchronous},期望 2(FULL)"

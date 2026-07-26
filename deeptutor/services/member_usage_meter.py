@@ -334,6 +334,22 @@ class MemberUsageMeter:
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(self._db_path)
         conn.row_factory = sqlite3.Row
+        # WAL:让读不被写阻塞。默认 journal_mode=delete 下读写互斥,该库有并发读写,
+        # 互斥会把并发压成串行。journal_mode 持久化在 db 文件里,设一次即永久;
+        # 每次连接设置是幂等自愈(新建库也会是 WAL)。有其他连接持锁时设置失败并保持原样。
+        #
+        # **synchronous 必须显式设 FULL,顺序不能颠倒**:实测 sqlite 3.51 —— 若
+        # synchronous 停留在默认值,`journal_mode=WAL` 会把它从 FULL(2) **隐式降级**
+        # 到 NORMAL(1);而显式设过 FULL 的连接切 WAL 不降。NORMAL 在断电时可能丢失
+        # 最近若干已提交事务(不损坏库)。本库涉及计量/账单,不接受这个降级。
+        #
+        # 前置已确认:生产 data 目录是 ext4 本地块设备(WAL 依赖 -shm 共享内存映射,
+        # 在网络文件系统上会损坏)。
+        try:
+            conn.execute("PRAGMA synchronous=FULL")
+            conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.DatabaseError:  # 有其他连接持锁时保持原设置
+            pass
         return conn
 
     def _ensure_schema(self) -> None:

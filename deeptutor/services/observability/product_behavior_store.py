@@ -50,6 +50,20 @@ class SQLiteProductBehaviorStore:
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path, timeout=5.0)
         conn.row_factory = sqlite3.Row
+        # WAL:让读不被写阻塞。默认 journal_mode=delete 下读写互斥,本库有并发读写
+        # (埋点写 + BI 读),互斥会把并发压成串行。journal_mode 持久化在 db 文件里,
+        # 每次连接设置是幂等自愈;有其他连接持锁时设置失败并保持原样。
+        #
+        # **顺序不能颠倒**:实测 sqlite 3.51 —— synchronous 停在默认值时,
+        # `journal_mode=WAL` 会把它从 FULL(2) 隐式降级到 NORMAL(1);显式设过 FULL
+        # 的连接切 WAL 不降。故必须先钉 FULL 再切 WAL。
+        #
+        # 前置已确认:生产 data 是 ext4 本地块设备(WAL 依赖 -shm 共享内存映射)。
+        try:
+            conn.execute("PRAGMA synchronous=FULL")
+            conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.DatabaseError:
+            pass
         return conn
 
     def _ensure_schema(self) -> None:
