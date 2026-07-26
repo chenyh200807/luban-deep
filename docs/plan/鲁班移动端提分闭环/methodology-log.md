@@ -9,6 +9,51 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-26 · asyncio 阻塞面:四专家把我的方案证伪了,最终代码改动 = 1 行
+
+**①现象**:盲区侦察扫出 42 处「`async def` 无 await 却触到同步 IO」,集中在用户请求入口
+(`mobile.py` 8 / `member.py` 8 / `photo_answer.py` 6)。递归追到底,36 处真阳性,IO 类型是
+本地文件锁 + 整文件 JSON 读写 + SQLite `begin immediate` + `fsync`——**不是**原以为的
+同步 Supabase 网络往返。
+
+**②发现路径(含走错的岔路,三次)**:
+- **岔路一(我的)**:单层 AST 判据只抓到 4 处,我据此以为问题很小。跨 2 跳追踪后是 42 处——
+  **单层指纹覆盖率仅 2.4%**,IO 藏在第二跳。教训:静态跨层追踪固定跳数必漏,要递归。
+- **岔路二(我的,最严重)**:诊断出"36 处该把 `async def` 改成 `def`",理由是 FastAPI 会把同步
+  路由丢线程池,零新增概念。**这个方案被异源对抗审查证伪**,而且我自己的实测复现了证伪。
+- **岔路三(我写进 skill 的错误结论)**:`blindspot-asyncio.md` A0 初版写"56 处 to_thread +
+  42 处待改 = 98 调用点抢 22 worker"。**错**:FastAPI 同步路由走 anyio 池(40 令牌),
+  `asyncio.to_thread` 走 loop 默认 executor(22),**两个池物理隔离**。已在表中修订并保留错误记录。
+
+**③分析(root cause + shared failure shape)**:
+- **真正的判据是「这段阻塞释放 GIL 吗」,不是「它是不是 IO」**。实测:624KB JSON
+  `loads+dumps` 4 线程并行加速比 **1.01x**(纯 GIL-bound)。GIL-bound 的活换池 = 换个地方排队。
+  两路异源实测的表面冲突(一路测出 1556× 改善,一路测出反而更慢)正是被这条判据统一解释的:
+  前者负载是 `sleep`(释放 GIL),后者是 JSON(不释放)。
+- **shared failure shape = 把成本"搬运"误当成"消除"**。`to_thread` / 改 `def` 都属搬运;
+  真正的 less is more 是让开销不发生。
+- 一个**意外的免费互斥锁**:那 5 处待改路由现在的正确性来自「`async def` 且无 await ⇒
+  事件循环上不可被抢占」。改 `def` 会拿掉这把锁,读-改-写窗口第一次真实存在
+  (`settings.py:192` load→update→save 无锁;`member.py:349/390/412` → `overlay_service.py:268`
+  裸 `path.write_text`)。**减法也可能引入并发 bug。**
+
+**④修法与理由**:唯一代码改动 = `member_console/service.py:1911`
+`json.dumps(indent=2)` → `separators=(",",":")`。实测真实文件 624KB→337KB(-46% 字节)、
+dumps 10.2ms→1.8ms(-83%)。**刻意拒绝的四个方案**:①36 处改 `def`(GIL-bound 无效 + 5 处会
+丢互斥 + `auth.py:192` ContextVar 会崩 + 12 处根本不是路由改了会打炸调用方 + PR #564
+`63452eaad` 一天前刚否决过同一提案);②36 处加 `to_thread`(制造第二套执行 authority);
+③`process_job` 腾池(当前同步阻塞事实上起 admission control,移除会引入今天不存在的
+`SQLITE_BUSY`,而全仓 0 处重试);④external_auth 补 flock(资损前提"生产 workers>1"未经
+独立证实,两位专家给出矛盾答案且都用了旁证)。
+
+**⑤验证与教训**:`tests/services/member_console/` 全绿;三道治理门 passed。
+教训:一,**并发问题先问 GIL 再问 IO**——问错了会把一个 1 行的减法做成 36 处的重构;
+二,**异源对抗是必需品不是奢侈品**:证伪我的是异源实测,而我和本仓历史诊断同源,
+自己扫不出这个盲区;三,**两个 agent 给出矛盾事实时,不要选一个信**——生产 workers 数
+两人一个说 1 一个说 2,主控独立核后发现**两人都只有旁证**(Dockerfile 默认值 vs 某配置),
+生产真值仍 BLOCKED。**未做(诚实边界)**:无生产 profile / 无 SSH,以下全部未验证:
+生产 `UVICORN_WORKERS` 真值、external_auth 跨进程丢更新是否已发生、
+`_shadow_compare_wallet_read` 在生产是否开启。这些是条件性风险,不是已确认事故。
 ## 2026-07-26 · 权益承诺:owner 只要求"改文案",但只改文案就是制造新的名实不符 → 把承诺变成可执行数据
 
 **①现象**:owner 指出 `desc` 卖的 7 项能力里 6 项无 tier enforcement、"班主任督学服务"全仓

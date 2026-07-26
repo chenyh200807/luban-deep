@@ -13,28 +13,61 @@
 
 ---
 
-## 最高优先:一个解药变成的新瓶颈
+## 最高优先:唯一判据 —— 这段阻塞释放 GIL 吗?
 
-### A0 · `to_thread` 无背压(56 处)
+> **2026-07-26 修订**:本节初版写的是「56 处 `to_thread` + 42 处待改 = 98 调用点抢 22 worker」。
+> **该结论已被异源对抗审查证伪,且我自己的实测复现了证伪**。原文保留在 git 历史。
+> 记在这里是因为**它错得很典型**:把"并发瓶颈"默认当成 IO 问题,而没先问 GIL。
 
-```bash
-rg -n --glob '*.py' 'asyncio\.to_thread\(' deeptutor
-rg -n 'set_default_executor|ThreadPoolExecutor\(max_workers' --glob '*.py' deeptutor  # 确认有无自定义池
+### 事实一:两个线程池是**物理隔离**的(实测)
+
+```python
+asyncio.to_thread(...)        → 线程 asyncio_0            默认 executor,min(32,cpu+4)=22
+anyio.to_thread.run_sync(...) → 线程 AnyIO worker thread  CapacityLimiter,默认 40
 ```
 
-**本仓**:56 处。`turn_runtime.py`(7)、`luban_preview.py`(7)、`learner_state/runtime.py`(5)、
-`agent/tools/web.py`(4)、`bi_service.py`(4)…**未发现 `set_default_executor`**,
-即 56 处全部共享 Python 默认池 `min(32, cpu+4)`。
+FastAPI 同步 `def` 路由走 **anyio 池(40)**;`asyncio.to_thread` 走 **默认 executor(22)**。
+**两者不互抢**,原文"98 抢 22"是错的。本仓 `anyio` limiter 未被调过,用默认 40。
 
-**为什么它排第一**:`asyncio.to_thread` 是本仓治「同步阻塞全家桶」的**标准修法**
-(retest 一役就是这么修的)。但它把阻塞从事件循环搬到了一个**共享且有限**的池里,
-没有背压、没有分池、没有队列上限。
+### 事实二:GIL 决定线程池有没有用(实测)
 
-**表现**:事件循环指标正常(不再饥饿),但 HTTP p95/p99 随并发上升;线程池队列长度与
-等待时间增长。**症状从"全体饿死"变成"排队变慢",更难归因。**
+```
+624KB JSON  loads+dumps(indent=2)     单次 10.2ms
+            4 线程并行                 36.4ms  ≈ 单次×4(36.7ms)
+            并行加速比                 1.01x   → 纯 GIL-bound
+```
 
-**决策影响**:下面 A1 那 42 处如果按标准修法全改 `to_thread`,池里会变成 98 个调用点
-抢 22 个 worker。**修之前先给默认 executor 定容并分池,否则是把问题挪个地方。**
+**判据(唯一):**
+
+| 阻塞是否释放 GIL | 例子 | 挪进线程池有用吗 | 正确修法 |
+|---|---|---|---|
+| **释放** | 同步网络 IO、`fsync`、SQLite C 层 | ✅ 有用,O(并发)→O(1) | 改同步 `def` 或独立池 |
+| **不释放** | `json.loads/dumps`、`deepcopy`、纯计算 | ❌ **结构上无效** | **删掉开销本身,别换池** |
+
+异源实测三臂对照(复刻 `member_console` 的 RLock + 624KB JSON,并发 40):
+
+| 臂 | wall | loop-lag p50 | max |
+|---|---|---|---|
+| A 现状 | 491ms | 490 | 490 |
+| B 改 `def` | **503ms(更慢)** | 59 | **418(只降 15%)** |
+
+"事件循环指标转绿、p95 不变或更差"——字面兑现。**GIL-bound 的活,换池只是换个地方排队。**
+
+### 事实三:本仓已有先例与守卫,改 `def` 不是"零新增概念"
+
+- 已有 4 个同步 `def` 路由(`mobile.py:3151/3165/3174`、`lesson_progress.py:39`),
+  **每一个都配了解释注释 + 回归钉**(`tests/api/test_mobile_event_loop_discipline.py` 白名单)。
+  批量改 N 条 = N 条注释 + 白名单扩到 N 项,**不是零成本**。
+- **PR #564(`63452eaad`)已明确拒绝过统一改 `def`**:"demoting the whole chain would force
+  `asyncio.run` boundaries"。最终用的是混合方案 + 行为断言。**别重提已被否决的方案。**
+- **ContextVar 语义变更**:anyio 走 `copy_context()`,同步路由体内 `ContextVar.set()` 会被丢弃。
+  本仓有 4 组 request 期 ContextVar(含日志字段、langfuse usage scope)。
+
+### 事实四:判据是「单请求阻塞时长 × 并发」,不是 QPS
+
+生产 ~35 turn/天、93 真实会员——**QPS 极低**。但生产已因此伤过用户**两次,都发生在并发 3**:
+2026-07-05(0.13s→7.2s,55x)、2026-07-21(交卷 5xx 撞 15s 死线)。
+**那两起的阻塞是 3-5s 同步 Supabase 网络(GIL-releasing),线程池对它确实有特效。**
 
 ---
 
@@ -55,7 +88,20 @@ python scripts/scan_asyncio_blocking.py --check 42 # 超基线才非 0(可选,�
 并回填本表。
 
 **本仓聚集**:`routers/mobile.py`(8)、`routers/member.py`(8)、`routers/photo_answer.py`(6)、
-`routers/bi.py`(3)、`routers/tutor_state.py`(3)、`services/bi_service.py`(3)——**全在用户请求入口**。
+`routers/bi.py`(3)、`routers/tutor_state.py`(3)、`services/bi_service.py`(3)。
+
+**⚠ 命中 ≠ 路由**:42 处里 **12 处根本不是 FastAPI 路由**(`bi_service.get_member_stats`、
+`dependencies/auth.get_current_user`、`channels/matrix.start` 等——它们**是被 await 的协程**)。
+对这 12 处改 `def` 会**打炸调用方**。用扫描器结果做修复决策前,必须先按「是不是路由」分流。
+
+**修复优先级(按上面的 GIL 判据,不是按命中数)**:
+1. **删开销**(GIL-bound,换池无效):`service.py:1911` `json.dumps(indent=2)` 10.2ms→1.7ms;
+   `_load_member_snapshot:2903` `deepcopy` 5.1ms;加 mtime 缓存(本仓已有此模式:
+   `luban_lesson/read_model.py:63`)。
+2. **腾池**:`photo_answer.py:283` → `photo_answer/service.py:104 def process_job` 是**同步
+   BackgroundTask**,十秒级 OCR/VLM 占着 anyio 那 40 个令牌——**它正占着别人要搬进去的池**。
+3. **只改真符合判据的少数几条**(阻塞释放 GIL 且 ≥100ms)。
+4. 验收看 `deeptutor_turn_loop_lag_max_seconds` / `_over_200ms_total`,**不是 p50**。
 
 **已抽验真阳性**:`bi.py:200 bi_learning_preference` 无 await,同步调 `get_engagement_breakdown()`
 **6 次** DB 聚合;`mobile.py:3001 billing_wallet` → `_teaching_video_limit_for_user` →
