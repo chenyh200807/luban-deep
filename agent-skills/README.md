@@ -156,6 +156,23 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 (2026-07-26 owner 立:「让他们持续进化,而且要分层,哪些是核心层不变的内核,
 哪些是事务性的可以不断优化的」。)
 
+### 哪些 skill 需要进化能力(不是全部)
+
+判据:**它承载的是我们自己踩坑积累的判断力,还是外部工具的用法?**
+
+- **判断力型 → 需要**:随经验增长,踩一次坑长一条。本 repo 现有 5 个 +
+  全局 `root-cause-debugging` / `deeptutor-aliyun-release` / `eval-design`。
+- **工具用法型 → 不需要**:`gstack-*`(47 个)、`agent-reach`、`wiki-*`。
+  它们的正确性由上游维护,给它们加分层是纯过度工程。
+
+**给不需要的 skill 加进化协议,本身就是违反 less is more。**
+
+### 先定档,再决定用多重的流程
+
+分层协议本身也受 [AGENTS.md · Weight Gate](../AGENTS.md#weight-gate--先定档再决定过不过门) 约束:
+**轻档任务(错了重跑一次就好)不过任何门,直接做。**
+重型协议用在轻任务上,代价不只是慢,是稀释了它在真正重要时候的严肃性。
+
 ### 目标不是「预知一切」
 
 任何方法论 skill 的目标**不是**在动手前预知全部问题。那个起点是错的:理论上不可能、
