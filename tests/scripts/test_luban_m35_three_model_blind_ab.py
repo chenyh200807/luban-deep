@@ -19,9 +19,9 @@ def _run_ab(tmp_path: Path, *args: str, env: dict[str, str] | None = None) -> di
     subprocess.run(
         [
             "python",
-            SCRIPT,
+            str(REPO / SCRIPT),
             "--fixture",
-            FIXTURE,
+            str(REPO / FIXTURE),
             "--output",
             str(out),
             *args,

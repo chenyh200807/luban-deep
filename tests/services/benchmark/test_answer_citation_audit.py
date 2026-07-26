@@ -7,7 +7,8 @@ from deeptutor.services.benchmark.answer_citation_audit import audit_answer_cita
 
 
 def test_answer_citation_audit_fixture_passes_accuracy_checks() -> None:
-    result = audit_answer_citation_cases(Path("tests/fixtures/answer_citation_eval_cases.json"))
+    repo_root = Path(__file__).resolve().parents[3]
+    result = audit_answer_citation_cases(repo_root / "tests/fixtures/answer_citation_eval_cases.json")
 
     assert result["suite"] == "answer_citation_eval_v1"
     assert result["citation_accuracy"] == 1.0

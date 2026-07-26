@@ -9,8 +9,8 @@ from scripts.run_luban_m35_deepseek_adversarial_probe import (
 )
 
 
-SCRIPT = "scripts/run_luban_m35_deepseek_adversarial_probe.py"
-FIXTURE = "tests/fixtures/luban_m35_case_scoring"
+SCRIPT = Path(__file__).resolve().parents[2] / "scripts/run_luban_m35_deepseek_adversarial_probe.py"
+FIXTURE = Path(__file__).resolve().parents[2] / "tests/fixtures/luban_m35_case_scoring"
 
 
 def _run_probe(tmp_path: Path, *args: str, env: dict[str, str] | None = None) -> dict:
@@ -21,9 +21,9 @@ def _run_probe(tmp_path: Path, *args: str, env: dict[str, str] | None = None) ->
     subprocess.run(
         [
             "python",
-            SCRIPT,
+            str(SCRIPT),
             "--fixture",
-            FIXTURE,
+            str(FIXTURE),
             "--output",
             str(out),
             *args,

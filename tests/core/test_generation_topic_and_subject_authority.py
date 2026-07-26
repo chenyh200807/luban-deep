@@ -33,6 +33,8 @@ from deeptutor.capabilities.deep_question import DeepQuestionCapability
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 from deeptutor.services.session.turn_runtime import (
     _result_active_object,
     _result_question_followup_context,
@@ -539,7 +541,7 @@ def test_subject_declaration_instruction_exists_and_wired_into_loop() -> None:
     assert "不得" in instruction  # 不得纠正用户的科目选择
     assert "边界" in instruction  # 知识库不覆盖时诚实声明边界
 
-    loop_source = Path("deeptutor/tutorbot/agent/loop.py").read_text(encoding="utf-8")
+    loop_source = (_REPO_ROOT / "deeptutor/tutorbot/agent/loop.py").read_text(encoding="utf-8")
     assert "get_subject_declaration_instruction(" in loop_source
 
 

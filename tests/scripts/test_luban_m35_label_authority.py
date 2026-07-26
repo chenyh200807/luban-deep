@@ -3,7 +3,8 @@ import subprocess
 from pathlib import Path
 
 
-SCRIPT = "scripts/audit_luban_m35_label_authority.py"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = REPO_ROOT / "scripts/audit_luban_m35_label_authority.py"
 _DIRECTIONALITY_BY_AUTHORITY = {
     "teacher_validated": "human_validated",
     "po_directional_single_reviewer": "po_directional",
@@ -26,8 +27,9 @@ def _run_audit(tmp_path: Path, rows: list[dict]) -> dict:
     out = tmp_path / "label_audit.json"
 
     subprocess.run(
-        ["python", SCRIPT, "--answers", str(fixture), "--output", str(out)],
+        ["python", str(SCRIPT), "--answers", str(fixture), "--output", str(out)],
         check=True,
+        cwd=REPO_ROOT,
     )
 
     return json.loads(out.read_text(encoding="utf-8"))

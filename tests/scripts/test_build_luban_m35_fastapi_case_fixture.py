@@ -3,7 +3,8 @@ import subprocess
 from pathlib import Path
 
 
-SCRIPT = "scripts/build_luban_m35_fastapi_case_fixture.py"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT = REPO_ROOT / "scripts/build_luban_m35_fastapi_case_fixture.py"
 
 
 def test_builds_fixture_from_student_arranged_markdown(tmp_path):
@@ -111,7 +112,7 @@ def test_builds_fixture_from_student_arranged_markdown(tmp_path):
     subprocess.run(
         [
             "python",
-            SCRIPT,
+            str(SCRIPT),
             "--source",
             str(source),
             "--output-dir",
@@ -122,6 +123,7 @@ def test_builds_fixture_from_student_arranged_markdown(tmp_path):
             "100",
         ],
         check=True,
+        cwd=REPO_ROOT,
     )
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
@@ -189,7 +191,7 @@ def test_can_split_case_into_subquestion_level_fixture(tmp_path):
     subprocess.run(
         [
             "python",
-            SCRIPT,
+            str(SCRIPT),
             "--source",
             str(source),
             "--output-dir",
@@ -201,6 +203,7 @@ def test_can_split_case_into_subquestion_level_fixture(tmp_path):
             "--split-subquestions",
         ],
         check=True,
+        cwd=REPO_ROOT,
     )
 
     manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))

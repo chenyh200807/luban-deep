@@ -37,7 +37,10 @@ def test_real_fixture_uses_docs_2026_full_exam_years() -> None:
 def test_real_fixture_keeps_docs_2026_source_pointers() -> None:
     from pathlib import Path
 
-    fixture = Path("deeptutor/services/benchmark/fixtures/exam_quality_bank.json")
+    fixture = (
+        Path(__file__).resolve().parents[3]
+        / "deeptutor/services/benchmark/fixtures/exam_quality_bank.json"
+    )
     payload = json.loads(fixture.read_text(encoding="utf-8"))
     assert payload["source_docs_2026_root"] == "FastAPI20251222/docs/2026/题库"
     assert payload["years_blocked"] == []
