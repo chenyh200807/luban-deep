@@ -6933,9 +6933,9 @@ def test_router_holds_no_second_tier_list() -> None:
 
 def test_unknown_tier_never_gains_entitlement() -> None:
     """反例:目录里查不到的档位一律回落无会员上限,不放权。"""
-    assert mobile_module.resolve_teaching_video_limit("campus_49", True) == 20
-    assert mobile_module.resolve_teaching_video_limit("trial", True) == 20
-    assert mobile_module.resolve_teaching_video_limit("", True) == 20
+    assert mobile_module.resolve_teaching_video_limit("campus_49", True) == 10
+    assert mobile_module.resolve_teaching_video_limit("trial", True) == 10
+    assert mobile_module.resolve_teaching_video_limit("", True) == 10
 
 
 def test_billing_checkout_rejects_non_sellable_package(

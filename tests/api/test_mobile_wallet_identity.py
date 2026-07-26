@@ -847,12 +847,13 @@ def test_wallet_endpoints_treat_invalid_uuid_wallet_lookup_as_empty_wallet(
 @pytest.mark.parametrize(
     ("tier", "is_active", "expected"),
     [
-        ("", False, 20),
-        ("vip", False, 20),  # expired paid tier → default
-        ("starter_19", False, 20),  # expired starter → default
-        ("trial", True, 20),  # active trial (no paid membership) → default
-        ("free", True, 20),
-        ("unknown_tier", True, 20),
+        # 免费额度真值在此静态钉死(不引用常量:引用会变成自证,改额度必须在 diff 里看得见)
+        ("", False, 10),
+        ("vip", False, 10),  # expired paid tier → free tier
+        ("starter_19", False, 10),  # expired starter → free tier
+        ("trial", True, 10),  # active trial (no paid membership) → free tier
+        ("free", True, 10),
+        ("unknown_tier", True, 10),
         ("starter_19", True, 30),
         ("light_98", True, None),
         ("vip", True, None),
@@ -874,7 +875,7 @@ def test_membership_is_active_by_expire_at() -> None:
     assert mobile_module._membership_is_active(None) is False
 
 
-def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
+def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_free_tier(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # 过期 light_98 会员:虽然 tier 是无限档,但已过期 → 回落到默认 20。
@@ -920,10 +921,10 @@ def test_billing_wallet_teaching_video_limit_expired_membership_defaults_to_20(
         response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
 
     assert response.status_code == 200
-    assert response.json()["teaching_video_limit"] == 20
+    assert response.json()["teaching_video_limit"] == 10
 
 
-def test_billing_wallet_teaching_video_limit_inactive_membership_defaults_to_20(
+def test_billing_wallet_teaching_video_limit_inactive_membership_defaults_to_free_tier(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     future_expire = (datetime.now(ZoneInfo("Asia/Shanghai")) + timedelta(days=30)).isoformat()
@@ -962,7 +963,7 @@ def test_billing_wallet_teaching_video_limit_inactive_membership_defaults_to_20(
         response = client.get("/api/v1/billing/wallet", headers={"Authorization": "Bearer test-token"})
 
     assert response.status_code == 200
-    assert response.json()["teaching_video_limit"] == 20
+    assert response.json()["teaching_video_limit"] == 10
 
 
 def test_billing_wallet_teaching_video_limit_active_starter_is_30(
