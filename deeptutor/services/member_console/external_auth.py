@@ -1,21 +1,25 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import hashlib
 import json
 import logging
 import os
-from pathlib import Path
 import re
 import secrets
 import tempfile
-from threading import Lock
 import time
-from typing import Any
 import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from threading import Lock
+from typing import Any
+
+try:  # pragma: no cover - 平台差异
+    import fcntl
+except ImportError:  # Windows 无 fcntl:降级为纯进程内互斥
+    fcntl = None  # type: ignore[assignment]
 
 import bcrypt
-
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 logger = logging.getLogger(__name__)
@@ -69,8 +73,6 @@ _IDENTITY_METADATA_TEXT_FIELDS = (
     "eval_run_id",
 )
 _IDENTITY_METADATA_BOOL_FIELDS = ("is_internal_test", "is_test_account")
-_REG_CHANNEL_RE = re.compile(r"[^0-9A-Za-z_-]")
-_STORE_LOCK = Lock()
 _PRIMARY_USERS_FILE = Path("/app/data/user/external_auth/users.json")
 _LEGACY_USERS_FILE = Path("/root/luban/.storage/users.json")
 _PRIMARY_SESSIONS_FILE = Path("/app/data/user/external_auth/sessions.json")
@@ -81,6 +83,85 @@ def _allow_legacy_external_auth_default() -> bool:
     if not is_production_environment():
         return True
     return env_flag("DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT", default=False)
+
+
+def _store_lock_path() -> Path:
+    """external_auth 存储的跨进程锁文件路径。
+
+    **必须不依赖文件是否已存在**:`get_external_auth_users_file()` 与
+    `_default_users_file()` 在文件不存在时都返回 None,而锁要在 users.json
+    首次创建之前就能拿到。所以这里解析的是「配置声明的位置」而非「已存在的位置」。
+
+    锁的正确性只要求**所有 worker 进程算出同一个路径**,不要求锁与数据同目录——
+    即使运行时落在 legacy 路径,所有进程走的仍是这同一条解析逻辑。
+    """
+    raw = str(os.getenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE") or "").strip()
+    base = Path(raw) if raw else _PRIMARY_USERS_FILE
+    return base.with_name(".external_auth.lock")
+
+
+class _CrossProcessStoreLock:
+    """进程内 + 跨进程复合互斥,替代原来的裸 `threading.Lock()`。
+
+    **为什么必须改**:生产 `UVICORN_WORKERS=2`(2026-07-26 实测容器 env),
+    `threading.Lock` 只在单进程内互斥。users.json / sessions.json 的
+    read-modify-write 在两个 worker 间**结构上无保护**,交错如下会静默丢绑定:
+
+        P1 load {A}          P2 load {A}
+        P1 write {A,B}       P2 write {A,C}   ← B 丢失,且无任何错误
+
+    单次 `_write_json_mapping` 是原子的(tempfile + replace),但原子写救不了
+    跨进程的 RMW 序列——这是"看起来有锁其实没锁"的典型 dormant authority。
+
+    **两层锁各司其职**:
+      · `threading.Lock` — 同进程多线程(FastAPI anyio 池)互斥。**必须先拿**:
+        flock 对同进程不同 fd 不可重入,先串行化同进程可避免自锁。
+      · `flock(LOCK_EX)` — 跨 worker 进程互斥。这是本次修复的实质。
+
+    **非重入是刻意的**:8 个持锁函数经 AST 核验互不在锁内调用
+    (5 处 `delete_external_auth_sessions` 调用全在 `with` 块之外),
+    所以不需要 RLock 语义。若将来新增嵌套调用会立即死锁 —— 这是**期望行为**,
+    比静默丢更新好,且 `tests/services/member_console/test_external_auth_cross_process_lock.py`
+    会钉住这个不变量。
+    """
+
+    def __init__(self) -> None:
+        self._thread_lock = Lock()
+        self._handle: Any = None
+
+    def __enter__(self) -> "_CrossProcessStoreLock":
+        self._thread_lock.acquire()
+        try:
+            path = _store_lock_path()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            handle = path.open("a+", encoding="utf-8")
+            try:
+                if fcntl is not None:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            except BaseException:
+                handle.close()
+                raise
+            self._handle = handle
+        except BaseException:
+            self._thread_lock.release()
+            raise
+        return self
+
+    def __exit__(self, *_exc: Any) -> bool:
+        handle, self._handle = self._handle, None
+        try:
+            if handle is not None:
+                try:
+                    if fcntl is not None:
+                        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+                finally:
+                    handle.close()
+        finally:
+            self._thread_lock.release()
+        return False
+
+
+_STORE_LOCK = _CrossProcessStoreLock()
 
 
 def _default_users_file() -> Path | None:
@@ -249,18 +330,6 @@ def _normalize_identity_metadata(identity_metadata: dict[str, Any] | None) -> di
             normalized[field] = value
         elif str(value or "").strip().lower() in {"1", "true", "yes", "y"}:
             normalized[field] = True
-    reg_channel = _REG_CHANNEL_RE.sub(
-        "", str(identity_metadata.get("reg_channel") or "").strip()
-    )[:64]
-    if reg_channel:
-        normalized["reg_channel"] = reg_channel
-    reg_scene = "".join(
-        char
-        for char in str(identity_metadata.get("reg_scene") or "").strip()
-        if char.isdigit()
-    )[:8]
-    if reg_scene:
-        normalized["reg_scene"] = reg_scene
     return normalized
 
 
