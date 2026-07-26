@@ -13,10 +13,16 @@
     python scripts/scan_asyncio_blocking.py --json         # 机器消费
     python scripts/scan_asyncio_blocking.py --check 42     # 超过基线才非 0(可选门)
 
-诚实边界(结果是**下界**,不是全集):
+诚实边界(结果是**下界**,不是全集。以下每条都经异源 code review 确认):
   · 只做 2 跳;第 3 跳以上的 IO 只能靠跨模块名字启发式命中。
   · 跨模块调用按名字匹配(service/store/repo/client/dao/db/supabase),不做全仓符号解析。
-  · 命中 ≠ 有 bug。纯内存缓存的 service 调用会误报;需人工抽验。
+  · **假阴性**:函数体内任意位置出现 `await` 即整体跳过,因此漏掉「await 之后仍内联同步
+    阻塞」的形态(实例:`mobile.py auth_register`)。该形态需另行扫描——2026-07-26 手工
+    扫描全仓路由,此类仅 1 处(`mobile.py:3281 mobile_mistake_book`),故未纳入本扫描器。
+  · **假阳性**:名字含 service/store 但实际是内存操作的调用会命中,无 callee 分析
+    (实例:`overlay_service.list_user_overlays`)。命中 ≠ 有 bug,需人工抽验。
+  · 这也是本脚本登记为 `operational` 而非 `pr_gate` 的原因:判据有已知双向误差,
+    设成阻断门会制造假红,而假红比没门更糟。
 
 配套:agent-skills/deeptutor-evidence-discipline/references/blindspot-asyncio.md
 """

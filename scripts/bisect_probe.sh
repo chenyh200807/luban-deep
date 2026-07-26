@@ -65,9 +65,21 @@ case $RC in
         echo "[probe] $SHA: BAD"
         exit 1
         ;;
-    2|3|4)
-        # 2=中断 3=内部错误 4=用法错误 → 判不了
-        echo "[probe] $SHA: pytest rc=$RC → SKIP"
+    2)
+        # pytest EXIT_INTERRUPTED:用户 Ctrl-C。pytest 自己捕获了 SIGINT 并返回 2,
+        # 所以这里**收不到** 130——把它当 skip 会让 bisect 在用户按下 Ctrl-C 后
+        # 继续跑下一个 commit。必须 abort。
+        echo "[probe] $SHA: pytest rc=2 (用户中断) → ABORT" >&2
+        exit 130
+        ;;
+    4)
+        # EXIT_USAGEERROR:命令行/配置错误。每个 commit 都会同样错,继续二分无意义。
+        echo "[probe] $SHA: pytest rc=4 (用法错误,检查 BISECT_TEST) → ABORT" >&2
+        exit 128
+        ;;
+    3)
+        # EXIT_INTERNALERROR:可能是该 commit 特有的插件/环境问题 → 判不了
+        echo "[probe] $SHA: pytest rc=3 (内部错误) → SKIP"
         exit $SKIP
         ;;
     5)
@@ -75,7 +87,14 @@ case $RC in
         exit $SKIP
         ;;
     *)
-        # 收集错误/import 错误常见于历史 commit,一律 skip 而不是 bad
+        # rc >= 128 = 被信号杀死(130=SIGINT/Ctrl-C, 143=SIGTERM)。必须原样透传,
+        # 让 git bisect 走 abort 语义——降级成 125(skip) 会让 bisect 在用户按下
+        # Ctrl-C 后继续跑下一个 commit,而不是停下来。
+        if [ $RC -ge 128 ]; then
+            echo "[probe] $SHA: pytest rc=$RC (signal) → ABORT" >&2
+            exit $RC
+        fi
+        # 其余(收集错误/import 错误)常见于历史 commit,一律 skip 而不是 bad
         echo "[probe] $SHA: pytest rc=$RC → SKIP"
         echo "$OUT" | tail -5 >&2
         exit $SKIP
