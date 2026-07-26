@@ -11,7 +11,8 @@
 
 | 触发条件 | 必读 |
 |---|---|
-| 任何非平凡任务(改代码/状态/路由/测试/发布/文档治理) | AGENTS §Start Gate → `deeptutor-engineering-lifecycle-gate` |
+| 任何非平凡任务(改代码/状态/路由/测试/发布/文档治理) | AGENTS §Start Gate(含 blind spots 必填)→ `deeptutor-engineering-lifecycle-gate` |
+| 任何"完成/修好/已验证/已上线/查过了"的声明 | AGENTS §Stop Gate → `deeptutor-evidence-discipline` |
 | 涉及 turn/session/stream/replay/resume/聊天入口/TutorBot/trace | AGENTS §Contract Discipline + `CONTRACT.md` + `contracts/index.yaml` |
 | 任何 bug 调查、状态/路由/上下文承接问题 | AGENTS §Start Gate + `deeptutor-authority-debugging` |
 | 任何"新增字段/router/classifier/wrapper/fallback"的冲动 | AGENTS §Principles(Thin wrappers / Single Authority Hard Gate) |

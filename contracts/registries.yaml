@@ -28,117 +28,213 @@ meta:
   ci_workflow: .github/workflows/tests.yml
   doc: docs/plan/鲁班knowql/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md
 
+  # ── gate 退休纪律(2026-07-26 加,数据待填) ────────────────────────────────
+  # 门的存在本身说明结构还没收干净。每个 gate 都该有一个退休条件,否则治理层
+  # 只增不减,最终变成"看起来有保护"的负资产。两个字段:
+  #
+  #   last_caught: <YYYY-MM-DD 或 unknown>
+  #     最近一次这个 gate 真拦下问题的日期。unknown = 尚未回填,不是"没拦过"。
+  #     诚实边界:这 33 条当前全是 unknown,因为该数据只有 owner 知道,
+  #     编造日期会让本字段变成它自己要防的那种假证据。
+  #
+  #   retirement_condition: <一句话 或 unknown>
+  #     什么结构变化发生后这个 gate 可以删。例:
+  #       "DEFAULT_LLM_MODEL 收进单一 import 路径后可退休"
+  #
+  # 复核规则(季度,人工,不设 CI 门 —— 数据未填前设门就是假门):
+  #   grep -c 'last_caught: unknown' contracts/registries.yaml      # 待回填数
+  #   grep -B3 'last_caught: unknown' contracts/registries.yaml     # 逐条回填
+  # 回填后:last_caught 超过 180 天的 pr_gate,列为待删候选,逐个判断是
+  # "结构已收干净可删",还是"确实还在防守但没触发"。不自动删。
+  gate_retirement_review: quarterly-manual
+
 scanners:
   # ── register-before-use resource registries (each has a contracts/*.yaml) ──
   - script: scripts/check_schema_registry.py
     governs: grading typed-object schema ids (contracts/schema_registry.yaml)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_db_registry.py
     governs: DB connections / table writes / *_DB_URL (contracts/db_registry.yaml)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_env_registry.py
     governs: env vars / feature flags / credentials (contracts/env_registry.yaml)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_provider_registry.py
     governs: LLM provider base_urls (contracts/provider_registry.yaml)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_process_registry.py
     governs: cron schedules / always-on daemons (contracts/process_registry.yaml)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   # ── contract-index driven guards ──
   - script: scripts/check_contract_guard.py
     governs: protected-file domains + error codes + node ids + lifecycle + upstream + ws (contracts/index.yaml)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_turn_contract_guard.py
     governs: unified turn/session/stream contract (CONTRACT.md + contracts/turn.md)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_rest_route_allowlist.py
     governs: REST route mount-prefix existence allowlist (contracts/index.yaml http_routes)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_websocket_route_allowlist.py
     governs: single chat WS control-plane (/api/v1/ws) allowlist
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   # ── single-authority guards (AGENTS §5.7) ──
   - script: scripts/check_harness_authority.py
     governs: single SCENE_COMPOSITION / grounding-decision / force-exact authority
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_model_authority.py
     governs: single DEFAULT_LLM_MODEL / DEFAULT_LLM_PROVIDER authority
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_submission_relation_gate_authority.py
     governs: no NEW independent submission/relation _looks_like_* gate (Context-Continuity 止血, contracts/turn.md §24; fail-on-new, baseline-grandfathered)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_control_plane_writer_allowlist.py
     governs: single-writer allowlist for control-plane facts — turn_semantic_decision / question_lifecycle_scene / active_object / reveal / visible-output RESULT·PROGRESS·ACK write-sites (contracts/index.yaml control_plane_writers)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_qtpk_import_allowlist.py
     governs: QTPK god-object import red line — deeptutor/services/question_turn_policy.py may import only the canonical question-turn resolvers (semantic_router / question_lifecycle_skills / active_object_builder / question_followup) + stdlib; forbids LLM/grading/RAG/learner-state/reveal/terminal/stream/orchestrator/turn_runtime (fail-closed)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   # ── shell CI gates ──
   - script: scripts/ci/check_secure_routers.sh
     governs: routers must use the secure auth dependency (fail-on-new)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_rls_on_create_table.sh
     governs: new Postgres tables must enable RLS (fail-on-new)
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_live_rls_regression.sh
     governs: live RLS regression
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_rate_limit_single_authority.sh
     governs: single rate-limit authority
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_llm_client_factory.sh
     governs: LLM clients must go through the one factory
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_runtime_safety_usage.sh
     governs: runtime safety wiring
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/ci/check_migration_uniqueness.sh
     governs: unique migration numbers
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   # ── meta (self) ──
   - script: scripts/check_registries_meta.py
     governs: this catalog — every scanner cataloged + every pr_gate wired into CI
     enforcement: pr_gate
+    last_caught: unknown
+    retirement_condition: unknown
   # ── release-gate (deploy workflow, not per-PR) ──
   - script: scripts/check_2026_source_compiler_release_gates.py
     governs: 2026 source-compiler release Go/No-Go gates
     enforcement: release_gate
+    last_caught: unknown
+    retirement_condition: unknown
     runs_in: on-demand / release runbook
   - script: scripts/report_control_plane_shadow_hits.py
     governs: control-plane shadow-hit window metric (per-watch-target liveness + fail-closed coverage); GO/No-Go release evidence
     enforcement: release_gate
+    last_caught: unknown
+    retirement_condition: unknown
     runs_in: on-demand / release runbook
   # ── other workflow ──
   - script: scripts/check_hermes_upstream.py
     governs: upstream (HKUDS) sync drift
     enforcement: other_workflow
+    last_caught: unknown
+    retirement_condition: unknown
     runs_in: .github/workflows/hermes-upstream.yml
   # ── operational / local / on-demand (NOT CI gates) ──
   - script: scripts/check_git_worktree.py
     governs: git worktree discipline (dev tool)
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_install.py
     governs: install/environment sanity (dev tool)
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_local_env.py
     governs: local env sanity (dev tool)
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_luban_animation_taxonomy_alignment.py
     governs: Luban animation pack taxonomy alignment registry / production manifest consistency (content-production gate)
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
   - script: scripts/check_secret_envs.py
     governs: secret-in-env scan (pre-commit / on-demand)
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
+  - script: scripts/scan_asyncio_blocking.py
+    governs: >-
+      asyncio blocking surface — async def with no await that reaches sync IO within 2 hops
+      (cross-layer; single-layer AST covers only 2.4%). Ruler, not gate.
+    enforcement: operational
+    runs_in: on-demand / asyncio blind-spot sweep
+    last_caught: 2026-07-26
+    retirement_condition: >-
+      当高频入口全部改用异步驱动(async Supabase/asyncpg)、且默认 executor 已定容分池后,
+      本扫描器的命中降到个位数即可退休。
   - script: scripts/check_luban_animation_taxonomy_alignment.py
     governs: diagram microlesson animation pack taxonomy alignment registry
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
     runs_in: on-demand / animation pack planning gate
   - script: artifacts/luban_case_family_assets/diagram_microlesson/validate_data_id_targets.mjs
     governs: diagram microlesson animation_action data-id targets resolve in rendered HTML
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
     runs_in: artifacts/luban_case_family_assets/diagram_microlesson/gate.sh
   - script: artifacts/luban_case_family_assets/diagram_microlesson/validate_timing_sync.mjs
     governs: diagram microlesson audio/timing sync keywords, keyword-to-segment match, and duration budget
     enforcement: operational
+    last_caught: unknown
+    retirement_condition: unknown
     runs_in: artifacts/luban_case_family_assets/diagram_microlesson/gate.sh

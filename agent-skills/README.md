@@ -48,6 +48,10 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   and system-wide default decisions.
 - `anti-overfit-repair-review`: review workflow for regex, fallback,
   classifier, and special-case repairs.
+- `deeptutor-evidence-discipline`: evidence-to-claim alignment workflow. Use it
+  before claiming done/fixed/verified/deployed/checked/ready, before signing off
+  an audit, verdict, release, or forensics result, and when writing a subagent
+  prompt that should pre-close those escape routes.
 - `deeptutor-review-quality-gate`: five-axis review workflow for self-review,
   agent code review, and pre-merge assessment.
 - `deeptutor-code-simplification`: behavior-preserving simplification workflow
@@ -131,6 +135,7 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
   `luban-okf-context`, `luban-diagram-microlesson`,
   `luban-case-answer-layer`, `luban-learning-pack-factory`
 - Verify: `deeptutor-test-verification-gate`,
+  `deeptutor-evidence-discipline`,
   `deeptutor-ci-runtime-fix-gate`,
   `tutorbot-student-army-eval-loop`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
