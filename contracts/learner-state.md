@@ -1154,3 +1154,11 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 ## QA/内部账号 allowlist 导出（2026-07-02）
 
 `MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，优先识别 `account_kind='eval_runner'`、`actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true` 等显式机器身份，再使用旧账号名 marker 兜底；禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。
+
+## BI 新增注册窗口口径（2026-07-27）
+
+`_build_member_dashboard` 返回的 `new_registration_trend.daily_counts`（近 365 天每日新增，服务时区自然日，升序，末位是今天）是**「近 N 天新增」的唯一权威**：`new_today_count` / `new_7d_count` / `new_30d_count` 与 BI 运营在界面上自选的任意窗口，全部是同一个数组的后缀和（`_sum_registration_window`）。禁止再为某个窗口单独实现一遍计数——同一问题两套算法就是口径分裂：改造前三个固定卡用滚动 168/720 小时窗，而会员表的 `registered_from` / `registered_to` 用自然日，同一个「近 7 天」两处能给出不同数字（已删 `_is_created_within_days` / `_is_created_on_local_date`）。
+
+分桶复用 `_registered_on_local_date`，与会员列表筛选**同源**，所以 KPI 数字必须等于按同一日期区间筛出的行数（`tests/services/member_console/test_service.py::test_dashboard_new_counts_agree_with_member_list_registered_date_filter` 守护）。
+
+`created_at` 缺失/不可解析、晚于今天、早于序列起点的成员**各自单独计数**（`undated_member_count` / `future_dated_member_count` / `before_window_member_count`），不得折进任何日期桶——数据缺口必须读作缺口，不能冒充真实的 0。同理，窗口起点早于 `BI_OPERATION_START_AT` 时，前端必须说明早期的 0 是没有数据而非没有新注册。

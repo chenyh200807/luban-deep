@@ -407,35 +407,6 @@ def _parse_time(value: str | None) -> datetime:
         return _now()
 
 
-def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> bool:
-    if not value:
-        return False
-    try:
-        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return False
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=_TZ)
-    age = now - created_at.astimezone(_TZ)
-    return timedelta(0) <= age <= timedelta(days=days)
-
-
-def _is_created_on_local_date(value: str | None, *, now: datetime) -> bool:
-    if not value:
-        return False
-    try:
-        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return False
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=_TZ)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=_TZ)
-    created_local = created_at.astimezone(_TZ)
-    now_local = now.astimezone(_TZ)
-    return created_local <= now_local and created_local.date() == now_local.date()
-
-
 def _registered_on_local_date(value: str | None) -> date | None:
     """Return the canonical registration date without treating malformed data as now."""
     raw = str(value or "").strip()
@@ -448,6 +419,25 @@ def _registered_on_local_date(value: str | None) -> date | None:
     if registered_at.tzinfo is None:
         registered_at = registered_at.replace(tzinfo=_TZ)
     return registered_at.astimezone(_TZ).date()
+
+
+NEW_REGISTRATION_TREND_WINDOW_DAYS = 365
+
+
+def _sum_registration_window(trend: dict[str, Any], *, days: int) -> int:
+    """Sum the most recent `days` calendar-day buckets of a registration trend.
+
+    Single authority for every "new registrations in the last N days" number:
+    the KPI cards and the operator-selected window both read this, so they can
+    never disagree. Buckets are calendar days in `_TZ`, matching the member
+    list's `registered_from` / `registered_to` filter, so a KPI can be drilled
+    into by date range and produce the same row count.
+    """
+    daily_counts = trend.get("daily_counts") or []
+    if not daily_counts:
+        return 0
+    span = max(1, min(int(days), len(daily_counts)))
+    return sum(int(value or 0) for value in daily_counts[-span:])
 
 
 def is_bi_operational_at(value: Any) -> bool:
@@ -4604,6 +4594,56 @@ class MemberConsoleService:
             "high": 0.85,
         }.get(str(member.get("risk_level") or "").lower(), 0.0)
 
+    @staticmethod
+    def _build_new_registration_trend(
+        members: list[dict[str, Any]],
+        *,
+        now: datetime,
+        window_days: int = NEW_REGISTRATION_TREND_WINDOW_DAYS,
+    ) -> dict[str, Any]:
+        """Bucket member registrations into calendar days ending today.
+
+        Returned once per dashboard so the operator can re-slice any window
+        (7 / 30 / 60 / custom) client-side without re-fetching the whole member
+        overview. `daily_counts` is a plain int array in ascending date order —
+        `daily_counts[-1]` is today, `daily_counts[0]` is `start_date`.
+
+        Members whose `created_at` is missing, unparseable, older than the
+        window, or in the future are NOT silently dropped into a bucket; each
+        gets its own excluded counter so a hole in the data reads as a hole
+        rather than as a real zero.
+        """
+        span = max(1, int(window_days))
+        today_local = now.astimezone(_TZ).date()
+        start_date = today_local - timedelta(days=span - 1)
+        daily_counts = [0] * span
+        undated_member_count = 0
+        before_window_member_count = 0
+        future_dated_member_count = 0
+        for item in members:
+            registered_on = _registered_on_local_date(item.get("created_at"))
+            if registered_on is None:
+                undated_member_count += 1
+                continue
+            if registered_on > today_local:
+                future_dated_member_count += 1
+                continue
+            offset = (registered_on - start_date).days
+            if offset < 0:
+                before_window_member_count += 1
+                continue
+            daily_counts[offset] += 1
+        return {
+            "start_date": start_date.isoformat(),
+            "end_date": today_local.isoformat(),
+            "window_days": span,
+            "daily_counts": daily_counts,
+            "undated_member_count": undated_member_count,
+            "before_window_member_count": before_window_member_count,
+            "future_dated_member_count": future_dated_member_count,
+            "timezone_offset_minutes": int(_TZ.utcoffset(None).total_seconds() // 60),
+        }
+
     def _build_member_dashboard(
         self,
         data: dict[str, Any],
@@ -4709,21 +4749,10 @@ class MemberConsoleService:
             for item in members
             if 0 <= (_parse_time(item["expire_at"]) - now).days <= 7
         )
-        new_today_count = sum(
-            1
-            for item in members
-            if _is_created_on_local_date(item.get("created_at"), now=now)
-        )
-        new_7d_count = sum(
-            1
-            for item in members
-            if _is_created_within_days(item.get("created_at"), now=now, days=7)
-        )
-        new_30d_count = sum(
-            1
-            for item in members
-            if _is_created_within_days(item.get("created_at"), now=now, days=30)
-        )
+        registration_trend = self._build_new_registration_trend(members, now=now)
+        new_today_count = _sum_registration_window(registration_trend, days=1)
+        new_7d_count = _sum_registration_window(registration_trend, days=7)
+        new_30d_count = _sum_registration_window(registration_trend, days=30)
         churn_risk_count = sum(1 for item in members if item["risk_level"] == "high")
         tiers: dict[str, int] = {}
         expiry_buckets: dict[str, int] = {}
@@ -4748,6 +4777,7 @@ class MemberConsoleService:
             "new_today_count": new_today_count,
             "new_7d_count": new_7d_count,
             "new_30d_count": new_30d_count,
+            "new_registration_trend": registration_trend,
             "churn_risk_count": churn_risk_count,
             "health_score": round((active_count / max(len(members), 1)) * 100),
             "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),

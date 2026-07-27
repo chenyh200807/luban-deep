@@ -6375,6 +6375,120 @@ def test_dashboard_counts_recent_registered_member_windows(
     assert dashboard["new_30d_count"] == 4
 
 
+def test_new_registration_trend_buckets_by_calendar_day_and_isolates_unusable_dates() -> None:
+    """The trend is the single authority behind every "new in last N days" number.
+
+    Buckets are calendar days in the service timezone (UTC+8), matching the
+    member list's registered_from/registered_to filter. Members whose
+    created_at cannot be placed on the axis are counted separately instead of
+    being folded into a bucket, so missing data never reads as a real zero.
+    """
+    now = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)  # 2026-06-30 20:00 +08:00
+
+    def _member(created_at: str | None) -> dict[str, object]:
+        return {"created_at": created_at}
+
+    trend = MemberConsoleService._build_new_registration_trend(
+        [
+            _member("2026-06-30T12:00:00+00:00"),  # today (local 06-30 20:00)
+            _member("2026-06-30T16:10:00+08:00"),  # today, local clock
+            _member("2026-06-29T21:00:00+08:00"),  # yesterday local, <24h ago
+            _member("2026-06-24T01:00:00+08:00"),  # 7th calendar day back (inclusive edge)
+            _member("2026-06-23T23:00:00+08:00"),  # 8th day back — outside a 7-day window
+            _member("not-a-time"),
+            _member(None),
+            _member("2026-07-01T09:00:00+08:00"),  # future-dated
+            _member("2020-01-01T00:00:00+08:00"),  # older than the 365-day window
+        ],
+        now=now,
+        window_days=365,
+    )
+
+    assert trend["end_date"] == "2026-06-30"
+    assert trend["start_date"] == "2025-07-01"
+    assert trend["window_days"] == 365
+    assert len(trend["daily_counts"]) == 365
+    assert trend["daily_counts"][-1] == 2  # today
+    assert trend["daily_counts"][-2] == 1  # yesterday
+    assert sum(trend["daily_counts"]) == 5
+    assert trend["undated_member_count"] == 2  # malformed + missing, not silently zero
+    assert trend["future_dated_member_count"] == 1
+    assert trend["before_window_member_count"] == 1
+    assert trend["timezone_offset_minutes"] == 480
+
+    # Any operator-selected window is a suffix sum of the same array.
+    assert member_service_module._sum_registration_window(trend, days=1) == 2
+    assert member_service_module._sum_registration_window(trend, days=2) == 3
+    assert member_service_module._sum_registration_window(trend, days=7) == 4
+    assert member_service_module._sum_registration_window(trend, days=8) == 5
+    assert member_service_module._sum_registration_window(trend, days=60) == 5
+    # Requesting more than the axis holds clamps to the axis instead of throwing.
+    assert member_service_module._sum_registration_window(trend, days=10_000) == 5
+
+
+def test_dashboard_new_counts_agree_with_member_list_registered_date_filter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """KPI window sums must equal what the member table shows for the same dates.
+
+    This is the property that lets an operator click through from "近 N 天新增"
+    to the filtered list without the two numbers disagreeing.
+    """
+    now = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(user_id: str, *, phone: str, created_at: str) -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id],
+            "display_name": user_id,
+            "phone": phone,
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": created_at,
+            "last_active_at": now.isoformat(),
+            "expire_at": "9999-12-31T00:00:00+00:00",
+            "points_balance": 0,
+            "review_due": 0,
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member("m_today", phone="15558866501", created_at="2026-06-30T10:00:00+08:00"),
+            _member("m_yesterday", phone="15558866502", created_at="2026-06-29T21:00:00+08:00"),
+            _member("m_d6", phone="15558866503", created_at="2026-06-25T08:00:00+08:00"),
+            _member("m_d7_edge", phone="15558866504", created_at="2026-06-24T00:30:00+08:00"),
+            _member("m_d8", phone="15558866505", created_at="2026-06-23T23:30:00+08:00"),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    overview = service.get_member_ops_overview(page_size=200)
+    trend = overview["dashboard"]["new_registration_trend"]
+
+    for window in (1, 2, 7, 8, 30):
+        listed = service.list_members(
+            page=1,
+            page_size=200,
+            registered_from=date(2026, 6, 30) - timedelta(days=window - 1),
+            registered_to=date(2026, 6, 30),
+        )
+        assert member_service_module._sum_registration_window(trend, days=window) == listed["total"], (
+            f"KPI window {window}d disagrees with the member list for the same date range"
+        )
+
+    assert overview["dashboard"]["new_today_count"] == 1
+    assert overview["dashboard"]["new_7d_count"] == 4
+    assert overview["dashboard"]["new_30d_count"] == 5
+
+
 def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:
     directory = _FakeMemberDirectory(
         [
