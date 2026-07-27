@@ -1993,7 +1993,9 @@ class MemberConsoleService:
         # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
         data.setdefault("audit_idempotency_keys", {})
         ledger_backfilled = self._backfill_membership_purchase_ledger(data)
-        if self._apply_legacy_chat_learning_migration(data) or packages_changed or ledger_backfilled:
+        stats_pruned = self._prune_zero_chapter_practice_stats(data)
+        tombstones_pruned = self._prune_merged_member_payload(data)
+        if self._apply_legacy_chat_learning_migration(data) or packages_changed or ledger_backfilled or stats_pruned or tombstones_pruned:
             self._save_unlocked(data)
         return data
 
@@ -3179,23 +3181,90 @@ class MemberConsoleService:
     def _ensure_learning_profile(self, member: dict[str, Any]) -> dict[str, Any]:
         daily_counts = member.setdefault("daily_practice_counts", {})
         chapter_stats = member.setdefault("chapter_practice_stats", {})
-        chapter_mastery = member.get("chapter_mastery") or {}
-        for key, meta in chapter_mastery.items():
-            name = meta.get("name") or key
-            chapter_stats.setdefault(
-                name,
-                {
-                    "done": 0,
-                    "correct": 0,
-                    "last_activity_at": "",
-                },
-            )
+        # 刻意**不再**为每个章节预填 {done:0, correct:0, last_activity_at:""} 骨架。
+        #
+        # 那让每个会员都背一份字节完全相同的全零结构:生产实测 1308 名会员的
+        # chapter_practice_stats **distinct=1、合计 1.1 MB**(约占整个语料 20%),
+        # 承载的信息量为零 —— "该章节没练过"与"该章节键不存在"是同一件事。
+        #
+        # 安全性:真实写入点都是 `chapter_stats.setdefault(章节, {...})` 后再累加,
+        # 有练习自然建条目;读取点都用 `.get(...) or {}` / `.get(章节)` 容错。
+        # 预填只是把"缺省"提前物化成"零",是纯存储浪费。
         member.setdefault("last_study_date", "")
         member.setdefault("last_practice_at", "")
         return {
             "daily_counts": daily_counts,
             "chapter_stats": chapter_stats,
         }
+
+    @staticmethod
+    def _is_zero_chapter_stat(value: Any) -> bool:
+        """该章节条目是否等价于"从没练过"(可安全丢弃)。"""
+        if not isinstance(value, dict):
+            return True
+        return (
+            not int(value.get("done") or 0)
+            and not int(value.get("correct") or 0)
+            and not str(value.get("last_activity_at") or "").strip()
+        )
+
+    def _prune_zero_chapter_practice_stats(self, data: dict[str, Any]) -> bool:
+        """回收历史预填的全零章节条目。幂等,打旗标只跑一次。
+
+        写入侧已不再预填(见 `_ensure_learning_profile`),但存量语料里每个会员都还
+        背着一份。只删 done/correct 全 0 且无 last_activity_at 的条目 —— 那与
+        "该章节键不存在"语义完全相同;有真实练习数据的条目一律保留。
+        """
+        migrations = data.setdefault("migrations", {})
+        if migrations.get("zero_chapter_practice_stats_pruned_v1"):
+            return False
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            stats = member.get("chapter_practice_stats")
+            if not isinstance(stats, dict) or not stats:
+                continue
+            for name in [k for k, v in stats.items() if self._is_zero_chapter_stat(v)]:
+                del stats[name]
+        migrations["zero_chapter_practice_stats_pruned_v1"] = True
+        return True
+
+    # 合并后的墓碑只需保留身份与溯源信息:学习数据在合并时已经并入 target,
+    # 留在墓碑上的是纯残留副本。生产实测 613 个墓碑占 members 字节的 47.5%,
+    # 而读取墓碑的路径只有"沿 merged_into 跳到 canonical"这一条。
+    _MERGED_MEMBER_DROPPABLE_FIELDS = (
+        "chapter_mastery",
+        "chapter_practice_stats",
+        "daily_practice_counts",
+        "badges",
+        "notes",
+        "ledger",
+    )
+
+    @classmethod
+    def _strip_merged_member_payload(cls, source: dict[str, Any]) -> bool:
+        """清掉墓碑上的学习数据残留。返回是否真的删掉了东西。"""
+        changed = False
+        for key in cls._MERGED_MEMBER_DROPPABLE_FIELDS:
+            value = source.get(key)
+            if value:
+                source[key] = type(value)()
+                changed = True
+        return changed
+
+    def _prune_merged_member_payload(self, data: dict[str, Any]) -> bool:
+        """回收存量墓碑上的学习数据残留。幂等,打旗标只跑一次。"""
+        migrations = data.setdefault("migrations", {})
+        if migrations.get("merged_member_payload_pruned_v1"):
+            return False
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            if not str(member.get("merged_into") or "").strip():
+                continue
+            self._strip_merged_member_payload(member)
+        migrations["merged_member_payload_pruned_v1"] = True
+        return True
 
     def _backfill_membership_purchase_ledger(self, data: dict[str, Any]) -> bool:
         """把存量支付审计回填成台账条目。幂等,打旗标只跑一次。
@@ -7146,6 +7215,7 @@ class MemberConsoleService:
             source["merged_at"] = now
             source["status"] = "merged"
             source["last_active_at"] = now
+            self._strip_merged_member_payload(source)
             merged_source_ids.append(source_id)
 
         after = deepcopy(target)

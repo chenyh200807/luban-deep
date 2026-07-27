@@ -297,6 +297,14 @@ bi_admin_rbac:
       审计文件 bi_admin_audit.jsonl】(O_APPEND 原子追加、永不重写历史，防止被刷掉)；
       bi_admins.json 内 legacy 审计仍合并读取。
     - 权限存储是文件持久化 (bind-mount)，非 turn/session/capability/learner-state authority。
+    - 会员语料不为"零"预留物理空间：章节练习统计只在真有练习数据时才存条目，
+      不再为每个会员预填全零骨架 (生产实测该字段 1308 份 distinct=1、约 1.1 MB)。
+      "该章节没练过"与"该章节键不存在"语义相同；所有读取点按缺失处理，
+      所有写入点自建条目。回收 migration 只删 done/correct 全 0 且无 last_activity_at
+      的条目，有真实练习数据的一律保留。
+    - 合并产生的墓碑 (merged_into 非空) 只保留身份与溯源字段；学习数据在合并时已并入
+      canonical，墓碑上的副本是纯残留，随合并即时清理并对存量做一次幂等回收。
+      读取墓碑的唯一合法路径是沿 merged_into 跳到 canonical。
     - 会员审计条目 (member_console 的 audit_log) 只记录**发生变化的字段**，不再存
       before/after 两份完整 member 快照。理由：完整快照对追责没有额外证据力
       (证据是"变了什么")，而 before 无任何程序化消费者、审计页也不渲染它，
