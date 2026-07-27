@@ -2151,6 +2151,10 @@
 .page.light .md-callout-warning { border-left-color: #ef4444; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%); }
 .page.light .md-callout-highlight { border-left-color: #2f6bff; background: linear-gradient(135deg, #eef4ff 0%, #ffffff 100%); }
 .page.light .md-callout-tip { border-left-color: #22c55e; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); }
+.page.light .callout-tag-conclusion { color: #92400e; background: #fef3c7; border: 1rpx solid #fcd34d; }
+.page.light .callout-tag-warning { color: #b91c1c; background: #fee2e2; border: 1rpx solid #fca5a5; }
+.page.light .callout-tag-highlight { color: #1d4ed8; background: #dbeafe; border: 1rpx solid #93c5fd; }
+.page.light .callout-tag-tip { color: #047857; background: #d1fae5; border: 1rpx solid #6ee7b7; }
 
 .page.light .nba-card {
   background: #ecfdf5;
