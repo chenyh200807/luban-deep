@@ -306,9 +306,15 @@ bi_admin_rbac:
       manual_membership_reversal) 必须**整份保留 after**。冲正把原购买审计的 after
       当作唯一金额权威 (purchase_id / points / amount_cny / days)，压成 diff 会让退款
       fail-closed 或使重复退款保护失效。
-    - 因此审计日志同时承担交易台账职责：任何按时间的 retention / 轮转在把该职责
-      拆出去之前都不得启用 —— 只删掉 purchase 与 reversal 配对中的一条，会造成
-      同一笔被冲正两次或旧单静默不可冲正，且属于保留期到点才引爆的延迟故障。
+    - 交易台账职责已从审计日志拆出：结算事实写入显式台账 membership_purchases
+      (purchase_id 主键)，冲正的两个判定 —— "这笔存在吗"与"是否已冲过" —— 一律以
+      台账为权威 (reversed_by 非空即不可再冲，O(1) 唯一约束)。audit_log 因此降级为
+      纯审计，按 action 分级的 retention 可以启用。
+    - 台账写入与审计写入处于同一个 _mutate 事务，同生同死，不会出现"审计有台账无"。
+      存量支付审计由 membership_purchase_ledger_v1 幂等回填成台账条目。
+    - 冲正仍保留一条 audit_log 回落路径，仅用于台账缺失的存量单，属过渡期兼容；
+      它不是权威，回填完成后应删除。判据：清空 audit_log 后，未冲过的单必须仍能
+      冲正成功，已冲过的单必须仍被拒绝 —— 两条都有回归测试守着。
 
 domains:
   turn:
