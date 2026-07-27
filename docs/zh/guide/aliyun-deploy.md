@@ -856,3 +856,27 @@ curl -s -o /dev/null -w '%{http_code}\n' https://test2.yousenjiaoyu.com/   # 等
 - **定期维护**：每隔几次部署或每周 `docker builder prune -af && docker image prune -af`（安全，只清未用）。
 - **Langfuse 数据增长**：12.5GB 且涨，需配 Langfuse **数据保留(retention)策略**按期清旧 trace（在 Langfuse 内做，不是删卷）；live eval 跑多了 trace 增长更快。
 - **认清"快速发布"会 build**：`server_fast_reload_aliyun.sh` 实际 rebuild 镜像，纯 Python/prompt 改动理想应是"复用现有镜像 + 仅 restart"(no-build)；在改成真 no-build 之前，每次发布都要为 build cache 预留空间。
+
+### 17. 2026-07-27 三查之后怎么恢复 + `| tail` 吞退出码的假绿
+
+`#14` 讲了 SSH 断开先三查，但没讲**查完之后怎么把发布推完**。本次（PR #578，`3936f2976`）补齐。
+
+**假绿形态（新增）**：`bash scripts/deploy_aliyun.sh 2>&1 | tail -80` 的退出码是 `tail` 的，**永远 0**。本次 SSH 在 Next.js build 安静期被 `Connection reset by peer` 打断，任务上报「exit code 0 / completed」，实际部署没做完。**判定发布成败永远不看脚本退出码，只看三方 SHA 是否对齐。**
+
+**三查诊断出的真实状态**：主机 `.env` = 目标 SHA（rsync 成功），容器 env = 旧 SHA，`docker compose ps` 显示 healthy —— 即 `#drift`「host .env 新 / 容器旧」。**healthy 只说明活着，不说明是最新**。
+
+**恢复动作**（已确认无并发构建后才能做，否则两个 build 撞容器 = 损坏）：不要重跑整个 `deploy_aliyun.sh`（sync 已完成，重跑只是再赌一次 SSH 不断），直接让 runbook 的 `server_bootstrap_aliyun.sh` 脱离 SSH 会话跑：
+
+```bash
+ssh Aliyun-ECS-2 "cd /root/deeptutor && setsid nohup env PUBLIC_HOST='8.135.42.145' \
+  PUBLIC_BASE_URL='https://test2.yousenjiaoyu.com' bash scripts/server_bootstrap_aliyun.sh \
+  > data/logs/bootstrap-<sha>.log 2>&1 < /dev/null & echo started"
+```
+
+两个约束：日志**必须落在 `/root/deeptutor` 内**（`data/logs/` 已被 `.gitignore` 的 `*.log` 覆盖），写到 `/tmp` 会被阿里云写边界 hook 拦；`setsid` + `< /dev/null` 缺一不可，否则 SSH 断开时 SIGHUP 仍会杀掉构建。然后轮询 `ps aux | grep -E 'server_bootstrap|up -d --build|buildkit/executor'` 到 0 再核验。
+
+**`ServerAliveInterval 60` 挡不住这种断开**（`~/.ssh/config` 里已配，本次照断），别指望调 keepalive 解决。
+
+**detached HEAD 补充（接 `#12`）**：release worktree 常常无法 checkout `main`——本地 `main` 被 owner 的 `~/worktrees/deeptutor-devtools` 占用。按仓库惯例建命名分支即可：`git switch -c release/deploy-<yyyymmdd><序号>-<sha>`。
+
+**核验做到哪一层才算够**：五层（主机 `.env` / 容器 env / 容器健康 / 公网端点 / 可观测性）只证明「新 SHA 的容器活着」。改了业务读模型时，再加一步在容器内用**真实生产数据**跑一遍派生逻辑，比对不变量。本次实测：133 名会员全部落进日期桶（`sum(daily_counts) == total_count`，无 undated/future/before-window 漏计），且 6 个窗口的 KPI 与会员列表按同区间筛出的行数逐一相等 —— 这才是「功能真的上线了」的证据，端点 200 不是。
