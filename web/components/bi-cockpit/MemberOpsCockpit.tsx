@@ -9,6 +9,7 @@ import { Activity, BarChart3, Gauge, HeartPulse, PieChart, Sparkles, Users } fro
 import type { MemberDashboard } from '@/lib/member-api'
 import { CockpitBar, CockpitDonut, CockpitGauge, type Datum } from './Charts'
 import { CockpitBg, CockpitKpi, CockpitPanel, SectionLabel } from './Layout'
+import { NewRegistrationCard } from './NewRegistrationCard'
 import { SERIES_COLORS } from './theme'
 
 const num = (n: number | null | undefined) => (typeof n === 'number' && isFinite(n) ? n : 0)
@@ -72,12 +73,16 @@ export function MemberOpsCockpit({
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-9">
+        {/* 新增注册收成一张可自选窗口的卡：今日/7/30 三个固定数字曾各自算一遍，
+            现在全部是同一个每日序列的后缀和，口径不会再打架。 */}
+        <NewRegistrationCard
+          trend={d?.new_registration_trend}
+          operationalStartAt={d?.authority?.operational_start_at}
+          className="col-span-2 md:col-span-2 xl:col-span-3"
+        />
         <CockpitKpi label="会员总数" value={fmt(total)} tone="cyan" icon={<Users className="h-4 w-4" />} />
         <CockpitKpi label="权益有效" value={fmt(active)} tone="emerald" sub={total > 0 ? `${Math.round((active / total) * 100)}%` : undefined} />
         <CockpitKpi label="即将到期" value={fmt(expiring)} tone="amber" />
-        <CockpitKpi label="今日新增" value={fmt(num(d?.new_today_count))} tone="teal" />
-        <CockpitKpi label="近7天新增" value={fmt(num(d?.new_7d_count))} tone="sky" />
-        <CockpitKpi label="近30天新增" value={fmt(num(d?.new_30d_count))} tone="violet" />
         <CockpitKpi label="流失风险" value={fmt(churn)} tone="rose" />
         <CockpitKpi label="权益有效率" value={num(d?.health_score)} unit="%" tone="violet" icon={<HeartPulse className="h-4 w-4" />} />
         <CockpitKpi label="自动续费覆盖" value={num(d?.auto_renew_coverage)} unit="%" tone="gold" />
