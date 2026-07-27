@@ -8575,3 +8575,91 @@ def test_teaching_video_entitlement_survives_persisted_round_trip() -> None:
     """持久化目录回读后权益字段必须还在(否则等价于每次读都判定目录变了)。"""
     for package in MemberConsoleService._normalize_package_catalog(None):
         assert "teaching_video_limit" in package, package["id"]
+
+
+# ---------------------------------------------------------------------------
+# 语料瘦身:不为"零"预留物理空间
+#
+# 生产实测:1308 名会员的 chapter_practice_stats **distinct=1、合计 1.1 MB**
+# (约占语料 20%),chapter_mastery 同样 distinct=1;613 个墓碑(46.9%)占 members
+# 字节的 47.5%,而墓碑的学习数据在合并时早已并入 canonical。
+# ---------------------------------------------------------------------------
+
+
+def test_new_member_carries_no_zero_chapter_skeleton(tmp_path: Path) -> None:
+    """新会员不得预填全零章节条目 —— "没练过"不需要物理存储。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "skeleton.json"
+
+    service._load_member_snapshot("u1")
+
+    member = service._find_member(service._load(), "u1")
+    assert member.get("chapter_practice_stats") == {}
+
+
+def test_real_practice_data_is_never_pruned(tmp_path: Path) -> None:
+    """反例:有真实练习数据的章节条目必须保留 —— 清理只针对全零条目。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "keep.json"
+
+    def seed(data: dict[str, Any]) -> bool:
+        member = service._build_default_member("u_real")
+        member["chapter_practice_stats"] = {
+            "地基基础": {"done": 5, "correct": 3, "last_activity_at": "2026-07-01T10:00:00+08:00"},
+            "防水工程": {"done": 0, "correct": 0, "last_activity_at": ""},
+        }
+        data["members"] = [member]
+        data.setdefault("migrations", {}).pop("zero_chapter_practice_stats_pruned_v1", None)
+        return True
+
+    service._mutate(seed)
+    stats = service._find_member(service._load(), "u_real")["chapter_practice_stats"]
+
+    assert stats["地基基础"]["done"] == 5, "有练习数据的章节不得被清理"
+    assert "防水工程" not in stats, "全零章节应被回收"
+
+
+def test_merged_tombstone_drops_learning_payload(tmp_path: Path) -> None:
+    """墓碑只保留身份与溯源,学习数据残留必须清掉(合并时已并入 canonical)。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "tomb.json"
+    service._admin_user_ids = lambda: {"admin"}  # type: ignore[method-assign]
+    wallet = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet  # type: ignore[method-assign]
+
+    def seed(data: dict[str, Any]) -> bool:
+        target = service._build_default_member("canonical_u")
+        source = service._build_default_member("legacy_u")
+        source["chapter_mastery"] = {"地基基础": {"name": "地基基础", "mastery": 40}}
+        source["chapter_practice_stats"] = {"地基基础": {"done": 3, "correct": 2, "last_activity_at": "x"}}
+        source["daily_practice_counts"] = {"2026-07-01": 3}
+        data["members"] = [target, source]
+        return True
+
+    service._mutate(seed)
+    service.merge_member_accounts(
+        target_user_id="canonical_u", source_user_ids=["legacy_u"],
+        operator="admin", reason="test", idempotency_key="merge-tomb",
+    )
+
+    tombstone = service._find_member(service._load(), "legacy_u")
+    assert str(tombstone.get("merged_into")) == "canonical_u", "溯源信息必须保留"
+    for key in ("chapter_mastery", "chapter_practice_stats", "daily_practice_counts"):
+        assert not tombstone.get(key), f"墓碑仍背着 {key}"
+
+
+def test_corpus_pruning_migrations_are_idempotent(tmp_path: Path) -> None:
+    """两个回收 migration 必须幂等,否则每次读都会重写整个语料。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "idem.json"
+    service._load_member_snapshot("u1")
+    service._load()
+
+    mtime_before = service._data_path.stat().st_mtime_ns
+    for _ in range(3):
+        service._load()
+
+    assert service._data_path.stat().st_mtime_ns == mtime_before
+    migrations = service._load().get("migrations") or {}
+    assert migrations.get("zero_chapter_practice_stats_pruned_v1") is True
+    assert migrations.get("merged_member_payload_pruned_v1") is True
