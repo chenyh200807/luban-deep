@@ -8306,6 +8306,116 @@ def test_package_without_declared_entitlement_falls_back_to_free_tier() -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# 结算台账是冲正的权威,audit_log 不再是
+#
+# 此前"这笔能不能冲正"靠线性扫 audit_log 判定,于是审计日志同时承担交易台账职责 ⇒
+# 任何按时间的 retention 只删掉 purchase/reversal 配对中的一条,就会造成
+# 同一笔被冲正两次(真金白银)或旧单静默不可冲正,且是保留期到点才引爆的延迟故障。
+# 下面两条**故意清空 audit_log** 来证明引信已拆。
+# ---------------------------------------------------------------------------
+
+
+def _reversal_service(tmp_path: Path, name: str):
+    service = MemberConsoleService()
+    service._data_path = tmp_path / name
+    wallet = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet  # type: ignore[method-assign]
+    service._admin_user_ids = lambda: {"admin"}  # type: ignore[method-assign]
+    return service, wallet
+
+
+def test_purchase_writes_settlement_ledger_entry(tmp_path: Path) -> None:
+    service, _ = _reversal_service(tmp_path, "ledger.json")
+
+    result = service.manual_membership_purchase(
+        user_id="u1", package_id="supreme_svip", days=365,
+        operator="admin", idempotency_key="buy-1",
+    )
+
+    ledger = service._load().get("membership_purchases") or {}
+    entry = ledger[result["purchase_id"]]
+    assert entry["user_id"] == "u1"
+    assert entry["points"] == result["points"]
+    assert entry["reversed_by"] is None, "新购买不得预先标记为已冲正"
+
+
+def test_repeat_reversal_is_rejected_without_audit_log(tmp_path: Path) -> None:
+    """反例:audit_log 被清空后,重复冲正必须仍被拒绝(否则二次退款)。"""
+    service, wallet = _reversal_service(tmp_path, "dup.json")
+    purchase_id = service.manual_membership_purchase(
+        user_id="u1", package_id="supreme_svip", days=365,
+        operator="admin", idempotency_key="buy-1",
+    )["purchase_id"]
+    service.reverse_manual_membership_purchase(
+        user_id="u1", purchase_id=purchase_id, operator="admin", idempotency_key="rev-1",
+    )
+    refunds_before = len(getattr(wallet, "adjustments", []))
+
+    service._mutate(lambda data: data.__setitem__("audit_log", []))
+
+    with pytest.raises(ValueError, match="already reversed"):
+        service.reverse_manual_membership_purchase(
+            user_id="u1", purchase_id=purchase_id, operator="admin", idempotency_key="rev-2",
+        )
+    assert len(getattr(wallet, "adjustments", [])) == refunds_before, "不得发生二次退款"
+
+
+def test_reversal_still_works_without_audit_log(tmp_path: Path) -> None:
+    """反例:audit_log 被清空后,未冲过的单必须仍可冲正(否则 fail-closed 退不了款)。"""
+    service, _ = _reversal_service(tmp_path, "gone.json")
+    purchase_id = service.manual_membership_purchase(
+        user_id="u2", package_id="supreme_svip", days=365,
+        operator="admin", idempotency_key="buy-2",
+    )["purchase_id"]
+
+    service._mutate(lambda data: data.__setitem__("audit_log", []))
+
+    result = service.reverse_manual_membership_purchase(
+        user_id="u2", purchase_id=purchase_id, operator="admin", idempotency_key="rev-1",
+    )
+    assert result["member"]["user_id"] == "u2"
+    ledger = service._load().get("membership_purchases") or {}
+    assert ledger[purchase_id]["reversed_by"]
+
+
+def test_settlement_ledger_backfill_is_idempotent(tmp_path: Path) -> None:
+    """存量支付审计要能回填成台账,且重复跑结果相同。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "backfill.json"
+
+    def seed(data: dict[str, Any]) -> bool:
+        data["audit_log"] = [
+            {
+                "id": "audit_old_1",
+                "action": "manual_membership_purchase",
+                "target_user": "legacy_user",
+                "created_at": "2026-06-01T10:00:00+08:00",
+                "after": {"purchase_id": "p_legacy", "package_id": "supreme_svip",
+                          "points": 50000, "amount_cny": 998, "days": 365},
+            },
+            {
+                "id": "audit_old_2",
+                "action": "manual_membership_reversal",
+                "target_user": "legacy_user",
+                "created_at": "2026-06-02T10:00:00+08:00",
+                "after": {"reversal_of_purchase_id": "p_legacy"},
+            },
+        ]
+        data.setdefault("migrations", {}).pop("membership_purchase_ledger_v1", None)
+        data.pop("membership_purchases", None)
+        return True
+
+    service._mutate(seed)
+
+    first = json.loads(json.dumps(service._load().get("membership_purchases") or {}))
+    second = service._load().get("membership_purchases") or {}
+
+    assert first["p_legacy"]["points"] == 50000
+    assert first["p_legacy"]["reversed_by"] == "audit_old_2", "已冲正的存量单必须带上章"
+    assert second == first, "回填必须幂等"
+
+
 def test_audit_entry_keeps_only_changed_fields() -> None:
     from deeptutor.services.member_console.service import _audit_change_payload
 

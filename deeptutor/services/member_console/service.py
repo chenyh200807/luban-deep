@@ -1992,7 +1992,8 @@ class MemberConsoleService:
         data.setdefault("phone_codes", {})
         # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
         data.setdefault("audit_idempotency_keys", {})
-        if self._apply_legacy_chat_learning_migration(data) or packages_changed:
+        ledger_backfilled = self._backfill_membership_purchase_ledger(data)
+        if self._apply_legacy_chat_learning_migration(data) or packages_changed or ledger_backfilled:
             self._save_unlocked(data)
         return data
 
@@ -3195,6 +3196,55 @@ class MemberConsoleService:
             "daily_counts": daily_counts,
             "chapter_stats": chapter_stats,
         }
+
+    def _backfill_membership_purchase_ledger(self, data: dict[str, Any]) -> bool:
+        """把存量支付审计回填成台账条目。幂等,打旗标只跑一次。
+
+        台账上线前的购买/冲正只存在于 audit_log 里;不回填的话这些旧单会走
+        audit 回落路径,retention 一动就重现"二次退款 / 冲正不可用"。
+        """
+        migrations = data.setdefault("migrations", {})
+        if migrations.get("membership_purchase_ledger_v1"):
+            return False
+
+        ledger = self._membership_purchase_ledger(data)
+        entries = [item for item in (data.get("audit_log") or []) if isinstance(item, dict)]
+        # 先建购买,后盖冲正章 —— 顺序无关,但分两趟更好读
+        for item in entries:
+            if str(item.get("action") or "") not in {
+                "manual_membership_purchase",
+                "settled_membership_purchase",
+            }:
+                continue
+            after = item.get("after") if isinstance(item.get("after"), dict) else {}
+            purchase_id = str(after.get("purchase_id") or "").strip()
+            if not purchase_id or purchase_id in ledger:
+                continue
+            ledger[purchase_id] = {
+                "purchase_id": purchase_id,
+                "user_id": str(item.get("target_user") or "").strip(),
+                "package_id": str(after.get("package_id") or "").strip(),
+                "points": int(after.get("points") or 0),
+                "amount_cny": after.get("amount_cny") or 0,
+                "days": int(after.get("days") or 0),
+                "ledger_event_id": str(after.get("ledger_event_id") or ""),
+                "purchase_kind": str(item.get("action") or ""),
+                "created_at": str(item.get("created_at") or ""),
+                "reversed_by": None,
+                "reversed_at": "",
+            }
+        for item in entries:
+            if str(item.get("action") or "") != "manual_membership_reversal":
+                continue
+            after = item.get("after") if isinstance(item.get("after"), dict) else {}
+            reversed_id = str(after.get("reversal_of_purchase_id") or "").strip()
+            entry = ledger.get(reversed_id)
+            if isinstance(entry, dict) and not entry.get("reversed_by"):
+                entry["reversed_by"] = str(item.get("id") or "backfilled")
+                entry["reversed_at"] = str(item.get("created_at") or "")
+
+        migrations["membership_purchase_ledger_v1"] = True
+        return True
 
     def _apply_legacy_chat_learning_migration(self, data: dict[str, Any]) -> bool:
         migrations = data.setdefault("migrations", {})
@@ -6512,6 +6562,18 @@ class MemberConsoleService:
                 audit["id"],
                 operator=normalized_operator,
             )
+            # 结算事实进显式台账 —— 冲正的权威从此不再是"扫审计日志"
+            self._record_membership_purchase(
+                data,
+                purchase_id=purchase_id,
+                user_id=normalized_user_id,
+                package_id=str(package.get("id") or "").strip(),
+                points=points,
+                amount_cny=amount,
+                days=safe_days,
+                ledger_event_id=ledger_event_id,
+                purchase_kind=purchase_kind,
+            )
             return {
                 "member": after,
                 "audit_id": audit["id"],
@@ -6530,6 +6592,70 @@ class MemberConsoleService:
             "deduped": bool(entitlement.get("deduped", False)),
         }
 
+    # ---- 结算台账 ------------------------------------------------------
+    # 「这笔购买能不能冲正」此前靠**线性扫 audit_log**判定(比对 action 字符串 +
+    # 从自由 dict 里挖 after.purchase_id)。那让 audit_log 同时承担审计与交易台账
+    # 两种职责,后果是**任何按时间的 retention 都可能只删掉 purchase/reversal 配对
+    # 中的一条** ⇒ 同一笔被冲正两次(真金白银)或旧单静默不可冲正,且是保留期到点
+    # 才引爆的延迟故障。
+    #
+    # 所以把结算事实搬进显式台账:`reversed_by` 非空即不可再冲,是 O(1) 的唯一约束。
+    # audit_log 由此降级为纯审计,retention 才可能安全启用。这是收权(拆开一个混装
+    # 数组的两种职责),不是加层。
+
+    @staticmethod
+    def _membership_purchase_ledger(data: dict[str, Any]) -> dict[str, Any]:
+        ledger = data.get("membership_purchases")
+        if not isinstance(ledger, dict):
+            ledger = {}
+            data["membership_purchases"] = ledger
+        return ledger
+
+    def _record_membership_purchase(
+        self,
+        data: dict[str, Any],
+        *,
+        purchase_id: str,
+        user_id: str,
+        package_id: str,
+        points: int,
+        amount_cny: Any,
+        days: int,
+        ledger_event_id: str = "",
+        purchase_kind: str = "",
+    ) -> dict[str, Any]:
+        """把结算事实写入台账。与审计写入同处一个 `_mutate` 事务,同生同死。"""
+        entry = {
+            "purchase_id": purchase_id,
+            "user_id": user_id,
+            "package_id": package_id,
+            "points": int(points or 0),
+            "amount_cny": amount_cny,
+            "days": int(days or 0),
+            "ledger_event_id": ledger_event_id,
+            "purchase_kind": purchase_kind,
+            "created_at": _iso(),
+            "reversed_by": None,
+            "reversed_at": "",
+        }
+        self._membership_purchase_ledger(data)[purchase_id] = entry
+        return entry
+
+    def _mark_membership_purchase_reversed(
+        self,
+        data: dict[str, Any],
+        *,
+        purchase_id: str,
+        reversal_id: str,
+    ) -> bool:
+        """标记已冲正。返回 False 表示台账无此单或已冲过(调用方据此拒绝重复冲正)。"""
+        entry = self._membership_purchase_ledger(data).get(str(purchase_id or "").strip())
+        if not isinstance(entry, dict) or entry.get("reversed_by"):
+            return False
+        entry["reversed_by"] = str(reversal_id or "").strip() or "reversed"
+        entry["reversed_at"] = _iso()
+        return True
+
     def _find_latest_manual_membership_purchase_audit(
         self,
         data: dict[str, Any],
@@ -6537,7 +6663,17 @@ class MemberConsoleService:
         user_id: str,
         purchase_id: str = "",
     ) -> dict[str, Any] | None:
+        """取结算记录。权威 = 台账;台账缺失才回落扫 audit_log(存量过渡)。
+
+        返回形状保留 `{"after": {...}}`,让调用方无需改动 —— 收权只换数据来源,
+        不动冲正逻辑,把风险压到最小。
+        """
         normalized_purchase_id = str(purchase_id or "").strip()
+        ledger_hit = self._find_membership_purchase_in_ledger(
+            data, user_id=user_id, purchase_id=normalized_purchase_id
+        )
+        if ledger_hit is not None:
+            return ledger_hit
         candidates = []
         for item in data.get("audit_log") or []:
             if not isinstance(item, dict):
@@ -6555,6 +6691,44 @@ class MemberConsoleService:
             return None
         return max(candidates, key=lambda item: _parse_time(item.get("created_at")))
 
+    def _find_membership_purchase_in_ledger(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+        purchase_id: str = "",
+    ) -> dict[str, Any] | None:
+        """在台账里找该用户的结算记录(指定 purchase_id 则精确匹配,否则取最新)。"""
+        normalized_user_id = str(user_id or "").strip()
+        entries = [
+            entry
+            for entry in self._membership_purchase_ledger(data).values()
+            if isinstance(entry, dict)
+            and str(entry.get("user_id") or "").strip() == normalized_user_id
+            and (
+                not purchase_id
+                or str(entry.get("purchase_id") or "").strip() == purchase_id
+            )
+        ]
+        if not entries:
+            return None
+        latest = max(entries, key=lambda entry: _parse_time(entry.get("created_at")))
+        # 适配成审计条目的形状,使调用方(冲正)无需感知数据来源的变化
+        return {
+            "id": str(latest.get("purchase_id") or ""),
+            "action": "manual_membership_purchase",
+            "target_user": normalized_user_id,
+            "created_at": latest.get("created_at") or "",
+            "after": {
+                "purchase_id": latest.get("purchase_id") or "",
+                "package_id": latest.get("package_id") or "",
+                "points": latest.get("points") or 0,
+                "amount_cny": latest.get("amount_cny") or 0,
+                "days": latest.get("days") or 0,
+                "ledger_event_id": latest.get("ledger_event_id") or "",
+            },
+        }
+
     def _has_manual_membership_reversal(
         self,
         data: dict[str, Any],
@@ -6562,7 +6736,16 @@ class MemberConsoleService:
         user_id: str,
         purchase_id: str,
     ) -> bool:
+        """这笔购买是否已被冲正。
+
+        权威 = 台账的 `reversed_by`(O(1))。台账里没有该单时才回落扫 audit_log ——
+        那是为存量数据留的过渡期兼容,迁移完即可删。**不要把回落当权威**:
+        它正是"retention 删掉一条就重复退款"那颗引信的来源。
+        """
         normalized_purchase_id = str(purchase_id or "").strip()
+        entry = self._membership_purchase_ledger(data).get(normalized_purchase_id)
+        if isinstance(entry, dict):
+            return bool(entry.get("reversed_by"))
         for item in data.get("audit_log") or []:
             if not isinstance(item, dict):
                 continue
@@ -6791,6 +6974,13 @@ class MemberConsoleService:
                 normalized_key,
                 audit["id"],
                 operator=normalized_operator,
+            )
+            # 在台账上盖章。此后"是否已冲正"由 reversed_by 一处说了算,
+            # 不再依赖 audit_log 里是否还留着那条 reversal 记录。
+            self._mark_membership_purchase_reversed(
+                data,
+                purchase_id=resolved_purchase_id,
+                reversal_id=audit["id"],
             )
             return {
                 "member": after,
