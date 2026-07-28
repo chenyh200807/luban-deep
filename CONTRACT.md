@@ -139,6 +139,7 @@ DeepTutor 必须优先保证：
 - `dashboard` 始终是全量、已排除内部/eval 账号的运营会员口径；`list` 只代表当前筛选结果，二者不得混用。
 - 内部账号排除集只能来自 `bi_internal_accounts` 当前状态投影；读取不可用时响应必须显式暴露 availability，前端不得把未知排除状态解释为内部账号数 0 或口径已确认。
 - 首屏必须从一次 canonical member-directory projection 构建 `dashboard` 和分页 `list`，不得由前端分别请求后再本地全量筛选。
+- canonical member-directory 读取失败时，BI `dashboard` / `list` / `overview` 必须 fail closed 并返回 `503`；不得把 authority 异常投影成合法的会员数 `0`。
 - 注册日期以会员 canonical `created_at` 的 UTC+8 自然日解释；列表筛选、分页、排序和导出必须在服务端执行，并复用同一会员 authority。
 - 筛选只能缩小列表，不得改变 dashboard 的真实会员口径或把筛选结果写回会员身份事实。
 

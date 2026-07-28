@@ -110,7 +110,10 @@ from deeptutor.services.member_console.admin_store import (
     set_role_permissions,
     set_user_overrides,
 )
-from deeptutor.services.member_console.directory import get_member_directory_read_model
+from deeptutor.services.member_console.directory import (
+    MemberDirectoryUnavailable,
+    get_member_directory_read_model,
+)
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
@@ -2519,9 +2522,11 @@ class MemberConsoleService:
             return members
         try:
             members = list(directory.list_members(limit=5000))
-        except Exception:
+        except Exception as exc:
             logger.warning("Failed to load Supabase member directory read model", exc_info=True)
-            return []
+            raise MemberDirectoryUnavailable(
+                "Member directory authority is temporarily unavailable"
+            ) from exc
         overlay_index = self._member_console_overlay_index(data)
         merged_aliases = self._member_console_merged_aliases(data, overlay_index)
         merged_members: list[dict[str, Any]] = []

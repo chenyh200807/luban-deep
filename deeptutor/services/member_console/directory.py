@@ -13,6 +13,7 @@ _UNKNOWN_CREATED_AT = "1970-01-01T00:00:00+00:00"
 _UNKNOWN_EXPIRE_AT = "9999-12-31T00:00:00+00:00"
 _MAX_MEMBER_DIRECTORY_ROWS = 10000
 _MEMBER_DIRECTORY_PAGE_SIZE = 1000
+_MEMBER_DIRECTORY_ID_BATCH_SIZE = 100
 _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     {
         "phone_backfill",
@@ -34,6 +35,10 @@ _IDENTITY_METADATA_FIELDS = (
     "reg_channel",
     "reg_scene",
 )
+
+
+class MemberDirectoryUnavailable(RuntimeError):
+    """The canonical member directory could not be read."""
 
 
 def _normalize_text(value: Any) -> str:
@@ -132,33 +137,28 @@ class SupabaseMemberDirectoryReadModel:
         # mismatch that occurs when the top-N-by-activity v_members slice and the
         # top-N-by-registration phone alias slice cover different user sets.
         alias_user_ids = list(eligible_phone_aliases.keys())
-        uid_in_filter = f"in.({','.join(alias_user_ids)})"
         # 注意：不要从 v_members 读任何 chat_conversations 派生列
         # （first_chat_at/last_chat_at/total_conversations/total_messages/has_chat_history）。
         # Postgres 的 chat_conversations 是死表（真实对话在宿主 SQLite chat_history.db），
         # 这些列全是空壳/陈旧值。真实对话事实由 member_console service 的
         # _merge_session_activity_for_member_list 从 SQLite sessions 派生。
-        rows = self._select_rows_paginated(
+        rows = self._select_rows_by_ids(
             table="v_members",
-            params={
-                "select": (
-                    "user_id,identifier,phone,display_name,profession,exam_target,"
-                    "plan_id,balance_micros,frozen_micros,wallet_created_at,wallet_updated_at,"
-                    "has_user_record,has_wallet,has_profile"
-                ),
-                "user_id": uid_in_filter,
-                "order": "wallet_updated_at.desc.nullslast,user_id.asc",
-            },
-            limit=len(alias_user_ids),
+            id_column="user_id",
+            user_ids=alias_user_ids,
+            select=(
+                "user_id,identifier,phone,display_name,profession,exam_target,"
+                "plan_id,balance_micros,frozen_micros,wallet_created_at,wallet_updated_at,"
+                "has_user_record,has_wallet,has_profile"
+            ),
+            order="wallet_updated_at.desc.nullslast,user_id.asc",
         )
         rows_by_user_id = {_normalize_text(row.get("user_id")): row for row in rows}
-        user_rows = self._select_rows_paginated(
+        user_rows = self._select_rows_by_ids(
             table="users",
-            params={
-                "select": "id,identifier,createdAt,metadata,phone",
-                "id": uid_in_filter,
-            },
-            limit=len(alias_user_ids),
+            id_column="id",
+            user_ids=alias_user_ids,
+            select="id,identifier,createdAt,metadata,phone",
         )
         users_by_id = {_normalize_text(row.get("id")): row for row in user_rows}
         eligible_rows: list[dict[str, Any]] = []
@@ -232,6 +232,34 @@ class SupabaseMemberDirectoryReadModel:
             if len(batch) < batch_limit:
                 break
             offset += batch_limit
+        return rows
+
+    def _select_rows_by_ids(
+        self,
+        *,
+        table: str,
+        id_column: str,
+        user_ids: list[str],
+        select: str,
+        order: str | None = None,
+    ) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for offset in range(0, len(user_ids), _MEMBER_DIRECTORY_ID_BATCH_SIZE):
+            batch_ids = user_ids[offset : offset + _MEMBER_DIRECTORY_ID_BATCH_SIZE]
+            params: dict[str, Any] = {
+                "select": select,
+                id_column: f"in.({','.join(batch_ids)})",
+            }
+            if order:
+                params["order"] = order
+            rows.extend(
+                self._select_rows_paginated(
+                    table=table,
+                    params=params,
+                    limit=len(batch_ids),
+                    page_size=len(batch_ids),
+                )
+            )
         return rows
 
     def _eligible_phone_aliases(self, *, limit: int) -> dict[str, dict[str, Any]]:
