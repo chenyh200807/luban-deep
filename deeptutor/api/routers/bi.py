@@ -32,6 +32,7 @@ from deeptutor.services.experience_invite import (
     ExperienceInviteUnavailable,
     get_experience_invite_authority,
 )
+from deeptutor.services.member_console.directory import MemberDirectoryUnavailable
 from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.observability import get_product_behavior_store
 from deeptutor.services.observability.product_behavior_catalog import (
@@ -575,7 +576,13 @@ def bi_member_dashboard(
 ) -> dict[str, Any]:
     # Sync `def` on purpose (病B-4): `get_dashboard` does blocking ledger-lock and
     # Supabase reads, so FastAPI must run it on the threadpool rather than the loop.
-    return get_member_console_service().get_dashboard(days=days)
+    try:
+        return get_member_console_service().get_dashboard(days=days)
+    except MemberDirectoryUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
 
 async def _required_internal_account_snapshot() -> tuple[dict[str, Any], frozenset[str]]:
@@ -619,31 +626,37 @@ async def bi_member_list(
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
     _snapshot, exclusion_ids = await _required_internal_account_snapshot()
-    return await asyncio.to_thread(
-        get_member_console_service().list_members,
-        page=page,
-        page_size=page_size,
-        sort=sort,
-        order=order,
-        status=status_filter,
-        tier=tier,
-        search=search,
-        segment=segment,
-        risk_level=risk_level,
-        risk_min=risk_min,
-        auto_renew=auto_renew,
-        expire_within_days=expire_within_days,
-        active_within_days=active_within_days,
-        registered_from=registered_from,
-        registered_to=registered_to,
-        review_due_min=review_due_min,
-        not_paid=not_paid,
-        channel=channel,
-        behavior_cohort=behavior_cohort,
-        has_heartbeat_job=has_heartbeat_job,
-        has_overlay_candidates=has_overlay_candidates,
-        excluded_user_ids=exclusion_ids,
-    )
+    try:
+        return await asyncio.to_thread(
+            get_member_console_service().list_members,
+            page=page,
+            page_size=page_size,
+            sort=sort,
+            order=order,
+            status=status_filter,
+            tier=tier,
+            search=search,
+            segment=segment,
+            risk_level=risk_level,
+            risk_min=risk_min,
+            auto_renew=auto_renew,
+            expire_within_days=expire_within_days,
+            active_within_days=active_within_days,
+            registered_from=registered_from,
+            registered_to=registered_to,
+            review_due_min=review_due_min,
+            not_paid=not_paid,
+            channel=channel,
+            behavior_cohort=behavior_cohort,
+            has_heartbeat_job=has_heartbeat_job,
+            has_overlay_candidates=has_overlay_candidates,
+            excluded_user_ids=exclusion_ids,
+        )
+    except MemberDirectoryUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get("/member/overview")
@@ -673,32 +686,38 @@ async def bi_member_ops_overview(
     _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ) -> dict[str, Any]:
     internal_snapshot, exclusion_ids = await _required_internal_account_snapshot()
-    payload = await asyncio.to_thread(
-        get_member_console_service().get_member_ops_overview,
-        days=days,
-        page=page,
-        page_size=page_size,
-        sort=sort,
-        order=order,
-        status=status_filter,
-        tier=tier,
-        search=search,
-        segment=segment,
-        risk_level=risk_level,
-        risk_min=risk_min,
-        auto_renew=auto_renew,
-        expire_within_days=expire_within_days,
-        active_within_days=active_within_days,
-        registered_from=registered_from,
-        registered_to=registered_to,
-        review_due_min=review_due_min,
-        not_paid=not_paid,
-        channel=channel,
-        behavior_cohort=behavior_cohort,
-        has_heartbeat_job=has_heartbeat_job,
-        has_overlay_candidates=has_overlay_candidates,
-        excluded_user_ids=exclusion_ids,
-    )
+    try:
+        payload = await asyncio.to_thread(
+            get_member_console_service().get_member_ops_overview,
+            days=days,
+            page=page,
+            page_size=page_size,
+            sort=sort,
+            order=order,
+            status=status_filter,
+            tier=tier,
+            search=search,
+            segment=segment,
+            risk_level=risk_level,
+            risk_min=risk_min,
+            auto_renew=auto_renew,
+            expire_within_days=expire_within_days,
+            active_within_days=active_within_days,
+            registered_from=registered_from,
+            registered_to=registered_to,
+            review_due_min=review_due_min,
+            not_paid=not_paid,
+            channel=channel,
+            behavior_cohort=behavior_cohort,
+            has_heartbeat_job=has_heartbeat_job,
+            has_overlay_candidates=has_overlay_candidates,
+            excluded_user_ids=exclusion_ids,
+        )
+    except MemberDirectoryUnavailable as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
     payload["authority"] = {
         **(payload.get("authority") if isinstance(payload.get("authority"), dict) else {}),
         "internal_accounts": "bi_internal_accounts",

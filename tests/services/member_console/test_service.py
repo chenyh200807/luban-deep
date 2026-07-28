@@ -17,9 +17,10 @@ import httpx
 import pytest
 
 import deeptutor.services.member_console.service as member_service_module
-from deeptutor.services.member_console import rbac
-from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.member_console import external_auth as external_auth_module
+from deeptutor.services.member_console import rbac
+from deeptutor.services.member_console.directory import MemberDirectoryUnavailable
+from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
@@ -6797,7 +6798,9 @@ def test_member_directory_prefers_canonical_overlay_over_auth_wrapper(tmp_path: 
     assert by_quick_login_phone["items"][0]["user_id"] == target_user_id
 
 
-def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:
+def test_configured_member_directory_error_fails_closed_without_zero_projection(
+    tmp_path: Path,
+) -> None:
     class ErrorDirectory:
         is_configured = True
 
@@ -6814,10 +6817,11 @@ def test_configured_member_directory_error_does_not_fallback_to_member_console_p
 
     service._mutate(_seed_local_member)
 
-    payload = service.list_members(page=1, page_size=20)
-
-    assert payload["total"] == 0
-    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    with pytest.raises(
+        MemberDirectoryUnavailable,
+        match="Member directory authority is temporarily unavailable",
+    ):
+        service.list_members(page=1, page_size=20)
 
 
 def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:
