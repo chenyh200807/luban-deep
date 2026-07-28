@@ -35,12 +35,10 @@ export function NewRegistrationCard({
   operationalStartAt?: string
   className?: string
 }) {
-  const [presetDays, setPresetDays] = useState<number | 'custom'>(DEFAULT_REGISTRATION_WINDOW_DAYS)
-  const [customDays, setCustomDays] = useState<string>(String(DEFAULT_REGISTRATION_WINDOW_DAYS))
+  const [presetDays, setPresetDays] = useState(DEFAULT_REGISTRATION_WINDOW_DAYS)
 
   const axis = axisLength(trend)
-  const requestedDays = presetDays === 'custom' ? Number(customDays) : presetDays
-  const days = clampWindowDays(requestedDays, trend)
+  const days = clampWindowDays(presetDays, trend)
 
   const { total, bars, peak, delta, series } = useMemo(() => {
     const rows = windowSeries(trend, days)
@@ -75,11 +73,11 @@ export function NewRegistrationCard({
     >
       <div
         aria-hidden
-        className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-40 blur-xl"
+        className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-40 blur-xl"
         style={{ background: alpha(SERIES_COLORS[0], 0.5) }}
       />
 
-      <div className="flex items-start justify-between gap-2">
+      <div className="relative z-10 flex items-start justify-between gap-2">
         <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
           <UserPlus className="h-3.5 w-3.5" style={{ color: COCKPIT.accentBright }} />
           新增注册
@@ -92,11 +90,8 @@ export function NewRegistrationCard({
             id="new-registration-window"
             data-testid="bi-member-new-registration-window"
             className="rounded-lg border border-white/15 bg-black/30 px-2 py-1 text-[11px] font-semibold text-slate-200 outline-none focus:border-[#E8915A]/60"
-            value={presetDays === 'custom' ? 'custom' : String(presetDays)}
-            onChange={event => {
-              const next = event.target.value
-              setPresetDays(next === 'custom' ? 'custom' : Number(next))
-            }}
+            value={String(presetDays)}
+            onChange={event => setPresetDays(Number(event.target.value))}
             disabled={!hasAxis}
           >
             {REGISTRATION_WINDOW_PRESETS.map(preset => (
@@ -104,23 +99,7 @@ export function NewRegistrationCard({
                 {preset.label}
               </option>
             ))}
-            <option value="custom">自定义…</option>
           </select>
-          {presetDays === 'custom' && (
-            <span className="flex items-center gap-1">
-              <input
-                data-testid="bi-member-new-registration-custom-days"
-                type="number"
-                min={1}
-                max={Math.max(axis, 1)}
-                value={customDays}
-                onChange={event => setCustomDays(event.target.value)}
-                className="w-16 rounded-lg border border-white/15 bg-black/30 px-2 py-1 text-[11px] font-semibold tabular-nums text-slate-200 outline-none focus:border-[#E8915A]/60"
-                aria-label="自定义统计天数"
-              />
-              <span className="text-[11px] text-slate-500">天</span>
-            </span>
-          )}
         </div>
       </div>
 

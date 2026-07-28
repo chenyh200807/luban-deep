@@ -27,6 +27,7 @@ function buildDailyCounts(): number[] {
 
 const DAILY_COUNTS = buildDailyCounts();
 const EXPECTED_TODAY = 100;
+const EXPECTED_3D = 111;
 const EXPECTED_7D = 115;
 const EXPECTED_30D = 161;
 
@@ -76,7 +77,7 @@ async function mockMemberOpsOverview(page: import("@playwright/test").Page) {
           tier_breakdown: [{ tier: "trial", count: 400 }],
           expiry_breakdown: [],
           recommendations: [],
-          // 运营口径起点在 30 天窗口内、但早于 60 天窗口 —— 用来验提示只在跨过它时出现。
+          // 运营口径起点在默认 30 天窗口内 —— 用来验提示只在窗口跨过它时出现。
           authority: { operational_start_at: "2026-06-22T00:00:00+08:00" },
         },
         list: { items: [], total: 0, page: 1, page_size: 20, pages: 1 },
@@ -94,7 +95,7 @@ async function mockMemberOpsOverview(page: import("@playwright/test").Page) {
   );
 }
 
-test("新增注册卡：窗口切换改变屏幕上的数字，自定义天数生效", async ({ page }) => {
+test("新增注册卡：1/3/7/30 天可点击切换并改变屏幕数字", async ({ page }) => {
   await installAdminSession(page);
   await mockMemberOpsOverview(page);
 
@@ -108,6 +109,15 @@ test("新增注册卡：窗口切换改变屏幕上的数字，自定义天数�
 
   // 默认近 30 天：窗口起点 2026-06-01 早于运营口径起点 2026-06-22 → 必须提示
   await expect(windowSelect).toHaveValue("30");
+  await expect(windowSelect.locator("option")).toHaveText([
+    "近 1 天",
+    "近 3 天",
+    "近 7 天",
+    "近 30 天",
+  ]);
+  // 必须走一次真实指针命中；selectOption 会绕过遮挡层，抓不到“看得见但点不开”。
+  await windowSelect.click();
+  await page.keyboard.press("Escape");
   await expect(total).toHaveText(EXPECTED_30D.toLocaleString());
   await expect(card).toContainText("注册时间缺失或异常");
   await expect(page.getByTestId("bi-member-new-registration-predates-note")).toContainText(
@@ -127,26 +137,20 @@ test("新增注册卡：窗口切换改变屏幕上的数字，自定义天数�
   await windowSelect.selectOption("7");
   await expect(total).toHaveText(EXPECTED_7D.toLocaleString());
 
+  // 切近 3 天
+  await windowSelect.selectOption("3");
+  await expect(total).toHaveText(EXPECTED_3D.toLocaleString());
+
   // 切今日
   await windowSelect.selectOption("1");
   await expect(total).toHaveText(EXPECTED_TODAY.toLocaleString());
   // 今日的上一周期是昨天(10)，环比 100 vs 10 = +900%
   await expect(page.getByTestId("bi-member-new-registration-delta")).toContainText("900%");
 
-  // 自定义 60 天：第 31..365 天都是 0，所以和近 30 天相同 —— 数字不变才是对的
-  await windowSelect.selectOption("custom");
-  const customInput = page.getByTestId("bi-member-new-registration-custom-days");
-  await customInput.fill("60");
-  await expect(total).toHaveText(EXPECTED_30D.toLocaleString());
-
-  // 自定义 2 天 = 今天 + 昨天
-  await customInput.fill("2");
-  await expect(total).toHaveText((EXPECTED_TODAY + 10).toLocaleString());
-
-  await windowSelect.selectOption("custom");
-  await customInput.fill("60");
+  await windowSelect.selectOption("3");
+  await expect(total).toHaveText(EXPECTED_3D.toLocaleString());
   await page.screenshot({
-    path: "playwright-report/new-registration-custom-60d.png",
+    path: "playwright-report/new-registration-3d.png",
     fullPage: false,
   });
 });
