@@ -219,6 +219,7 @@ CI 不会对全仓库一刀切，只会盯 contract 边界。
 - First Run 正式完成事实只由 `FirstRunWritebackService` 写入的 `learner_state.learning_preferences.first_run` marker 决定。
 - `module=first_run,event_name=learning_action_completed,object_type=script,result=synced,event_version>=2` 只表示客户端已收到服务端成功写回结果，可用于漏斗与数据质量核对；CTA、本地 done 或题目事件不得判定正式完成。
 - 会员经营聚合必须以 canonical member identity group 去重并排除 eval/test 账号；前端不得扫描 raw ledger 自行重算同名指标。
+- 学习偏好默认业务口径继续排除内部/eval/test 账号，但必须区分“账本无播放器事件”和“播放器事件因账号口径被排除”；诊断计数仍只读 `product_behavior_events`，不得另造前端或旁路统计 authority。
 
 ## 禁止事项
 

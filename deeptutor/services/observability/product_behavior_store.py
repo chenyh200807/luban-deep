@@ -975,6 +975,93 @@ class SQLiteProductBehaviorStore:
         )
         return breakdown[: max(1, int(limit))] if limit else breakdown
 
+    def get_microlesson_playback_excluded_counts(
+        self,
+        *,
+        days: int = 7,
+        exclude_user_ids: Sequence[str] | None = None,
+        exclude_user_id_prefixes: Sequence[str] | None = None,
+    ) -> dict[str, Any]:
+        """Count the playback partition excluded from business analytics.
+
+        This reads only identities selected by the exclusion authority. It
+        avoids subtracting two independently timed aggregate snapshots, which
+        could briefly misclassify a concurrent business event as excluded.
+        """
+        excluded = sorted(
+            {
+                str(user_id).strip()
+                for user_id in (exclude_user_ids or [])
+                if str(user_id).strip()
+            }
+        )
+        prefixes = sorted(
+            {
+                str(value).strip()
+                for value in (exclude_user_id_prefixes or [])
+                if str(value).strip()
+            }
+        )
+        identity_filters: list[str] = []
+        identity_params: list[Any] = []
+        if excluded:
+            identity_filters.append(
+                f"user_id in ({','.join('?' for _ in excluded)})"
+            )
+            identity_params.extend(excluded)
+        for prefix in prefixes:
+            identity_filters.append(r"user_id like ? escape '\'")
+            identity_params.append(
+                prefix.replace("\\", r"\\")
+                .replace("%", r"\%")
+                .replace("_", r"\_")
+                + "%"
+            )
+        if not identity_filters:
+            return {
+                "available": False,
+                "event_count": 0,
+                "playback_session_count": 0,
+            }
+
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"""
+                select user_id, visit_id, object_id, properties_json
+                from product_behavior_events
+                where occurred_at_ms >= ?
+                  and event_name = 'microlesson_playback'
+                  and object_type = 'microlesson'
+                  and object_id != ''
+                  and ({' or '.join(identity_filters)})
+                """,
+                (self._since_ms(days), *identity_params),
+            ).fetchall()
+
+        sessions: set[tuple[str, str, str]] = set()
+        for row in rows:
+            try:
+                properties = json.loads(str(row["properties_json"] or "{}"))
+            except json.JSONDecodeError:
+                properties = {}
+            if not isinstance(properties, dict):
+                properties = {}
+            user_id = str(row["user_id"] or "")
+            session_id = str(
+                properties.get("playback_session_id")
+                or row["visit_id"]
+                or ""
+            )
+            object_id = str(row["object_id"] or "")
+            if user_id and session_id and object_id:
+                sessions.add((user_id, session_id, object_id))
+
+        return {
+            "available": bool(rows),
+            "event_count": len(rows),
+            "playback_session_count": len(sessions),
+        }
+
     def get_microlesson_playback_breakdown(
         self,
         *,
