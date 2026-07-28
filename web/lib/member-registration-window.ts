@@ -26,14 +26,12 @@ export type RegistrationWindowPreset = {
   label: string
 }
 
-/** 下拉里的固定档；自定义天数走 clampWindowDays。 */
+/** 运营首屏允许切换的固定窗口。 */
 export const REGISTRATION_WINDOW_PRESETS: RegistrationWindowPreset[] = [
-  { days: 1, label: '今日' },
+  { days: 1, label: '近 1 天' },
+  { days: 3, label: '近 3 天' },
   { days: 7, label: '近 7 天' },
-  { days: 14, label: '近 14 天' },
   { days: 30, label: '近 30 天' },
-  { days: 60, label: '近 60 天' },
-  { days: 90, label: '近 90 天' },
 ]
 
 export const DEFAULT_REGISTRATION_WINDOW_DAYS = 30

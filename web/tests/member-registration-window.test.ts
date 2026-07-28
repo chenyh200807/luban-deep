@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  REGISTRATION_WINDOW_PRESETS,
   clampWindowDays,
   compressSeries,
   excludedMemberCount,
@@ -25,6 +26,13 @@ function trendOf(daily: number[], endDate = '2026-06-30'): NewRegistrationTrend 
 
 // 1,2,3,4,5,6,7,8,9,10 —— 最后一项是今天
 const TEN_DAYS = trendOf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+test('运营窗口固定为 1、3、7、30 天', () => {
+  assert.deepEqual(
+    REGISTRATION_WINDOW_PRESETS.map(item => item.days),
+    [1, 3, 7, 30]
+  )
+})
 
 test('窗口总数是每日序列的后缀和（与后端 _sum_registration_window 同口径）', () => {
   assert.equal(sumWindow(TEN_DAYS, 1), 10)
