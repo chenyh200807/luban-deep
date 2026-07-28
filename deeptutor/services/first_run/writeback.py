@@ -13,6 +13,9 @@ from deeptutor.services.learner_state.home_personalization import (
     build_home_personalization_projection_from_learning_signal,
     write_home_personalization_projection,
 )
+from deeptutor.services.learner_state.progress_counters import (
+    write_progress_counters,
+)
 from deeptutor.services.learner_state.training_intent import (
     build_learning_training_intent,
 )
@@ -230,6 +233,13 @@ class FirstRunWritebackService:
             script_version=canonical_request["script_version"],
             completed_at=canonical_request["completed_at"],
         )
+        # 学习首页的三个数字（total_attempts / last_practiced_at / today_done）从
+        # 证据账本派生回写 PROGRESS。放在 home projection 之后：projection 失败要
+        # 整单不落地，而计数投影是尽力而为，不该反过来卡住已完成的摸底。
+        progress_counters = write_progress_counters(
+            self._learner_state,
+            user_id=normalized_user_id,
+        )
         return {
             "completion_id": normalized_completion_id,
             "script_version": canonical_request["script_version"],
@@ -251,6 +261,7 @@ class FirstRunWritebackService:
             "learning_event_refs": event_ids,
             "training_intent": training_intent,
             "home_projection": home_projection,
+            "progress_counters": progress_counters,
         }
 
     def _write_explicit_preferences(

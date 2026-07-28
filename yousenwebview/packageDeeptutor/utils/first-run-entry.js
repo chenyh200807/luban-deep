@@ -103,10 +103,14 @@ function refreshFromServer(userId, api) {
 }
 
 // opts = { isNewAccount, hasDeepLink }。
+// 新账号（且无深链）直接落首次学习旅程：注册完第一屏就是真题，不再中转学习首页
+// 等用户自己发现入口。首跑没做完不需要另外落地——学习首页顶部的首跑卡会走
+// getState() 的 resume 态（checkpoint 已在 first-run 页每步落盘）继续接上。
+// 深链优先级不变；老用户（isNewAccount 为 false）行为完全不变。
 function reLaunchAfterAuth(target, opts) {
   opts = opts || {};
   if (opts.isNewAccount && !opts.hasDeepLink) {
-    wx.reLaunch({ url: route.resolve("pages/learn/learn") });
+    wx.reLaunch({ url: route.resolve("pages/first-run/first-run") });
     return;
   }
   wx.reLaunch({ url: target });

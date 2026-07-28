@@ -19,7 +19,7 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     event_promotion_allowed,
     evidence_attempt_id,
     is_learning_evidence_record,
-    is_retest_completion_terminal,
+    is_progress_countable_event,
 )
 from deeptutor.services.learner_state.home_personalization import (
     is_canonical_home_personalization_projection,
@@ -1553,15 +1553,8 @@ def _learning_evidence_identity(event: Any) -> str:
 
 
 def _is_progress_countable_event(event: Any) -> bool:
-    payload = _safe_dict(getattr(event, "payload_json", {}))
-    if is_retest_completion_terminal(event):
-        return False
-    if str(payload.get("evidence_source") or "").strip() == "conversation_synthesis":
-        return False
-    quality = _safe_dict(payload.get("quality"))
-    if quality.get("progress_countable") is False:
-        return False
-    return True
+    # 单一权威在 evidence_lifecycle：PROGRESS 计数投影读的是同一个判据，禁止两处各写一份。
+    return is_progress_countable_event(event)
 
 
 def _aggregate_learning_evidence(events: list[Any]) -> dict[str, Any]:

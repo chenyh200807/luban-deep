@@ -1,3 +1,12 @@
+// 摸底测评「欢迎新同学」拦截弹窗的权威测试。
+//
+// 契约在 2026-07-28 的新手单一漏斗改版里翻转了：
+//   改版前 = 新用户进「问鲁班」必被弹一次 8 分钟摸底；
+//   改版后 = 新手引导单一权威 = first_run（注册后直接进），chat 页不再主动拦人。
+// 所以本文件的主体断言从「必须弹」翻成「必须不弹、且连探测请求都不发」，
+// 同时保留一组「把 DIAGNOSTIC_ENTRY_MODAL_ENABLED 置回 true 就整套恢复」的可逆性断言，
+// 免得下线被误读成「实现被删了」。那组断言顺带守住 W3 修的两个 bug。
+
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
@@ -30,25 +39,56 @@ function flushPromises() {
   });
 }
 
+var MODAL_FLAG_OFF = "var DIAGNOSTIC_ENTRY_MODAL_ENABLED = false;";
+
 function loadChatPage(overrides) {
+  overrides = overrides || {};
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/chat/chat.js"),
     "utf8",
   );
+
+  // 生产源码里这个常量必须是 false —— 它就是「弹窗已下线」的单一权威。
+  assert(
+    source.indexOf(MODAL_FLAG_OFF) !== -1,
+    "chat.js must keep DIAGNOSTIC_ENTRY_MODAL_ENABLED = false (the single authority for 弹窗下线)",
+  );
+
+  if (overrides.forceModalEnabled) {
+    var patched = source.replace(
+      MODAL_FLAG_OFF,
+      "var DIAGNOSTIC_ENTRY_MODAL_ENABLED = true;",
+    );
+    assert(
+      patched !== source,
+      "reversibility probe could not flip DIAGNOSTIC_ENTRY_MODAL_ENABLED (constant renamed?)",
+    );
+    source = patched;
+  }
+
   var pageDef = null;
   var modalCalls = [];
-  var storage = Object.assign({}, (overrides && overrides.storage) || {});
+  var navigateCalls = [];
+  var profileCalls = 0;
+  var storage = Object.assign({}, overrides.storage || {});
   var apiMock = Object.assign(
     {
       unwrapResponse: function (raw) {
         return raw;
       },
-      getAssessmentProfile: function () {
-        return Promise.resolve({ score: 0, level: "", chapter_mastery: {} });
-      },
     },
-    (overrides && overrides.api) || {},
+    overrides.api || {},
   );
+  var innerGetProfile =
+    apiMock.getAssessmentProfile ||
+    function () {
+      return Promise.resolve({ score: 0, level: "", chapter_mastery: {} });
+    };
+  apiMock.getAssessmentProfile = function () {
+    profileCalls += 1;
+    return innerGetProfile.apply(null, arguments);
+  };
+
   var sandbox = {
     console: console,
     Date: Date,
@@ -116,7 +156,9 @@ function loadChatPage(overrides) {
       showModal: function (options) {
         modalCalls.push(options);
       },
-      navigateTo: function () {},
+      navigateTo: function (options) {
+        navigateCalls.push(options);
+      },
     },
     Page: function (def) {
       pageDef = def;
@@ -145,11 +187,33 @@ function loadChatPage(overrides) {
     wx: sandbox.wx,
     storage: storage,
     modalCalls: modalCalls,
+    navigateCalls: navigateCalls,
+    profileCalls: function () {
+      return profileCalls;
+    },
   };
 }
 
 (async function main() {
-  await run("chat diagnostic should not show modal when backend assessment already exists", async function () {
+  // ── 现行契约：弹窗已下线 ──────────────────────────────
+  await run("diagnostic modal is retired for brand new users", async function () {
+    var loaded = loadChatPage();
+
+    await Promise.resolve(loaded.page._checkDiagnostic());
+    await flushPromises();
+
+    assert(loaded.modalCalls.length === 0, "retired diagnostic modal must not intercept new users");
+    assert(
+      loaded.profileCalls() === 0,
+      "retired modal must not even probe getAssessmentProfile on every onShow",
+    );
+    assert(
+      loaded.storage["diagnostic_skipped:user-1"] === undefined,
+      "retired modal must not write suppression keys it no longer needs",
+    );
+  });
+
+  await run("backend assessment signal still results in no modal", async function () {
     var loaded = loadChatPage({
       api: {
         getAssessmentProfile: function () {
@@ -167,19 +231,9 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(loaded.modalCalls.length === 0, "diagnostic modal should be suppressed by backend assessment signal");
-    assert(loaded.storage["diagnostic_completed:user-1"] === true, "backend assessment signal should warm the user-scoped completed cache");
   });
 
-  await run("chat diagnostic should still show modal when backend assessment is empty", async function () {
-    var loaded = loadChatPage();
-
-    await Promise.resolve(loaded.page._checkDiagnostic());
-    await flushPromises();
-
-    assert(loaded.modalCalls.length === 1, "diagnostic modal should still show for truly new users");
-  });
-
-  await run("first-run learner-state completion should suppress the legacy diagnostic modal", async function () {
+  await run("first-run learner-state completion still results in no modal", async function () {
     var loaded = loadChatPage({
       api: {
         getAssessmentProfile: function () {
@@ -201,7 +255,47 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(loaded.modalCalls.length === 0, "canonical first-run completion should prevent a second onboarding prompt");
-    assert(loaded.storage["diagnostic_completed:user-1"] === true, "canonical first-run completion should warm the user-scoped cache");
+  });
+
+  // ── 可逆性 + W3 的两个 bug 修复（把常量置回 true 时才生效）────────
+  await run("flipping the constant back restores the whole modal path", async function () {
+    var loaded = loadChatPage({ forceModalEnabled: true });
+
+    await Promise.resolve(loaded.page._checkDiagnostic());
+    await flushPromises();
+
+    assert(loaded.modalCalls.length === 1, "one flipped constant must restore the modal end to end");
+    assert(loaded.profileCalls() === 1, "restored path still probes the backend assessment profile once");
+  });
+
+  await run("[FIX-DIAG-1] confirm branch writes the suppression key too", async function () {
+    var loaded = loadChatPage({ forceModalEnabled: true });
+
+    await Promise.resolve(loaded.page._checkDiagnostic());
+    await flushPromises();
+    assert(loaded.modalCalls.length === 1, "precondition: modal shown once");
+
+    loaded.modalCalls[0].success({ confirm: true });
+
+    assert(
+      loaded.storage["diagnostic_skipped:user-1"] === true,
+      "confirm branch must write the suppression key too (弹过就算数)",
+    );
+    assert(loaded.navigateCalls.length === 1, "confirm branch still navigates to assessment");
+  });
+
+  await run("[FIX-DIAG-2] same-visit re-entry does not double-show the modal", async function () {
+    var loaded = loadChatPage({ forceModalEnabled: true });
+
+    // 抑制键写在网络回调里，同一 visit 内第二次 onShow 会在它落盘前再进来一次。
+    var first = Promise.resolve(loaded.page._checkDiagnostic());
+    var second = Promise.resolve(loaded.page._checkDiagnostic());
+    await first;
+    await second;
+    await flushPromises();
+
+    assert(loaded.modalCalls.length === 1, "in-flight guard must collapse concurrent checks into one modal");
+    assert(loaded.profileCalls() === 1, "in-flight guard must also collapse the duplicate probe");
   });
 
   if (fail) {

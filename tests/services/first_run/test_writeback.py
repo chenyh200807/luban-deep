@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import pytest
@@ -13,6 +14,22 @@ from deeptutor.services.first_run.writeback import (
     FirstRunWritebackService,
 )
 
+_TZ = timezone(timedelta(hours=8))
+
+
+def _now_iso() -> str:
+    return datetime.now(_TZ).isoformat()
+
+
+def _deep_merge(base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
+    merged = deepcopy(base)
+    for key, value in (patch or {}).items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = deepcopy(value)
+    return merged
+
 
 @dataclass
 class _Event:
@@ -23,7 +40,7 @@ class _Event:
     memory_kind: str
     payload_json: dict[str, Any]
     dedupe_key: str
-    created_at: str = "2026-07-11T10:00:00+08:00"
+    created_at: str = field(default_factory=_now_iso)
 
 
 class _FakeLearnerState:
@@ -76,8 +93,21 @@ class _FakeLearnerState:
 
     def merge_progress(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         assert user_id == "user-1"
-        self.progress.update(deepcopy(patch))
+        # 真 service 走 _deep_merge，这里同构：patch 的 today 子树不能整块覆盖
+        # 掉已有的 daily_target / streak_days。
+        self.progress = _deep_merge(self.progress, deepcopy(patch))
         return deepcopy(self.progress)
+
+    def read_progress(self, user_id: str) -> dict[str, Any]:
+        assert user_id == "user-1"
+        return deepcopy(self.progress)
+
+    def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[_Event]:
+        assert user_id == "user-1"
+        events = list(self.events)
+        if limit is None or limit < 0:
+            return events
+        return events[-limit:]
 
 
 @pytest.fixture(autouse=True)
@@ -294,3 +324,75 @@ def test_home_projection_failure_does_not_commit_first_run_completion(monkeypatc
         service.complete(user_id="user-1", **_completion())
 
     assert "first_run" not in learner_state.profile["learning_preferences"]
+
+
+def test_completion_lights_up_the_three_home_progress_numbers() -> None:
+    """做完 first_run 后，学习首页那三个数字必须真的变。
+
+    生产现场：写了 12 条 learning_evidence，PROGRESS 却是
+    total_attempts=0 / last_practiced_at=null / today.today_done=0。
+    """
+    learner_state = _FakeLearnerState()
+    learner_state.progress = {"today": {"today_done": 0, "daily_target": 30, "streak_days": 0}}
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+
+    result = service.complete(user_id="user-1", **_completion())
+
+    progress = learner_state.progress
+    assert progress["total_attempts"] == 4
+    assert progress["today"]["today_done"] == 4
+    assert str(progress["last_practiced_at"] or "").strip()
+    assert progress["last_practiced_at"] == max(event.created_at for event in learner_state.events)
+    # deep-merge：today 子树里别人的字段不能被这次回写抹掉
+    assert progress["today"]["daily_target"] == 30
+    assert progress["today"]["streak_days"] == 0
+    assert result["progress_counters"]["total_attempts"] == 4
+
+
+def test_replayed_completion_does_not_double_count_total_attempts() -> None:
+    learner_state = _FakeLearnerState()
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+    body = _completion()
+
+    first = service.complete(user_id="user-1", **body)
+    after_first = deepcopy(learner_state.progress)
+    replay = service.complete(user_id="user-1", **body)
+
+    assert learner_state.progress["total_attempts"] == 4
+    assert learner_state.progress["today"]["today_done"] == 4
+    assert learner_state.progress == after_first
+    assert first["progress_counters"] == replay["progress_counters"]
+    assert len(learner_state.events) == 4
+
+
+def test_progress_counters_never_touch_mastery_or_chapters() -> None:
+    """边界：只补三个事实字段，不碰 mastery / chapters（那些是判断不是事实）。"""
+    learner_state = _FakeLearnerState()
+    learner_state.progress = {
+        "chapters": [{"name": "防水工程", "done": 0}],
+        "mastery_level": 1,
+    }
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+
+    result = service.complete(user_id="user-1", **_completion())
+
+    assert learner_state.progress["chapters"] == [{"name": "防水工程", "done": 0}]
+    assert learner_state.progress["mastery_level"] == 1
+    assert set(result["progress_counters"]) <= {"total_attempts", "last_practiced_at", "today"}
+
+
+def test_progress_counter_writeback_failure_does_not_fail_the_completion() -> None:
+    """投影是尽力而为：证据账本才是真值，投影落后不该回滚已答完的摸底。"""
+    learner_state = _FakeLearnerState()
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+
+    def _explode(_user_id: str, _limit: int | None = 20) -> list[_Event]:
+        raise RuntimeError("events_unavailable")
+
+    learner_state.list_memory_events = _explode  # type: ignore[assignment]
+
+    result = service.complete(user_id="user-1", **_completion())
+
+    assert result["sync_status"] == "synced"
+    assert result["progress_counters"] == {}
+    assert len(learner_state.events) == 4

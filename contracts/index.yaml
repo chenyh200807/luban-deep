@@ -765,6 +765,7 @@ domains:
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_learning_synthesis.py
       - tests/services/learner_state/test_learning_report_read_model.py
+      - tests/services/learner_state/test_progress_counters.py
       - tests/services/learner_state/test_learning_state_projection.py
       - tests/services/learner_state/test_lesson_evidence.py
       - tests/api/test_lesson_progress_endpoint.py

@@ -24,10 +24,10 @@ Page({
   data: {
     statusBarHeight: 44,
     navHeight: 92,
-    act: "war", // war | mode | question | feedback | interlude | reveal | report | finale
+    // 第 1 幕就是真题：act 由 onLoad 的 _showQuestion(0) / 断点续跑设定，
+    // 初值留空，避免首帧渲染到 q 还没备好的题目幕。
+    act: "", // question | feedback | interlude | reveal | report | finale
     progressSeg: 1, // 1..6
-    warOpts: [],
-    modeOpts: [],
     // question/feedback
     qIndex: 0,
     qTotal: data.QUESTIONS.length,
@@ -71,15 +71,20 @@ Page({
     this.setData({
       statusBarHeight: Number(windowInfo.statusBarHeight || 44),
       navHeight: Number(windowInfo.statusBarHeight || 44) + 48,
-      warOpts: this._optList(data.WAR_OPTS),
-      modeOpts: this._optList(data.MODE_OPTS),
-      materialOpts: this._optList(data.MATERIAL_OPTS),
     });
-    this._restoreCheckpoint();
+    // 漏斗分母：先发 first_run_started，再发第 1 幕的 module_viewed，
+    // 保证 started → act_* 的先后关系对任何入口（新跑/续跑）都一致。
+    // section 从 act_war 改成 act_question，因为开场幕本身已经是真题。
     telemetry.trackProductBehavior(
       "first_run_started",
-      behavior("view", { section: "act_war" })
+      behavior("view", { section: "act_question" })
     );
+    if (!this._restoreCheckpoint()) {
+      // 没恢复成功就从第 1 题重开：作答记录必须清空，否则旧 checkpoint 的
+      // results 会和这一轮的 push 叠加 → 报告分母翻倍。
+      this.results = [];
+      this._showQuestion(0);
+    }
   },
 
   _optList: function (obj) {
@@ -117,48 +122,56 @@ Page({
     firstRunEntry.writeCheckpoint(this.userId, this._checkpointPayload());
   },
 
+  // 返回 true 表示已经把某一幕恢复出来了；返回 false 由 onLoad 从第 1 题开跑。
   _restoreCheckpoint: function () {
-    if (!this.userId) return;
+    if (!this.userId) return false;
     var saved = firstRunEntry.readCheckpoint(this.userId);
-    if (!saved) return;
+    if (!saved) return false;
     if (saved.scriptVersion !== data.SCRIPT_VERSION) {
       firstRunEntry.clearCheckpoint(this.userId);
-      return;
+      return false;
     }
     this.war = saved.war || null;
     this.mode = saved.mode || null;
     this.profile = saved.profile || {};
     this.results = Array.isArray(saved.results) ? saved.results.slice() : [];
     this.completionId = String(saved.completionId || "");
-    var act = String(saved.act || "war");
+    var act = String(saved.act || "question");
     var qIndex = Math.max(0, Math.min(Number(saved.qIndex || 0), data.QUESTIONS.length - 1));
+    // 旧版剧本的摸底幕已下线。SCRIPT_VERSION 没变（它锚后端 signed manifest，不能动），
+    // 所以停在这些幕的老 checkpoint 会原样通过版本校验 → 必须显式落回第 1 题，
+    // 否则 act 指向一个 wxml 里已不存在的分支 = 白屏。
+    if (act === "war" || act === "mode" || act === "material" || act === "materialReveal") {
+      return false;
+    }
     if (act === "question") {
       this._showQuestion(qIndex, true);
-      return;
+      return true;
     }
     if (act === "feedback" && this.results[qIndex]) {
       this.setData({ qIndex: qIndex });
       var previous = this.results.pop();
       this._answerQuestion(previous.picked, previous.durationMs, true);
-      return;
+      return true;
     }
     if (act === "interlude") {
       this.setData({ qIndex: qIndex });
       this._showInterlude(qIndex, true);
-      return;
-    }
-    if (act === "materialReveal" && this.profile.material) {
-      this.setData({ materialReveal: data.MATERIAL_REVEAL[this.profile.material] || data.MATERIAL_REVEAL.unknown });
+      return true;
     }
     if (act === "report" && this.results.length === data.QUESTIONS.length) {
       this._buildReport();
-      return;
+      return true;
     }
     if (act === "reveal" && this.results.length === data.QUESTIONS.length) {
       this._buildReveal();
-      return;
+      return true;
     }
-    this._go(act, act === "war" || act === "mode" || act === "material" || act === "materialReveal" ? 1 : 6);
+    if (act === "finale") {
+      this._go(act, 6);
+      return true;
+    }
+    return false;
   },
 
   /* ---------- 逃生舱 ---------- */
@@ -181,32 +194,11 @@ Page({
     });
   },
 
-  /* ---------- 摸底两问 ---------- */
-  onWarPick: function (e) {
-    this.war = e.currentTarget.dataset.key;
-    this._go("mode", 1);
-    this._saveCheckpoint();
-  },
-  onModePick: function (e) {
-    this.mode = e.currentTarget.dataset.key;
-    this._go("material", 1);
-    this._saveCheckpoint();
-  },
-
-  /* ---------- 摸底第 3 问：资料年份 → 2026 改版时刻 ---------- */
-  onMaterialPick: function (e) {
-    var key = e.currentTarget.dataset.key;
-    this.profile.material = key;
-    var reveal = data.MATERIAL_REVEAL[key] || data.MATERIAL_REVEAL.unknown;
-    this.setData({ materialReveal: reveal });
-    this._go("materialReveal", 1);
-    this._saveCheckpoint();
-  },
-  onMaterialGo: function () {
-    this._showQuestion(0);
-  },
-
-  /* ---------- 题集 ---------- */
+  /* ---------- 题集（第 1 幕） ----------
+     题前的三幕摸底（act_war 第几次考 / act_mode 丢分模式 / act_material 资料年份
+     + act_materialReveal）已下线：真实漏斗上这三幕净流失 39%，且在用户拿到任何
+     东西之前就先要他交底。this.war / this.mode / this.profile.material 从此恒空，
+     后端 _normalized_preferences 对空值直接跳过（writeback.py:55-57），不会 400。 */
   _showQuestion: function (i, restoring) {
     var q = data.QUESTIONS[i];
     this.qShownAt = Date.now();
@@ -374,8 +366,14 @@ Page({
     }).length;
     var missN = results.length - okN;
     var pct = Math.round((okN / results.length) * 100);
-    var modeTexts = data.MODE_REPORT[this.mode] || data.MODE_REPORT.nopoint;
+    // 摸底自评幕已下线 → this.mode 恒空。此时必须落到 unstated 这份「只讲实测、
+    // 不替用户认领说法」的文案；落回 nopoint 会凭空写出「你说『踩不到得分点』」。
+    var modeTexts = data.MODE_REPORT[this.mode] || data.MODE_REPORT.unstated;
     var modeText = (missN ? modeTexts.miss : modeTexts.clean).replace("{missN}", String(missN));
+    var warTx = data.WAR_TX[this.war] || "";
+    var modeTitle = this.profile.typeName
+      ? this.profile.typeName + (warTx ? " —— " + warTx : "")
+      : warTx || "今天这 4 题的实测结论";
     this.setData({
       report: {
         pct: pct,
@@ -383,13 +381,12 @@ Page({
         rxSub: results.length + " 条作答证据 · 保存后回到「学习」继续",
         ansN: results.length,
         missN: missN,
-        modeTitle:
-          (this.profile.typeName ? this.profile.typeName + " —— " : "") +
-          (data.WAR_TX[this.war] || ""),
+        modeTitle: modeTitle,
         modeText: modeText,
         basis:
           results.length + " 条作答 · " + missN + " 题暂未命中 · " +
-          results.length + " 个采分点比对鲁班编译库（174 个真题小问 / 1221 条判分点）· 6 个画像信号",
+          results.length + " 个采分点比对鲁班编译库（174 个真题小问 / 1221 条判分点）· " +
+          data.INTERLUDES.length + " 个画像信号",
         rows: results.map(function (r) {
           return { name: r.name, family: r.familyShort, ok: r.ok, tag: r.ok ? "已命中" : "明天复测" };
         }),

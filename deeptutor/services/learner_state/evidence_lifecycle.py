@@ -244,6 +244,24 @@ def is_retest_completion_terminal(event: Any) -> bool:
     )
 
 
+def is_progress_countable_event(event: Any) -> bool:
+    """Whether an evidence row counts as one learner attempt for progress numbers.
+
+    Single authority for "does this row move today_done / total_attempts".
+    Both the learning report read model and the PROGRESS counter projection
+    read this one predicate — they must never drift apart.
+    """
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    if is_retest_completion_terminal(event):
+        return False
+    if _clean(payload.get("evidence_source")) == "conversation_synthesis":
+        return False
+    quality = _safe_dict(payload.get("quality"))
+    if quality.get("progress_countable") is False:
+        return False
+    return True
+
+
 RETEST_ROLE_FORWARD_PRACTICE = "forward_practice"
 RETEST_ROLE_IMMEDIATE_CONFIRM = "immediate_confirm"
 RETEST_ROLE_REVIEW = "review"
@@ -628,6 +646,7 @@ __all__ = [
     "event_promotion_allowed",
     "is_learning_evidence_event",
     "is_learning_evidence_record",
+    "is_progress_countable_event",
     "is_retest_completion_terminal",
     "is_canonical_luban_retest_terminal",
     "is_real_retest",

@@ -2452,6 +2452,9 @@
   --pkx-warn-chip: rgba(194, 101, 85, 0.18);
   --pkx-ink-soft: rgba(240, 237, 225, 0.07);
   --pkx-ink-soft-strong: rgba(240, 237, 225, 0.12);
+  /* 朱红派生（批改入口专用；--pk-red 两主题同值 #cf4436） */
+  --pkx-red-bd: rgba(207, 68, 54, 0.42);
+  --pkx-red-bg: rgba(207, 68, 54, 0.12);
   background: var(--pk-paper);
   background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
   background-size: 34rpx 34rpx;
@@ -2465,6 +2468,8 @@
   --pkx-warn-chip: rgba(194, 101, 85, 0.14);
   --pkx-ink-soft: rgba(38, 36, 31, 0.05);
   --pkx-ink-soft-strong: rgba(38, 36, 31, 0.1);
+  --pkx-red-bd: rgba(207, 68, 54, 0.34);
+  --pkx-red-bg: rgba(207, 68, 54, 0.08);
   background: var(--pk-paper);
   background-image: radial-gradient(var(--pk-dot) 1.3rpx, transparent 1.3rpx);
   background-size: 34rpx 34rpx;
@@ -2634,6 +2639,50 @@
   text-overflow: ellipsis;
 }
 
+/* ── 批改主卡（首屏「把答案给我」唯一入口；复用 .pk-card，只加朱红边与排版） ── */
+.page.paper .grade-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 24rpx 36rpx 0;
+  padding: 26rpx 28rpx;
+  border-color: var(--pkx-red-bd);
+}
+.page.paper .grade-card:active { background: var(--pkx-red-bg); }
+.page.paper .grade-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.page.paper .grade-card-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+  line-height: 1.3;
+}
+.page.paper .grade-card-desc {
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  line-height: 1.4;
+}
+.page.paper .grade-card-cta {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  flex-shrink: 0;
+  padding: 12rpx 18rpx;
+  border-radius: 999rpx;
+  background: var(--pkx-red-bg);
+}
+.page.paper .grade-card-cta-txt,
+.page.paper .grade-card-arrow {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-red);
+}
+
 /* ── 10d 快捷入口 ─────────────────────────────────────── */
 .page.paper .quick-row {
   display: flex;
@@ -2676,6 +2725,16 @@
 }
 .page.paper.light .quick-ico-anim {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235b584e' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='M8 5v14'/%3E%3Cpath d='M16 5v14'/%3E%3C/svg%3E");
+}
+/* 批改快捷入口：朱红 pill（--pk-red 两主题同值，图标不需分主题） */
+.page.paper .quick-pill-red {
+  background: var(--pkx-red-bg);
+  border-color: var(--pkx-red-bd);
+}
+.page.paper .quick-pill-red .quick-pill-txt { color: var(--pk-red); }
+.page.paper .quick-pill-red:active { background: var(--pkx-red-bd); }
+.page.paper .quick-ico-grade {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23cf4436' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z'/%3E%3Cpath d='M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2'/%3E%3Cpath d='M9 13l2 2 4-4'/%3E%3C/svg%3E");
 }
 
 /* ── 气泡 ─────────────────────────────────────────────── */

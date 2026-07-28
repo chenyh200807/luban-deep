@@ -369,11 +369,21 @@ Overlay 必须支持：
 - 学情页教材目录进度不得写入 `user_stats.knowledge_map` 作为第二套主真相。它只能由
   `learning-report-read-model` 读取 taxonomy/textbook-directory 与已有 learning evidence 后即时投影，
   用来展示章节覆盖和证据定位，不得反向覆盖 mastery、weak points 或 diagnosis。
+- `total_attempts` / `last_practiced_at` / `today.today_done` 三个事实计数是
+  `learner_memory_events` 证据账本的**派生投影**，不是第二套主真相。唯一投影器是
+  `deeptutor/services/learner_state/progress_counters.py`，它从账本重新派生后以
+  `max(已有, 派生)` 单调写入，不做累加，因此同一次完成重放不会二次计数。
+  任何写路径（first_run、Guided Learning completion、判分）都只能经它回写这三个字段，
+  且不得借这条投影线顺带写 mastery / chapters / 推荐字段——那些是判断，不是事实。
+  「哪条证据算一次作答」的判据单一权威在
+  `learner_state/evidence_lifecycle.is_progress_countable_event()`，
+  学情报表读模型与本投影必须读同一个判据，禁止两处各写一份。
 
 必须真实接入：
 
 - 做题/批改/复习结果归并
 - Guided Learning completion 进度写回
+- first_run 完成后回写 `total_attempts` / `last_practiced_at` / `today.today_done`
 - Heartbeat 读取
 - 学员成长看板读取
 

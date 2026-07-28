@@ -125,8 +125,25 @@ module.exports = {
 			      </view>
     </view>
 
-    <!-- 10d 快捷入口：出几道题（预填意图）/ 看动画讲解（深链有卡站）。拍照批改 owner 已拍板后置，不做。 -->
+    <!-- 批改主卡：首屏唯一「把答案给我」入口。落点＝预填输入框走既有聊天链路（见 chat.js onGradeAnswerEntry）。
+         文案刻意不承诺「按采分点逐条对」：走不走得到 V1 踩点判分取决于服务端 scene 分类，前端保证不了。 -->
+    <view class="pk-card grade-card" bindtap="onGradeAnswerEntry" data-entry="card" aria-role="button" aria-label="把你写的案例答案发我批改">
+      <view class="grade-card-body">
+        <text class="grade-card-title">把你写的案例答案发我批改</text>
+        <text class="grade-card-desc">逐句给你指出漏了什么、该怎么补</text>
+      </view>
+      <view class="grade-card-cta">
+        <text class="grade-card-cta-txt">粘贴答案</text>
+        <text class="grade-card-arrow">→</text>
+      </view>
+    </view>
+
+    <!-- 10d 快捷入口：帮我批改（同主卡入口）/ 出几道题（预填意图）/ 看动画讲解（深链有卡站）。拍照批改 owner 已拍板后置，不做。 -->
     <view class="quick-row">
+      <view class="quick-pill quick-pill-red" bindtap="onGradeAnswerEntry" data-entry="pill" aria-role="button" aria-label="帮我批改">
+        <view class="quick-ico quick-ico-grade"></view>
+        <text class="quick-pill-txt">帮我批改</text>
+      </view>
       <view class="quick-pill" bindtap="onQuickComposeQuestions" aria-role="button" aria-label="出几道题">
         <view class="quick-ico quick-ico-compose"></view>
         <text class="quick-pill-txt">出几道题</text>

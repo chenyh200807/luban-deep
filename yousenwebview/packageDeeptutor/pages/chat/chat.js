@@ -37,6 +37,16 @@ var SCROLL_TOGGLE_COOLDOWN_MS = 300; // 滚动切换 tab bar 冷却
 var VIEWPORT_MARGIN_PX = 600; // IntersectionObserver 上下扩展边距
 var CHAT_TOOL_PREFS_KEY = "chat_tool_prefs";
 var DEFAULT_WEB_SEARCH_AVAILABLE = false;
+// 摸底测评「欢迎新同学」拦截弹窗的总开关。
+// 新手引导已收权到 first_run（注册后直进），弹窗不再拦人；置 true 即整套恢复。
+var DIAGNOSTIC_ENTRY_MODAL_ENABLED = false;
+// 首屏输入框 placeholder 单一定义处（onLoad / clearMessages / data 默认三处共用）。
+// 必须保留「建筑实务」四个字：这句同时承担跨专业覆盖范围的诚实披露职责，
+// 由 tests/test_cross_subject_honesty.js 守着，改文案不能把它丢了。
+var CHAT_INPUT_PLACEHOLDER = "粘贴你写的建筑实务案例答案，或直接提问";
+// 批改入口的预填引导语（主卡 + 快捷 pill 共用）。刻意保留「按采分点」——
+// 这是用户发给 AI 的请求措辞，不是 UI 承诺，且更可能把 scene 推向 case_grading。
+var GRADE_ENTRY_PREFILL = "帮我按采分点批改，我写的答案是：\n";
 
 function getMarkdownFixtures() {
   if (!markdownFixtures) {
@@ -395,7 +405,7 @@ Page({
     // 10d 重铺：上下文带入条（数据源=既有 followupContext/promptIntent 载体，可见化而已）
     contextBanner: "",
     // 教学卡「追问AI」入口可预置占位文案；默认与原 placeholder 一致
-    inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
+    inputPlaceholder: CHAT_INPUT_PLACEHOLDER,
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
     profileEnabled: true,
@@ -409,15 +419,27 @@ Page({
     _heroDragTransition: "none",
 
     examples: [
+      // 前两张改用考生原话（调研里反复出现），把「批改」摆到示例首位；
+      // 后两张保留既有已上线文案，不做无谓改写。
       {
-        icon: "○",
-        title: "概念入门",
-        desc: "建筑构造基础",
-        bgDark: "rgba(59,130,246,0.16)",
-        fgDark: "#93c5fd",
-        bgLight: "#e9f1ff",
-        fgLight: "#4c72d4",
-        query: "建筑构造是什么？",
+        icon: "✓",
+        title: "答案批改",
+        desc: "漏了什么、怎么补",
+        bgDark: "rgba(207,68,54,0.18)",
+        fgDark: "#e79286",
+        bgLight: "#fbeae7",
+        fgLight: "#cf4436",
+        query: "这道题我这样写有分吗",
+      },
+      {
+        icon: "△",
+        title: "失分定位",
+        desc: "差的分丢在哪句",
+        bgDark: "rgba(207,68,54,0.14)",
+        fgDark: "#e79286",
+        bgLight: "#fbeae7",
+        fgLight: "#cf4436",
+        query: "我差 5 分，丢在哪",
       },
       {
         icon: "▧",
@@ -428,16 +450,6 @@ Page({
         bgLight: "#fff4e0",
         fgLight: "#c88a2b",
         query: "帮我梳理一建建筑实务的核心考点",
-      },
-      {
-        icon: "△",
-        title: "对比分析",
-        desc: "易混淆概念",
-        bgDark: "rgba(96,165,250,0.12)",
-        fgDark: "#7dd3fc",
-        bgLight: "#edf4ff",
-        fgLight: "#3b82f6",
-        query: "防水等级和设防层数有什么区别？",
       },
       {
         icon: "☆",
@@ -477,6 +489,7 @@ Page({
   _chatReadyPromise: null,
   _heroDragFramePending: false,
   _heroDragNextY: 0,
+  _diagnosticCheckInFlight: false, // [FIX-DIAG-2] 摸底探测在途旗标，防同 visit 双弹
 
   // ── 生命周期 ──────────────────────────────────
 
@@ -546,7 +559,7 @@ Page({
         : "",
       inputPlaceholder: isTeachCardEntry
         ? "针对这一站提问…"
-        : "直接问建筑实务：考点、真题、规范、错题",
+        : CHAT_INPUT_PLACEHOLDER,
     });
     if (isTeachCardEntry && teachPackId) {
       this._resolveTeachEntryTitle(teachPackId);
@@ -2853,6 +2866,12 @@ Page({
   },
 
   _checkDiagnostic: function () {
+    // 摸底弹窗已下线：新手引导单一权威 = first_run（注册后直接进），
+    // 这里不再主动拦截。assessment 入口保留为「用户主动进」——
+    // 首页焦点条 onFocusTap(focusActionType==='assessment', 本文件 ~2256) 仍可 navigateTo，
+    // 功能页与 route.assessment() 都没删。
+    // 下面的实现保持完整（含两处 bug 修复），把 DIAGNOSTIC_ENTRY_MODAL_ENABLED 置回 true 即恢复。
+    if (!DIAGNOSTIC_ENTRY_MODAL_ENABLED) return;
     if (!flags.isFeatureEnabled("assessment")) return;
     // 已做过或已跳过则不弹
     var diagnosticUserId = String(
@@ -2865,6 +2884,14 @@ Page({
     if (wx.getStorageSync(diagnosticSkippedKey)) return;
     // 只在 Hero 主页弹出
     if (this.data.hasMessages) return;
+    // [FIX-DIAG-2] in-flight 旗标：抑制键写在网络回调里，同 visit 内 onShow 再触发会双弹。
+    // 同步守卫必须在发起探测之前立起来。
+    if (this._diagnosticCheckInFlight) return;
+    this._diagnosticCheckInFlight = true;
+    var self = this;
+    function releaseDiagnosticCheck() {
+      self._diagnosticCheckInFlight = false;
+    }
     function showDiagnosticModal() {
       trackBehavior("section_viewed", {
         module: "assessment",
@@ -2886,12 +2913,14 @@ Page({
             result: res.confirm ? "start" : "later",
             entrySource: "chat_home",
           });
+          // [FIX-DIAG-1] 原实现只在 cancel 分支写抑制键 → 点了「开始测试」但没做完的人
+          // 下次进首页还会被弹（实测有人一天被弹 6 次）。弹过就算数，两个分支都写。
+          wx.setStorageSync(diagnosticSkippedKey, true);
           if (res.confirm) {
             wx.navigateTo({ url: route.assessment() });
-          } else {
-            wx.setStorageSync(diagnosticSkippedKey, true);
           }
         },
+        complete: releaseDiagnosticCheck,
       });
     }
 
@@ -2900,6 +2929,7 @@ Page({
       .then(function (raw) {
         if (hasAssessmentSignal(raw)) {
           wx.setStorageSync(diagnosticCompletedKey, true);
+          releaseDiagnosticCheck();
           return;
         }
         showDiagnosticModal();
@@ -2921,7 +2951,7 @@ Page({
       scrollToId: "",
       chatScrollWithAnimation: false,
       contextBanner: "",
-      inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
+      inputPlaceholder: CHAT_INPUT_PLACEHOLDER,
     });
     this._teachEntryIntent = null;
     this._syncWorkspaceChrome({ hasMessages: false });
@@ -3170,6 +3200,44 @@ Page({
     var query = "根据我的薄弱点出几道题让我练练";
     this._inputText = query;
     this.setData({ inputText: query });
+  },
+
+  /* 首屏批改入口（批改主卡 + 快捷 pill「帮我批改」共用的唯一接线点）
+   *
+   * 落点裁决（2026-07-28，W4 实测结论）：**不跳转到 gauntlet 全量作答页，刻意不接线。**
+   * 仓里有两条判分链路，gauntlet 那条是坏的：
+   *   - gauntlet /full-answer 走 CaseGradingSkillKernel，实测 1029 个真变体 0 条命中
+   *     采分点供给（manifest 无 question_index + qid 命名空间不通），100% 降级成
+   *     纯子串关键词匹配、零 LLM；语义完全正确的转述和完全答错输出一字不差（区分度=0），
+   *     且会把答对的人写成 E02 漏点污染错因银行。接过去 = 拿最强的能力标签背最弱的实现。
+   *   - 真正的旗舰判分（rubric_grader_v1，真 LLM 抽点 + provenance 治理位）在**聊天里**，
+   *     默认全量开启，条件是服务端 scene 分类判到 case_grading。
+   * 所以这里的终态实现就是「预填引导语 → 用户粘答案 → 走既有聊天发送链路」：
+   * 命中 scene 就是全仓最好的那档判分，没命中也是一次正常的 AI 追问，任何情况下都不落空。
+   * 前端保证不了 scene 命中，所以主卡文案已去掉「按采分点逐条对」这类硬承诺。
+   * 若以后要开独立批改页，只改这一个函数 + utils/route.js 加一条路由。 */
+  onGradeAnswerEntry: function (e) {
+    if (this.data.canStopStream) return;
+    helpers.vibrate("light");
+    // 转化埋点：复用已登记的事件名与维度，不新造 taxonomy。
+    // catalog 明确规定 chat 页的卡片点击 = learning_action_started(module=chat, action=open_detail)
+    // （product_behavior_catalog.py:53），module/action 都在 frozenset 里，section 对
+    // module=chat 不受限。主卡与 pill 用 data-entry 区分，两个入口的转化能分开看。
+    var entrySlot =
+      (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.entry) ||
+      "card";
+    trackBehavior("learning_action_started", {
+      module: "chat",
+      section: "grade_entry_" + entrySlot,
+      action: "open_detail",
+      entrySource: "chat_home",
+    });
+    if (this.data.isGuestPreview) {
+      this._showLoginGate(GRADE_ENTRY_PREFILL);
+      return;
+    }
+    this._inputText = GRADE_ENTRY_PREFILL;
+    this.setData({ inputText: GRADE_ENTRY_PREFILL });
   },
 
   /* 10d 快捷入口②：看动画讲解 —— 前端静态入口深链学习页有卡站，不造后端 */

@@ -27,7 +27,18 @@ var tutorSkill = read("deeptutor/tutorbot/skills/construction-exam-tutor/SKILL.m
 assertIncludes(shadowJs, 'desc: "建筑实务考点梳理"', "shadow knowledge map scope");
 assertIncludes(shadowWxml, "直接问建筑实务：考点、真题、规范、错题", "shadow input scope");
 assertIncludes(productionJs, 'desc: "建筑实务考点梳理"', "production knowledge map scope");
-assertIncludes(productionJs, "直接问建筑实务：考点、真题、规范、错题", "production input scope");
+// 生产版首屏 placeholder 在 2026-07-28 改成了「粘贴答案」引导（批改入口）。
+// 断言不再钉死旧字面量，改为钉死**职责**：placeholder 单一定义处必须仍点明「建筑实务」，
+// 否则输入框这一层的跨专业披露就丢了。影子版 wx_miniprogram 未改版，仍按旧字面量断言。
+(function assertProductionInputScope() {
+  var match = /var CHAT_INPUT_PLACEHOLDER = "([^"]*)";/.exec(productionJs);
+  if (!match) {
+    fail++;
+    errors.push("FAIL: production input scope — CHAT_INPUT_PLACEHOLDER 单一定义处不见了");
+    return;
+  }
+  assertIncludes(match[1], "建筑实务", "production input scope placeholder");
+})();
 [shadowWxml, productionWxml].forEach(function (source) {
   assertIncludes(
     source,

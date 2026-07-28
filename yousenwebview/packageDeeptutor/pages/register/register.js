@@ -77,6 +77,9 @@ Page({
     isDark: false,
     entrySource: "",
     returnTo: "",
+    // 真深链标记。**不能**用 !!returnTo 代替：returnTo 在缺参时也会被
+    // resolveInternalUrl 填成 route.chat() 兜底值，恒非空。
+    hasDeepLink: false,
     registerNoticeItems: REGISTER_NOTICE_ITEMS,
   },
   onLoad: function (options) {
@@ -117,23 +120,28 @@ Page({
     var source =
       (options && (options.entrySource || options.entry_source || options.source)) ||
       "";
-    var returnTo = route.resolveInternalUrl(
-      options && options.returnTo,
-      route.chat(source ? { entry_source: source } : null),
-    );
+    var fallback = route.chat(source ? { entry_source: source } : null);
+    var rawReturnTo = String((options && options.returnTo) || "").trim();
+    var returnTo = route.resolveInternalUrl(rawReturnTo, fallback);
     this.setData({
       entrySource: String(source || "").trim(),
       returnTo: returnTo,
+      // 「有深链」= 调用方显式传了 returnTo **且**它解析到兜底聊天页以外的地方。
+      // 2026-07-28 实测（probe_register_landing.js）：此前 _reLaunchAfterAuth 用
+      // !!this.data.returnTo 当深链判据，而 resolveInternalUrl 缺参/非法参一律
+      // 回落 route.chat()，导致 hasDeepLink 恒 true、新账号落点分支永远走不到。
+      hasDeepLink: !!rawReturnTo && returnTo !== fallback,
     });
   },
   _reLaunchAfterAuth: function (isNewAccount) {
     var source = this.data.entrySource;
     var fallback = route.chat(source ? { entry_source: source } : null);
     var target = route.resolveInternalUrl(this.data.returnTo, fallback);
-    // 新账号先落「学习」首页，再从五模块原生卡进入首次旅程；深链仍优先。
+    // 新账号直接落首次学习旅程（第一屏就是真题）；深链仍优先。落点权威在
+    // utils/first-run-entry.js 的 reLaunchAfterAuth，登录/注册各入口共用一处。
     firstRunEntry.reLaunchAfterAuth(target, {
       isNewAccount: !!isNewAccount,
-      hasDeepLink: !!this.data.returnTo,
+      hasDeepLink: !!this.data.hasDeepLink,
     });
   },
   _trackLoginSuccess: function (method) {
