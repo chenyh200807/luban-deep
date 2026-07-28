@@ -12,7 +12,7 @@
  * 诚实性护栏（焊入 UI，不可省）：
  *  - 页面停留不等于视频播放：一律标"页面停留"，绝不显示"播放时长/完播率"。
  *  - 低流量小样本：顶部醒目提示 + memberCount<10 行挂 C 级灰徽标。
- *  - demo：include_demo 开关，demoIncluded=true 时顶部合成数据 banner。
+ *  - 账号口径：include_demo 是兼容 wire alias，界面明确为“含内部/测试账号”。
  *  - 空数据走 Empty，绝不补 0 冒充。
  */
 import {
@@ -37,6 +37,10 @@ import {
   type BiLearningPreferenceData,
   type BiLearningPrefRow,
 } from '@/lib/bi-api'
+import {
+  resolveLearningPreferencePlaybackState,
+  resolveLearningPreferencePresentationState,
+} from '@/lib/learning-preference-state'
 
 /* ---------------------------------------------------------------- 标签映射 */
 const OBJECT_TYPE_LABEL: Record<string, string> = {
@@ -109,7 +113,7 @@ function Empty({ height = 200 }: { height?: number }) {
       className="grid place-items-center rounded-xl border border-dashed border-white/10 text-[11px] text-slate-500"
       style={{ height }}
     >
-      暂无数据（埋点未回流；不补 0 冒充）
+      当前窗口暂无已持久化数据（不补 0、不推断）
     </div>
   )
 }
@@ -179,16 +183,35 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
   const featureUsage = data?.featureUsage ?? []
   const practice = data?.practice
   const playback = data?.playback
+  const excludedNonBusinessPlayback =
+    data?.scope.excludedNonBusinessPlayback ?? {
+      available: false,
+      eventCount: 0,
+      playbackSessionCount: 0,
+    }
   const playbackContent = playback?.content ?? []
   const playbackSections = playback?.sections ?? []
   const practiceTopics = practice?.byTopic ?? []
-  const hasAny =
+  const hasBusinessData =
     modulePref.length > 0 ||
     submodules.length > 0 ||
     contentTop.length > 0 ||
     featureUsage.length > 0 ||
     playbackContent.length > 0 ||
     num(practice?.answeredCount) > 0
+  const presentationState = resolveLearningPreferencePresentationState({
+    hasBusinessData,
+    scopeDiagnosticAvailable: data?.scope.diagnosticAvailable === true,
+    excludedPlaybackAvailable:
+      excludedNonBusinessPlayback?.available === true,
+  })
+  const playbackPresentationState =
+    resolveLearningPreferencePlaybackState({
+      playbackAvailable: playback?.available === true,
+      scopeDiagnosticAvailable: data?.scope.diagnosticAvailable === true,
+      excludedPlaybackAvailable:
+        excludedNonBusinessPlayback?.available === true,
+    })
 
   // KPI 汇总（跨模块无法去重合并，触达取峰值模块作 floor；人均深度用总量比）。
   const peakReach = submodules.reduce((m, r) => Math.max(m, r.memberCount), 0)
@@ -251,9 +274,9 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
               checked={includeDemo}
               onChange={e => setIncludeDemo(e.target.checked)}
               className="h-3 w-3 accent-cyan-400"
-              aria-label="含演示数据"
+              aria-label="含内部/测试账号"
             />
-            含演示数据
+            含内部/测试账号
           </label>
         }
       >
@@ -268,11 +291,11 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
         人的行/指标挂灰色可信徽标，请结合人均深度一起看，勿单看触达下结论。
       </BiV2DataSourceBanner>
 
-      {/* demo banner（仅 demoIncluded 时） */}
+      {/* 非业务账号 banner（保留 include_demo wire alias 兼容旧调用方） */}
       {data?.demoIncluded ? (
         <BiV2DataSourceBanner tone="rose" role="alert">
-          🧪 当前<strong>含合成演示数据</strong>（生产真实数据待小程序发版埋点通电）。数字仅用于
-          UI 走查与布局验收，不代表真实用户行为。
+          🧪 当前<strong>包含内部/测试账号</strong>。这些记录可用于真机 QA 与埋点诊断，
+          但默认不纳入业务用户偏好结论。
         </BiV2DataSourceBanner>
       ) : null}
 
@@ -284,7 +307,18 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
         <BiV2DataSourceBanner tone="rose" role="alert">
           {error}
         </BiV2DataSourceBanner>
-      ) : !hasAny ? (
+      ) : presentationState === 'scope_unknown' ? (
+        <CockpitBg className="p-6">
+          <div
+            className="rounded-xl border border-amber-300/25 bg-amber-300/[0.08] px-4 py-5 text-sm leading-relaxed text-amber-100"
+            role="status"
+            data-testid="bi-learning-pref-scope-unknown"
+          >
+            当前业务口径暂无数据，但服务端未提供内部/测试账号排除诊断，
+            无法判断账本是否存在被过滤的真机记录。请刷新或等待服务端升级，不能据此判定播放器事件未上报。
+          </div>
+        </CockpitBg>
+      ) : presentationState === 'known_empty' ? (
         <CockpitBg className="p-6">
           <Empty height={220} />
         </CockpitBg>
@@ -522,7 +556,11 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
             这里使用服务端按发布清单校验的客户端播放器事实（C 级），不混入页面停留，也不作为学习掌握度。
             点击跳到第 7
             节只算“到达第 7 节”，不会把前 1—6 节伪装成已观看；连续看完位置和最大到达位置分开显示。
-            {!playback?.available ? ' 旧版本尚无播放器遥测，当前不补 0、不猜完播。' : ''}
+            {playbackPresentationState === 'known_empty'
+              ? ' 当前窗口没有已持久化播放器事件，不补 0、不猜完播。'
+              : playbackPresentationState === 'scope_unknown'
+                ? ' 当前业务口径无播放器事件，但服务端未提供排除诊断，不能判断账本是否有被过滤的真机记录。'
+              : ''}
           </div>
           {playbackContent.length ? (
             <div className="mb-4 space-y-4">
@@ -618,7 +656,31 @@ export function BiV2LearningPrefPanel({ flagEnabled }: BiV2LearningPrefPanelProp
             </div>
           ) : (
             <div className="mb-4">
-              <Empty height={120} />
+              {playbackPresentationState === 'excluded_playback' ? (
+                <div
+                  className="rounded-xl border border-amber-300/25 bg-amber-300/[0.08] px-4 py-5 text-sm leading-relaxed text-amber-100"
+                  role="status"
+                  data-testid="bi-learning-pref-excluded-playback"
+                >
+                  业务用户口径当前为 0；本窗口的服务端账本已收到{' '}
+                  <strong>
+                    {fmtInt(excludedNonBusinessPlayback.eventCount)} 条内部/测试账号播放器事件
+                  </strong>
+                  （{fmtInt(excludedNonBusinessPlayback.playbackSessionCount)} 个播放会话），
+                  默认已排除。勾选上方“含内部/测试账号”即可查看真机 QA 明细。
+                </div>
+              ) : playbackPresentationState === 'scope_unknown' ? (
+                <div
+                  className="rounded-xl border border-amber-300/25 bg-amber-300/[0.08] px-4 py-5 text-sm leading-relaxed text-amber-100"
+                  role="status"
+                  data-testid="bi-learning-pref-playback-scope-unknown"
+                >
+                  当前业务口径无播放器事件；服务端未提供内部/测试账号排除诊断，
+                  无法判断账本是否存在被过滤的真机播放。请刷新或等待服务端升级。
+                </div>
+              ) : (
+                <Empty height={120} />
+              )}
             </div>
           )}
 

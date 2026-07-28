@@ -215,14 +215,33 @@ async def bi_learning_preference(
     薄 handler 只组装/转发，不碰受保护的 member_console/service.py。
     页面驻留与播放器事实分列：旧客户端保留 page_dwell，新 H5 runtime 的
     playback/section 只读同一 product_behavior_events authority。
-    include_demo=False 时由 BIService 的统一非业务身份 authority 排除 UUID/prefix eval
-    与人工内部账号（生产真值口径）。
+    include_demo=False 时由 bi_internal_accounts 的可用快照排除人工内部账号，并按
+    Eval Runner 合同前缀排除 eval/test 账号；authority 不可用时 503，不把未清洗口径
+    冒充业务真值。
     """
     store = get_product_behavior_store()
     exclude_prefixes = None if include_demo else _LEARNING_PREF_DEMO_PREFIXES
-    exclude_user_ids = (
-        None if include_demo else get_bi_service().get_non_business_identity_ids()
-    )
+    if include_demo:
+        exclude_user_ids = None
+    else:
+        identity_snapshot = await get_bi_service().get_internal_accounts_snapshot(
+            limit=1
+        )
+        if not bool(identity_snapshot.get("available")):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="internal account scope authority unavailable",
+            )
+        states = identity_snapshot.get("states")
+        exclude_user_ids = frozenset(
+            str(user_id).strip()
+            for user_id, row in (
+                states.items() if isinstance(states, dict) else []
+            )
+            if str(user_id).strip()
+            and isinstance(row, dict)
+            and bool(row.get("is_internal"))
+        )
 
     def breakdown(**kwargs: Any) -> list[dict[str, Any]]:
         return store.get_engagement_breakdown(
@@ -281,10 +300,40 @@ async def bi_learning_preference(
         exclude_user_id_prefixes=exclude_prefixes,
         limit=limit,
     )
+    # 默认业务口径不能混入内部/eval 账号，但“被排除”也不能冒充“未上报”。
+    # 同读 product_behavior_events authority，仅暴露诊断计数，不另造分析数据源。
+    if include_demo:
+        excluded_playback = {
+            "available": False,
+            "event_count": 0,
+            "playback_session_count": 0,
+        }
+    else:
+        excluded_playback = store.get_microlesson_playback_excluded_counts(
+            days=days,
+            exclude_user_ids=exclude_user_ids,
+            exclude_user_id_prefixes=exclude_prefixes,
+        )
 
     return {
         "days": days,
         "demo_included": bool(include_demo),
+        "scope": {
+            "diagnostic_available": True,
+            "account_scope": (
+                "all_accounts" if include_demo else "business_accounts"
+            ),
+            "identity_authority": (
+                "bi_internal_accounts_and_eval_runner_prefixes"
+            ),
+            "excluded_non_business_playback": {
+                "available": bool(excluded_playback["available"]),
+                "event_count": int(excluded_playback["event_count"]),
+                "playback_session_count": int(
+                    excluded_playback["playback_session_count"]
+                ),
+            },
+        },
         # 旧客户端只有页面驻留；播放器覆盖不能反向冒充全量覆盖。
         "completion_source": (
             "mixed_explicit_playback_and_page_dwell"

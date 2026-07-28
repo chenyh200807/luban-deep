@@ -554,6 +554,7 @@ jobs:
         run: |
           npm run lint
           ./node_modules/.bin/tsc -p tsconfig.json --noEmit
+          npm run test:bi-learning-pref
           npm run build:perf
 
   wx-checks:

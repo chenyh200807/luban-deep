@@ -2767,9 +2767,20 @@ export interface BiMicrolessonPlaybackSummary {
   sections: BiMicrolessonPlaybackSection[]
 }
 
+export interface BiLearningPreferenceScope {
+  diagnosticAvailable: boolean
+  accountScope: 'business_accounts' | 'all_accounts' | 'unknown'
+  excludedNonBusinessPlayback: {
+    available: boolean
+    eventCount: number
+    playbackSessionCount: number
+  }
+}
+
 export interface BiLearningPreferenceData {
   days: number
   demoIncluded: boolean
+  scope: BiLearningPreferenceScope
   /** 旧字段名兼容；值为 page_dwell（页面驻留；不是播放器时长/完播率） */
   completionSource: string
   timeSource: string
@@ -2842,9 +2853,46 @@ export async function getBiLearningPreference(
   const record = asRecord(raw)
   const practiceRecord = asRecord(firstRecord(raw, ['practice']))
   const playbackRecord = asRecord(firstRecord(raw, ['playback']))
+  const rawScope = record.scope
+  const scopeRecord = asRecord(rawScope)
+  const excludedPlaybackRecord = asRecord(
+    firstRecord(scopeRecord, [
+      'excluded_non_business_playback',
+      'excludedNonBusinessPlayback',
+    ])
+  )
+  const scopeDiagnosticAvailable =
+    scopeRecord.diagnostic_available === true ||
+    scopeRecord.diagnosticAvailable === true
+  const rawAccountScope = toString(
+    scopeRecord.account_scope ?? scopeRecord.accountScope,
+    ''
+  )
+  const accountScope: BiLearningPreferenceScope['accountScope'] =
+    includeDemo || rawAccountScope === 'all_accounts'
+      ? 'all_accounts'
+      : scopeDiagnosticAvailable && rawAccountScope === 'business_accounts'
+        ? 'business_accounts'
+        : 'unknown'
   return {
     days: toNumber(record.days, days),
     demoIncluded: record.demo_included === true || record.demoIncluded === true,
+    scope: {
+      diagnosticAvailable: scopeDiagnosticAvailable,
+      accountScope,
+      excludedNonBusinessPlayback: {
+        available: excludedPlaybackRecord.available === true,
+        eventCount: toNumber(
+          excludedPlaybackRecord.event_count ?? excludedPlaybackRecord.eventCount,
+          0
+        ),
+        playbackSessionCount: toNumber(
+          excludedPlaybackRecord.playback_session_count ??
+            excludedPlaybackRecord.playbackSessionCount,
+          0
+        ),
+      },
+    },
     completionSource: toString(record.completion_source ?? record.completionSource, 'page_dwell'),
     timeSource: toString(record.time_source ?? record.timeSource, 'page_dwell'),
     modulePreference: firstArray(raw, ['module_preference', 'modulePreference']).map((item, i) =>
