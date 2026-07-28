@@ -120,22 +120,27 @@ Page({
     var source =
       (options && (options.entrySource || options.entry_source || options.source)) ||
       "";
-    var fallback = route.chat(source ? { entry_source: source } : null);
+    // 兜底 = 学习首页（与 login.js / manual.js / deeptutorEntry.js:37 同口径）。
+    // 注意：这里的 fallback 同时是「有没有深链」的哨兵，且它会被写进 returnTo ——
+    // 所以改落点必须改这一处，只改 _reLaunchAfterAuth 那处是无效的
+    // （returnTo 在捕获期就已被填成兜底值，后面 resolveInternalUrl 直接返回它）。
+    var fallback = route.learn(source ? { entry_source: source } : null);
     var rawReturnTo = String((options && options.returnTo) || "").trim();
     var returnTo = route.resolveInternalUrl(rawReturnTo, fallback);
     this.setData({
       entrySource: String(source || "").trim(),
       returnTo: returnTo,
-      // 「有深链」= 调用方显式传了 returnTo **且**它解析到兜底聊天页以外的地方。
+      // 「有深链」= 调用方显式传了 returnTo **且**它解析到兜底页以外的地方。
       // 2026-07-28 实测（probe_register_landing.js）：此前 _reLaunchAfterAuth 用
       // !!this.data.returnTo 当深链判据，而 resolveInternalUrl 缺参/非法参一律
-      // 回落 route.chat()，导致 hasDeepLink 恒 true、新账号落点分支永远走不到。
+      // 回落兜底页，导致 hasDeepLink 恒 true、新账号落点分支永远走不到。
       hasDeepLink: !!rawReturnTo && returnTo !== fallback,
     });
   },
   _reLaunchAfterAuth: function (isNewAccount) {
     var source = this.data.entrySource;
-    var fallback = route.chat(source ? { entry_source: source } : null);
+    // 与 _captureEntryContext 的兜底保持同一口径，否则哨兵比较会失真。
+    var fallback = route.learn(source ? { entry_source: source } : null);
     var target = route.resolveInternalUrl(this.data.returnTo, fallback);
     // 新账号直接落首次学习旅程（第一屏就是真题）；深链仍优先。落点权威在
     // utils/first-run-entry.js 的 reLaunchAfterAuth，登录/注册各入口共用一处。

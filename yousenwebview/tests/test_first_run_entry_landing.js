@@ -28,6 +28,7 @@ function assert(condition, message) {
 
 var FIRST_RUN_URL = "/packageDeeptutor/pages/first-run/first-run";
 var LEARN_URL = "/packageDeeptutor/pages/learn/learn";
+var CHAT_URL = "/packageDeeptutor/pages/chat/chat";
 
 function loadEntry() {
   var source = fs.readFileSync(
@@ -257,16 +258,19 @@ function loadEntry() {
       JSON.stringify(cold && cold.opts),
   );
 
-  var fromLogin = probeRegister({ returnTo: "/packageDeeptutor/pages/chat/chat" });
+  // 2026-07-28 落点收口后兜底改成 learn（与 login/manual/deeptutorEntry 同口径），
+  // 所以「等于兜底」的那个 returnTo 也跟着换成 learn。
+  var fromLogin = probeRegister({ returnTo: "/packageDeeptutor/pages/learn/learn" });
   assert(
     fromLogin && fromLogin.opts.hasDeepLink === false,
-    "a returnTo that merely equals the chat fallback is not a deep link, got " +
+    "a returnTo that merely equals the learn fallback is not a deep link, got " +
       JSON.stringify(fromLogin && fromLogin.opts),
   );
 
-  var deep = probeRegister({ returnTo: "pages/learn/learn" });
+  // 真深链改用 chat：它现在是「兜底页以外的地方」，正好验证哨兵没被写死成某一页。
+  var deep = probeRegister({ returnTo: "pages/chat/chat" });
   assert(
-    deep && deep.opts.hasDeepLink === true && deep.target === LEARN_URL,
+    deep && deep.opts.hasDeepLink === true && deep.target === CHAT_URL,
     "a real deep link must still be reported as one, got " + JSON.stringify(deep),
   );
 })();

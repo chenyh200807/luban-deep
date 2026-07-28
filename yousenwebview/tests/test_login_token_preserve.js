@@ -73,6 +73,11 @@ function loadPage(relativePath, overrides) {
     chat: function () {
       return "/packageDeeptutor/pages/chat/chat";
     },
+    // 2026-07-28 落点收口：登录后兜底改成学习首页，桩必须跟上，
+    // 否则 route.learn() 返回 undefined 会让断言在"页面没跳转"上假红。
+    learn: function () {
+      return "/packageDeeptutor/pages/learn/learn";
+    },
     resolveInternalUrl: function (_value, fallback) {
       return fallback;
     },
@@ -158,8 +163,8 @@ function loadPage(relativePath, overrides) {
       );
       assert(
         setup.reLaunchCalls.length === 1 &&
-          setup.reLaunchCalls[0].url === "/packageDeeptutor/pages/chat/chat",
-        bootstrapPages[i] + " should enter returnTo/chat immediately when a local token exists",
+          setup.reLaunchCalls[0].url === "/packageDeeptutor/pages/learn/learn",
+        bootstrapPages[i] + " should enter returnTo/learn immediately when a local token exists",
       );
     }
   });
@@ -196,8 +201,8 @@ function loadPage(relativePath, overrides) {
     assert(setup.getClearCount() === 0, "login page should leave token cleanup to the target page");
     assert(
       setup.reLaunchCalls.length === 1 &&
-        setup.reLaunchCalls[0].url === "/packageDeeptutor/pages/chat/chat",
-      "login page should enter returnTo/chat when a local token has bound phone",
+        setup.reLaunchCalls[0].url === "/packageDeeptutor/pages/learn/learn",
+      "login page should enter returnTo/learn when a local token has bound phone",
     );
   });
 

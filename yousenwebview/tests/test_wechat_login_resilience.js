@@ -51,6 +51,10 @@ function createRouteMock() {
     chat: function () {
       return "/packageDeeptutor/pages/chat/chat";
     },
+    // 2026-07-28 落点收口：登录/注册后兜底改成学习首页，桩必须跟上。
+    learn: function () {
+      return "/packageDeeptutor/pages/learn/learn";
+    },
     resolveInternalUrl: function (_value, fallback) {
       return fallback;
     },

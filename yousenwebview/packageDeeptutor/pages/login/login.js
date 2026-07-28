@@ -183,12 +183,16 @@ Page({
   },
   _reLaunchAfterAuth: function () {
     var source = this.data.entrySource;
-    var fallback = route.chat(source ? { entry_source: source } : null);
+    // 2026-07-28 落点收口:登录后默认落「学习」,与 deeptutorEntry.js:37 的
+    // LEARNING_HOME_URL 同口径。此前兜底是 route.chat(),而 doubleWheelLandingEnabled
+    // 这个 spike 灰度旗标默认关 ⇒ 所有登录用户实际落「问鲁班」——那正是摸底弹窗
+    // 所在页,也解释了埋点里 51 人被弹窗拦 > 20 人进 first_run。
+    // 显式深链仍最优先(resolveInternalUrl 只在无深链时用 fallback)。
+    var fallback = route.learn(source ? { entry_source: source } : null);
     var target = route.resolveInternalUrl(this.data.returnTo, fallback);
-    // Task C 入口收权(双轮 spike):登录后落地的单一收口点。护栏1=flags 默认关时
-    // 整个分支跳过(不碰 route.learn),host 落地逐字节不变;flag 开且目标是问鲁班(chat)
-    // 才翻到学习双轮页(护栏2:仅翻 chat→learn,不动其它显式深链;chat 仍五 tab 一键可达、
-    // learn 冷启动有骨架、关 flag 即回滚)。只影响登录后落地=spike 新用户 cohort。
+    // 旗标保留但已成恒等:目标本就是 learn 时 resolvePostAuthLanding 不改写。
+    // 留着是为了 spike cohort 语义不被静默删除;要回滚到落 chat 只需把上面
+    // fallback 改回 route.chat()。
     if (flags.shouldLandOnDoubleWheel()) {
       target = flags.resolvePostAuthLanding(
         target,

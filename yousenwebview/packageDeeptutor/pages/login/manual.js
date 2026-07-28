@@ -116,7 +116,9 @@ Page({
 
   _reLaunchAfterAuth: function () {
     var source = this.data.entrySource;
-    var fallback = route.chat(source ? { entry_source: source } : null);
+    // 与 login.js 同口径:登录后默认落「学习」(deeptutorEntry.js:37 的 LEARNING_HOME_URL)。
+    // 显式深链仍最优先。
+    var fallback = route.learn(source ? { entry_source: source } : null);
     wx.reLaunch({
       url: route.resolveInternalUrl(this.data.returnTo, fallback),
     });
