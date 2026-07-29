@@ -19,6 +19,7 @@ CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
     "grading_engine_version",
     "v1_case_graded",
     "score_authority",
+    "case_grading_direct_fell_through",
     "grading_rubric_provenance",
     "grading_to_brain_loop",
     "learning_evidence_event_id",
@@ -175,6 +176,24 @@ def should_demote_case_grading_hard_score(
     if not scene and not _has_any_grading_authority(metadata):
         return _NO_AUTHORITY_CASE_SCORE_RE.search(text) is not None
     return False
+
+
+def build_case_grading_score_disclaimer() -> str:
+    """Score-scope disclaimer appended to a SUBSTANTIVE no-authority diagnosis.
+
+    P0 2026-07-29（权力/证据相称律）: the static template below keeps its birth
+    mission — refusing to fabricate an OFFICIAL score — but loses the whole-text
+    replacement power it had usurped. When the generation path produced real
+    per-subquestion diagnosis, only the score CLAIM gets demoted, via this
+    appended disclaimer; the diagnosis itself must reach the learner.
+    """
+
+    return (
+        "\n\n---\n"
+        "**评分口径说明**：本轮未命中题库原题/标准采分点，以上是教学诊断反馈，"
+        "不构成官方阅卷得分；官方分数以真题标准答案与采分点为准。"
+        "如需按标准采分点逐条批改，可以把题卡或标准答案一起发来。"
+    )
 
 
 def build_case_grading_diagnostic_only_response(user_message: str) -> str:

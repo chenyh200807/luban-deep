@@ -77,7 +77,10 @@ def test_unauthorized_case_score_still_demoted_when_not_generation():
     # authority, and NOT a generation request -> still demoted to diagnostic-only.
     ungrounded = "你的作答得8分，命中4个采分点，扣2分。"
     out = _fallback(ungrounded, "", ungrounded)
-    assert _DEMAND_GROUND_TRUTH in out
+    # 新契约（P0 2026-07-29）：诊断正文保留，硬分口径经追加免责声明降级——
+    # 模板只保留"不硬估官方分"的出生使命，收回整篇替换权。
+    assert out.startswith(ungrounded)
+    assert "评分口径说明" in out and "不构成官方阅卷得分" in out
 
 
 # ---- defensive invariant unchanged ------------------------------------------------------

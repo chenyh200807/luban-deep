@@ -1561,7 +1561,8 @@ async def batch_judge_async(
     prompt = _batch_prompt(rubric_points, student_answer)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1, temperature=0)
+                                model=model, api_key=api_key, max_retries=1, temperature=0,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
         logger.warning("rubric_grader_v1: batch_judge_async LLM call failed; degrading to all-miss",
                        exc_info=True)
@@ -1728,9 +1729,33 @@ def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
     try:
         s = str(raw)
         arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
-    except Exception:  # noqa: BLE001 — malformed extract JSON -> [] (caller falls back to legacy)
-        logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
-        return []
+    except Exception:  # noqa: BLE001 — malformed extract JSON -> salvage, then [] (caller falls back)
+        # Truncation salvage (2026-07-29 生产事故 P0): a completion-cap-truncated JSON
+        # array used to fail-closed into 0 points and collapse the whole open-world
+        # grading channel to the static template. Partial points are strictly better
+        # than none — cut at the last COMPLETE object and close the array. Same
+        # parser authority; no second parser.
+        try:
+            s = str(raw)
+            start = s.find("[")
+            tail = s.rfind("}")
+            # Salvage is gated on the TRUNCATION signature — no closing "]"
+            # after the last complete object. A merely-malformed reply (prose
+            # apology with a stray brace, properly closed but invalid array)
+            # must keep failing closed, not have points invented from it.
+            if tail >= 0 and "]" in s[tail:]:
+                raise ValueError("not truncation-shaped")
+            if start >= 0 and tail > start:
+                arr = _json.loads(s[start:tail + 1] + "]")
+                logger.warning(
+                    "rubric_grader_v1: extracted-rubric JSON truncated; salvaged %d complete objects",
+                    len(arr) if isinstance(arr, list) else 0,
+                )
+            else:
+                raise ValueError("no salvageable array")
+        except Exception:  # noqa: BLE001
+            logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
+            return []
     points: list[dict[str, Any]] = []
     for i, v in enumerate(arr, 1):
         if not isinstance(v, dict):
@@ -1795,7 +1820,8 @@ async def extract_rubric_from_reference_async(
     prompt = _extract_prompt(reference_answer, question_stem)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_EXTRACT_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — extraction failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: open-world rubric extraction LLM call failed", exc_info=True)
         return []
@@ -1860,7 +1886,8 @@ async def derive_rubric_from_stem_async(
     prompt = _DERIVE_PROMPT_TMPL.format(stem=_json.dumps(stem[:2000], ensure_ascii=False))
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_DERIVE_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — derivation failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: stem-based rubric derivation LLM call failed", exc_info=True)
         return []
