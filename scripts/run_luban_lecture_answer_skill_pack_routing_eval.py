@@ -4,6 +4,13 @@
 This is not a runtime router. It is a deterministic offline fit test for the
 compiled lecture answer-method runtime_supply bundle. It answers:
 
+.. warning:: DRIFT — this script carries its own scorer fork, which predates the
+   2026-07-29 production routing fix (anchor/detail token split + semantic
+   identity gate in ``deeptutor/services/compiled_knowledge/lecture_answer_methods``).
+   Its activation numbers OVERESTIMATE the runtime and will reproduce the
+   numeric-fragment mis-route the runtime no longer has. Do not read its output
+   as runtime behavior; fold it onto the runtime scorer before the next eval.
+
 * Which query scenarios should activate the lecture skills?
 * When is the expected answer quality high?
 * When may the skill suggest related knowledge points, and where must it stop?

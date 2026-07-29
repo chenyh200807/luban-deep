@@ -594,6 +594,10 @@ domains:
       - deeptutor/tools/rag_tool.py
       - deeptutor/agents/chat/agentic_pipeline.py
       - deeptutor/services/exam_track.py
+      # 2026-07-29: lecture answer-method activation authority — injects an
+      # exclusive-source instruction into prompts; mis-activation caused the
+      # unified_1785314628533_23c29374 production incident.
+      - deeptutor/services/compiled_knowledge/lecture_answer_methods.py
     sensitive_patterns:
       - deeptutor/services/rag/service.py
       - deeptutor/services/rag/pipelines/*.py
@@ -601,6 +605,7 @@ domains:
       - deeptutor/agents/chat/agentic_pipeline.py
       - deeptutor/services/exam_track.py
     test_files:
+      - tests/services/compiled_knowledge/test_lecture_answer_methods.py
       - tests/services/rag/test_rag_pipelines.py
       - tests/services/rag/test_rag_retrieval_timeout.py
       - tests/services/rag/test_mcq_option_surface_grading.py

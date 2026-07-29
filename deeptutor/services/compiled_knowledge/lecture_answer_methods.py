@@ -70,28 +70,55 @@ def _capabilities(unit: dict[str, Any]) -> dict[str, bool]:
     }
 
 
-def _tokenize_unit(unit: dict[str, Any]) -> list[str]:
+_CJK_RE = re.compile(r"[一-鿿]")
+
+
+def _tokenize_unit(unit: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """Split routing tokens into (anchor, detail).
+
+    Anchor tokens name the考点 itself (lecture / topic / taxonomy / question
+    patterns) — only they may activate a unit. Detail tokens come from answer
+    CONTENT (must_mentions / formula_or_thresholds) and may only refine an
+    already-anchored match. Detail tokens without ≥2 CJK chars are dropped
+    entirely: numeric/unit fragments ("20m", "3个") carry no semantic identity
+    — production incident: query "2.0m/s" normalized to "20ms" matched the
+    变形监测 unit's "20m" threshold token and injected an unrelated lecture
+    block with an exclusive-source instruction into a 临时用水 case turn.
+    """
     taxonomy = unit.get("taxonomy") if isinstance(unit.get("taxonomy"), dict) else {}
     method = unit.get("answer_method") if isinstance(unit.get("answer_method"), dict) else {}
-    values: list[Any] = [
+    # Structural codes carry identity by construction; every other token must
+    # prove semantic identity (≥2 CJK chars). Compiled packs are known to leak
+    # answer fragments into question_patterns ("20m", "3个"), so the CJK rule
+    # applies to anchors too — field origin alone is not trusted.
+    code_values: list[Any] = [unit.get("lecture_slug"), taxonomy.get("node_code")]
+    anchor_values: list[Any] = [
         unit.get("lecture"),
-        unit.get("lecture_slug"),
         unit.get("topic"),
-        taxonomy.get("node_code"),
         taxonomy.get("node_name"),
         taxonomy.get("topic"),
     ]
-    values.extend(unit.get("question_patterns") or [])
-    values.extend(_as_list(method.get("must_mentions")))
-    values.extend(_as_list(method.get("formula_or_thresholds"))[:3])
-    tokens: list[str] = []
+    anchor_values.extend(unit.get("question_patterns") or [])
+    detail_values: list[Any] = []
+    detail_values.extend(_as_list(method.get("must_mentions")))
+    detail_values.extend(_as_list(method.get("formula_or_thresholds"))[:3])
     seen: set[str] = set()
-    for value in values:
-        token = _norm(value)
-        if len(token) >= 2 and token not in seen:
+
+    def _collect(values: list[Any], *, require_cjk: bool) -> list[str]:
+        tokens: list[str] = []
+        for value in values:
+            token = _norm(value)
+            if len(token) < 2 or token in seen:
+                continue
+            if require_cjk and len(_CJK_RE.findall(token)) < 2:
+                continue
             seen.add(token)
             tokens.append(token)
-    return tokens
+        return tokens
+
+    anchors = _collect(code_values, require_cjk=False)
+    anchors.extend(_collect(anchor_values, require_cjk=True))
+    return anchors, _collect(detail_values, require_cjk=True)
 
 
 @lru_cache(maxsize=8)
@@ -110,7 +137,9 @@ def _load_index_cached(pack_root_text: str) -> dict[str, Any]:
             if any(term in rendered for term in AD_TERMS):
                 continue
             source = unit.get("source_ref") if isinstance(unit.get("source_ref"), dict) else {}
-            unit["_routing_tokens"] = _tokenize_unit(unit)
+            anchor_tokens, detail_tokens = _tokenize_unit(unit)
+            unit["_anchor_routing_tokens"] = anchor_tokens
+            unit["_detail_routing_tokens"] = detail_tokens
             unit["_capabilities"] = _capabilities(unit)
             unit["_source_ref_compact"] = {
                 "chunk_id": source.get("source_chunk_id"),
@@ -148,24 +177,55 @@ def _unit_score(query_norm: str, unit: dict[str, Any], intents: dict[str, bool])
         return 0.0
     score = 0.0
     lecture_token = _norm(unit.get("lecture"))
-    for token in unit.get("_routing_tokens") or []:
+    refine_intent = any(
+        intents[key]
+        for key in (
+            "exam_answer",
+            "trap_red_line",
+            "formula_condition",
+            "mnemonic",
+            "association",
+        )
+    )
+
+    def _token_contribution(token: str) -> float:
+        gained = 0.0
         if token and token in query_norm:
-            score += min(0.42, 0.14 + len(token) / 80)
+            gained += min(0.42, 0.14 + len(token) / 80)
             if token != lecture_token and len(token) >= 4:
-                score += 0.24
-            elif token != lecture_token and len(token) >= 2 and any(
-                intents[key]
-                for key in (
-                    "exam_answer",
-                    "trap_red_line",
-                    "formula_condition",
-                    "mnemonic",
-                    "association",
+                gained += 0.24
+            elif (
+                token != lecture_token
+                and refine_intent
+                # Short-token refine bonus requires either ≥3 CJK chars or a
+                # meaningful coverage of the query (token is its topic head, as
+                # in "起拱" for "模板起拱有哪些陷阱和红线"). A 2-char word buried
+                # in a long 案例题面 is incidental co-occurrence — production
+                # incident residue: "设计" (leaked into question_patterns)
+                # inside "达不到设计流速" lifted 2 unrelated units past the
+                # 0.34 selection floor into the injected payload.
+                and (
+                    len(_CJK_RE.findall(token)) >= 3
+                    or len(token) >= 0.12 * len(query_norm)
                 )
             ):
-                score += 0.18
+                gained += 0.18
         elif token and query_norm in token and len(query_norm) >= 4:
-            score += 0.18
+            gained += 0.18
+        return gained
+
+    anchor_score = sum(
+        _token_contribution(token) for token in unit.get("_anchor_routing_tokens") or []
+    )
+    # Anchor gate (single activation authority): a unit that shares no 考点-level
+    # anchor with the query must not be activated by answer-content fragments or
+    # capability bonuses — those refine an anchored match, they never establish one.
+    if anchor_score <= 0.0:
+        return 0.0
+    score += anchor_score
+    score += sum(
+        _token_contribution(token) for token in unit.get("_detail_routing_tokens") or []
+    )
     caps = unit.get("_capabilities") or {}
     if intents["exam_answer"] and caps.get("must_mentions"):
         score += 0.08
