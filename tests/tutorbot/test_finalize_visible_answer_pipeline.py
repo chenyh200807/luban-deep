@@ -202,7 +202,6 @@ def test_apply_v1_or_case_fallback_case_grading_missing_v1_authority_golden() ->
 _CANONICAL_ORDER = [
     "strip_leading_meta_narration",
     "normalize_anchor_terms",
-    "correct_boundary_fact",
     "case_exact_authority",
     "apply_v1_or_case",
     "degraded_exact_claim",
@@ -219,7 +218,7 @@ class _GuardResult:
 
 
 def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLoop) -> list[str]:
-    """把 9 个修正器换成记录调用名并返回 ''(保持原文)的桩;guard 返回 content='' 的对象。"""
+    """把 8 个修正器换成记录调用名并返回 ''(保持原文)的桩;guard 返回 content='' 的对象。"""
 
     calls: list[str] = []
 
@@ -232,9 +231,6 @@ def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLo
 
     loop._strip_leading_meta_narration = _rec("strip_leading_meta_narration")  # type: ignore[method-assign]
     monkeypatch.setattr(loop_module, "normalize_anchor_terms_in_response", _rec("normalize_anchor_terms"))
-    monkeypatch.setattr(
-        loop_module, "correct_construction_exam_boundary_fact_response", _rec("correct_boundary_fact")
-    )
 
     async def _apply(*_args, **_kwargs):
         calls.append("apply_v1_or_case")
@@ -258,11 +254,11 @@ def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLo
     "finalize_path",
     ["exact_fast_path", "prefetched_authority", "fast_policy", "agent_loop"],
 )
-def test_finalize_visible_answer_runs_canonical_nine_step_order(
+def test_finalize_visible_answer_runs_canonical_eight_step_order(
     monkeypatch: pytest.MonkeyPatch, finalize_path: str
 ) -> None:
     """T1 收权凭证: 四条 finalize 分支全部经同一 ``_finalize_visible_answer`` 管道,按 canonical
-    9 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
+    8 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
 
     loop = _loop()
     calls = _install_recording_correctors(monkeypatch, loop)
@@ -283,12 +279,11 @@ def test_finalize_visible_answer_runs_canonical_nine_step_order(
 
 def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     """收权 tripwire: 修正链修正器只许在单一管道内出现一次,四处 finalize 分支只留一行调用。
-    防止未来分支再内联复刻 9 级链(补丁螺旋回归)。"""
+    防止未来分支再内联复刻 8 级链(补丁螺旋回归)。"""
 
     source = _LOOP_SOURCE_PATH.read_text(encoding="utf-8")
     # 这些修正器唯一的调用点就是单一管道——四处 finalize 分支不再各内联一遍。
     assert source.count("normalize_anchor_terms_in_response(") == 1
-    assert source.count("correct_construction_exam_boundary_fact_response(") == 1
     assert source.count("self._apply_v1_or_case_fallback(") == 1
     assert source.count("self._degraded_exact_answer_claim_response(") == 1
     assert source.count("self._degraded_mcq_grading_response(") == 1
