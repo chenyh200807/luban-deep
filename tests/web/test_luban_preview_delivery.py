@@ -81,6 +81,27 @@ def test_all_40_hosted_topics_and_74_teaching_episodes_preload_only_the_first_au
         assert (lesson.parent / preload.group(1)).is_file()
 
 
+def test_f16_qa_reveal_uses_measured_audio_cues_in_source_and_public_html() -> None:
+    expected_cues = (
+        'qaCue=[{"answerStart":7.257},{"answerStart":7.065},'
+        '{"answerStart":6.835},{"answerStart":6.009}];'
+    )
+    pages = (
+        ROOT
+        / "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16"
+        / "P40_F16.teach.dc.html",
+        ROOT / "web/public/luban-preview/f16/lesson.html",
+    )
+
+    for page in pages:
+        source = page.read_text(encoding="utf-8")
+        assert expected_cues in source
+        assert "qa_to=W(.34,.64)" not in source
+        assert "(cue-.25)/beatDur" in source
+        assert "(cue+.15)/beatDur" in source
+        assert 'location.search.includes("capture=1")?rawDt' in source
+
+
 def test_all_74_teaching_episodes_keep_ai_ask_inside_the_teaching_card() -> None:
     """web-view 上方不能可靠叠原生层；问答抽屉必须由 lesson.html 自己承载。"""
     lessons = sorted((ROOT / "web/public/luban-preview").glob("*/lesson*.html"))
