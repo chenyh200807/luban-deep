@@ -109,43 +109,10 @@ def test_save_turn_persists_raw_user_message_instead_of_context_envelope() -> No
     assert "参考证据" not in session.messages[0]["content"]
 
 
-@pytest.mark.asyncio
-async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path) -> None:
+def _make_loop_fixtures(tmp_path, provider):
     from deeptutor.tutorbot.agent.tools.base import Tool
     from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
     from deeptutor.tutorbot.bus.queue import MessageBus
-    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-
-    class LoopingProvider(LLMProvider):
-        def __init__(self) -> None:
-            super().__init__()
-            self.calls = 0
-
-        async def chat(
-            self,
-            messages: list[dict[str, Any]],
-            tools: list[dict[str, Any]] | None = None,
-            model: str | None = None,
-            max_tokens: int = 4096,
-            temperature: float = 0.7,
-            reasoning_effort: str | None = None,
-            tool_choice: str | dict[str, Any] | None = None,
-            on_content_delta=None,
-        ) -> LLMResponse:
-            self.calls += 1
-            return LLMResponse(
-                content="继续调用工具",
-                tool_calls=[
-                    ToolCallRequest(
-                        id=f"call_{self.calls}",
-                        name="rag",
-                        arguments={"topic": f"round-{self.calls}"},
-                    )
-                ],
-            )
-
-        def get_default_model(self) -> str:
-            return "fake-model"
 
     class DummyTool(Tool):
         def __init__(self) -> None:
@@ -171,7 +138,6 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
             self.calls.append(dict(kwargs))
             return f"executed:{kwargs['topic']}"
 
-    provider = LoopingProvider()
     tool = DummyTool()
     loop = AgentLoop(
         bus=MessageBus(),
@@ -185,6 +151,130 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
     )
     loop.tools = TutorBotToolRegistry()
     loop.tools.register(tool)
+    return loop, tool
+
+
+def _tool_aware_provider():
+    """Provider that searches while tool use is allowed and answers once the
+    closure round forces tool_choice="none" — the cooperative shape the
+    closure-round contract expects."""
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class ToolAwareProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+            self.tools_seen: list[int] = []
+            self.tool_choices_seen: list[Any] = []
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            self.tools_seen.append(len(tools or []))
+            self.tool_choices_seen.append(tool_choice)
+            if tools and tool_choice != "none":
+                return LLMResponse(
+                    content="继续调用工具",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id=f"call_{self.calls}",
+                            name="rag",
+                            arguments={"topic": f"round-{self.calls}"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="基于已检索证据：不妥之处是排水坡度 0.1% 偏小，正确做法是不小于 0.2%。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    return ToolAwareProvider()
+
+
+@pytest.mark.asyncio
+async def test_exhausted_tool_budget_runs_closure_round_and_synthesizes_answer(tmp_path) -> None:
+    """Fall-through-to-understanding: when every budgeted round was a search, one
+    extra closure round (tools kept for prompt-cache prefix, tool_choice="none")
+    must answer from gathered evidence instead of failing closed to the canned
+    template (production session unified_1785314628533_23c29374: 4/4 rounds
+    searched, 142k tokens of evidence discarded into a refusal)."""
+    provider = _tool_aware_provider()
+    loop, tool = _make_loop_fixtures(tmp_path, provider)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 2},
+    }
+
+    final_content, tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 3  # 2 budgeted search rounds + 1 closure round
+    # Closure round keeps the tools block (prompt-cache prefix stability) and
+    # relies on server-enforced tool_choice="none".
+    assert provider.tools_seen == [1, 1, 1]
+    assert provider.tool_choices_seen == [None, None, "none"]
+    assert tools_used == ["rag", "rag"]
+    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
+    assert final_content is not None and "基于已检索证据" in final_content
+    assert "turn_failure" not in metadata
+    assert metadata["forced_closure_round"] == 3
+    assert any(
+        item.get("role") == "system" and "收束作答" in str(item.get("content") or "")
+        for item in messages
+    )
+
+
+@pytest.mark.asyncio
+async def test_stubborn_tool_calls_on_closure_round_stay_typed_failure(tmp_path) -> None:
+    """Safety net (律4): a provider that ignores tool_choice="none" and keeps
+    emitting pure tool calls still yields a TYPED failure — closure-round tool
+    calls are never executed and never accepted as an answer."""
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class StubbornProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            return LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(
+                        id=f"call_{self.calls}",
+                        name="rag",
+                        arguments={"topic": f"round-{self.calls}"},
+                    )
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    provider = StubbornProvider()
+    loop, tool = _make_loop_fixtures(tmp_path, provider)
     metadata = {
         "default_tools": ["rag"],
         "mode_execution_policy": {"max_tool_rounds": 2},
@@ -195,15 +285,46 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
         runtime_metadata=metadata,
     )
 
-    assert provider.calls == 2
+    # 2 search rounds + closure round + visible-answer repair retry.
+    assert provider.calls == 4
+    # Closure-round and repair-round tool calls are never recorded or executed.
     assert tools_used == ["rag", "rag"]
     assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
     assert metadata["effective_max_tool_rounds"] == 2
-    # 律4: an exhausted tool budget is a TYPED failure, not an improvised
-    # English "final answer" (the old surrogate reached real learners twice).
+    assert metadata["forced_closure_round"] == 3
+    assert final_content is None
+    assert metadata["turn_failure"]["kind"] == "model_empty_answer"
+
+
+@pytest.mark.asyncio
+async def test_single_round_policy_keeps_tools_and_budget_semantics(tmp_path) -> None:
+    """max_tool_rounds == 1 (fast policy shape): the only round keeps its tools
+    armed and no closure round is appended."""
+    provider = _tool_aware_provider()
+    loop, tool = _make_loop_fixtures(tmp_path, provider)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 1},
+    }
+
+    final_content, tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 1
+    assert provider.tools_seen == [1]
+    assert provider.tool_choices_seen == [None]
+    assert tools_used == ["rag"]
+    assert tool.calls == [{"topic": "round-1"}]
+    assert "forced_closure_round" not in metadata
+    assert not any(
+        item.get("role") == "system" and "收束作答" in str(item.get("content") or "")
+        for item in messages
+    )
     assert final_content is None
     assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
-    assert metadata["turn_failure"]["budget"] == 2
+    assert metadata["turn_failure"]["budget"] == 1
 
 
 @pytest.mark.asyncio

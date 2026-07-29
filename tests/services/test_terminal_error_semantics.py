@@ -45,7 +45,7 @@ def test_terminal_mapper_maps_budget_exhausted_to_recoverable_chinese() -> None:
     from deeptutor.services.session.turn_runtime import map_turn_failure_to_public_text
 
     text = map_turn_failure_to_public_text("tool_budget_exhausted")
-    assert "拆小" in text
+    assert "再发一次" in text
     assert BUDGET_SURROGATE_MARKER not in text
 
 
@@ -543,14 +543,18 @@ async def test_agent_loop_budget_exhaustion_is_typed_not_surrogate(tmp_path) -> 
         runtime_metadata=metadata,
     )
 
-    assert provider.calls == 2
+    # 2 budgeted search rounds + closure round (tool_choice="none") + repair
+    # retry. This stubborn provider ignores the closure contract and keeps
+    # emitting tool calls with narration content — closure/repair tool calls
+    # are never executed and narration is never promoted to an answer.
+    assert provider.calls == 4
     assert tools_used == ["rag", "rag"]
+    assert metadata["forced_closure_round"] == 3
     # 律4: budget exhaustion must NOT be improvised into a legit final answer.
     assert final_content is None
     failure = metadata.get("turn_failure")
     assert isinstance(failure, dict)
-    assert failure["kind"] == "tool_budget_exhausted"
-    assert failure["budget"] == 2
+    assert failure["kind"] == "model_empty_answer"
     assert BUDGET_SURROGATE_MARKER not in json.dumps(metadata, ensure_ascii=False)
 
 
@@ -835,14 +839,14 @@ async def test_turn_runtime_budget_exhaustion_persists_failed_chinese_terminal(
     assert detail is not None
     assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
     assert len(assistant_messages) == 1
-    assert "拆小" in assistant_messages[0]["content"]
+    assert "再发一次" in assistant_messages[0]["content"]
     assert BUDGET_SURROGATE_MARKER not in assistant_messages[0]["content"]
     assert assistant_messages[0]["metadata"]["terminal_status"] == "failed"
 
     result_events = [e for e in events if e.get("type") == "result"]
     assert result_events
     assert result_events[-1]["metadata"]["error_code"] == "tool_budget_exhausted"
-    assert "拆小" in result_events[-1]["metadata"]["response"]
+    assert "再发一次" in result_events[-1]["metadata"]["response"]
     for forbidden in (
         "presentation",
         "question_followup_context",

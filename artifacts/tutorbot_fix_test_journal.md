@@ -9,6 +9,16 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-29 - 案例大题连环拒答"拆小再发" + 答案泄露内心独白/编号不镜像
+
+- 问题：生产 session `unified_1785314628533_23c29374`（construction-exam-coach，deep 模式）。用户发 5 小问案例大题被拒答"这道题内容较多，这次没批完，请把题目拆小一点再发一次"；**按提示拆成 1 个小问后仍被同样拒答**（罐头归因被现场证伪）；再删一段背景后终于作答，但终态以"现在我有足够的知识库证据来回答第3题。让我来组织完整回答。"开头（内心独白泄露），且标题按 session 历史称"第3题"而用户当前消息编号是 1，owner 误读为答非所问。
+- 根因：`_run_agent_loop` deep 模式 `max_tool_rounds=4`，模型 4 轮全是 RAG 工具调用（turn1 耗 142k input tokens / 20 次调用）未产最终答案，loop 直接 `tool_budget_exhausted` 放弃，把全部已检索证据丢进罐头拒答——shared failure shape = **fail-closed-to-template（而非 fall-through-to-understanding）**。搜索胃口与题目大小无关（拆小后每轮仅 ~89 output tokens 仍连发 4 轮检索），"拆小"文案是错误归因。独白泄露与编号漂移是终态收权（律4）之外的 presentation 层缺口。
+- 失败尝试 / 被否决方案：①否决"末轮没收工具（tools=None/空）"首版实现——对抗审查指出 tools 块参与 prompt cache 前缀，恰好在上下文最大的那次调用上打掉 cache，且末轮幻觉 tool_calls 仍会漏回 `tool_budget_exhausted`；②否决调大 `max_tool_rounds`——只移动悬崖；③否决放松 rag_saturation 阈值——多小问案例题的检索主题合法互异，放松会误杀正常探索；④否决宽版独白剥离正则——按项目原则 regex 只做高置信保底，窄模式 7 例边界全过。
+- 成功修法：`deeptutor/tutorbot/agent/loop.py`①预算耗尽后追加**收束轮**：tools 原样下发保 cache 前缀 + `tool_choice="none"`（服务端强制）+ 收束 system 指令（`_FINAL_ROUND_SYNTHESIS_PROMPT`），判别位 `runtime_metadata["forced_closure_round"]`；收束轮/repair 轮的 tool_calls 一律不执行、不作答案，走既有 repair 路径；仅 `max_tool_rounds>1` 启用（fast 单发路径不进此循环，行为不变）。②finalize 链头部加第 9 步 `_strip_leading_meta_narration`（窄正则、最多剥 2 句、剩余正文必须可见，遥测 `leading_meta_narration_stripped`）。③`turn_runtime.py` 罐头文案去"拆小"错误归因（frozenset 按变量引用自动同步免计费集）。④`construction-exam-tutor/SKILL.md` 增编号镜像（含无编号/点名原卷/错题复盘三分支豁免）与禁过程叙述开场两规。⑤`contracts/turn.md` 同步收束轮契约。
+- 验证：新增 3 个收束轮用例 + 3 个剥离器用例；聚焦回归 `test_agent_loop_case_rubric_v1.py` + `test_terminal_error_semantics.py` 81 passed（1 deselect 为基线既有失败 `test_turn_runtime_exception_after_partial_never_commits_partial_as_assistant`，已 stash 对照证实与本 diff 无关）；`test_finalize_visible_answer_pipeline.py` 20 passed；capabilities_runtime 相关 2 passed；response_mode/teaching_modes 32 passed；contract guard 全绿；skill validator ok；compileall ok；`tests/tutorbot/` 目录级 39 fail 与基线 37 fail 逐条 diff 确认全部为既有隔离污染（fake loguru SimpleNamespace 缺 `info`），零新增真实失败。**live 生产回归尚未做**（需部署后按事故 4 轮消息序列重放 + Langfuse 核 `forced_closure_round`）。
+- 同病登记（本次不修，2-sightings 已满）：`agent/subagent.py:174`（15 轮耗尽→英文模板）、`agent/team/__init__.py:1100`（worker 25 轮耗尽→模板）、`agents/solve/main_solver.py:568`（ReAct 5 轮耗尽→静默标 completed 假绿）。收束修复后预算病可能向 `model_output_truncated` 转移（强制长答案撞 8192 max_tokens），上线后监控该 kind。
+- 教训：预算类闸门的失败分支必须先问"手里已有的证据能不能答"再问"怎么礼貌拒绝"——检索预算限制的是搜索深度，永远不该决定答不答；罐头文案里的归因（"题目太大"）若未被 trace 证实，就是在教用户做无效操作。
+
 ## 2026-07-22 - BI 新版上线判断被四套口径污染：渠道、行为、Turn 与财务 authority 收权
 
 - 问题：获客渠道全为 unknown；overview 永久声称行为数据 pending，但学习偏好已读到真实事件；overview 30 天 168 turns，而 capabilities/cost 使用 4,563 raw turns；收入永久 pending，成本又把 CNY/USD、自然月/滚动 30 天和低覆盖旧校准混在一起。

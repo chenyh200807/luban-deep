@@ -4958,15 +4958,19 @@ async def test_tutorbot_agent_loop_honors_mode_policy_max_tool_rounds(
         runtime_metadata=metadata,
     )
 
-    assert provider.calls == 2
+    # 2 budgeted search rounds + closure round (tool_choice="none") + repair
+    # retry (fall-through-to-understanding). This stubborn fake ignores the
+    # closure contract; its closure/repair tool calls are never recorded or
+    # executed, and its narration content is never promoted to an answer.
+    assert provider.calls == 4
     assert tools_used == ["rag", "rag"]
     assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
     assert metadata["effective_max_tool_rounds"] == 2
+    assert metadata["forced_closure_round"] == 3
     # 律4: an exhausted tool budget is a TYPED failure, not an improvised
     # English "final answer" (the old surrogate reached real learners twice).
     assert final_content is None
-    assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
-    assert metadata["turn_failure"]["budget"] == 2
+    assert metadata["turn_failure"]["kind"] == "model_empty_answer"
 
 
 @pytest.mark.asyncio

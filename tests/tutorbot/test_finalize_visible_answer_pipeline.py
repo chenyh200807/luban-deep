@@ -200,6 +200,7 @@ def test_apply_v1_or_case_fallback_case_grading_missing_v1_authority_golden() ->
 # 结构 golden(T1 后新增): 单一管道顺序 + 四处调用点收敛
 # --------------------------------------------------------------------------------------
 _CANONICAL_ORDER = [
+    "strip_leading_meta_narration",
     "normalize_anchor_terms",
     "correct_boundary_fact",
     "case_exact_authority",
@@ -218,7 +219,7 @@ class _GuardResult:
 
 
 def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLoop) -> list[str]:
-    """把 8 个修正器换成记录调用名并返回 ''(保持原文)的桩;guard 返回 content='' 的对象。"""
+    """把 9 个修正器换成记录调用名并返回 ''(保持原文)的桩;guard 返回 content='' 的对象。"""
 
     calls: list[str] = []
 
@@ -229,6 +230,7 @@ def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLo
 
         return _fn
 
+    loop._strip_leading_meta_narration = _rec("strip_leading_meta_narration")  # type: ignore[method-assign]
     monkeypatch.setattr(loop_module, "normalize_anchor_terms_in_response", _rec("normalize_anchor_terms"))
     monkeypatch.setattr(
         loop_module, "correct_construction_exam_boundary_fact_response", _rec("correct_boundary_fact")
@@ -256,11 +258,11 @@ def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLo
     "finalize_path",
     ["exact_fast_path", "prefetched_authority", "fast_policy", "agent_loop"],
 )
-def test_finalize_visible_answer_runs_canonical_eight_step_order(
+def test_finalize_visible_answer_runs_canonical_nine_step_order(
     monkeypatch: pytest.MonkeyPatch, finalize_path: str
 ) -> None:
     """T1 收权凭证: 四条 finalize 分支全部经同一 ``_finalize_visible_answer`` 管道,按 canonical
-    8 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
+    9 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
 
     loop = _loop()
     calls = _install_recording_correctors(monkeypatch, loop)
@@ -281,7 +283,7 @@ def test_finalize_visible_answer_runs_canonical_eight_step_order(
 
 def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     """收权 tripwire: 修正链修正器只许在单一管道内出现一次,四处 finalize 分支只留一行调用。
-    防止未来分支再内联复刻 8 级链(补丁螺旋回归)。"""
+    防止未来分支再内联复刻 9 级链(补丁螺旋回归)。"""
 
     source = _LOOP_SOURCE_PATH.read_text(encoding="utf-8")
     # 这些修正器唯一的调用点就是单一管道——四处 finalize 分支不再各内联一遍。
@@ -291,6 +293,7 @@ def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     assert source.count("self._degraded_exact_answer_claim_response(") == 1
     assert source.count("self._degraded_mcq_grading_response(") == 1
     assert source.count("self._content_truth_guard(") == 1
+    assert source.count("self._strip_leading_meta_narration(") == 1
     # _case_exact_authority_fallback 有 2 处:管道内 1 处 + ``_run_agent_loop`` 内层 seam 1 处
     # (line ~2326,非 finalize 分支,设计明确冻结不纳入管道)。
     assert source.count("self._case_exact_authority_fallback(") == 2
@@ -351,3 +354,41 @@ def test_prefetched_branch_b_structurally_cannot_carry_case_study() -> None:
         )
         is not None
     )
+
+
+# --------------------------------------------------------------------------------------
+# 开头独白剥离器(确定性低成本保底;主修复在 prompt 层)
+# --------------------------------------------------------------------------------------
+def test_strip_leading_meta_narration_strips_incident_prefix() -> None:
+    """生产事故 trace 19912c2d:终态以两句内心独白开头。剥离后正文以答案开头,并打遥测标记。"""
+    md: dict = {}
+    out = AgentLoop._strip_leading_meta_narration(
+        "现在我有足够的知识库证据来回答第3题。让我来组织完整回答。\n\n## 第3题：临时用水管理中的不妥及正确做法",
+        runtime_metadata=md,
+    )
+    assert out.startswith("## 第3题")
+    assert md["leading_meta_narration_stripped"] is True
+
+
+def test_strip_leading_meta_narration_keeps_legitimate_openings() -> None:
+    for text in (
+        "现在我们来计算管径。d=93.4mm，选DN100。",
+        "我先给结论：不妥之处有三处。第一，水管未加套管。",
+        "## 第1问：答案主体",
+    ):
+        assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
+
+
+def test_strip_leading_meta_narration_requires_substantive_remainder() -> None:
+    """独白后没有实质正文时保持原文(返 ''),不许剥成空答案。"""
+    assert AgentLoop._strip_leading_meta_narration("让我来整理一下采分点。", runtime_metadata={}) == ""
+
+
+def test_strip_leading_meta_narration_never_eats_answer_bearing_first_sentence() -> None:
+    """Review B1 反例:命中模式的首句若携带答案负载,一律保持原文——剥离器只吃纯独白,不吃结论。"""
+    for text in (
+        "我检索到的信息显示，答案选B。理由是水泥强度等级不符。",
+        "我掌握的资料表明正确答案是ACD。因为脚手架连墙件设置不符合规范。",
+        "我整理了三处不妥的信息：不妥一是坡度偏小。不妥二是消火栓间距超限。",
+    ):
+        assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
