@@ -1697,6 +1697,13 @@ class AgentLoop:
             ctx = self._build_v1_case_ctx(md, user_message)
             if ctx.get("node_code"):
                 md.setdefault("node_code", ctx.get("node_code"))
+            kb_name = str(md.get("default_kb") or "").strip() or None
+            if not kb_name:
+                knowledge_bases = md.get("knowledge_bases")
+                if isinstance(knowledge_bases, list):
+                    kb_name = next(
+                        (str(x).strip() for x in knowledge_bases if str(x or "").strip()), None
+                    )
             event = await _grade_one_case_v1(
                 ctx,
                 student_id=student_id,
@@ -1704,6 +1711,7 @@ class AgentLoop:
                 key=key,
                 _G=_G,
                 provider_authority=provider_authority,
+                kb_name=kb_name,
             )
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
                 # Observability (P0 2026-07-29): this silent None used to leave
