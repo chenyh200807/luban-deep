@@ -169,3 +169,42 @@ def test_select_response_mode_prefers_explicit_brevity_over_active_object() -> N
 
     assert selected_mode == "fast"
     assert reason == "explicit_brevity"
+
+
+# ---------------------------------------------------------------------------
+# 案例题结构形状路由（2026-07-29 生产 trace 87ad350f 回归）
+# ---------------------------------------------------------------------------
+def test_smart_routes_pasted_case_question_to_deep_without_active_object():
+    """549 字案例题面+单小问，恰不含任何 deep 关键词、零问号——曾落 default_fast，
+    fast 单发（无工具）3 次空答案后以 model_empty_answer 收场。案例题必须按
+    结构形状（长题面+「问题:」小问段）识别为 deep，不依赖 active_object。"""
+    from deeptutor.tutorbot.response_mode import select_response_mode
+
+    case_text = (
+        "某办公楼工程地下二层，地上16层，建筑面积45000平方米，标准间面积为200平方米，"
+        "施工单位中标后进场施工。在对现场临时用水管理检查时发现，水管直接埋地穿过临时道路，"
+        "道路两侧排水纵沟，坡度0.1%;消火栓最大间距150米，DN100，主供水管实测水流速度1.5 m/s,"
+        "达不到设计流速2.0m/s，满足不了设计总用水量 Q=13.70L/s的要求，建议更换主供水管。\n\n"
+        "问题:  \n1.临时用水管理中的不妥有哪些，写出正确做法。计算更换主供水管的直径。"
+    )
+    mode, reason = select_response_mode(
+        "smart", user_message=case_text, interaction_hints={}, has_active_object=False
+    )
+    assert mode == "deep"
+    assert reason == "deep_query_shape"
+
+
+def test_smart_routes_long_paste_to_deep_and_short_queries_stay_fast():
+    from deeptutor.tutorbot.response_mode import select_response_mode
+
+    long_paste = "工程背景材料。" * 60  # >300 字纯长粘贴 = 深意图
+    mode, _ = select_response_mode(
+        "smart", user_message=long_paste, interaction_hints={}, has_active_object=False
+    )
+    assert mode == "deep"
+
+    for short_query in ("防水等级有哪些？", "什么是流水施工"):
+        mode, _ = select_response_mode(
+            "smart", user_message=short_query, interaction_hints={}, has_active_object=False
+        )
+        assert mode == "fast", short_query
