@@ -70,7 +70,6 @@ from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
     build_cross_capability_context_instruction,
     content_truth_guard_response,
-    correct_construction_exam_boundary_fact_response,
     get_anchor_preservation_instruction,
     get_construction_exam_boundary_fact_instruction,
     get_lecture_skill_instruction,
@@ -978,11 +977,13 @@ class AgentLoop:
     ) -> str:
         """可见答案修正链的唯一权威(四条 finalize 分支只许调这里,禁止内联复制)。
 
-        全链 9 步固定顺序:_strip_leading_meta_narration → normalize_anchor_terms →
-        correct_construction_exam_boundary_fact → _case_exact_authority_fallback →
-        _apply_v1_or_case_fallback → _degraded_exact_answer_claim →
-        _degraded_mcq_grading → _content_truth_guard → guard_tutorbot_output。每一步的
-        ``X(...) or final_content`` 约定(修正器返 '' = 保持原文)逐字保留。
+        全链 8 步固定顺序:_strip_leading_meta_narration → normalize_anchor_terms →
+        _case_exact_authority_fallback → _apply_v1_or_case_fallback →
+        _degraded_exact_answer_claim → _degraded_mcq_grading → _content_truth_guard →
+        guard_tutorbot_output。每一步的 ``X(...) or final_content`` 约定
+        (修正器返 '' = 保持原文)逐字保留。
+        (correct_construction_exam_boundary_fact 出口罐头已按 2026-07-29 指挥官裁决删除：
+        碎片判据不得携带整篇替换权力;原病例保护=入口证据级 hedge + KB + live eval。)
 
         ``finalize_path`` **仅作观测标签,绝不得用于门控任何修正器**——需要按路径定制时,正确做法
         是在对应修正器内部用 ``runtime_metadata`` 里的结构化事实做门(如
@@ -1000,10 +1001,6 @@ class AgentLoop:
             runtime_metadata=runtime_metadata,
         ) or final_content
         final_content = normalize_anchor_terms_in_response(
-            user_message=user_message,
-            response=final_content,
-        ) or final_content
-        final_content = correct_construction_exam_boundary_fact_response(
             user_message=user_message,
             response=final_content,
         ) or final_content
