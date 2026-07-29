@@ -178,6 +178,11 @@
      读取正文或执行工具；`error|length|max_tokens` 及未知 finish reason 都是 non-final。
      Agent loop、fast/repair、failover、memory/subagent/team/heartbeat 等 consumer 不得各自
      根据“已有正文”或 `has_tool_calls` 猜 completed，完成性检查必须早于正文读取和工具执行。
+   - **预算耗尽先收束再失败（fall-through-to-understanding）**：`max_tool_rounds>1` 的
+     agent loop 在检索轮打满仍无最终答案时，追加一个收束轮（tools 原样下发保 prompt cache
+     前缀 + `tool_choice="none"` + 收束 system 指令，`runtime_metadata["forced_closure_round"]`
+     为判别位）；收束轮的 tool_calls 不执行、不作答案，走可见答案 repair。收束仍失败才落
+     typed failure。单轮策略（fast 形状）不追加收束轮。
    - Agent loop 对预算耗尽 / provider error / 空答案 / provider token 上限截断只记录
      `runtime_metadata["turn_failure"]={kind, detail, ...}`（`tool_budget_exhausted` /
      `provider_error` / `provider_timeout` / `model_empty_answer` /
@@ -189,7 +194,8 @@
      不进持久化 merged_metadata）→ capability result event → turn runtime。
    - **唯一 terminal mapper** = `turn_runtime.map_turn_failure_to_public_text` /
      `_safe_terminal_assistant_content`：所有终态学员可见文本（assistant message、
-     `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"拆小再发"、
+     `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"没有完成
+     解答，请再发一次"（收束轮修复后该 kind 仅剩安全网角色，不得恢复"拆小题目"类错误归因）、
      provider 类→"服务暂时繁忙"、截断→"答案没有生成完整，请重新发送"、取消→取消文案、
      未知→通用兜底。失败文案一律不可计费。
    - Capability 收到 typed failure 后不得把已流出的 chunk 重新提升为 final response，

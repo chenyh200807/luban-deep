@@ -111,6 +111,14 @@ class AgentLoop:
         "刚才输出的是过程承诺，不是最终答案。请现在直接给出可展示给学员的中文答案；"
         "不要说“我先查看”“我会检索”“再给你”等过程话术。",
     )
+    _FINAL_ROUND_SYNTHESIS_PROMPT = (
+        "检索预算已用完，本轮已禁止调用工具，必须收束作答。"
+        "请基于上面已检索到的证据和你的专业知识，直接给出面向学员的最终中文答案："
+        "不要再调用任何工具；不要以“让我”“现在我”“我先”等过程叙述开头；"
+        "题目编号按 skill 既定规则跟随用户当前消息（无编号或用户点名原卷编号时除外）；"
+        "遵守当前题目的答案显隐策略；"
+        "个别点证据不足时，先答有把握的部分，并明确标注哪些数值建议核对教材，不得编造。"
+    )
     _INTERNAL_CONTEXT_MARKERS = (
         "## 参考证据",
         "## Supporting Evidence",
@@ -964,8 +972,9 @@ class AgentLoop:
     ) -> str:
         """可见答案修正链的唯一权威(四条 finalize 分支只许调这里,禁止内联复制)。
 
-        全链 8 步固定顺序:normalize_anchor_terms → correct_construction_exam_boundary_fact →
-        _case_exact_authority_fallback → _apply_v1_or_case_fallback → _degraded_exact_answer_claim →
+        全链 9 步固定顺序:_strip_leading_meta_narration → normalize_anchor_terms →
+        correct_construction_exam_boundary_fact → _case_exact_authority_fallback →
+        _apply_v1_or_case_fallback → _degraded_exact_answer_claim →
         _degraded_mcq_grading → _content_truth_guard → guard_tutorbot_output。每一步的
         ``X(...) or final_content`` 约定(修正器返 '' = 保持原文)逐字保留。
 
@@ -976,6 +985,14 @@ class AgentLoop:
         (见 tests/tutorbot/test_finalize_visible_answer_pipeline.py),故统一为全链、不设跳过参数。
         """
 
+        if isinstance(runtime_metadata, dict):
+            # Per-turn observe-only marker: a stale copy carried in via session
+            # metadata must not stamp a fresh turn's trace.
+            runtime_metadata.pop("leading_meta_narration_stripped", None)
+        final_content = self._strip_leading_meta_narration(
+            final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
         final_content = normalize_anchor_terms_in_response(
             user_message=user_message,
             response=final_content,
@@ -1017,6 +1034,51 @@ class AgentLoop:
         ) or final_content
         guarded_output = guard_tutorbot_output(final_content)
         return guarded_output.content or final_content
+
+    # 高置信开头独白模式：只认「我…有/掌握/检索…证据/信息」与「让我(来)组织/整理…」两族，
+    # 逐句上界约 80 字、最多剥 2 句。教学过渡句（"现在我们来计算…"）与
+    # 结论先行句（"我先给结论："）都不在模式内，保持原文。
+    _LEADING_META_NARRATION_RE = re.compile(
+        r"^(?:"
+        r"(?:现在)?我(?:已经?|现在)?(?:有|掌握|收集|检索|整理)"
+        r"[^。！？\n]{0,50}?(?:证据|信息|资料|内容)[^。！？\n]{0,20}[。！？]\s*"
+        r"|让我(?:们)?(?:来)?(?:组织|整理|给出|开始撰写)[^。！？\n]{0,40}[。！？]\s*"
+        r"){1,2}"
+    )
+    # 剥离豁免：命中的开头句若携带答案负载（"…信息显示，答案选B。"），一律保持原文——
+    # 剥离器只许吃纯独白，不许吃结论。
+    _META_NARRATION_ANSWER_PAYLOAD_RE = re.compile(
+        r"[：:]|答案|应?选\s*[A-EＡ-Ｅ]|正确|不妥|显示|表明|说明|指出|如下"
+    )
+
+    @classmethod
+    def _strip_leading_meta_narration(
+        cls,
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Deterministic low-cost bottom guard for leaked leading narration.
+
+        The prompt layer (skill + closure instruction) owns the main fix; this
+        only strips the highest-confidence "现在我有足够的证据…。让我来组织…。"
+        prefixes when a substantive answer follows. Returns '' to keep the
+        original (finalize-chain corrector convention).
+        """
+        source = str(final_content or "")
+        if not source:
+            return ""
+        match = cls._LEADING_META_NARRATION_RE.match(source)
+        if not match:
+            return ""
+        if cls._META_NARRATION_ANSWER_PAYLOAD_RE.search(source[: match.end()]):
+            return ""
+        remainder = source[match.end():].lstrip()
+        if not cls._is_user_visible_final_answer(remainder):
+            return ""
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata["leading_meta_narration_stripped"] = True
+        return remainder
 
     @staticmethod
     def _format_answer_letters(letters: str | None) -> str:
@@ -2113,6 +2175,12 @@ class AgentLoop:
         # turn_failure is a PER-TURN typed-failure marker; a stale copy carried in
         # via session/inbound metadata must never mark a fresh turn as failed.
         self._clear_turn_failure(runtime_metadata, external_runtime_metadata)
+        # Per-turn observe-only marker (same staleness rule as turn_failure):
+        # cleared at loop start only — a successful closure answer must keep it
+        # for the current turn's trace.
+        runtime_metadata.pop("forced_closure_round", None)
+        if external_runtime_metadata is not None:
+            external_runtime_metadata.pop("forced_closure_round", None)
         messages = initial_messages
         iteration = 0
         final_content = None
@@ -2145,8 +2213,24 @@ class AgentLoop:
             if chunk:
                 await on_content_delta(chunk)
 
-        while iteration < effective_max_iterations:
+        # Fall-through-to-understanding: after the tool budget is spent without a
+        # final answer, ONE extra closure round runs with tool_choice="none" and
+        # a synthesis instruction, so the turn ends as an answer built from the
+        # evidence already gathered instead of failing closed to the canned
+        # tool_budget_exhausted template (which discarded the whole turn's
+        # retrieval work). Tools stay in the request on the closure round so the
+        # prompt prefix — and provider-side prompt cache — is unchanged; the
+        # server enforces "no more calls" on openai-compat providers (the
+        # production path). The anthropic provider maps "none" to auto today, so
+        # for it this is instruction-level only and the no-execute guard below
+        # is the backstop. Single-round policies keep their only round armed and
+        # are exempt.
+        closure_round_enabled = effective_max_iterations > 1
+        loop_limit = effective_max_iterations + (1 if closure_round_enabled else 0)
+        closure_round = False
+        while iteration < loop_limit:
             iteration += 1
+            closure_round = closure_round_enabled and iteration > effective_max_iterations
 
             tool_defs = self._resolve_tool_definitions(runtime_metadata)
             if self._prefetched_case_exact_question_can_answer(runtime_metadata):
@@ -2160,6 +2244,14 @@ class AgentLoop:
                     external_runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            if closure_round:
+                messages = list(messages)
+                messages.append(
+                    {"role": "system", "content": self._FINAL_ROUND_SYNTHESIS_PROMPT}
+                )
+                runtime_metadata["forced_closure_round"] = iteration
+                if external_runtime_metadata is not None:
+                    external_runtime_metadata["forced_closure_round"] = iteration
             advertised_tool_names = {
                 str(item.get("function", {}).get("name") or "").strip()
                 for item in tool_defs
@@ -2170,6 +2262,7 @@ class AgentLoop:
                 messages=messages,
                 tools=tool_defs,
                 model=effective_model,
+                tool_choice="none" if closure_round else None,
                 on_content_delta=_stream_delta if on_content_delta else None,
             )
             self._record_llm_stream_telemetry(
@@ -2189,7 +2282,11 @@ class AgentLoop:
                 final_content = None
                 break
 
-            if response.has_tool_calls:
+            # Closure round: tool calls are disobedience of tool_choice="none",
+            # not permission to search again. They are never executed and never
+            # accepted as an answer — the accompanying content (if any) is
+            # narration, so the visible-answer repair path below owns recovery.
+            if response.has_tool_calls and not closure_round:
                 if (
                     self._prefetched_case_exact_question_can_answer(runtime_metadata)
                     and not tool_defs
@@ -2331,7 +2428,11 @@ class AgentLoop:
                         messages, tool_call.id, tool_call.name, result
                     )
             else:
-                clean = self._strip_think(response.content)
+                clean = (
+                    None
+                    if (closure_round and response.has_tool_calls)
+                    else self._strip_think(response.content)
+                )
                 if not self._is_user_visible_final_answer(clean):
                     retry_messages = list(messages)
                     retry_messages.append(
@@ -2358,7 +2459,14 @@ class AgentLoop:
                         call_site="agent_loop_repair",
                         iteration=iteration,
                     )
-                    clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
+                    # The repair call runs with tools=None: tool calls here are
+                    # protocol disobedience, and their accompanying content is
+                    # narration — never a learner-visible answer.
+                    clean = (
+                        None
+                        if response.has_tool_calls
+                        else self._strip_think(response.content) or "".join(retry_parts).strip() or None
+                    )
                     if self._record_incomplete_response(
                         response,
                         runtime_metadata,

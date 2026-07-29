@@ -121,7 +121,9 @@ _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _PUBLIC_CANCELLED_MESSAGE = "本轮生成已取消，请重新发送或换个题目继续。"
 _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后重试。"
 # 律4 terminal mapper copy (single learner-visible text authority for failures).
-_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这道题内容较多，这次没批完，请把题目拆小一点再发一次。"
+# 收束修复后 tool_budget_exhausted 仅剩安全网角色；文案不再让用户"拆小题目"——
+# 生产 trace 已证伪该归因（拆小后仍触发），重发即可。
+_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这次没有完成解答，已记录问题。请再发一次。"
 _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
 _PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
 _PUBLIC_MODEL_TRUNCATED_MESSAGE = "这次答案没有生成完整，已停止保存。请重新发送一次。"
