@@ -473,6 +473,7 @@ class Component extends DCLogic {
     { figLabel:"流淌≠起鼓 · 药方不能互换", fig:"twin", q:"我看书上还有个「流淌」，用钉钉子法。那起鼓我也钉几排钉子中不中？", a:"中不了。流淌是高温把胶结料烤软了、卷材往下出溜，钉钉子是把它钉住不让滑；起鼓是底下水汽往上顶，你钉钉子它照样鼓，还多扎一排眼。流淌用钉钉子法、切割法；起鼓按 100 分档、走割补。姐妹病害、两副药方，考试最爱换着坑你。" },
     { figLabel:"割补八环 · 一环不落", fig:"chain", q:"整明白了！那考试让写割补工序，我咋写才不丢分啊？", a:"按箭头链一环环写全：割开鼓泡、放出气体、擦干水分、清除旧胶结料、喷灯烘烤槎口分层剥开、重贴新卷材（方形）、周边压实刮平、重做保护层。最容易漏的是放气、擦干和末了的保护层；再补一句基层平整干燥、排气孔通畅防复发，采分点就齐了。" }
   ];
+  qaCue=[{"answerStart":7.257},{"answerStart":7.065},{"answerStart":6.835},{"answerStart":6.009}];
   askPresets=["100mm 分档怎么答不丢分？","割补工序哪几步最容易漏？","流淌和起鼓咋区分？"];
 
   componentDidMount(){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.attach(this,{packId:"F16",manifestUrl:"playback-manifest.json"});
@@ -497,7 +498,7 @@ class Component extends DCLogic {
   setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
   toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
   loop(ts){ if(this._dead)return;
-    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const rawDt=(ts-this._last)/1000,dt=location.search.includes("capture=1")?rawDt:Math.min(0.05,rawDt); this._last=ts;
       let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
       if(nt>=this.DUR){window.LubanPlaybackTelemetry&&window.LubanPlaybackTelemetry.complete(this);nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
         let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
@@ -689,7 +690,7 @@ class Component extends DCLogic {
 
     const isQA=ai>=NB;
     let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
-    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ const cue=this.qaCue[ai-NB].answerStart; const beatDur=cur[2]-cur[1]; const ansStart=this.cl((cue-.25)/beatDur,.04,.94); const ansEnd=this.cl((cue+.15)/beatDur,ansStart+.01,.98); qaLayerO=1; qa_so=W(0,Math.min(.24,ansStart*.6)); qa_sx=this.lp(-40,0,qa_so); qa_to=W(ansStart,ansEnd); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
       qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
     const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
     const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
