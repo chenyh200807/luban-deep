@@ -101,6 +101,12 @@ class AgentLoop:
     """
 
     _TOOL_RESULT_MAX_CHARS = 16_000
+    # Deep answers (multi-subquestion 案例题 closure answers especially) need
+    # more than the provider GenerationSettings default of 4096: a full
+    # 5-subquestion answer with 采分点/易错点 packaging runs ~2000-4000 tokens.
+    # config/schema.py AgentDefaults.max_tokens=8192 was the intended value but
+    # was never wired to any runtime reader; this constant is the live wiring.
+    _DEEP_ANSWER_MAX_TOKENS = 8192
     _RAG_STOP_QUERY_SIMILARITY_THRESHOLD = 0.85
     _RAG_STOP_SOURCE_OVERLAP_THRESHOLD = 0.6
     _USER_VISIBLE_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
@@ -2154,11 +2160,6 @@ class AgentLoop:
             filtered.append(item)
         return filtered
 
-    @staticmethod
-    def _prefetched_rag_satisfied(runtime_metadata: dict[str, Any] | None) -> bool:
-        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        return bool(metadata.get("prefetched_rag_satisfied"))
-
     async def _run_agent_loop(
         self,
         initial_messages: list[dict],
@@ -2187,7 +2188,24 @@ class AgentLoop:
         tools_used: list[str] = []
         exact_authority: dict[str, Any] | None = None
         rag_rounds: list[dict[str, Any]] = []
+        # Anti-redundancy has ONE authority: rag_saturation. The prefetch round
+        # is seeded into its ledger so the first in-loop rag call gets a
+        # comparison basis (round_index=2) — a model re-issuing the prefetch
+        # query saturates immediately. This replaces the 2026-07-06 first-round
+        # rag suppression, which hid the tool without telling the model: the
+        # model (correctly) judged 5-subquestion evidence insufficient, called
+        # rag, burned a whole round on "Tool 'rag' is not available", and
+        # polluted every later round's context with that error. It also
+        # mutated the tools block between round 1 and round 2, breaking the
+        # provider prompt-cache prefix on every prefetch-satisfied turn; with
+        # the suppression gone that break only happens on actual saturation
+        # (rare, and the model is told about it below) — deferred, not
+        # eliminated.
+        _prefetch_trace = runtime_metadata.get("_latest_rag_trace_metadata")
+        if isinstance(_prefetch_trace, dict) and isinstance(_prefetch_trace.get("rag_round"), dict):
+            rag_rounds.append(dict(_prefetch_trace["rag_round"]))
         rag_saturation: dict[str, Any] | None = None
+        saturation_notice_sent = False
         blocked_exact_tool_retry = False
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         effective_max_iterations = self._resolve_max_tool_rounds(runtime_metadata)
@@ -2237,11 +2255,6 @@ class AgentLoop:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
-            elif iteration == 1 and self._prefetched_rag_satisfied(runtime_metadata):
-                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
-                runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
-                if external_runtime_metadata is not None:
-                    external_runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             if closure_round:
@@ -2262,6 +2275,7 @@ class AgentLoop:
                 messages=messages,
                 tools=tool_defs,
                 model=effective_model,
+                max_tokens=self._DEEP_ANSWER_MAX_TOKENS,
                 tool_choice="none" if closure_round else None,
                 on_content_delta=_stream_delta if on_content_delta else None,
             )
@@ -2348,7 +2362,10 @@ class AgentLoop:
                             messages,
                             tool_call.id,
                             tool_call.name,
-                            f"Error: Tool '{tool_call.name}' is not available in this turn.",
+                            (
+                                f"Error: Tool '{tool_call.name}' is not available in this turn. "
+                                "不要再调用该工具；请基于已有证据直接作答，或改用当前可用的其他工具。"
+                            ),
                         )
                         continue
                     tools_used.append(tool_call.name)
@@ -2427,6 +2444,25 @@ class AgentLoop:
                     messages = self.context.add_tool_result(
                         messages, tool_call.id, tool_call.name, result
                     )
+                # Tell the model, don't just hide the tool: silent removal
+                # caused the retry treadmill of "Tool 'rag' is not available"
+                # errors (up to 9 per turn in production). Injected ONCE, and
+                # only AFTER every tool result of this round is appended — a
+                # system message between assistant(tool_calls) and its tool
+                # results is a protocol violation OpenAI-strict providers
+                # reject with 400.
+                if rag_saturation and not saturation_notice_sent:
+                    saturation_notice_sent = True
+                    messages = list(messages)
+                    messages.append(
+                        {
+                            "role": "system",
+                            "content": (
+                                "检索已饱和（连续查询高度重复），rag 工具在本轮后停用。"
+                                "不要再调用 rag；请基于已检索到的证据直接作答。"
+                            ),
+                        }
+                    )
             else:
                 clean = (
                     None
@@ -2451,6 +2487,7 @@ class AgentLoop:
                         messages=retry_messages,
                         tools=None,
                         model=effective_model,
+                        max_tokens=self._DEEP_ANSWER_MAX_TOKENS,
                         on_content_delta=_capture_retry_delta,
                     )
                     self._record_llm_stream_telemetry(
@@ -3008,6 +3045,8 @@ class AgentLoop:
             has_sources = isinstance(sources, list) and bool(sources)
             has_exact_question = isinstance(exact_candidate, dict) and bool(exact_candidate)
             if has_sources or has_exact_question or bool(merged_metadata.get("authority_applied")):
+                # Trace-only marker (no runtime decider since the 2026-07-29
+                # suppression collapse): kept for observability parity.
                 runtime_metadata["prefetched_rag_satisfied"] = True
                 merged_metadata["prefetched_rag_satisfied"] = True
         if on_tool_call:
@@ -3066,7 +3105,9 @@ class AgentLoop:
                 "content": (
                     "首轮知识召回已完成。请直接基于现有证据回答学员，"
                     "不要复述“我去搜索/我正在查找”这类过程话术；"
-                    "只有当前证据仍明显不足时，才继续调用其他工具。"
+                    "只有当前证据仍明显不足时，才继续调用工具补充检索——"
+                    "补充检索必须针对尚未覆盖的小问换新的检索词，不要重复已检索过的查询；"
+                    "题目含多个小问时，可在同一轮并行发出多条检索（每小问一条）。"
                     + (f"\n{case_exact_instruction}" if case_exact_instruction else "")
                     + (f"\n{retrieval_degraded_instruction}" if retrieval_degraded_instruction else "")
                 ),

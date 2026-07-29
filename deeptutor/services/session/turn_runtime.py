@@ -419,6 +419,22 @@ def _replace_public_result_response_with_stream(
     if not response:
         return
     metadata = dict(event.metadata or {})
+    # turn.md:144 protects against HETEROGENEOUS stale/fallback text replacing
+    # what the learner actually watched stream. A finalized response that is a
+    # SUFFIX of the streamed text is the same source deliberately trimmed by
+    # the finalize chain (leading meta-narration stripped, PR#583) — keep the
+    # finalize authority's version instead of resurrecting the leaked prefix.
+    # Only the EXPLICIT top-level "response" key (the finalize chain's write
+    # slot) qualifies: assistant_content/content fallbacks could be a mere
+    # tail chunk that happens to be a stream suffix, and exempting those would
+    # collapse the persisted answer to a fragment.
+    existing_response = str(metadata.get("response") or "").strip()
+    if (
+        existing_response
+        and existing_response != response
+        and response.endswith(existing_response)
+    ):
+        return
     metadata["response"] = response
     nested = metadata.get("metadata")
     if isinstance(nested, dict):

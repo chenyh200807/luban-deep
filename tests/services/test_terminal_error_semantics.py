@@ -1134,3 +1134,45 @@ async def test_turn_runtime_terminal_cas_rejects_completed_overwrite_of_cancelle
     assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
     assert assistant_messages == []  # superseded assistant output is not published
     assert billing_calls == []  # and billing is never captured
+
+
+# ---------------------------------------------------------------------------
+# 流式覆写的同源后缀豁免（turn.md:144 增补，2026-07-29）
+# ---------------------------------------------------------------------------
+def test_stream_replacement_keeps_finalized_suffix_response() -> None:
+    """finalize 链剥掉开头独白后，终态是流文本的严格后缀——覆写必须让位于
+    finalize 权威，不得把已剥离的独白前缀复活。"""
+    from deeptutor.core.stream import StreamEvent, StreamEventType
+    from deeptutor.services.session.turn_runtime import (
+        _replace_public_result_response_with_stream,
+    )
+
+    streamed = "现在我有足够的知识库证据来回答第3题。让我来组织完整回答。\n\n## 第3题：临时用水管理"
+    finalized = "## 第3题：临时用水管理"
+    event = StreamEvent(
+        type=StreamEventType.RESULT,
+        metadata={"visibility": "public", "response": finalized},
+    )
+
+    _replace_public_result_response_with_stream(event, streamed)
+
+    assert event.metadata["response"] == finalized  # 后缀豁免生效
+
+
+def test_stream_replacement_still_overrides_heterogeneous_response() -> None:
+    """turn.md:144 原保护不回退：异源 stale/fallback 文本（非流后缀）仍被
+    流文本替换，学生看到什么终态就是什么。"""
+    from deeptutor.core.stream import StreamEvent, StreamEventType
+    from deeptutor.services.session.turn_runtime import (
+        _replace_public_result_response_with_stream,
+    )
+
+    streamed = "## 第3题：临时用水管理中的不妥及正确做法"
+    event = StreamEvent(
+        type=StreamEventType.RESULT,
+        metadata={"visibility": "public", "response": "暂时未生成适合直接展示的答案，请重试一次。"},
+    )
+
+    _replace_public_result_response_with_stream(event, streamed)
+
+    assert "临时用水管理" in event.metadata["response"]
