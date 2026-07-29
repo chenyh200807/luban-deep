@@ -1584,3 +1584,48 @@ def test_to_canonical_non_official_point_does_not_mint_official_score() -> None:
     sp = obj["scoring_points"][0]
     assert sp["authority_source"] == "textbook_cited"
     assert sp["max_score"] is None  # never minted a per-point official score
+
+
+# ---------------------------------------------------------------------------
+# P0 2026-07-29：open-world 判分死链复活的契约钉（review N-10）
+# ---------------------------------------------------------------------------
+def test_openworld_llm_calls_wire_token_budget_and_disable_thinking():
+    """四周死链根因=判分调用不传 max_tokens 吃 4096 默认+默认思考。三处调用
+    必须显式携带 max_tokens=8192 与 reasoning_effort=disabled——stub 的 **kwargs
+    会静默吞掉，此测试防将来重构删参不红。"""
+    import asyncio
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    captured: list[dict] = []
+
+    async def _capture_fn(**kwargs):
+        captured.append(kwargs)
+        return '[{"text":"占位采分点","score":2}]'
+
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案文本", "题干", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.derive_rubric_from_stem_async(
+        "题干文本", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.batch_judge_async(
+        [{"point_id": "P1", "text": "点", "score": 2, "policy": "qualitative", "required_terms": []}],
+        "学员作答", _capture_fn, "k"))
+
+    assert len(captured) == 3
+    for kwargs in captured:
+        assert kwargs.get("max_tokens") == 8192
+        assert kwargs.get("reasoning_effort") == "disabled"
+
+
+def test_parse_extracted_points_salvages_truncated_array():
+    """截断抢救：completion-cap 截断的数组抢救出完整对象（部分>0），
+    非截断畸形输出（有闭合]或纯文本）保持 fail-closed。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    truncated = '[{"text":"排水坡度不小于0.2%","score":2},{"text":"消火栓间距不大于120m","score":2},{"text":"被截断的'
+    points = _parse_extracted_points(truncated)
+    assert len(points) == 2
+    assert points[0]["text"].startswith("排水坡度")
+
+    # 非截断形状不抢救
+    assert _parse_extracted_points("对不起，我无法评分。") == []
+    assert _parse_extracted_points('说明 [ {"text":"垃圾","score":0} 后续文字 ] 完') == []

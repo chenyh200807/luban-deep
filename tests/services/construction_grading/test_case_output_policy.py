@@ -26,7 +26,9 @@ def test_case_grading_without_score_authority_demotes_hard_score() -> None:
     assert "你当前作答：不妥，应龄期28天" in fallback
 
 
-def test_case_grading_without_v1_authority_always_returns_diagnostic() -> None:
+def test_case_grading_without_v1_authority_keeps_substantive_diagnosis() -> None:
+    """新契约（P0 2026-07-29）：缺 V1 权威时，不含硬分口径的实质诊断原样保留
+    （返 ''=保持原文）——「不硬估官方分」≠「不给任何反馈」；模板只在零产出时兜底。"""
     metadata = {
         "question_lifecycle_scene": "case_grading",
         "v1_case_graded": False,
@@ -39,8 +41,25 @@ def test_case_grading_without_v1_authority_always_returns_diagnostic() -> None:
         user_message="【背景资料】某工程。\n【问题】指出不妥。\n作答：不妥。",
     )
 
-    assert "未命中评分真相层，本轮不硬估分" in fallback
+    assert fallback == ""
     assert metadata["v1_case_graded"] is False
+
+
+def test_case_grading_without_v1_authority_empty_content_returns_diagnostic() -> None:
+    """零产出兜底不变：模板保留出生使命。"""
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "v1_case_graded": False,
+        "score_authority": "v1_provider_unavailable",
+    }
+
+    fallback = AgentLoop._case_grading_no_authority_score_fallback(
+        "",
+        runtime_metadata=metadata,
+        user_message="【背景资料】某工程。\n【问题】指出不妥。\n作答：不妥。",
+    )
+
+    assert "未命中评分真相层，本轮不硬估分" in fallback
 
 
 def test_case_grading_without_score_authority_demotes_official_grading_tone() -> None:

@@ -951,7 +951,9 @@ async def test_apply_v1_or_case_fallback_falls_back_to_legacy_when_v1_off(
     out = await _loop()._apply_v1_or_case_fallback(
         "得分：3分（满分5分）", runtime_metadata=md, user_message="判断题作答")
     assert "逐采分点点评" not in out                  # not V1
-    assert out == "" or "不硬估" in out                # legacy demote (or no-op)
+    # 新契约（P0 2026-07-29）：实质内容不再被模板整篇替换——硬分口径以追加免责
+    # 声明降级，正文保留。
+    assert out == "" or ("评分口径说明" in out and out.startswith("得分：3分"))
 
 
 @pytest.mark.asyncio
