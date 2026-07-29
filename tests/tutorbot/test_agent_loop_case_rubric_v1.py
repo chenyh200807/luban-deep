@@ -817,7 +817,7 @@ async def test_v1_case_stream_plan_derives_diagnostic_for_unbanked_full_case(
     monkeypatch.setattr(G, "load_rubric", lambda _qid: [])
     captured: dict[str, str] = {}
 
-    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat", provider_authority=""):
+    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat", provider_authority="", kb_evidence=None):
         captured["stem"] = stem
         captured["provider_authority"] = provider_authority
         return [
