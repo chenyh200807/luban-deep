@@ -899,6 +899,7 @@ Page({
   _startPendingTurnBackgroundRecovery: function () {
     var self = this;
     if (!this._loadPendingTurn() || this._pendingRecoveryActive) return;
+    var recoveryOwner = this._pendingTurn;
     this._pendingRecoveryActive = true;
     this._recoveringTurn = true;
     this.setData({
@@ -913,12 +914,12 @@ Page({
       keepPendingOnExhausted: true,
       hydrateOnExhausted: false,
     }).then(function (recovered) {
+      if (recovered || !self._isPendingTurnCurrent(recoveryOwner)) return;
       self._pendingRecoveryActive = false;
-      if (!recovered) {
-        self._recoveringTurn = false;
-        self._continuePendingTurnRecoveryInBackground();
-      }
+      self._recoveringTurn = false;
+      self._continuePendingTurnRecoveryInBackground();
     }, function () {
+      if (!self._isPendingTurnCurrent(recoveryOwner)) return;
       self._pendingRecoveryActive = false;
       self._recoveringTurn = false;
       self._continuePendingTurnRecoveryInBackground();
@@ -927,7 +928,9 @@ Page({
 
   _continuePendingTurnRecoveryInBackground: function () {
     var self = this;
-    if (!this._isPendingTurnCurrent(this._pendingTurn || this._loadPendingTurn()) || this._pendingRecoveryActive) return;
+    var recoveryMessageId = arguments[0] || "";
+    var recoveryOwner = this._pendingTurn || this._loadPendingTurn();
+    if (!this._isPendingTurnCurrent(recoveryOwner) || this._pendingRecoveryActive) return;
     this._pendingRecoveryActive = true;
     this._recoverTurnFromHistory({
       longPoll: true,
@@ -935,13 +938,17 @@ Page({
       keepPendingOnExhausted: true,
       hydrateOnExhausted: false,
     }).then(function (recovered) {
+      if (!self._isPendingTurnCurrent(recoveryOwner)) return;
       self._pendingRecoveryActive = false;
       if (!recovered) {
         self._recoveringTurn = false;
+        self._settleRecoveryIndicator(recoveryMessageId);
       }
     }, function () {
+      if (!self._isPendingTurnCurrent(recoveryOwner)) return;
       self._pendingRecoveryActive = false;
       self._recoveringTurn = false;
+      self._settleRecoveryIndicator(recoveryMessageId);
     });
   },
 
@@ -1544,6 +1551,9 @@ Page({
     var wasRecoveringTurn = !!this._recoveringTurn;
     var skipHistoryRecovery = !!(options && options.skipHistoryRecovery);
     var renderedAnswer = false;
+    var shouldRecoverFromHistory = false;
+    var recoveryMessageId = "";
+    var foregroundRecoveryOwner = null;
     var wasFirstAnswerPending = !!this._firstAnswerPending;
     if (this._timer) {
       clearInterval(this._timer);
@@ -1554,6 +1564,7 @@ Page({
 
     var idx = this._find(this._streamId);
     if (idx !== -1) {
+      recoveryMessageId = (this.data.messages[idx] && this.data.messages[idx].id) || "";
       if (this._firstAnswerPending) {
         this._firstAnswerPending = false;
         analytics.track("deeptutor_first_answer_done", {
@@ -1566,11 +1577,16 @@ Page({
       if (!normalized) return;
       var state = normalized.state;
       var u = normalized.updates;
-      u["messages[" + idx + "].streaming"] = false;
       renderedAnswer = !!(
         state.renderableContent ||
         (state.blocks && state.blocks.length) ||
         (state.mcqCards && state.mcqCards.length)
+      );
+      foregroundRecoveryOwner = this._pendingTurn || this._loadPendingTurn();
+      shouldRecoverFromHistory = !!(
+        !skipHistoryRecovery &&
+        !renderedAnswer &&
+        foregroundRecoveryOwner
       );
       if (renderedAnswer && wasFirstAnswerPending) {
         trackBehavior("chat_first_answer_rendered", {
@@ -1585,14 +1601,13 @@ Page({
           result: "success",
         });
       }
-      if (renderedAnswer) {
-        u["messages[" + idx + "].thinkingStatus"] = "";
-        u["messages[" + idx + "].thinkingBadge"] = "";
-        u["messages[" + idx + "].thinkingSub"] = "";
-        u["messages[" + idx + "].thinkingTone"] = "";
+      if (wasRecoveringTurn || shouldRecoverFromHistory) {
+        u["messages[" + idx + "].streaming"] = false;
+        u.isStreaming = false;
+        u.canStopStream = false;
+      } else {
+        this._mergeVisibleAnswerSettledUpdates(idx, u);
       }
-      u.isStreaming = false;
-      u.canStopStream = false;
       if (this._autoScrollEnabled) {
         u.scrollToId = "msg-bottom";
         u.chatScrollWithAnimation = false;
@@ -1638,7 +1653,16 @@ Page({
       this._recoveringTurn = true;
       return;
     }
-    if (!skipHistoryRecovery && !renderedAnswer && (this._pendingTurn || this._loadPendingTurn())) {
+    if (
+      shouldRecoverFromHistory ||
+      (
+        !skipHistoryRecovery &&
+        !renderedAnswer &&
+        (this._pendingTurn || this._loadPendingTurn())
+      )
+    ) {
+      foregroundRecoveryOwner =
+        foregroundRecoveryOwner || this._pendingTurn || this._loadPendingTurn();
       var recoverySelf = this;
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
@@ -1648,15 +1672,20 @@ Page({
         keepPendingOnExhausted: true,
         hydrateOnExhausted: false,
       }).then(function (recovered) {
-        recoverySelf._pendingRecoveryActive = false;
-        if (!recovered) {
-          recoverySelf._recoveringTurn = false;
-          recoverySelf._continuePendingTurnRecoveryInBackground();
+        if (
+          recovered ||
+          !recoverySelf._isPendingTurnCurrent(foregroundRecoveryOwner)
+        ) {
+          return;
         }
-      }, function () {
         recoverySelf._pendingRecoveryActive = false;
         recoverySelf._recoveringTurn = false;
-        recoverySelf._continuePendingTurnRecoveryInBackground();
+        recoverySelf._continuePendingTurnRecoveryInBackground(recoveryMessageId);
+      }, function () {
+        if (!recoverySelf._isPendingTurnCurrent(foregroundRecoveryOwner)) return;
+        recoverySelf._pendingRecoveryActive = false;
+        recoverySelf._recoveringTurn = false;
+        recoverySelf._continuePendingTurnRecoveryInBackground(recoveryMessageId);
       });
       return;
     }
@@ -1667,6 +1696,12 @@ Page({
   _onError: function (m) {
     var self = this;
     var failedStreamId = this._streamId;
+    var recoveryOwner = this._pendingTurn || this._loadPendingTurn();
+    var failedIdxAtStart = this._find(failedStreamId);
+    var failedClientTurnId =
+      failedIdxAtStart !== -1 && this.data.messages[failedIdxAtStart]
+        ? this.data.messages[failedIdxAtStart].clientTurnId || ""
+        : "";
     this._recoveringTurn = true;
     this.setData({ canStopStream: false });
     var idx = this._find(failedStreamId);
@@ -1689,6 +1724,34 @@ Page({
         wx.showToast({ title: "已恢复本轮回答", icon: "none" });
         return;
       }
+      if (
+        recoveryOwner
+          ? !self._isPendingTurnCurrent(recoveryOwner)
+          : (function () {
+              if (
+                self._streamId !== null &&
+                self._streamId !== failedStreamId
+              ) {
+                return true;
+              }
+              if (
+                self._pendingTurn &&
+                self._pendingTurn.clientTurnId !== failedClientTurnId
+              ) {
+                return true;
+              }
+              var currentIdx = self._find(failedStreamId);
+              var currentMsg =
+                currentIdx !== -1 ? self.data.messages[currentIdx] : null;
+              return (
+                !failedClientTurnId ||
+                !currentMsg ||
+                currentMsg.clientTurnId !== failedClientTurnId
+              );
+            })()
+      ) {
+        return;
+      }
 
       self._recoveringTurn = false;
       var failedIdx = self._find(failedStreamId);
@@ -1706,6 +1769,7 @@ Page({
         self._setWorkflowState(failedIdx, failedState, false);
       }
       self._onDone({ skipHistoryRecovery: true });
+      self._settleRecoveryIndicator(failedStreamId);
       self._clearPendingTurn();
       if (self._isBillingBlockedMessage(m)) {
         self._showPaywall({
@@ -1940,6 +2004,15 @@ Page({
     updates["messages[" + idx + "].thinkingTone"] = "";
     updates.isStreaming = false;
     updates.canStopStream = false;
+  },
+
+  _settleRecoveryIndicator: function (messageId) {
+    if (!messageId) return;
+    var idx = this._find(messageId);
+    if (idx === -1) return;
+    var updates = {};
+    this._mergeVisibleAnswerSettledUpdates(idx, updates);
+    this.setData(updates);
   },
 
   _buildAiMessageUpdates: function (idx, opts) {
@@ -2565,12 +2638,21 @@ Page({
     }
     var candidateSessionId = String(self._convId || self._sid || "").trim();
     var streamSessionId = isLocalDraftSessionId(candidateSessionId) ? "" : candidateSessionId;
+    self._recoveringTurn = false;
+    self._pendingRecoveryActive = false;
 
     // 每次发消息只做低频续期，避免把同步落盘放到高频流式路径里
     if (streamSessionId) {
       self._scheduleSessionPersist(false);
     }
 
+    // 同一轮消息在网络重连时复用同一个客户端侧标识。
+    var _turnId =
+      self._sid +
+      "_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random().toString(36).substr(2, 4);
     var userMsg = { id: "u" + self._counter++, role: "user", content: query };
     if (sendOptions.followupQuestionContext && typeof sendOptions.followupQuestionContext === "object") {
       userMsg.followupQuestionContext = sendOptions.followupQuestionContext;
@@ -2584,6 +2666,7 @@ Page({
     var aiMsg = {
       id: "a" + self._counter++,
       role: "ai",
+      clientTurnId: _turnId,
       content: "",
       renderableContent: "",
       streaming: true,
@@ -2632,13 +2715,6 @@ Page({
       existing = existing.slice(existing.length - (MAX_MESSAGES - messageReserve));
     }
     var msgs = reuseUserMessage ? existing.concat([aiMsg]) : existing.concat([userMsg, aiMsg]);
-    // 同一轮消息在网络重连时复用同一个客户端侧标识。
-    var _turnId =
-      self._sid +
-      "_" +
-      Date.now().toString(36) +
-      "_" +
-      Math.random().toString(36).substr(2, 4);
     var pendingDraft = {
       baselineCount: existing.length,
       query: query,

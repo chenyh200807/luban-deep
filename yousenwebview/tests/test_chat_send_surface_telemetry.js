@@ -103,7 +103,22 @@ function loadChatPage() {
           warn: function () {},
         };
       }
-      if (request === "../../utils/workflow-status") return {};
+      if (request === "../../utils/workflow-status") {
+        return {
+          summarizeWorkflow: function (_entries, active) {
+            return {
+              badge: "",
+              headline: "",
+              subline: "",
+              meta: "",
+              countText: "",
+              toggleText: "查看处理摘要",
+              tone: active === false ? "compose" : "analyze",
+              active: active !== false,
+            };
+          },
+        };
+      }
       if (request === "../../utils/citation-format") return {};
       if (request === "../../utils/chat-turn-recovery") return {};
       if (request === "../../utils/devtools-markdown-fixtures") return {};
@@ -183,6 +198,15 @@ function loadChatPage() {
     }),
     setData: function (next) {
       this.data = Object.assign({}, this.data, next || {});
+      var messages = (this.data.messages || []).slice();
+      Object.keys(next || {}).forEach(function (key) {
+        var match = /^messages\[(\d+)\]\.([A-Za-z0-9_]+)$/.exec(key);
+        if (!match) return;
+        var idx = Number(match[1]);
+        messages[idx] = Object.assign({}, messages[idx] || {});
+        messages[idx][match[2]] = next[key];
+      });
+      this.data.messages = messages;
     },
   };
   Object.keys(pageDef || {}).forEach(function (key) {
@@ -232,6 +256,41 @@ function loadChatPage() {
       loaded.streamCalls.length === 1 &&
         loaded.streamCalls[0].sessionId === "tb_conv_001",
       "_doSend should continue into ws stream after telemetry",
+    );
+    assert(
+      loaded.page.data.messages[1].clientTurnId ===
+        loaded.streamCalls[0].clientTurnId,
+      "loading message must carry the exact client turn id sent to transport",
+    );
+  });
+
+  await run("new turn should take ownership instead of inheriting recovery flags", async function () {
+    var loaded = loadChatPage();
+    loaded.page._sid = "tb_conv_new_owner";
+    loaded.page._convId = "tb_conv_new_owner";
+    loaded.page._recoveringTurn = true;
+    loaded.page._pendingRecoveryActive = true;
+
+    loaded.page._doSend("新问题");
+
+    var streamId = loaded.page._streamId;
+    var idx = loaded.page._find(streamId);
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: { renderableContent: "新回答", blocks: [], mcqCards: [] },
+        updates: {
+          ["messages[" + idx + "].renderableContent"]: "新回答",
+        },
+      };
+    };
+    loaded.page._onDone();
+
+    assert(
+      loaded.page._recoveringTurn === false &&
+        loaded.page._pendingRecoveryActive === false &&
+        loaded.page.data.messages[idx].thinkingStatus === "" &&
+        loaded.page.data.messages[idx].renderableContent === "新回答",
+      "new visible answer must settle without inheriting an old recovery owner",
     );
   });
 
@@ -523,7 +582,13 @@ function loadChatPage() {
       this._pendingTurn = null;
     };
     loaded.page.setData({
-      messages: [{ id: "a-empty", role: "ai", content: "", streaming: true }],
+      messages: [{
+        id: "a-empty",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "正在深度分析…",
+      }],
       isStreaming: true,
       canStopStream: true,
     });
@@ -543,7 +608,343 @@ function loadChatPage() {
         loaded.page._pendingTurn.clientTurnId === "client_done_empty_1",
       "empty terminal recovery should keep pending identity until recovery finishes",
     );
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "正在深度分析…",
+      "empty done must keep the working animation while canonical history recovery is active",
+    );
     assert(!cleared, "empty terminal recovery should not clear pending synchronously");
+  });
+
+  await run("transport done during history recovery should keep the working animation", async function () {
+    var loaded = loadChatPage();
+
+    loaded.page._recoveringTurn = true;
+    loaded.page._streamId = "a-recovering";
+    loaded.page._find = function (id) {
+      return id === "a-recovering" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-recovering",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "连接中断，正在同步本轮回答…",
+      }],
+      isStreaming: true,
+      canStopStream: false,
+    });
+
+    loaded.page._onDone();
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "连接中断，正在同步本轮回答…",
+      "transport completion must not hide an indicator owned by active history recovery",
+    );
+  });
+
+  await run("background recovery exhaustion should settle the working animation", async function () {
+    var loaded = loadChatPage();
+
+    loaded.page._pendingTurn = { clientTurnId: "client_background_exhausted" };
+    loaded.page._isPendingTurnCurrent = function () {
+      return true;
+    };
+    loaded.page._recoverTurnFromHistory = function () {
+      return Promise.resolve(false);
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-background-exhausted",
+        role: "ai",
+        content: "",
+        streaming: false,
+        thinkingStatus: "正在同步本轮回答…",
+      }],
+      isStreaming: false,
+      canStopStream: false,
+    });
+
+    loaded.page._continuePendingTurnRecoveryInBackground("a-background-exhausted");
+    await flushPromises();
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "",
+      "the final recovery attempt must remove its working animation when polling stops",
+    );
+  });
+
+  await run("unowned startup recovery must not settle a newer turn indicator", async function () {
+    var loaded = loadChatPage();
+
+    loaded.page._pendingTurn = { clientTurnId: "client_stale_startup_recovery" };
+    loaded.page._isPendingTurnCurrent = function () {
+      return true;
+    };
+    loaded.page._recoverTurnFromHistory = function () {
+      return Promise.resolve(false);
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-newer-turn",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "正在回答新问题…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._continuePendingTurnRecoveryInBackground();
+    await flushPromises();
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "正在回答新问题…",
+      "a recovery without an owned message id must not guess and clear a newer turn",
+    );
+  });
+
+  await run("stale recovery must not settle a reused message id from a newer turn", async function () {
+    var loaded = loadChatPage();
+    var oldOwner = {
+      conversationId: "conv_old",
+      clientTurnId: "client_old",
+      createdAt: 100,
+    };
+
+    loaded.page._pendingTurn = oldOwner;
+    loaded.page._recoverTurnFromHistory = function () {
+      return Promise.resolve(false);
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-reused",
+        role: "ai",
+        content: "",
+        streaming: false,
+        thinkingStatus: "旧轮次仍在恢复…",
+      }],
+    });
+
+    loaded.page._continuePendingTurnRecoveryInBackground("a-reused");
+    loaded.page._pendingTurn = {
+      conversationId: "conv_new",
+      clientTurnId: "client_new",
+      createdAt: 200,
+    };
+    loaded.page._pendingRecoveryActive = true;
+    loaded.page._recoveringTurn = true;
+    loaded.page.setData({
+      messages: [{
+        id: "a-reused",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "正在回答新问题…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+    await flushPromises();
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "正在回答新问题…" &&
+        loaded.page._pendingRecoveryActive === true &&
+        loaded.page._recoveringTurn === true,
+      "stale recovery must not settle the message or mutate recovery flags owned by a newer turn",
+    );
+  });
+
+  await run("stale foreground recovery must not launch background work for a newer turn", async function () {
+    var loaded = loadChatPage();
+    var resolveRecovery = null;
+    var backgroundCalls = 0;
+
+    loaded.page._pendingTurn = {
+      conversationId: "conv_foreground_old",
+      clientTurnId: "client_foreground_old",
+      createdAt: 400,
+      baselineCount: 0,
+      query: "旧问题",
+    };
+    loaded.page._streamId = "a-foreground-old";
+    loaded.page._find = function (id) {
+      return id === "a-foreground-old" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: { renderableContent: "", blocks: [], mcqCards: [] },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function () {
+      return new Promise(function (resolve) {
+        resolveRecovery = resolve;
+      });
+    };
+    loaded.page._continuePendingTurnRecoveryInBackground = function () {
+      backgroundCalls += 1;
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-foreground-old",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "正在同步旧回答…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+    loaded.page._pendingTurn = {
+      conversationId: "conv_foreground_new",
+      clientTurnId: "client_foreground_new",
+      createdAt: 500,
+    };
+    loaded.page._pendingRecoveryActive = true;
+    loaded.page._recoveringTurn = true;
+    resolveRecovery(false);
+    await flushPromises();
+
+    assert(
+      backgroundCalls === 0 &&
+        loaded.page._pendingRecoveryActive === true &&
+        loaded.page._recoveringTurn === true,
+      "an old foreground recovery must not mutate or continue work owned by a newer turn",
+    );
+  });
+
+  await run("startup foreground recovery must recheck owner before background continuation", async function () {
+    var loaded = loadChatPage();
+    var resolveRecovery = null;
+    var backgroundCalls = 0;
+
+    loaded.page._pendingTurn = {
+      conversationId: "conv_startup_old",
+      clientTurnId: "client_startup_old",
+      createdAt: 600,
+    };
+    loaded.page._loadPendingTurn = function () {
+      return this._pendingTurn;
+    };
+    loaded.page._recoverTurnFromHistory = function () {
+      return new Promise(function (resolve) {
+        resolveRecovery = resolve;
+      });
+    };
+    loaded.page._continuePendingTurnRecoveryInBackground = function () {
+      backgroundCalls += 1;
+    };
+
+    loaded.page._startPendingTurnBackgroundRecovery();
+    loaded.page._pendingTurn = {
+      conversationId: "conv_startup_new",
+      clientTurnId: "client_startup_new",
+      createdAt: 700,
+    };
+    loaded.page._pendingRecoveryActive = true;
+    loaded.page._recoveringTurn = true;
+    resolveRecovery(false);
+    await flushPromises();
+
+    assert(
+      backgroundCalls === 0 &&
+        loaded.page._pendingRecoveryActive === true &&
+        loaded.page._recoveringTurn === true,
+      "startup recovery must not bridge an old owner into the current turn",
+    );
+  });
+
+  await run("done with a visible answer should settle content and animation together", async function () {
+    var loaded = loadChatPage();
+
+    loaded.page._streamId = "a-visible";
+    loaded.page._find = function (id) {
+      return id === "a-visible" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "已完成",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {
+          "messages[0].renderableContent": "已完成",
+        },
+      };
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-visible",
+        role: "ai",
+        content: "已完成",
+        streaming: true,
+        thinkingStatus: "正在生成回答…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+
+    assert(
+      loaded.page.data.messages[0].renderableContent === "已完成" &&
+        loaded.page.data.messages[0].thinkingStatus === "" &&
+        loaded.page.data.isStreaming === false,
+      "visible answer completion must preserve content while settling the animation",
+    );
+  });
+
+  await run("stopped turn terminal should clear the working animation", async function () {
+    var loaded = loadChatPage();
+
+    loaded.page._streamId = "a-stopped";
+    loaded.page._find = function (id) {
+      return id === "a-stopped" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-stopped",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "正在停止本轮分析…",
+      }],
+      isStreaming: true,
+      canStopStream: false,
+    });
+
+    loaded.page._onDone({ skipHistoryRecovery: true });
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "" &&
+        loaded.page.data.isStreaming === false,
+      "cancel terminal must settle the turn and remove the working animation",
+    );
   });
 
   await run("empty terminal recovery exhaustion should keep pending identity", async function () {
@@ -647,7 +1048,13 @@ function loadChatPage() {
       this._pendingTurn = null;
     };
     loaded.page.setData({
-      messages: [{ id: "a-error-empty", role: "ai", content: "", streaming: true }],
+      messages: [{
+        id: "a-error-empty",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "连接中断，正在同步本轮回答…",
+      }],
       isStreaming: true,
       canStopStream: true,
     });
@@ -661,6 +1068,250 @@ function loadChatPage() {
     );
     assert(cleared, "exhausted error recovery should clear pending so the composer unlocks");
     assert(loaded.page.data.isStreaming === false, "exhausted error recovery should stop streaming UI");
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "",
+      "exhausted error recovery must remove the working animation",
+    );
+  });
+
+  await run("error exhaustion after transport done should settle the owned indicator", async function () {
+    var loaded = loadChatPage();
+    var resolveRecovery = null;
+    var pending = {
+      conversationId: "conv_error_done_race",
+      clientTurnId: "client_error_done_race",
+      createdAt: 300,
+      baselineCount: 0,
+      query: "错误交错",
+    };
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._streamId = "a-error-done-race";
+    loaded.page._find = function (id) {
+      return id === "a-error-done-race" ? 0 : -1;
+    };
+    loaded.page._buildWorkflowState = function () {
+      return {};
+    };
+    loaded.page._setWorkflowState = function () {};
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function () {
+      return new Promise(function (resolve) {
+        resolveRecovery = resolve;
+      });
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-error-done-race",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "连接中断，正在同步本轮回答…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onError("连接失败");
+    loaded.page._onDone();
+    assert(
+      loaded.page.data.messages[0].thinkingStatus !== "",
+      "transport done must keep the indicator while error recovery still owns the turn",
+    );
+
+    resolveRecovery(false);
+    await flushPromises();
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "",
+      "error recovery exhaustion must settle its indicator even after transport done cleared the stream id",
+    );
+  });
+
+  await run("pre-start error should settle by client turn ownership", async function () {
+    var loaded = loadChatPage();
+
+    loaded.page._pendingTurn = null;
+    loaded.page._loadPendingTurn = function () {
+      return null;
+    };
+    loaded.page._streamId = "a-pre-start-error";
+    loaded.page._find = function (id) {
+      return id === "a-pre-start-error" ? 0 : -1;
+    };
+    loaded.page._buildWorkflowState = function () {
+      return {};
+    };
+    loaded.page._setWorkflowState = function () {};
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: { renderableContent: "", blocks: [], mcqCards: [] },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function () {
+      return Promise.resolve(false);
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-pre-start-error",
+        clientTurnId: "client-pre-start-error",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "正在建立连接…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onError("建立连接失败");
+    loaded.page._onDone();
+    await flushPromises();
+
+    assert(
+      loaded.page.data.messages[0].thinkingStatus === "",
+      "an error before onStarted must settle the exact client-owned loading message",
+    );
+  });
+
+  await run("old pre-start error must not terminate a newer stream", async function () {
+    var loaded = loadChatPage();
+    var resolveOldRecovery = null;
+
+    loaded.page._pendingTurn = null;
+    loaded.page._loadPendingTurn = function () {
+      return this._pendingTurn;
+    };
+    loaded.page._streamId = "a-old-pre-start";
+    loaded.page._find = function (id) {
+      var messages = this.data.messages || [];
+      for (var i = 0; i < messages.length; i++) {
+        if (messages[i] && messages[i].id === id) return i;
+      }
+      return -1;
+    };
+    loaded.page._buildWorkflowState = function () {
+      return {};
+    };
+    loaded.page._setWorkflowState = function () {};
+    loaded.page._recoverTurnFromHistory = function () {
+      return new Promise(function (resolve) {
+        resolveOldRecovery = resolve;
+      });
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-old-pre-start",
+        clientTurnId: "client-old-pre-start",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "旧轮次连接中…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onError("旧轮次失败");
+    loaded.page._sid = "conv_new_after_pre_start";
+    loaded.page._convId = "conv_new_after_pre_start";
+    loaded.page._doSend("新问题");
+    var newStreamId = loaded.page._streamId;
+    var newPending = loaded.page._pendingTurn;
+    var newIdx = loaded.page._find(newStreamId);
+
+    resolveOldRecovery(false);
+    await flushPromises();
+
+    assert(
+      loaded.page._streamId === newStreamId &&
+        loaded.page._pendingTurn === newPending &&
+        loaded.page.data.messages[newIdx].thinkingStatus !== "",
+      "an old pre-start recovery callback must not terminate the newer owned stream",
+    );
+  });
+
+  await run("old pre-start error must not clear a newer pending recovery", async function () {
+    var loaded = loadChatPage();
+    var resolveOldRecovery = null;
+
+    loaded.page._pendingTurn = null;
+    loaded.page._loadPendingTurn = function () {
+      return this._pendingTurn;
+    };
+    loaded.page._streamId = "a-old-before-new-recovery";
+    loaded.page._find = function (id) {
+      var messages = this.data.messages || [];
+      for (var i = 0; i < messages.length; i++) {
+        if (messages[i] && messages[i].id === id) return i;
+      }
+      return -1;
+    };
+    loaded.page._buildWorkflowState = function () {
+      return {};
+    };
+    loaded.page._setWorkflowState = function () {};
+    loaded.page._recoverTurnFromHistory = function () {
+      return new Promise(function (resolve) {
+        resolveOldRecovery = resolve;
+      });
+    };
+    loaded.page.setData({
+      messages: [{
+        id: "a-old-before-new-recovery",
+        clientTurnId: "client-old-before-new-recovery",
+        role: "ai",
+        content: "",
+        streaming: true,
+        thinkingStatus: "旧轮次连接中…",
+      }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onError("旧轮次失败");
+    var newPending = {
+      conversationId: "conv_new_pending_recovery",
+      clientTurnId: "client_new_pending_recovery",
+      createdAt: 800,
+    };
+    loaded.page._pendingTurn = newPending;
+    loaded.page._streamId = null;
+    loaded.page._pendingRecoveryActive = true;
+    loaded.page._recoveringTurn = true;
+    loaded.page.setData({
+      messages: loaded.page.data.messages.concat([{
+        id: "a-new-pending-recovery",
+        clientTurnId: "client_new_pending_recovery",
+        role: "ai",
+        content: "",
+        streaming: false,
+        thinkingStatus: "正在恢复新问题…",
+      }]),
+      isStreaming: false,
+      canStopStream: false,
+    });
+
+    resolveOldRecovery(false);
+    await flushPromises();
+
+    assert(
+      loaded.page._pendingTurn === newPending &&
+        loaded.page._pendingRecoveryActive === true &&
+        loaded.page._recoveringTurn === true &&
+        loaded.page.data.messages[1].thinkingStatus === "正在恢复新问题…",
+      "an old pre-start callback must not clear a newer pending recovery after its stream id is null",
+    );
   });
 
   if (fail) {
