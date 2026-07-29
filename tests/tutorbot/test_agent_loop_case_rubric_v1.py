@@ -181,6 +181,7 @@ def _tool_aware_provider():
             self.calls += 1
             self.tools_seen.append(len(tools or []))
             self.tool_choices_seen.append(tool_choice)
+            self.max_tokens_seen = max_tokens
             if tools and tool_choice != "none":
                 return LLMResponse(
                     content="继续调用工具",
@@ -220,6 +221,10 @@ async def test_exhausted_tool_budget_runs_closure_round_and_synthesizes_answer(t
     )
 
     assert provider.calls == 3  # 2 budgeted search rounds + 1 closure round
+    # Deep answers use the wired 8192 cap (AgentDefaults.max_tokens was dead
+    # config; provider GenerationSettings default 4096 truncates long
+    # multi-subquestion closure answers).
+    assert provider.max_tokens_seen == 8192
     # Closure round keeps the tools block (prompt-cache prefix stability) and
     # relies on server-enforced tool_choice="none".
     assert provider.tools_seen == [1, 1, 1]
@@ -328,17 +333,25 @@ async def test_single_round_policy_keeps_tools_and_budget_semantics(tmp_path) ->
 
 
 @pytest.mark.asyncio
-async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_search(
+async def test_prefetch_round_seeds_saturation_and_first_round_keeps_rag(
     tmp_path,
 ) -> None:
+    """收权回归（2026-07-29）：防冗余检索的唯一权威是 rag_saturation。
+    ①首轮不再暗藏 rag（旧的 prefetched_rag_satisfied 首轮抑制曾让模型白烧一轮吃
+    "Tool 'rag' is not available"，生产事故实证）；②预取轮播种进 saturation 账本，
+    模型复读预取 query 时立即饱和，下一轮才摘 rag。"""
     from deeptutor.tutorbot.agent.tools.base import Tool
     from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
     from deeptutor.tutorbot.bus.queue import MessageBus
-    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
     captured: dict[str, list[list[str]]] = {"tool_name_sets": []}
 
-    class CapturingProvider(LLMProvider):
+    class ReplayingProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
         async def chat(
             self,
             messages: list[dict[str, Any]],
@@ -350,16 +363,52 @@ async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_
             tool_choice: str | dict[str, Any] | None = None,
             on_content_delta=None,
         ) -> LLMResponse:
+            self.calls += 1
             captured["tool_name_sets"].append(
                 [
                     str(item.get("function", {}).get("name") or "")
                     for item in list(tools or [])
                 ]
             )
+            if self.calls == 1:
+                # 复读预取 query（相似度 1.0、源重合 1.0）→ 应触发饱和。
+                return LLMResponse(
+                    content=None,
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_1",
+                            name="rag",
+                            arguments={"query": "临时用水 消火栓间距 排水坡度"},
+                        )
+                    ],
+                )
             return LLMResponse(content="基于已召回证据回答。")
 
         def get_default_model(self) -> str:
             return "fake-model"
+
+    class TracingRagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "dummy"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "重复证据"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {"sources": [{"chunk_id": "S1"}, {"chunk_id": "S2"}]}
 
     class DummyTool(Tool):
         def __init__(self, name: str) -> None:
@@ -386,7 +435,7 @@ async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_
 
     loop = AgentLoop(
         bus=MessageBus(),
-        provider=CapturingProvider(),
+        provider=ReplayingProvider(),
         workspace=tmp_path,
         session_manager=SimpleNamespace(
             get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
@@ -394,40 +443,47 @@ async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_
         ),
     )
     loop.tools = TutorBotToolRegistry()
-    loop.tools.register(DummyTool("rag"))
+    loop.tools.register(TracingRagTool())
     loop.tools.register(DummyTool("web_search"))
     metadata = {
         "default_tools": ["rag", "web_search"],
         "prefetched_rag_satisfied": True,
+        "_latest_rag_trace_metadata": {
+            "rag_round": {
+                "round_index": 1,
+                "query": "临时用水 消火栓间距 排水坡度",
+                "sources": [{"chunk_id": "S1"}, {"chunk_id": "S2"}],
+            }
+        },
     }
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
-        [
-            {"role": "user", "content": "案例题采分点怎么答？"},
-            {
-                "role": "assistant",
-                "tool_calls": [
-                    {
-                        "id": "prefetch-rag-1",
-                        "type": "function",
-                        "function": {"name": "rag", "arguments": "{}"},
-                    }
-                ],
-            },
-            {
-                "role": "tool",
-                "tool_call_id": "prefetch-rag-1",
-                "name": "rag",
-                "content": "标准采分点：先编制方案，再审批交底。",
-            },
-        ],
+        [{"role": "user", "content": "案例题采分点怎么答？"}],
         runtime_metadata=metadata,
     )
 
     assert final_content == "基于已召回证据回答。"
-    assert tools_used == []
-    assert captured["tool_name_sets"] == [["web_search"]]
-    assert metadata["prefetched_rag_suppressed_first_loop"] is True
+    # ①首轮 rag 保持在工具列表里（不再暗藏）。
+    assert captured["tool_name_sets"][0] == ["rag", "web_search"]
+    # ②复读预取 query 的调用被执行一次后触发饱和，下一轮 rag 被摘除。
+    assert tools_used == ["rag"]
+    assert captured["tool_name_sets"][1] == ["web_search"]
+    assert "prefetched_rag_suppressed_first_loop" not in metadata
+    # ③饱和必须显式告知模型（不许无声藏工具——重试跑步机的根源），
+    # 且只注入一次。
+    notices = [
+        item
+        for item in _messages
+        if item.get("role") == "system" and "检索已饱和" in str(item.get("content") or "")
+    ]
+    assert len(notices) == 1
+    # ④协议序列不变量（review B-1）：assistant(tool_calls) 后必须紧跟其全部
+    # tool 结果，任何 system 消息不得插入中间——OpenAI-strict provider 会 400。
+    for idx, item in enumerate(_messages):
+        if item.get("role") == "assistant" and item.get("tool_calls"):
+            tool_call_count = len(item["tool_calls"])
+            followers = _messages[idx + 1 : idx + 1 + tool_call_count]
+            assert [f.get("role") for f in followers] == ["tool"] * tool_call_count
 
 
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:

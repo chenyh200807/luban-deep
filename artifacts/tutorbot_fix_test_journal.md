@@ -9,6 +9,17 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-29 - 案例题链路四路举一反三：预取抑制收权+饱和告知+max_tokens接线+流式覆写后缀豁免
+
+- 问题：owner 要求对"案例题作答=核心亮点"做系统性举一反三。四路专家并行（注入源测绘/检索层设计/生产量化/收口层扫描）确认四个新病灶：①7/6 引入的预取成功首轮暗藏 rag——模型不知情仍调用，白烧 1/4 轮预算吃 "Tool 'rag' is not available"（生产 6/125 trace 命中、单 turn 最多 9 次回灌、4 轮打满的 turn 75% 拒答），且轮间工具列表变化打断 provider prompt cache——**恰恰违反 PR#583 收束轮自己立的"工具列表不变保 cache 前缀"不变量**；②饱和/抑制摘工具从不告知模型=重试跑步机根源；③deep 路真实 max_tokens=4096 而非 8192——config/schema.py AgentDefaults.max_tokens=8192 是从未接线的死配置，5 小问收束长答案（~4000 token）几乎贴顶，"预算病向截断病转移"的风险比 journal 预估高一倍；④turn_runtime 非失败 RESULT 用累计流文本覆写 response（turn.md:144 防异源 stale 覆盖，立法正当）且发生在权威内容提取之前——**PR#583 的独白剥离器在公共投影上被整个回冲抵消**（D 路 agent 标注"未核实"，主线程亲核坐实）。
+- 根因（shared shape）：①②同属"无声藏工具"（dormant tool ≠ removed tool：从 schema 摘除但不告知，模型的正确判断被变成惩罚）；防冗余检索存在两个权威（7/6 首轮硬藏=粗粒度结构层 vs rag_saturation=细粒度信号层判别器）→ 收权到后者。③是 dead-config 假象（写了 8192 无 runtime reader）。④是两条契约相撞：终态=学生所见流 vs 终态不得含独白——真不变量是"终态不得与学生所见**异源**"，剥离产物是同源流的**后缀**。
+- 失败尝试 / 被否决方案：①否决"抑制时加告知消息"（保留两套防冗余权威+第三个补丁消息，cache 照断）；②否决"整轮 budget refund"（新增 loop 计数决策点，与收束轮 loop_limit 纠缠）；③否决"流式覆写处复用剥离正则二次剥离"（剥离逻辑出现第二消费者=权威分裂）。
+- 成功修法：`loop.py`①删预取首轮抑制分支+`_prefetched_rag_satisfied`（无消费者退役），预取轮从 `_latest_rag_trace_metadata.rag_round` 播种进 saturation 账本——复读预取 query 的首轮 in-loop rag 即 round_index=2 立即饱和；②饱和首次触发时显式 system 告知"rag 已停用请收口作答"；unadvertised 工具错误文案改为可执行指令（"不要再调用该工具；基于已有证据作答"）；③新增 `_DEEP_ANSWER_MAX_TOKENS=8192` 接线到主循环+repair 两个调用点（激活死配置本意）；预取消息补"补充检索换新词、多小问可同轮并行多条检索"。`turn_runtime.py`④`_replace_public_result_response_with_stream` 加同源后缀豁免：既有 response 是流文本严格后缀时保留 finalize 权威产物；异源替换保护原样。`contracts/turn.md` 同步后缀豁免条款。
+- 验证：播种回归测试（首轮 rag 保持在列+复读即饱和+饱和告知消息存在）、max_tokens=8192 断言、后缀豁免正反两用例；受影响套件 104 passed（1 deselect 既有失败）；capabilities_runtime -k 选集 5 failed 经基线单跑对照=既有 SimpleNamespace-await fixture 家族（07-15 journal 已记录），零新增。**live 未回归**。
+- 生产量化基线（14d n=125，7d n=46，样本掺 07-15/16 走查流量）：拒答 3/125（deep 模式 3/18=16.7%，案例大题 3/6，4 轮打满 3/4）；讲义硬误注入 22.6%（7d 33.3%）、含"注入目录/分值页"的无用注入 46.8%——**误注入与拒答是同一条因果链**（3 条拒答同时是误注入）；`actual_tool_rounds` 埋点 125/125 恒 0（坏埋点，轮数故障在指标面不可见）；拒答 turn 均价 $0.126=fast 的 6.5 倍。
+- 同病登记（待修，按爆炸半径排序）：①**基坑 5m 对**（teaching_modes.py `5(?:\.0)?\s*m` 无边界正则匹配"4.5m"+出口侧整篇替换为写死的别题罐头"从8m改为5m"——比讲义 overlay 更狠，A 路实锤，下一 PR）；②general_knowledge overlay n-gram 碎片打分无锚门（cohort 旗标压着，放量前必须补 PR#584 同款收权）；③`actual_tool_rounds` 坏埋点；④讲义检索召回"目录/分值页"（WEAK 注入 24%，供给侧）；⑤连续性锚点"继续"碎片触发+陈旧 state_snapshot 强塞；⑥case fallback 数字成员判定整篇替换；⑦subagent/team/solver 三处耗尽模板（D 路已核消费链：subagent 模板会被主 agent 转述成假绿；solver 静默标 completed 直接进 Writer）。
+- 教训：**摘工具必须告知模型**——对模型不可见的结构性限制，会把模型的正确判断（证据不足需检索）变成对用户的惩罚（烧预算+拒答）；dead config 是双重危险（读代码的人以为保护存在）；两条契约相撞时先找各自的真不变量，交集处往往有无损解。
+
 ## 2026-07-29 - 讲义答法误路由：数字碎片 token 把无关讲义以 high 档注入案例题（同事故第一层病因）
 
 - 问题：同 session `unified_1785314628533_23c29374` 深挖：四轮 trace 的 prompt 从 round 1 起全部注入「第三章/变形监测点设置要求」讲义答法块（high/high 激活），且带强排他指令"只使用下列讲义出处组织采分点"——对一道临时用水案例题注入完全无关讲义，是模型 4 轮不敢收口、持续检索的重要推手（收束轮修复治了终态，此为上游病因）。
