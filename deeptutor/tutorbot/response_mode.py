@@ -65,6 +65,15 @@ def _looks_like_deep_query(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
+    # 案例题按结构形状识别，不靠关键词碰运气：生产 trace 87ad350f（2026-07-29）
+    # 549 字案例题面+单小问，恰好不含任何 strong marker、零问号，落进 default_fast
+    # 后 fast 单发（无工具）3 次空答案收场。长题面 + 「问题:」小问段 = 试卷/案例粘贴；
+    # 纯长粘贴本身也是深意图——fast 的定位是"快答速讲"，几百字题面不是速讲对象。
+    # 误判方向不对称：错进 deep 只多花几秒，错进 fast 是整轮失败。
+    if len(text) >= 120 and re.search(r"问题\s*[:：]", text):
+        return True
+    if len(text) >= 300:
+        return True
     strong_markers = (
         "案例",
         "对比",
