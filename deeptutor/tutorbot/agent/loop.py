@@ -17,6 +17,7 @@ from loguru import logger
 
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
+    build_case_grading_score_disclaimer,
     case_grading_score_authority_available,
     copy_current_case_grading_turn_metadata,
     should_demote_case_grading_hard_score,
@@ -1631,6 +1632,12 @@ class AgentLoop:
         (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
         never raises (must not break the tutorbot turn)."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # Single-invoke guard (review N-1): when the pre-mode direct path already
+        # ran V1 and failed, the finalize outer seam must not re-run the whole
+        # engine (extract/derive + judge = 1-2 extra LLM calls on identical
+        # inputs) nor let a flaky retry clobber the deep loop's diagnosis.
+        if md.get("case_grading_direct_fell_through"):
+            return None
         logger.debug(
             "LUBAN_DIAG _v1_case_render: entered md_type={} scene={} pf_eq_qid={} cg_scene={} "
             "covered_sub_keys={}",
@@ -1690,6 +1697,13 @@ class AgentLoop:
             ctx = self._build_v1_case_ctx(md, user_message)
             if ctx.get("node_code"):
                 md.setdefault("node_code", ctx.get("node_code"))
+            kb_name = str(md.get("default_kb") or "").strip() or None
+            if not kb_name:
+                knowledge_bases = md.get("knowledge_bases")
+                if isinstance(knowledge_bases, list):
+                    kb_name = next(
+                        (str(x).strip() for x in knowledge_bases if str(x or "").strip()), None
+                    )
             event = await _grade_one_case_v1(
                 ctx,
                 student_id=student_id,
@@ -1697,8 +1711,19 @@ class AgentLoop:
                 key=key,
                 _G=_G,
                 provider_authority=provider_authority,
+                kb_name=kb_name,
             )
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
+                # Observability (P0 2026-07-29): this silent None used to leave
+                # score_authority unset, making the dead open-world channel
+                # invisible in traces for four weeks. Observe-only marker; no
+                # decision consumer.
+                status = str(event.get("status") or "").strip() if isinstance(event, dict) else ""
+                reason = str(event.get("reason") or "").strip() if isinstance(event, dict) else ""
+                md["score_authority"] = (
+                    f"v1_unavailable:{status or 'no_event'}" + (f":{reason}" if reason else "")
+                )
+                md["v1_case_graded"] = False
                 return None
             md["_v1_case_graded"] = True  # defensive: downstream demote must not override
             md["v1_case_graded"] = True
@@ -1993,12 +2018,17 @@ class AgentLoop:
         )
         final_content = str((stream_plan or {}).get("final_text") or "").strip()
         if not final_content:
-            final_content = self._case_grading_no_authority_score_fallback(
-                final_content,
-                runtime_metadata=runtime_metadata,
-                user_message=current_message,
-            )
-            stream_plan = None
+            # Fall-through-to-understanding (P0 2026-07-29): a V1 operational
+            # failure (e.g. truncated derive JSON on a long pasted stem) must NOT
+            # fail closed into the static "把标准答案发来" template — the learner
+            # submitted an answer and deserves substantive per-subquestion
+            # diagnosis. Return None so the normal generation path (case-grading
+            # skill stack) produces the diagnosis; the finalize chain's
+            # no-authority policy then demotes ONLY the official-score wording.
+            # Same S4 forward-reachability principle as the practice-generation
+            # carve-out above.
+            runtime_metadata["case_grading_direct_fell_through"] = True
+            return None
         guarded_output = guard_tutorbot_output(final_content)
         guarded_content = guarded_output.content or final_content
         if guarded_content != final_content:
@@ -2071,12 +2101,30 @@ class AgentLoop:
             if isinstance(runtime_metadata, dict)
             else ""
         )
+        substantive = bool(str(final_content or "").strip())
+        # 幂等闸（review B-1）：诊断会先后过内 seam（_run_agent_loop 尾部）与外 seam
+        # （finalize 链），免责声明只许出现一次；声明自含"阅卷"会命中 demote 正则，
+        # 不加此闸则主线场景确定性双写。
+        if "评分口径说明" in str(final_content or ""):
+            return ""
         if scene == "case_grading":
             if isinstance(runtime_metadata, dict):
                 runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
                 runtime_metadata["v1_case_graded"] = False
                 runtime_metadata.setdefault("score_authority", "missing_v1_authority")
-            return build_case_grading_diagnostic_only_response(user_message)
+            # 权力/证据相称律（P0 2026-07-29）：模板只保留出生使命（不硬估官方分），
+            # 收回整篇替换权。生成路径已产出实质诊断时，只降级分数口径——追加免责
+            # 声明；零产出时模板才作为兜底整篇出场。
+            if not substantive:
+                return build_case_grading_diagnostic_only_response(user_message)
+            if should_demote_case_grading_hard_score(
+                final_content,
+                runtime_metadata=runtime_metadata,
+            ):
+                return str(final_content) + build_case_grading_score_disclaimer()
+            return ""
+        if not substantive:
+            return ""
         if not should_demote_case_grading_hard_score(
             final_content,
             runtime_metadata=runtime_metadata,
@@ -2086,7 +2134,7 @@ class AgentLoop:
             runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
             runtime_metadata["v1_case_graded"] = False
             runtime_metadata.setdefault("score_authority", "missing_v1_authority")
-        return build_case_grading_diagnostic_only_response(user_message)
+        return str(final_content) + build_case_grading_score_disclaimer()
 
     @staticmethod
     def _prefetched_case_exact_question_can_answer(runtime_metadata: dict[str, Any] | None) -> bool:

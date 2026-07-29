@@ -174,12 +174,13 @@ def test_apply_v1_or_case_fallback_is_noop_for_prefetched_branch(
 
 
 # --------------------------------------------------------------------------------------
-# 不可变 golden #3: case_grading 缺 V1 权威 → 确定性诊断模板 + runtime_metadata 副作用键
+# golden #3（P0 2026-07-29 改契约）: case_grading 缺 V1 权威 → 实质诊断保留，模板收回
+# 整篇替换权；零产出时模板才兜底。runtime_metadata 副作用键不变。
 # --------------------------------------------------------------------------------------
 def test_apply_v1_or_case_fallback_case_grading_missing_v1_authority_golden() -> None:
-    """scene=case_grading 且 V1 计划返 None(缺权威)时,``_apply_v1_or_case_fallback`` 落到
-    ``build_case_grading_diagnostic_only_response`` 确定性模板,并逐一 golden runtime_metadata
-    副作用键(v1_case_graded / score_authority / grading_engine_version)。"""
+    """scene=case_grading 且 V1 计划返 None(缺权威)时：实质诊断文本（无硬分口径）
+    原样保留（返 ''）；副作用键照写。模板只在生成路径零产出时整篇出场——
+    「不硬估官方分」(出生使命) ≠「不给任何反馈」(越权，已收回)。"""
 
     loop = _loop()
     _patch_v1_inert(loop)
@@ -190,9 +191,40 @@ def test_apply_v1_or_case_fallback_case_grading_missing_v1_authority_golden() ->
         loop._apply_v1_or_case_fallback("模型原始诊断文本", runtime_metadata=md, user_message=user_message)
     )
 
-    assert result == build_case_grading_diagnostic_only_response(user_message)
+    assert result == ""  # 实质诊断保留（链约定 '' = 保持原文）
     assert md["v1_case_graded"] is False
     assert md["score_authority"] == "missing_v1_authority"
+
+
+def test_case_grading_missing_authority_empty_content_still_gets_template() -> None:
+    """零产出兜底：生成路径什么都没给时，模板保留出生使命整篇出场。"""
+
+    loop = _loop()
+    _patch_v1_inert(loop)
+    user_message = "【题目】某工程临时用电管理问题。\n【我的作答】共用一个开关箱不妥。"
+    md: dict = {"question_lifecycle_scene": "case_grading", "user_id": "qa_loop_w5"}
+
+    result = loop._case_grading_no_authority_score_fallback(
+        "", runtime_metadata=md, user_message=user_message
+    )
+
+    assert result == build_case_grading_diagnostic_only_response(user_message)
+
+
+def test_case_grading_missing_authority_hard_score_gets_disclaimer_append() -> None:
+    """硬分口径降级：含官方分声称的实质诊断 → 追加评分口径免责声明，正文保留。"""
+
+    loop = _loop()
+    _patch_v1_inert(loop)
+    md: dict = {"question_lifecycle_scene": "case_grading", "user_id": "qa_loop_w5"}
+    content = "你的作答得8分，命中4个采分点，扣2分。"
+
+    result = loop._case_grading_no_authority_score_fallback(
+        content, runtime_metadata=md, user_message="【题目】题\n【我的作答】答"
+    )
+
+    assert result.startswith(content)
+    assert "评分口径说明" in result and "不构成官方阅卷得分" in result
     assert md["grading_engine_version"] == "luban_case_rubric_v1"
 
 
@@ -387,3 +419,23 @@ def test_strip_leading_meta_narration_never_eats_answer_bearing_first_sentence()
         "我整理了三处不妥的信息：不妥一是坡度偏小。不妥二是消火栓间距超限。",
     ):
         assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
+
+
+def test_case_grading_disclaimer_is_idempotent_across_double_seam() -> None:
+    """Review B-1 回归：诊断先后过内 seam 与外 seam，免责声明只许追加一次
+    ——声明自含"阅卷"会命中 demote 正则，无幂等闸则主线确定性双写。"""
+
+    loop = _loop()
+    md: dict = {"question_lifecycle_scene": "case_grading"}
+    content = "你的作答得8分，命中4个采分点，扣2分。"
+
+    first = loop._case_grading_no_authority_score_fallback(
+        content, runtime_metadata=md, user_message="【题目】题\n【我的作答】答"
+    )
+    assert first.count("评分口径说明") == 1
+
+    second = loop._case_grading_no_authority_score_fallback(
+        first, runtime_metadata=md, user_message="【题目】题\n【我的作答】答"
+    )
+    assert second == ""  # 幂等：已带声明的文本原样保持
+    assert ((second or first)).count("评分口径说明") == 1

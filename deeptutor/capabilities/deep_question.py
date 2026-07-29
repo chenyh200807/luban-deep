@@ -8,6 +8,7 @@ Wraps the existing ``AgentCoordinator``.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import functools
 import re
@@ -2294,6 +2295,56 @@ def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
         "false", "0", "off", "no")
 
 
+def _stem_rubric_kb_grounding_enabled() -> bool:
+    """KB 溯源 tier-3 推导（2026-07-29 升级）。默认 OFF（opt-in）。
+
+    默认值裁决依据 6 月五臂 A/B 硬数据（KNOWQL_BUILDOUT_BLUEPRINT.md:198-207）：
+    RAG grounding 在判分场景实测反而抬分（检索教材成 distractor，RAG+ref 臂
+    over-credit 0.20）。本升级虽只把证据用于 rubric 推导且有机械核验+降权护栏，
+    但"推导向检索内容漂移"与该发现同族——fail-open 罩不住质量风险。待学生军团
+    资产上 grounded vs ungrounded 判分质量 A/B 非劣后再翻 ON。"""
+    import os
+
+    return os.environ.get("LUBAN_STEM_RUBRIC_KB_GROUNDING", "").strip().lower() in (
+        "true", "1", "on", "yes")
+
+
+async def _fetch_stem_kb_evidence(
+    stem: str, kb_name: str | None, *, limit: int = 5
+) -> list[dict[str, Any]]:
+    """tier-3 推导前按题干检索教材/规范证据。三层 fail-open：异常/超时/零命中
+    一律返 []，推导退回纯 LLM 形态——检索绝不拖死刚复活的判分通道。
+    优先 textbook/standard 类源（讲义碎片会让"有据"虚胖）。"""
+    if not kb_name or not str(stem or "").strip():
+        return []
+    try:
+        result = await asyncio.wait_for(
+            rag_search(
+                _clip_text(stem, limit=900),
+                kb_name=kb_name,
+                intent="case_rubric_derivation",
+                question_type="case",
+                routing_metadata={
+                    "capability": "deep_question",
+                    "grading_kernel": "case_rubric_v1_tier3",
+                },
+            ),
+            timeout=8.0,
+        )
+        bundle = result.get("evidence_bundle") if isinstance(result, dict) else {}
+        raw_sources = (
+            (bundle or {}).get("sources")
+            or (result.get("sources") if isinstance(result, dict) else None)
+            or []
+        )
+        sources = [dict(x) for x in raw_sources if isinstance(x, dict) and str(x.get("content") or "").strip()]
+        preferred = [x for x in sources if str(x.get("source_type") or "").strip().lower() in ("textbook", "standard")]
+        return (preferred or sources)[:limit]
+    except Exception:  # noqa: BLE001 — fail-open：检索绝不拖死判分
+        logger.warning("LUBAN_V1 tier3 KB retrieval failed; deriving ungrounded", exc_info=True)
+        return []
+
+
 def _record_v1_langfuse(
     *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
 ) -> None:
@@ -2317,6 +2368,8 @@ def _record_v1_langfuse(
                     "high_risk_review": event.get("high_risk_review"),
                     "official_score_allowed": False,
                     "student_id": student_id, "question_id": qid, "cg_type": cg_type,
+                    "kb_grounding_ratio": (event.get("kb_grounding") or {}).get("ratio"),
+                    "kb_grounding_status": (event.get("kb_grounding") or {}).get("status"),
                 },
                 score_value=ratio,
                 score_comment=f"V1 {event.get('rubric_provenance')} {aw}/{mx}",
@@ -2383,6 +2436,7 @@ async def _grade_case_rubric_v1(
                 key=key,
                 _G=_G,
                 provider_authority="deepseek:https://api.deepseek.com",
+                kb_name=(context.knowledge_bases[0] if context.knowledge_bases else None),
             )
         else:
             event = await _grade_one_case_v1(
@@ -2392,6 +2446,7 @@ async def _grade_case_rubric_v1(
                 key=key,
                 _G=_G,
                 provider_authority="deepseek:https://api.deepseek.com",
+                kb_name=(context.knowledge_bases[0] if context.knowledge_bases else None),
             )
         # Gray-rollout observability: did V1 actually grade, with what provenance/score?
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
@@ -2418,6 +2473,7 @@ async def _grade_case_rubric_v1(
 async def _grade_one_case_v1(
     ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
+    kb_name: str | None = None,
 ) -> dict[str, Any] | None:
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
@@ -2473,12 +2529,18 @@ async def _grade_one_case_v1(
             # Tier 3: no official answer-key authority, but this is still a gradable learner need.
             # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
             # scoring channel. It must never be promoted to official correctness authority.
+            kb_evidence = (
+                await _fetch_stem_kb_evidence(stem, kb_name)
+                if _stem_rubric_kb_grounding_enabled()
+                else []
+            )
             points = await _G.derive_rubric_from_stem_async(
                 stem,
                 complete,
                 key,
                 model=_v1_model,
                 provider_authority=provider_authority,
+                kb_evidence=kb_evidence,
             )
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
@@ -2526,12 +2588,15 @@ async def _grade_one_case_v1(
         event["official_score_allowed"] = False
         event["high_risk_review"] = True
         event["diagnostic_score"] = True
+        if provenance == "derived_from_stem" and hasattr(_G, "summarize_kb_grounding"):
+            event["kb_grounding"] = _G.summarize_kb_grounding(event.get("scoring_points") or [])
     return event
 
 
 async def _grade_case_batch_v1(
     graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
+    kb_name: str | None = None,
 ) -> dict[str, Any] | None:
     """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
     into one case_grading_completed event (deterministic sums), so render + same-source outcome work
@@ -2556,6 +2621,7 @@ async def _grade_case_batch_v1(
             key=key,
             _G=_G,
             provider_authority=provider_authority,
+            kb_name=kb_name,
         )
         if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
             sub_events.append(ev)

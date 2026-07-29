@@ -51,7 +51,7 @@ _RUBRIC_BANK_SLOTS = {
 
 _PGO_COVERAGE_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
 _PGO_POINT_DISPLAY_SCORE_AUTHORITY = "display_allocated_from_official_total_coverage"
-_RUBRIC_EXTRACTION_PROMPT_VERSION = "rubric_extraction_prompt.v2"
+_RUBRIC_EXTRACTION_PROMPT_VERSION = "rubric_extraction_prompt.v3"
 _RUBRIC_EXTRACTION_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 
 
@@ -82,11 +82,12 @@ def _rubric_cache_key(
     question_stem: str = "",
     model: str = "",
     provider_authority: str = "",
+    kb_digest: str = "",
 ) -> str:
     payload = (
         f"{_RUBRIC_EXTRACTION_PROMPT_VERSION}\n{kind}\nmodel={model.strip()}\n"
         f"provider={provider_authority.strip()}\n"
-        f"{reference_answer.strip()}\n---stem---\n{question_stem.strip()}"
+        f"{reference_answer.strip()}\n---stem---\n{question_stem.strip()}\nkb={kb_digest}"
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -367,6 +368,10 @@ def _attach_shadow_point_provenance(
         "list_rule",
         "calculation_spec",
         "penalty_rule",
+        # KB 溯源升级（2026-07-29）：不进此透传白名单，grade_with_rubric 的
+        # point_out 会把溯源字段丢掉——设计书点名"最容易漏的一针"。
+        "textbook_ref",
+        "evidence_tier",
     ):
         value = rubric_point.get(key)
         if value:
@@ -901,10 +906,18 @@ def render_case_rubric_feedback(
             point = p if isinstance(p, dict) else {}
             status, evidence, why = _point_status_label(point)
             item = _cell(kp) or f"采分点{i}"
-            if evidence:
-                lines.append(f"- {status}：{item}（你写了：{_cell(evidence)}；{_cell(why)}）")
+            # KB 溯源升级：有据点行尾亮出教材出处；未核到的点在诊断模式下如实标注。
+            ref = point.get("textbook_ref") if isinstance(point.get("textbook_ref"), dict) else None
+            if ref and (ref.get("title") or ref.get("quote")):
+                suffix = f"（出处：{_cell(str(ref.get('title') or '教材'))}·“{_cell(str(ref.get('quote') or ''))[:40]}”）"
+            elif point.get("evidence_tier") == "llm_unverified":
+                suffix = "（未核到教材出处）"
             else:
-                lines.append(f"- {status}：{item}（{_cell(why)}）")
+                suffix = ""
+            if evidence:
+                lines.append(f"- {status}：{item}（你写了：{_cell(evidence)}；{_cell(why)}）{suffix}")
+            else:
+                lines.append(f"- {status}：{item}（{_cell(why)}）{suffix}")
         lines.append("")
         lines.append(f"**易错点：** {_group_mistake_hint(points)}")
         lines.append("")
@@ -921,7 +934,18 @@ def render_case_rubric_feedback(
     lines.append("## 判分")
     lines.append(f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。")
     if is_diagnostic_score:
-        note = "本评分为 Nexus 诊断阅卷草稿，未使用官方标准答案，需教师/题库校准后方可作为正式成绩。"
+        grounding = summarize_kb_grounding(list(event.get("scoring_points") or []))
+        if grounding.get("grounded_points"):
+            note = (
+                f"本评分为 Nexus 诊断阅卷草稿：{grounding['grounded_points']}/{grounding['total_points']} "
+                "个采分点已核到教材/规范出处（见各点），其余为 AI 推导未核出处；仍非官方评分，"
+                "需教师/题库校准后方可作为正式成绩。"
+            )
+        else:
+            note = (
+                "本评分为 Nexus 诊断阅卷草稿，未使用官方标准答案，本轮未核到教材出处，"
+                "需教师/题库校准后方可作为正式成绩。"
+            )
     else:
         note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
             else "本评分为 AI 阅卷草稿，非正式成绩。"
@@ -1561,7 +1585,8 @@ async def batch_judge_async(
     prompt = _batch_prompt(rubric_points, student_answer)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1, temperature=0)
+                                model=model, api_key=api_key, max_retries=1, temperature=0,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
         logger.warning("rubric_grader_v1: batch_judge_async LLM call failed; degrading to all-miss",
                        exc_info=True)
@@ -1728,9 +1753,33 @@ def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
     try:
         s = str(raw)
         arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
-    except Exception:  # noqa: BLE001 — malformed extract JSON -> [] (caller falls back to legacy)
-        logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
-        return []
+    except Exception:  # noqa: BLE001 — malformed extract JSON -> salvage, then [] (caller falls back)
+        # Truncation salvage (2026-07-29 生产事故 P0): a completion-cap-truncated JSON
+        # array used to fail-closed into 0 points and collapse the whole open-world
+        # grading channel to the static template. Partial points are strictly better
+        # than none — cut at the last COMPLETE object and close the array. Same
+        # parser authority; no second parser.
+        try:
+            s = str(raw)
+            start = s.find("[")
+            tail = s.rfind("}")
+            # Salvage is gated on the TRUNCATION signature — no closing "]"
+            # after the last complete object. A merely-malformed reply (prose
+            # apology with a stray brace, properly closed but invalid array)
+            # must keep failing closed, not have points invented from it.
+            if tail >= 0 and "]" in s[tail:]:
+                raise ValueError("not truncation-shaped")
+            if start >= 0 and tail > start:
+                arr = _json.loads(s[start:tail + 1] + "]")
+                logger.warning(
+                    "rubric_grader_v1: extracted-rubric JSON truncated; salvaged %d complete objects",
+                    len(arr) if isinstance(arr, list) else 0,
+                )
+            else:
+                raise ValueError("no salvageable array")
+        except Exception:  # noqa: BLE001
+            logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
+            return []
     points: list[dict[str, Any]] = []
     for i, v in enumerate(arr, 1):
         if not isinstance(v, dict):
@@ -1753,8 +1802,83 @@ def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
         question_no = _positive_int_or_none(v.get("question_no") or v.get("题号"))
         if question_no is not None:
             point["question_no"] = question_no
+        # KB 溯源升级（2026-07-29）：加性透传，无这两字段时输出与 v2 逐字节一致。
+        evidence_idx = _positive_int_or_none(v.get("evidence_idx"))
+        if evidence_idx is not None:
+            point["evidence_idx"] = evidence_idx
+        quote = str(v.get("quote") or "").strip()
+        if quote:
+            point["quote"] = quote[:120]
         points.append(point)
     return points
+
+
+def _norm_for_quote_match(text: Any) -> str:
+    """引文核验归一化：去空白+全角转半角——OCR/标点差异不应把真引用误判 unverified。"""
+    s = re.sub(r"\s+", "", str(text or ""))
+    return s.translate(str.maketrans("：；，。（）“”‘’", ":;,.()\"\"''")).lower()
+
+
+def attach_textbook_refs(
+    points: list[dict[str, Any]],
+    kb_evidence: list[dict[str, Any]],
+    *,
+    unverified_weight: float = 0.6,
+) -> list[dict[str, Any]]:
+    """机械核验 KB 溯源——绝不信 LLM 自报（自证陷阱防线）。
+
+    evidence_idx 必须落在证据集内 AND quote（规范化后）必须是该 chunk 正文的
+    子串，二者同时成立才算 ``kb_grounded`` 并挂 ``textbook_ref``；否则
+    ``llm_unverified`` 且原始分 ×unverified_weight（归一化前相对降权——caller
+    随后 normalize_points_to_nominal，总分不变，分值向有据点倾斜）。
+    kb_evidence 为空时全部 unverified 降权（诚实：零证据=零溯源）。
+    """
+    for p in points:
+        idx = p.pop("evidence_idx", None)
+        quote = str(p.pop("quote", "") or "")
+        chunk = None
+        if isinstance(idx, int) and 1 <= idx <= len(kb_evidence):
+            chunk = kb_evidence[idx - 1]
+        normalized_quote = _norm_for_quote_match(quote)
+        if (
+            chunk
+            and normalized_quote
+            and normalized_quote in _norm_for_quote_match(chunk.get("content"))
+        ):
+            p["evidence_tier"] = "kb_grounded"
+            p["textbook_ref"] = {
+                "chunk_id": str(chunk.get("chunk_id") or "").strip(),
+                "title": str(chunk.get("title") or "").strip(),
+                "source_type": str(chunk.get("source_type") or "").strip(),
+                "quote": quote[:120],
+            }
+        else:
+            p["evidence_tier"] = "llm_unverified"
+            p["textbook_ref"] = None
+            try:
+                p["score"] = round(float(p.get("score") or 0) * unverified_weight, 2)
+            except (TypeError, ValueError):
+                pass
+    return points
+
+
+def summarize_kb_grounding(scoring_points: list[dict[str, Any]] | None) -> dict[str, Any]:
+    """纯函数：数 evidence_tier，产出事件级 kb_grounding 观测摘要。"""
+    pts = [p for p in (scoring_points or []) if isinstance(p, dict)]
+    total = len(pts)
+    grounded = sum(1 for p in pts if p.get("evidence_tier") == "kb_grounded")
+    if not total:
+        status = "no_points"
+    elif grounded:
+        status = "grounded"
+    else:
+        status = "no_evidence"
+    return {
+        "status": status,
+        "grounded_points": grounded,
+        "total_points": total,
+        "ratio": round(grounded / total, 3) if total else 0.0,
+    }
 
 
 def _positive_int_or_none(value: Any, *, max_value: int | None = None) -> int | None:
@@ -1795,7 +1919,8 @@ async def extract_rubric_from_reference_async(
     prompt = _extract_prompt(reference_answer, question_stem)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_EXTRACT_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — extraction failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: open-world rubric extraction LLM call failed", exc_info=True)
         return []
@@ -1824,8 +1949,19 @@ _DERIVE_PROMPT_TMPL = (
     "- exact_required: 仅当必须一字不差的规范术语/法条号/标准号/精确数值时才用，且 required_terms 必填；\n"
     "  普通专业表述不要用 exact_required。\n"
     "- required_terms 只填'体现该点即可命中'的关键词(无则空数组)，不要把整句塞进去。\n"
+    "{kb_block}"
     '只输出JSON数组: [{{"question_no":题号或null,"text":"采分点表述","score":数值,'
-    '"policy":"...","required_terms":[".."]}}]'
+    '"policy":"...","required_terms":[".."],"evidence_idx":编号或null,"quote":"支撑原文摘录或空串"}}]'
+)
+
+# KB 溯源块模板（kb_evidence 为空时整块为空串——prompt 与 v2 语义等价=fail-open 字节级保证）。
+# LLM 引用用短序号 E1..En 而非 chunk_id（长 id 回显必截断误配，llm-batch-keys 教训）。
+_DERIVE_KB_BLOCK_TMPL = (
+    "\n从教材/规范知识库检索到以下证据片段（E编号）:\n"
+    "{evidence_lines}\n"
+    "溯源要求: 每个采分点若能在上述证据中找到依据，evidence_idx 填对应 E 编号的数字并给 quote\n"
+    "（从该片段原样摘录的一句支撑原文，不超过60字）；找不到依据就 evidence_idx 填 null、quote 填空串，\n"
+    "不得编造出处。\n\n"
 )
 
 
@@ -1833,22 +1969,43 @@ async def derive_rubric_from_stem_async(
     question_stem: str,
     complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
     provider_authority: str = "",
+    kb_evidence: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """OPEN-WORLD rubric derivation from question stem alone (no reference answer available).
     Uses LLM domain knowledge about construction supervision / 一建 exam content to derive
     scoring points when neither a compiled rubric nor a reference answer exists. This is the
     third-tier path: compiled_rubric > on_the_fly_reference > derived_from_stem.
+    ``kb_evidence``（KB 溯源升级 2026-07-29）: retrieved textbook/standard chunks; when
+    present the model is asked to cite them per point and citations are MECHANICALLY
+    verified (attach_textbook_refs) — never trusted on self-report. Empty/None keeps the
+    prompt byte-equivalent to the ungrounded shape (fail-open).
     Fail-closed -> [] (caller falls back to V0)."""
     import json as _json
 
     stem = str(question_stem or "").strip()
     if not stem:
         return []
+    evidence = [e for e in (kb_evidence or []) if isinstance(e, dict) and str(e.get("content") or "").strip()]
+    kb_digest = ""
+    kb_block = ""
+    if evidence:
+        kb_digest = hashlib.sha256(
+            "\n".join(
+                f"{e.get('chunk_id')}|{str(e.get('content') or '')[:120]}" for e in evidence
+            ).encode("utf-8")
+        ).hexdigest()[:16]
+        evidence_lines = "\n".join(
+            f"[E{i}] ({str(e.get('source_type') or '教材')}·{str(e.get('title') or '')[:40]}) "
+            + _json.dumps(str(e.get("content") or "")[:600], ensure_ascii=False)
+            for i, e in enumerate(evidence, 1)
+        )
+        kb_block = _DERIVE_KB_BLOCK_TMPL.format(evidence_lines=evidence_lines)
     cache_key = _rubric_cache_key(
         "stem",
         question_stem=stem,
         model=model,
         provider_authority=provider_authority,
+        kb_digest=kb_digest,
     )
     cached = _get_cached_rubric_points(cache_key)
     if cached is not None:
@@ -1857,14 +2014,17 @@ async def derive_rubric_from_stem_async(
     # injection-resistance as _batch_prompt / _extract_prompt — a tampered question-bank
     # stem can't break out of the data boundary. (.format only substitutes {stem}; the
     # substituted JSON value is not re-scanned for braces.)
-    prompt = _DERIVE_PROMPT_TMPL.format(stem=_json.dumps(stem[:2000], ensure_ascii=False))
+    prompt = _DERIVE_PROMPT_TMPL.format(
+        stem=_json.dumps(stem[:2000], ensure_ascii=False), kb_block=kb_block
+    )
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_DERIVE_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — derivation failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: stem-based rubric derivation LLM call failed", exc_info=True)
         return []
-    points = _parse_extracted_points(raw)
+    points = attach_textbook_refs(_parse_extracted_points(raw), evidence)
     _set_cached_rubric_points(cache_key, points)
     return points
 

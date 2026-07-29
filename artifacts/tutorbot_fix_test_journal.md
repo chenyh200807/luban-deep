@@ -9,6 +9,24 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-30 - KB 溯源 open-world 判分升级（owner 拍板）
+
+- 问题：owner 拍板升级——tier-3 题干推导采分点纯靠 LLM 专业知识、零教材溯源，与"采分点必须教材溯源"硬原则有差距；题库外题（用户粘贴主动线）的判分可信度需要证据支撑。
+- 设计要点（设计 agent 产出，主线程实施）：①检索复用 `rag_search`（判分讲解侧同款管道，不建第二检索）；②**`rubric_provenance="derived_from_stem"` 字符串不动**——全链 6 处精确匹配，改字符串会让 G2 豁免失配把刚复活的通道再弄死；语义分层用加性字段（点级 `evidence_tier`/`textbook_ref`、事件级 `kb_grounding`）；③**机械核验防自证陷阱**：evidence_idx 落在证据集内 AND quote 归一化后是 chunk 正文子串，二者同时成立才算 kb_grounded，绝不信 LLM 自报；④降权=归一化前 ×0.6（总分不变，分值向有据点倾斜）；⑤fail-open 三层：检索异常/超时/零命中→[]→prompt 与 v2 字节等价；⑥LLM 引用短序号 E1..En 非 chunk_id（长 id 截断误配教训）；⑦textbook/standard 源优先过滤（讲义碎片让"有据"虚胖）。
+- 实施：`rubric_grader_v1.py`（prompt v3+kb_digest 缓存键+attach_textbook_refs+summarize_kb_grounding+shadow 透传白名单加两键+render 出处行+两档免责）；`deep_question.py`（_fetch_stem_kb_evidence+flag+签名/调用点五处接线+langfuse kb_grounding_ratio）；`loop.py` tutorbot 侧 kb_name 解析传入。踩坑一个：deep_question 无模块级 `import asyncio`，helper 内 NameError 被 fail-open 吞掉——**fail-open 会把实现 bug 也吞成静默降级，测试必须打到 fail-open 的对侧**（本例靠 textbook 优先过滤用例抓出）。
+- 验证：新增 6 用例（四象限机械核验/空证据降权+归一化总分不变/透传+截断兼容/derive 双形态/fail-open/textbook 优先）；927 passed；contract guard+gate authority guard 双绿。**live 未回归**（部署后按近三年案例题抽样验证溯源率与判分质量）。
+- 灰度：直接上+env 急停 `LUBAN_STEM_RUBRIC_KB_GROUNDING`（默认 ON）——检索风险被 fail-open 全覆盖，最坏退化为现状。
+- 教训：升级刚复活的通道时，"provenance 字符串"这类看似元数据的东西可能是 6 处豁免判定的 key——加性字段永远优先于改既有标识符。
+
+## 2026-07-29 - 案例评分审题失效：open-world 判分死链四周无人知（非当日回归）
+
+- 问题：owner 报案例评分审题失效（trace 64aba5/51df5，两题拍照粘贴带图注，输出零诊断的静态模板"未命中评分真相层"）。侦查 agent 生产考古+容器日志逐层证实：**非当日六 PR 回归**——判分链三处 LLM 调用（extract/derive/batch_judge）不传 `max_tokens` 吃 `cloud_provider` 4096 默认，dashscope deepseek-v4-flash 默认开思考占输出 70-80%，大题干（1042/1361字5小问）思考+采分点 JSON 越过 4096 → 截断 → `_parse_extracted_points` fail-closed 0 点 → 塌到模板。**最后一次成功判分=06-30**；07-01→07-28 case_grading scene 零流量，死链无人踩。讽刺证据：#585 commit message 已诊断"4096 死配置"但只接线了答案面。深挖三连锁：①`loop.py` V1 失败静默返 None 不落 score_authority（四周不可见的观测洞）；②模板越权（出生使命=不硬估官方分，已越权成不给任何反馈——与 #586 基坑罐头同病：替换级载荷配运营性失败）；③"以前引以为傲"含幸存者偏差——编译资产（295 次 compiled_rubric）只服务题库内题，拍照粘贴题从来靠 open-world 层活着，其容量是题干大小依赖的隐性悬崖。
+- 失败尝试 / 被否决方案：否决只调大轮次/只修模板文案（治标）；否决为拍照题新建判分器（第二权威）；否决保留 fall-through 但不修 #587 路由残留（fall-through 后 fast 单发接不住案例题，残留会从无害变有害——连锁盲区扫描抓到）。
+- 成功修法（五件全在既有权威内）：①`rubric_grader_v1.py` 三处调用接线 `max_tokens=8192, reasoning_effort="disabled"`（走 executors dashscope enable_thinking=False 现成分支；判分 JSON 抽取不需长思考，followup 判定器同款先例）；②`_parse_extracted_points` 截断抢救（截到最后完整对象闭合数组，部分采分点>0点，同一解析权威）；③终态 fall-through：`_run_case_grading_direct` V1 失败返 None 落回正常生成路径（案例 skill 产实质诊断），`_case_grading_no_authority_score_fallback` 重塑——实质诊断保留，硬分口径追加 `build_case_grading_score_disclaimer` 免责声明，模板只在零产出时兜底（收回整篇替换权，与 #586 同律）；④V1 失败落 `score_authority="v1_unavailable:<status>"` 观测；⑤`response_mode.py` 案例形状先于 structured_submission 判定 + `【问题】`括号形入正则（51df 实证修复），短提交仍 fast。
+- 验证：51df 原文路由 deep 实证；判分链+路由+finalize 全量 1019 passed；旧契约测试 5 处按新契约重写（模板出生使命保留、越权收回均有正反用例钉住）。**live 未回归——thinking 关闭后 tier-3 判分质量需 live eval 校验（显式不确定性）**。
+- 教训：通道级 liveness 必须有监控——一条引以为傲的链路死了四周，靠 owner 手测才发现；fail-closed 链条（截断→0点→模板）每一环单看都"安全"，连起来就是把运营性故障翻译成产品性拒绝服务。
+
+
 ## 2026-07-29 - 指挥官架构裁决 + 基坑5m对处置（权力/证据相称律第一刀）
 
 - 问题：owner 升级指令"不要头痛医头，要体系架构层面解决，指挥官把控全场"。指挥官 agent 对五故障家族裁决（全文另存 memory `commander-verdict-power-evidence-mismatch`）：主线程"碎片信号+无admission权威"假设被部分证伪——那只是主病一个切面。**主病=对「学生所见终局」与「模型所知世界」的改写/代言权力，授予不要求相称证据、不经单一裁决、不留可审痕迹**（家族一/二/三/五）+独立小病=声明-运行时断链（家族四）。收口=类型化两个既有汇点（入口 runtime_instruction_parts 列表 / 出口 finalize 链）：裸 str→声明对象(判据类型×载荷等级)，汇点跑"载荷≤判据上限"纯函数断言——类型检查非第N+1 decider；仓库已有两条散文抗体（"regex只抽取不裁决真值"/"门必须用结构化事实"）从未被机器强制。七步实施序见 memory。

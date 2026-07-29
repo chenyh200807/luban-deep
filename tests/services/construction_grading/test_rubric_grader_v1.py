@@ -1584,3 +1584,139 @@ def test_to_canonical_non_official_point_does_not_mint_official_score() -> None:
     sp = obj["scoring_points"][0]
     assert sp["authority_source"] == "textbook_cited"
     assert sp["max_score"] is None  # never minted a per-point official score
+
+
+# ---------------------------------------------------------------------------
+# P0 2026-07-29：open-world 判分死链复活的契约钉（review N-10）
+# ---------------------------------------------------------------------------
+def test_openworld_llm_calls_wire_token_budget_and_disable_thinking():
+    """四周死链根因=判分调用不传 max_tokens 吃 4096 默认+默认思考。三处调用
+    必须显式携带 max_tokens=8192 与 reasoning_effort=disabled——stub 的 **kwargs
+    会静默吞掉，此测试防将来重构删参不红。"""
+    import asyncio
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    captured: list[dict] = []
+
+    async def _capture_fn(**kwargs):
+        captured.append(kwargs)
+        return '[{"text":"占位采分点","score":2}]'
+
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案文本", "题干", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.derive_rubric_from_stem_async(
+        "题干文本", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.batch_judge_async(
+        [{"point_id": "P1", "text": "点", "score": 2, "policy": "qualitative", "required_terms": []}],
+        "学员作答", _capture_fn, "k"))
+
+    assert len(captured) == 3
+    for kwargs in captured:
+        assert kwargs.get("max_tokens") == 8192
+        assert kwargs.get("reasoning_effort") == "disabled"
+
+
+def test_parse_extracted_points_salvages_truncated_array():
+    """截断抢救：completion-cap 截断的数组抢救出完整对象（部分>0），
+    非截断畸形输出（有闭合]或纯文本）保持 fail-closed。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    truncated = '[{"text":"排水坡度不小于0.2%","score":2},{"text":"消火栓间距不大于120m","score":2},{"text":"被截断的'
+    points = _parse_extracted_points(truncated)
+    assert len(points) == 2
+    assert points[0]["text"].startswith("排水坡度")
+
+    # 非截断形状不抢救
+    assert _parse_extracted_points("对不起，我无法评分。") == []
+    assert _parse_extracted_points('说明 [ {"text":"垃圾","score":0} 后续文字 ] 完') == []
+
+
+# ---------------------------------------------------------------------------
+# KB 溯源 open-world 判分（2026-07-29 升级）
+# ---------------------------------------------------------------------------
+_KB_EVIDENCE = [
+    {"chunk_id": "TB_1", "title": "施工现场临时用水", "source_type": "textbook",
+     "content": "管线穿路处均应套以铁管保护，并埋入地下0.6m处。室外消火栓间距不应大于120m。"},
+    {"chunk_id": "TB_2", "title": "排水规范", "source_type": "standard",
+     "content": "排水纵沟坡度不应小于0.2%，保证排水通畅。"},
+]
+
+
+def test_attach_textbook_refs_four_quadrants():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import attach_textbook_refs
+
+    points = [
+        {"point_id": "P1", "text": "穿路套管", "score": 2.0,
+         "evidence_idx": 1, "quote": "管线穿路处均应套以铁管保护"},          # 真子串→grounded
+        {"point_id": "P2", "text": "越界引用", "score": 2.0,
+         "evidence_idx": 9, "quote": "任何话"},                            # idx 越界→unverified
+        {"point_id": "P3", "text": "编造引用", "score": 2.0,
+         "evidence_idx": 2, "quote": "坡度不应小于百分之五"},               # quote 不在 chunk→unverified（自证陷阱防线）
+        {"point_id": "P4", "text": "无引用", "score": 2.0},               # 无字段→unverified
+    ]
+    out = attach_textbook_refs(points, _KB_EVIDENCE)
+    assert out[0]["evidence_tier"] == "kb_grounded"
+    assert out[0]["textbook_ref"]["chunk_id"] == "TB_1"
+    assert out[0]["score"] == 2.0  # 有据点不降权
+    for p in out[1:]:
+        assert p["evidence_tier"] == "llm_unverified"
+        assert p["textbook_ref"] is None
+        assert p["score"] == 1.2  # ×0.6 相对降权
+    # evidence_idx/quote 已被 pop，不泄进下游
+    assert "evidence_idx" not in out[0] and "quote" not in out[0]
+
+
+def test_attach_textbook_refs_empty_evidence_all_unverified():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        attach_textbook_refs,
+        normalize_points_to_nominal,
+        summarize_kb_grounding,
+    )
+
+    points = [{"point_id": "P1", "text": "点", "score": 4.0},
+              {"point_id": "P2", "text": "点2", "score": 6.0}]
+    out = attach_textbook_refs(points, [])
+    assert all(p["evidence_tier"] == "llm_unverified" for p in out)
+    # 归一化后总分不变（相对降权不改分数量纲）
+    normalized = normalize_points_to_nominal(out, nominal_total=10.0)
+    assert abs(sum(p["score"] for p in normalized) - 10.0) < 0.01
+    g = summarize_kb_grounding(out)
+    assert g["status"] == "no_evidence" and g["ratio"] == 0.0
+
+
+def test_parse_extracted_points_passthrough_and_truncation_compat():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    raw = '[{"text":"套管保护","score":2,"evidence_idx":1,"quote":"套以铁管保护"},{"text":"无据点","score":2}]'
+    pts = _parse_extracted_points(raw)
+    assert pts[0]["evidence_idx"] == 1 and pts[0]["quote"] == "套以铁管保护"
+    assert "evidence_idx" not in pts[1]
+    # 截断抢救兼容：带新字段的截断数组照常 salvage 完整对象
+    truncated = '[{"text":"套管","score":2,"evidence_idx":1,"quote":"套以铁管"},{"text":"被截'
+    salvaged = _parse_extracted_points(truncated)
+    assert len(salvaged) == 1 and salvaged[0]["evidence_idx"] == 1
+
+
+import asyncio as _asyncio
+
+
+def test_derive_kb_block_and_grounded_flow():
+    """kb_evidence 在场：prompt 带 E 编号块；机械核验落 textbook_ref。
+    kb_evidence 为空：prompt 与 v2 语义等价（无溯源块）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    seen_prompts: list[str] = []
+
+    async def _fn(**kwargs):
+        seen_prompts.append(kwargs["prompt"])
+        return '[{"text":"穿路套管保护","score":2,"policy":"qualitative","required_terms":[],"evidence_idx":1,"quote":"套以铁管保护"}]'
+
+    pts = _asyncio.run(G.derive_rubric_from_stem_async(
+        "临时用水管理案例题干A" , _fn, "k", kb_evidence=_KB_EVIDENCE))
+    assert "[E1]" in seen_prompts[0] and "溯源要求" in seen_prompts[0]
+    assert pts[0]["evidence_tier"] == "kb_grounded"
+
+    pts2 = _asyncio.run(G.derive_rubric_from_stem_async(
+        "临时用水管理案例题干B（无证据）", _fn, "k", kb_evidence=[]))
+    assert "[E1]" not in seen_prompts[1] and "溯源要求" not in seen_prompts[1]
+    assert pts2[0]["evidence_tier"] == "llm_unverified"
