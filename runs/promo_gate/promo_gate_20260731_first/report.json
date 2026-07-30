@@ -1,0 +1,1000 @@
+{
+  "run_id": "promo_gate_20260731_first",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=17286eeb45d0eb165ee1f8ab6399f4448679523e\nDEEPTUTOR_RELEASE_ID=1.0.0+17286eeb45d0eb165ee1f8ab6399f4448679523e+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-07-31T00:14:38",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 21,
+    "pass": 5,
+    "fail": 16
+  },
+  "scenarios": [
+    {
+      "id": "t1_full",
+      "title": "题库内案例(合同价款,qid=8817)·全答",
+      "form": "full",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428082120_056b043c7a",
+      "turn_status": "completed",
+      "latency_ms": 36643.1,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3124(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 17 个需要补。后面我按小问逐一拆。\n\n⚠️ **判分覆盖范围**：本次仅对 问题1、问题2、问题3 命中了采分点参考（题面共 5 问）；问题4、问题5 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。\n\n**得分预估（仅已覆盖小问）：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 17 个。\n\n**先看最该补的地方：**\n1. 第1问：不妥之处：甲乙双方通过协商修改了合同协议书、专用条款、通用条款签订了施工合同\n2. 第1问：正确做法：保持待签合同与招标文件、投标文件的一致性\n"
+    },
+    {
+      "id": "t1_half",
+      "title": "题库内案例(qid=8817)·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428122785_708725f317",
+      "turn_status": "completed",
+      "latency_ms": 23434.2,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1721(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "PASS",
+          "evidence": "命中「未纳入本次判分」"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 3 个需要补。后面我按小问逐一拆。\n\n⚠️ **判分覆盖范围**：本次仅对 问题1 命中了采分点参考（题面共 5 问）；问题2、问题3、问题4、问题5 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。\n\n**得分预估（仅已覆盖小问）：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 3 个。\n\n**先看最该补的地方：**\n1. 第1问：合同协议书编号HT-XY-201909001、专用合同条款编号HT-ZY-201909001、通用合同条款编号HT-TY-201909001中的编号"
+    },
+    {
+      "id": "t1_question_only",
+      "title": "题库内案例(qid=8817)·只发题不作答",
+      "form": "question_only",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428150443_8a2d1406e5",
+      "turn_status": "completed",
+      "latency_ms": 35360.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3397(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=3397 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题有 5 问，我先按小问逐一拆解，每问给结论、判定依据、采分点、易错点。\n\n---\n\n## 第 1 问 · 合同签订不妥与文件解释顺序\n\n### 结论\n**不妥之处**：甲乙双方通过协商对合同协议书、专用条款、通用条款的修改意见达成一致后签订施工合同。\n\n**正确做法**：保持待签合同与招标文件、投标文件的**一致性**。合同内容、承包范围、工期、造价、计价方式、质量要求等实质性内容不得随意修改。\n\n**5 个合同文件解释优先顺序**（递减）：\n1. ==合同协议书==\n2. ==中标通知书==\n3. ==投标函==\n4. ==专用合同条款==\n5. ==通用合同条款==\n\n### 判断依据\n招标工程的合同价格不得背离招标文件中关于工程范围、工期、价款、质量等实质性内容。甲乙双方在招投标后另行协商修改合同实质性条款，违反了合同与招标文件、投标文件一致性的原则。\n\n### 采分点\n-"
+    },
+    {
+      "id": "t1_wrong",
+      "title": "题库内案例(qid=8817)·答错(数值与顺序均错)",
+      "form": "wrong",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428189873_712879a654",
+      "turn_status": "completed",
+      "latency_ms": 27096.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1681(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(7.15, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 5 个采分点，部分命中 0 个，还有 2 个需要补。后面我按小问逐一拆。\n\n⚠️ **判分覆盖范围**：本次仅对 问题1 命中了采分点参考（题面共 5 问）；问题2、问题3、问题4、问题5 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。\n\n**得分预估（仅已覆盖小问）：** 7.15 / 10 分。\n**采分情况：** 命中 5 个，部分命中 0 个，漏/错 2 个。\n\n**先看最该补的地方：**\n1. 第1问：合同签订中的不妥之处：甲乙双方通过协商对合同协议书、专用条款、通用条款修改意见达成一致后签订施工合同。\n2. 第1问：正确做法：合同协议书、专"
+    },
+    {
+      "id": "t2_full",
+      "title": "题库内案例(2023质量检测,qid=17357)·全答",
+      "form": "full",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428221037_99bde93dd4",
+      "turn_status": "completed",
+      "latency_ms": 19664.3,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1565(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(5.01, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 3 个采分点，部分命中 0 个，还有 2 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 5.01 / 10 分。\n**采分情况：** 命中 3 个，部分命中 0 个，漏/错 2 个。\n\n**先看最该补的地方：**\n1. 第1问：正确做法：建设单位应在编制工程概预算时合理核算检测费用，单独列支并按合同约定及时支付。\n2. 第1问：见证记录内容还包括：取样、制样、标识、封志、送检、现场检测。\n\n提示：本轮含高风险判分点，建议教师复核后作为正式成绩。\n\n## 问题1：指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不妥，多答不得分）混凝土试件制作与取样见证记录内容还有哪些？\n**你写的：** 已看到「试验员制作见"
+    },
+    {
+      "id": "t2_half",
+      "title": "题库内案例(qid=17357)·半答(只答不妥之处,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785428244723_8bd07ed512",
+      "turn_status": "ws_exception",
+      "latency_ms": 5937.3,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=ws_exception; visible_len=52(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "FAIL",
+          "evidence": "半答卷未标记漏答:无「未纳入本次判分」;miss用语命中=[];漏点点名命中=[]"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
+    },
+    {
+      "id": "t2_question_only",
+      "title": "题库内案例(qid=17357)·只发题不作答",
+      "form": "question_only",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 136.49345806334168,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=300)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t2_wrong",
+      "title": "题库内案例(qid=17357)·答错(不妥点判断全错)",
+      "form": "wrong",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 157.46479202061892,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t3_full",
+      "title": "题库外长案例(2022案例一改写)·全答",
+      "form": "full",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 133.82279104553163,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        },
+        {
+          "id": "A4",
+          "status": "FAIL",
+          "evidence": "库外题未见「诊断得分预估/不硬估标准分」类免责表述"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t3_half",
+      "title": "题库外长案例·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 140.92845795676112,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "FAIL",
+          "evidence": "半答卷未标记漏答:无「未纳入本次判分」;miss用语命中=[];漏点点名命中=[]"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        },
+        {
+          "id": "A4",
+          "status": "FAIL",
+          "evidence": "库外题未见「诊断得分预估/不硬估标准分」类免责表述"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t3_question_only",
+      "title": "题库外长案例·只发题不作答",
+      "form": "question_only",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 151.01683291140944,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=300)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t3_wrong",
+      "title": "题库外长案例·答错(等效龄期与评定结论均错)",
+      "form": "wrong",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 150.82824998535216,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        },
+        {
+          "id": "A4",
+          "status": "FAIL",
+          "evidence": "库外题未见「诊断得分预估/不硬估标准分」类免责表述"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t4_g1_asis",
+      "title": "历史事故原文·判分死亡事故原题(碳排放案例,带完整作答)",
+      "form": "full",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 146.73566608689725,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t4_g1_wrong",
+      "title": "历史事故原题·答错版(机具/顺序/结论均改错)",
+      "form": "wrong",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 159.40524998586625,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t4_q1_asis",
+      "title": "历史事故原文·#583拒答事故原题(办公楼5小问,只发题)",
+      "form": "question_only",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 137.5294579192996,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=300)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t4_q1_half",
+      "title": "历史事故原题·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 144.5192500250414,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "FAIL",
+          "evidence": "半答卷未标记漏答:无「未纳入本次判分」;miss用语命中=[];漏点点名命中=[]"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata(远端查询失败或无 result 事件)"
+        },
+        {
+          "id": "A7",
+          "status": "FAIL",
+          "evidence": "未取到 result 事件 metadata"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t5_correct",
+      "title": "MCQ(qid=8731 氯离子复试)·答对并给理由",
+      "form": "full",
+      "question_group": "T5",
+      "qid": 8731,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 149.49962496757507,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "M1",
+          "status": "FAIL",
+          "evidence": "contains_all['外加剂'] 缺 ['外加剂']"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=60)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t5_question_only",
+      "title": "MCQ(qid=8731)·只发题不作答(答题必有解析)",
+      "form": "question_only",
+      "question_group": "T5",
+      "qid": 8731,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 140.7092500012368,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "M1",
+          "status": "FAIL",
+          "evidence": "contains_all['外加剂'] 缺 ['外加剂']"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=60)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t5_wrong",
+      "title": "MCQ(qid=8731)·答错(选D河砂)",
+      "form": "wrong",
+      "question_group": "T5",
+      "qid": 8731,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 117.99841606989503,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "M1",
+          "status": "FAIL",
+          "evidence": "contains_all['外加剂'] 缺 ['外加剂']"
+        },
+        {
+          "id": "M2",
+          "status": "FAIL",
+          "evidence": "contains_any['不正确', '不对', '错误', '误选', '不是', '并非'] 命中 []"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=60)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t6_edge_ask",
+      "title": "KB边界偏门题(金属幕墙板材/气密性)·只问",
+      "form": "question_only",
+      "question_group": "T6",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 159.58754206076264,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=150)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t6_edge_full",
+      "title": "KB边界偏门题·带自己的理解求核对",
+      "form": "full",
+      "question_group": "T6",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "",
+      "turn_status": "driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}",
+      "latency_ms": 124.9383749673143,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=driver_error:create_conversation_failed:502:{'raw_text': '<html>\\r\\n<head><title>502 Bad Gateway</title></head>\\r\\n<body>\\r\\n<center><h1>502 Bad Gateway</h1></center>\\r\\n<hr><center>nginx</center>\\r\\n</body>\\r\\n</html>\\r\\n'}; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=150)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    }
+  ],
+  "finished_at": "2026-07-31T00:17:35"
+}
