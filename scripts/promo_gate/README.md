@@ -62,26 +62,30 @@ MCQ 无半答形态、KB 边界题无判分形态,故 v1 为 21 场景而非 4×
 案例只发题场景(question_only)不强断 A6/A7(未发生判分),但 metadata 照抓入
 evidence 作观测面。
 
-## 门捕获的开放缺陷登记册
+## 门捕获的开放缺陷登记册(对齐指挥官台账 OD-001~004)
 
 每轮运行捕获的**产品真病**(非断言校准、非环境失败)在此登记;歼灭一条→用重放
 命令复验→复验绿后标记 CLOSED(条目不删,留痕)。测例本身永不删除。
 
 ### OPEN
 
-**D1 — 库外案例半答:未答小问被静默丢弃**(t3_half, A1;首捕获 r2, SHA 8d8bc5e4)
+**OD-001 — 库外案例半答:未答小问被静默丢弃**(t3_half, A1;首捕获 r2, SHA 8d8bc5e4)
 未答的问3/问4 在判分卡零提及(「评定方法/构造柱/坎台」全文不出现),半张卷被当
-全卷收束——owner 翻车形态在库外题复发(库内 t1_half/t2_half 已能点破)。伴生观察:
-已答的问1/问2 被判「命中0/漏错10」,参考答案与题面数据对不上(如「1F柱等效龄期
-19d、累计616℃·d」与表2累计口径不符),疑似库外题错锚编译 rubric 而非题面自证。
+全卷收束——owner 翻车形态在库外题复发(库内 t1_half/t2_half 已能点破)。
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t3_half`
 
-**D2 — #583 拒答事故原题只发题:模型空返回收束为 failed**(t4_q1_asis, A0;首捕获 r2)
+**OD-002 — 库外案例已答小问被错参考判零**(t3_half 伴生;首捕获 r2)
+已答的问1/问2 被判「命中0/漏错10」,判分参考答案与题面数据对不上(如参考
+「1F柱等效龄期19d、累计616℃·d」与表2累计口径不符),疑似库外题错锚编译 rubric
+而非题面自证。当前无独立确定性断言(需语义比对),经 t3_half evidence 人工复核。
+重放:`python3 scripts/promo_gate/run_promo_gate.py --only t3_half`(看 evidence 判零面)
+
+**OD-003 — #583 拒答事故原题只发题:模型空返回收束为 failed**(t4_q1_asis, A0;首捕获 r2)
 50s 后 turn 终态 failed,可见回复仅「这次模型没有返回可见答案…请重新发送一次」。
 非「拆小」罐头拒答(A5 绿),但事故原题仍不能稳定出答案。
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_asis`
 
-**D3 — 判分绕开权威链:score_authority 全空**(t4_q1_half, A6;首捕获 r2)
+**OD-004 — agent-loop 旁路:判分产出但权威双空**(t4_q1_half, A6;首捕获 r2)
 回复完成逐点判分(A1 过),但 result metadata 的 score_authority 与
 grading_rubric_provenance 均空,execution_path=tutorbot_kb_first_full_agent_policy——
 判分由通用 agent 路径现编,未走判分权威链(违反「降级路径必须发声」硬不变量)。
@@ -89,7 +93,7 @@ grading_rubric_provenance 均空,execution_path=tutorbot_kb_first_full_agent_pol
 
 ### CLOSED
 
-(暂无)
+(暂无;r3 对 #607 部署 SHA 的复验结果见 runs/promo_gate/promo_gate_20260731_r3/)
 
 ## 事故入集登记
 
