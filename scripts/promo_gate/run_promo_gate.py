@@ -418,6 +418,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--only", default="", help="逗号分隔的场景 id,只跑这些")
     parser.add_argument("--timeout-seconds", type=float, default=420.0)
     parser.add_argument("--skip-remote", action="store_true", help="跳过远端 DB 查询(A6/A7 将 FAIL)")
+    parser.add_argument("--infra-retries", type=int, default=2,
+                        help="入口5xx/WS传输异常的重试次数(超时/挂死不重试,保留为质量FAIL)")
+    parser.add_argument("--infra-backoff-seconds", type=float, default=60.0)
     parser.add_argument("--dry-run", action="store_true", help="只校验场景文件,不打生产")
     args = parser.parse_args(argv)
 
@@ -460,22 +463,41 @@ def main(argv: list[str] | None = None) -> int:
     token = auth["token"]
     print(f"[promo-gate] login ok user_id={auth.get('user_id')} run_id={run_id}", flush=True)
 
+    def _is_infra_error(out: dict[str, Any]) -> bool:
+        """基础设施级失败(入口 5xx / WS 传输异常)可重试;
+        WS 超时/挂死**不算**——那是判分死亡事故的形态,必须保留为质量 FAIL。"""
+        status = str(out.get("status") or "")
+        ws_error = str(out.get("ws_error") or "")
+        if status == "ws_exception":
+            return True
+        if "create_conversation_failed:5" in status or "start_turn_failed:5" in status:
+            return True
+        return bool(re.search(r"failed:5\d\d", ws_error))
+
     for i, scenario in enumerate(scenarios, 1):
         sid = scenario["id"]
         print(f"[promo-gate] ({i}/{len(scenarios)}) {sid} ...", flush=True)
         started = time.monotonic()
-        try:
-            conv = asyncio.run(_new_conversation(base_url, token, 60.0))
-            turn_out = asyncio.run(
-                _turn(
-                    base_url, token, conv["conversation_id"], scenario["_query"],
-                    args.timeout_seconds,
-                    client_turn_id=f"{run_id}_{sid}",
+        attempts = 0
+        while True:
+            attempts += 1
+            try:
+                conv = asyncio.run(_new_conversation(base_url, token, 60.0))
+                turn_out = asyncio.run(
+                    _turn(
+                        base_url, token, conv["conversation_id"], scenario["_query"],
+                        args.timeout_seconds,
+                        client_turn_id=f"{run_id}_{sid}_a{attempts}",
+                    )
                 )
-            )
-        except SystemExit as exc:
-            turn_out = {"ok": False, "status": f"driver_error:{exc}", "visible_response": "",
-                        "turn_id": "", "latency_ms": (time.monotonic() - started) * 1000}
+            except SystemExit as exc:
+                turn_out = {"ok": False, "status": f"driver_error:{exc}", "visible_response": "",
+                            "turn_id": "", "latency_ms": (time.monotonic() - started) * 1000}
+            if turn_out.get("ok") or attempts > args.infra_retries or not _is_infra_error(turn_out):
+                break
+            print(f"[promo-gate] {sid} infra error ({turn_out.get('status')}), "
+                  f"retry {attempts}/{args.infra_retries} in {args.infra_backoff_seconds:.0f}s", flush=True)
+            time.sleep(args.infra_backoff_seconds)
         response = str(turn_out.get("visible_response") or "")
         turn_id = str(turn_out.get("turn_id") or "")
         turn_status = str(turn_out.get("status") or "unknown")
@@ -500,6 +522,7 @@ def main(argv: list[str] | None = None) -> int:
             "verdict": verdict,
             "turn_id": turn_id,
             "turn_status": turn_status,
+            "attempts": attempts,
             "latency_ms": float(turn_out.get("latency_ms") or 0.0),
             "assertion_results": assertion_results,
             "observed_metadata": {
