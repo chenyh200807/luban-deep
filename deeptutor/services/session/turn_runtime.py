@@ -31,6 +31,9 @@ from deeptutor.contracts.bot_runtime_defaults import (
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.logging.context import bind_log_context, reset_log_context
+from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+)
 from deeptutor.services.exam_track import (
     exam_track_label,
     has_multiple_exam_track_mentions,
@@ -1268,21 +1271,10 @@ def _build_terminal_turn_observation_event(
         # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
         "content_truth_guard_applied",
         "content_truth_low_confidence_claims",
-        # 观测对称律（1b 2026-07-30）：案例判分成功侧权威标记。summarizer 已从
-        # result event 提升（见 _summarize_assistant_events），但本终态事件另有
-        # 一张白名单——live 实证 lift 产出在此被二次过滤，jsonl sink 永远看不到。
-        # 同键清单第三处出现即收权信号：三张名单（summarizer lift/case 元组/本表）
-        # 若再添第四处，应收敛为单一导出契约常量。
-        "score_authority",
-        "grading_rubric_provenance",
-        "grading_official_score_allowed",
-        "v1_case_graded",
-        "case_grading_prefetch_gate",
-        "case_grading_direct_fell_through",
-        "case_grading_direct_attempt_qid",
-        "case_grading_composite_qid_candidate",
-        "case_grading_outer_seam_reentry",
-        "case_rubric_score_total_mismatch",
+        # 观测对称律（1b 2026-07-30）：案例判分成功侧权威标记，键清单单一权威
+        # =CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：本表曾是第三张
+        # 互不同步的白名单，live 实证漏名单=jsonl sink 永久 0 命中）。
+        *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
         "raw_user_id",
         "member_user_id",
         "identity_resolution_status",
@@ -1858,21 +1850,11 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
                 # 观测对称律（1b 2026-07-30）：判分成功侧权威标记必须到达 trace 顶层
-                # （根 span=turn.runtime，顶层 metadata 由本 summary 构成）。此前真值
-                # 只活在 result event 的 metadata_json 里，诊断只能考古 events——
-                # 与 content_truth 同通道提升。清单与 CASE_GRADING_TURN_METADATA_KEYS
-                # 的判分权威子集对齐（marker 在 result event 里已被 case 场景闸过滤，
-                # 此处只做无条件提升，不再判场景=不新增第二 decider）。
-                "score_authority",
-                "grading_rubric_provenance",
-                "grading_official_score_allowed",
-                "v1_case_graded",
-                "case_grading_prefetch_gate",
-                "case_grading_direct_fell_through",
-                "case_grading_direct_attempt_qid",
-                "case_grading_composite_qid_candidate",
-                "case_grading_outer_seam_reentry",
-                "case_rubric_score_total_mismatch",
+                # （根 span=turn.runtime，顶层 metadata 由本 summary 构成）。键清单
+                # 单一权威=CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：曾散落
+                # 三张互不同步的白名单，漏一张=该 sink 永久 0 命中）。marker 在
+                # result event 里已被 case 场景闸过滤，此处只做无条件提升。
+                *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
             ):
                 if metadata_key in candidate and metadata_key not in retrieval_metadata:
                     retrieval_metadata[metadata_key] = candidate[metadata_key]

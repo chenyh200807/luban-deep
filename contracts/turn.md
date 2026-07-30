@@ -156,8 +156,10 @@
   （langfuse 4.7.1 无 `update_current_trace`——getattr 防御会把断线吞成静默 no-op）。
   同一键清单还必须出现在 `_build_terminal_turn_observation_event` 的透传白名单
   （耐久 jsonl sink=observer/BI 消费面；live 实证 lift 产出曾在这第二张名单被
-  二次过滤成 0 命中）。该键清单现存三处（summarizer lift / case 元组 / 终态白名单），
-  再添第四处时必须收敛为单一导出契约常量。已知系统性缺口（另立战役，不许当作
+  二次过滤成 0 命中）。**键清单单一权威 = `case_output_policy.CASE_GRADING_AUTHORITY_EXPORT_KEYS`**
+  （2026-07-30 收权完成）：summarizer lift、终态白名单、per-turn 元组三个消费面
+  全部从该常量派生，禁止任何消费面再内联复制键名清单——增键只改常量一处。
+  域测试 `test_authority_export_keys_single_source_across_all_sinks` 钉三面一致。已知系统性缺口（另立战役，不许当作
   本契约已覆盖）：Langfuse 终点 update 黑洞——全部 turn 的终点键从未落
   Langfuse span/trace，root span 仅存 start 指纹；合成复现全过、真实 turn 全灭。
 - `turn_runtime` 的 terminal observer metadata 可以携带 `latency_stages_ms`，用于把单轮耗时拆成 `context_route_preview`、`observability_start`、`context_build`、`capability_selection`、`user_message_persist`、`capability_stream` 等内部阶段，并由 runtime metrics / observer snapshot 聚合。该字段是运维观测投影，不是公开 stream contract、capability route、评分、计费或 learner-state authority；客户端不得依赖它做业务状态判断。
