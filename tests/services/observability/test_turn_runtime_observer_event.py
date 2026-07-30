@@ -664,3 +664,37 @@ def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_p
     assert persisted_observer_payload["turn_events"]["error_ratio"] == 0.0
     assert oa_payload["raw_evidence_bundle"]["observer_snapshot_run_id"] == observer_payload["run_id"]
     assert any(item["kind"] == "observer_snapshot" for item in oa_payload["signals"])
+
+
+def test_terminal_turn_observation_event_keeps_case_grading_authority_markers() -> None:
+    """观测对称律（1b 2026-07-30）：summarizer 已从 result event 提升判分权威标记，
+    但终态事件另有一张白名单——live 实证 lift 产出在此被二次过滤，jsonl sink
+    （observer/BI 消费面）永远看不到。本测试钉住第三张名单的透传。"""
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=100.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "bot_id": "bot-1",
+            "context_route": "",
+            "source": "authenticated_ws",
+            "user_id": "user-1",
+            "trace_id": "trace-1",
+            "question_lifecycle_scene": "case_grading",
+            "score_authority": "rubric_scored_v1",
+            "grading_rubric_provenance": "on_the_fly_reference",
+            "v1_case_graded": True,
+            "case_grading_prefetch_gate": "allowed",
+            "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+        },
+        usage_summary={"total_tokens": 1},
+    )
+    md = event["metadata"]
+    assert md["grading_rubric_provenance"] == "on_the_fly_reference"
+    assert md["score_authority"] == "rubric_scored_v1"
+    assert md["case_grading_prefetch_gate"] == "allowed"
+    assert md["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+    assert md["v1_case_graded"] is True

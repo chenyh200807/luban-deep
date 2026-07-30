@@ -154,6 +154,12 @@
   不携带即不提升（场景闸在 manager 侧 `copy_current_case_grading_turn_metadata`，
   lift 不重判场景）。禁止再走「trace 顶层属性 start 时刻定格」之外的假接线
   （langfuse 4.7.1 无 `update_current_trace`——getattr 防御会把断线吞成静默 no-op）。
+  同一键清单还必须出现在 `_build_terminal_turn_observation_event` 的透传白名单
+  （耐久 jsonl sink=observer/BI 消费面；live 实证 lift 产出曾在这第二张名单被
+  二次过滤成 0 命中）。该键清单现存三处（summarizer lift / case 元组 / 终态白名单），
+  再添第四处时必须收敛为单一导出契约常量。已知系统性缺口（另立战役，不许当作
+  本契约已覆盖）：Langfuse 终点 update 黑洞——全部 turn 的终点键从未落
+  Langfuse span/trace，root span 仅存 start 指纹；合成复现全过、真实 turn 全灭。
 - `turn_runtime` 的 terminal observer metadata 可以携带 `latency_stages_ms`，用于把单轮耗时拆成 `context_route_preview`、`observability_start`、`context_build`、`capability_selection`、`user_message_persist`、`capability_stream` 等内部阶段，并由 runtime metrics / observer snapshot 聚合。该字段是运维观测投影，不是公开 stream contract、capability route、评分、计费或 learner-state authority；客户端不得依赖它做业务状态判断。
 - `context_pack_trace.build_stage_timings_ms` 与 terminal observer metadata 的 `context_build_stage_timings_ms` 可以携带 context build 内部子阶段耗时（如 `route_resolver`、`session_history`、`learner_state`、`source_loader_*`、`context_pack`、`pack_render`），用于定位首屏与上下文构建性能瓶颈。它们只属于 trace/observability projection，不得改变 context route、候选选择、token budget、learner-state truth、评分或计费 authority。
 - terminal observer metadata 可以携带 `start_turn_setup_stage_timings_ms`，用于拆解首个 `session` 事件前的准备阶段，如 `payload_normalize`、`active_object_lookup`、`followup_resolution`、`public_config_validation`、`bot_runtime_defaults`、`ensure_session`、`update_session_preferences`、`recover_orphaned_turns`、`cancel_active_turn`、`create_turn`、`register_execution`、`publish_session_event`。该字段只用于定位 first-visible 前置耗时，不得改变 turn 创建、session 偏好、active object、billing 或 follow-up authority。

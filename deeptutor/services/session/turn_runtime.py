@@ -1268,6 +1268,21 @@ def _build_terminal_turn_observation_event(
         # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
         "content_truth_guard_applied",
         "content_truth_low_confidence_claims",
+        # 观测对称律（1b 2026-07-30）：案例判分成功侧权威标记。summarizer 已从
+        # result event 提升（见 _summarize_assistant_events），但本终态事件另有
+        # 一张白名单——live 实证 lift 产出在此被二次过滤，jsonl sink 永远看不到。
+        # 同键清单第三处出现即收权信号：三张名单（summarizer lift/case 元组/本表）
+        # 若再添第四处，应收敛为单一导出契约常量。
+        "score_authority",
+        "grading_rubric_provenance",
+        "grading_official_score_allowed",
+        "v1_case_graded",
+        "case_grading_prefetch_gate",
+        "case_grading_direct_fell_through",
+        "case_grading_direct_attempt_qid",
+        "case_grading_composite_qid_candidate",
+        "case_grading_outer_seam_reentry",
+        "case_rubric_score_total_mismatch",
         "raw_user_id",
         "member_user_id",
         "identity_resolution_status",
