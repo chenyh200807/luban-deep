@@ -70,20 +70,24 @@ evidence 作观测面。
 ### OPEN
 
 **OD-004 — agent-loop 旁路:判分产出但权威双空**(t4_q1_half, A6;首捕获 r2)
-**仍开放。** #613 后 5 轮 live(runs `promo_gate_20260801_od004_r1..r5`,SHA `1b91d70b`):
-**3/5 PASS**(r1/r2/r4 = `tutorbot_case_grading_v1_direct` + `rubric_scored_v1_diagnostic`
-+ `derived_from_stem`);**r3/r5 FAIL** = `tutorbot_kb_first_full_agent_policy` +
-`score_authority=v1_unavailable:no_reference` + provenance 空。五轮公共流均无英文叙述。
-**`case_stem_fallback` 五轮零出现——#613 兜底从未触发。**
+**仍开放。** #614(兜底上移共享判分核)后 10 轮 live(runs
+`promo_gate_20260801_od004_final_r1..r10`,SHA `edc52b5e`):**约 5/10 PASS**
+(PASS 轮 = `tutorbot_case_grading_v1_direct` + `rubric_scored_v1_diagnostic` +
+`derived_from_stem`;FAIL 轮 = `kb_first_full_agent_policy` +
+`v1_unavailable:no_reference` + provenance 空)。十轮公共流均无英文叙述。
+**`case_stem_fallback` 十轮零出现——兜底位置已正确,但触发条件挡住了。**
 
-关键取证:FAIL 与 PASS 轮的**上游判定逐字节相同**——
-`question_lifecycle_scene=case_grading`(deterministic, confidence 1.0)、
-`business_gate_result=passed`、`case_grading_prefetch_gate=allowed_no_exact_hit`、
-`required_anchor_status=satisfied`、技能栈相同、`case_grading_direct_attempt_qid` 均为空。
-分叉只发生在 scene 已定为 case_grading **之后**的 v1 判分尝试内部:参考基座推导
-2/5 概率返回空→报 `no_reference`→整条落回通用 agent 路径。
-即:非确定性不在 admission/路由,在**题面参考推导本身**(PASS 轮能 `derived_from_stem`,
-FAIL 轮同一输入推不出),而 #613 的 tier3 兜底位于该 bail-out 之后或被别的条件挡住。
+**源码级根因(容器内 grep,SHA 已对账 `edc52b5e`)**:
+`deeptutor/capabilities/deep_question.py::_grade_one_case_v1` 的兜底闸为
+`len(answer) >= 120 and re.search(r"【背景资料】|背景资料|【问题】", answer)`。
+本场景题面是 #583 事故原文(真实考卷粘贴形态):以「某办公楼工程地下二层…」开头、
+小问用半角「问题:」——**三个锚一个都不命中**(长度 838 满足,锚不满足),
+于是径直 `return {"status": "no_reference"}`,与打这刀之前完全同路。
+判别位实证:门内其余带判分的场景(t1_half/t2_half/t3_half/t4_g1_asis)题面**全部**
+含「背景资料/【问题】」锚 → 全绿;t4_q1_half 是**唯一不含锚**的 → 唯一红。
+锚的有无与通过与否完全相关。
+(观察,非修复建议之外的断言:该场景确实含 `【我的作答】` 提交标记——
+「判分行为在场」这个语义在文本里是有痕的,只是当前闸看的是背景资料括号。)
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_half`
 
 ### CLOSED
