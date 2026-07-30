@@ -1,0 +1,129 @@
+{
+  "run_id": "promo_gate_20260801_t4_g1_regress",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=79e21ed7a41e74ef138387d191c90678a92f5d5d\nDEEPTUTOR_RELEASE_ID=1.0.0+79e21ed7a41e74ef138387d191c90678a92f5d5d+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-07-31T02:11:59",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0
+  },
+  "scenarios": [
+    {
+      "id": "t4_g1_asis",
+      "title": "历史事故原文·判分死亡事故原题(碳排放案例,带完整作答)",
+      "form": "full",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785435122692_1965349f91",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 55458.3,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3099(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(8.95, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段带出处"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1_diagnostic; grading_rubric_provenance=derived_from_stem"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1_diagnostic",
+        "grading_rubric_provenance": "derived_from_stem",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 1 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 18 个采分点，部分命中 0 个，还有 1 个需要补。后面我按小问逐一拆。\n\n**诊断得分预估：** 8.95 / 10 分。\n**采分情况：** 命中 18 个，部分命中 0 个，漏/错 1 个。\n\n**先看最该补的地方：**\n1. 第2问：混凝土浇筑施工机具使用先后顺序为：A-B-C-D-E\n\n提示：未命中题库原题/标准答案，本轮是题干推导诊断批改，不能作为正式阅卷成绩。\n\n## 问题1：答出图1中B~F处的施工机具名称。（如：A 混凝土搅拌运输车）\n**你写的：** 能直接给分的表述包括「B: 混凝土固定泵」。\n\n**判定：** 基本正确，保分点已经抓住，注意术语和步骤完整。\n\n**采分点：**\n- ✅ "
+    },
+    {
+      "id": "t4_g1_wrong",
+      "title": "历史事故原题·答错版(机具/顺序/结论均改错)",
+      "form": "wrong",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785435182936_53c2fc67e8",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 55147.9,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3812(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(1.06, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1_diagnostic; grading_rubric_provenance=derived_from_stem"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1_diagnostic",
+        "grading_rubric_provenance": "derived_from_stem",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 1 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 1 个采分点，部分命中 3 个，还有 14 个需要补。后面我按小问逐一拆。\n\n**诊断得分预估：** 1.06 / 10 分。\n**采分情况：** 命中 1 个，部分命中 3 个，漏/错 14 个。\n\n**先看最该补的地方：**\n1. 第1问：C 为布料机\n2. 第1问：D 为串筒\n3. 第1问：E 为振捣棒（或插入式振捣器）\n\n提示：未命中题库原题/标准答案，本轮是题干推导诊断批改，不能作为正式阅卷成绩。\n\n## 问题1：答出图1中B~F处的施工机具名称。（如：A 混凝土搅拌运输车）\n**你写的：** 已看到「B: 汽车泵」，但还要补充「C 为布料机」。\n\n**判定：** 部分正确，有命中点，但仍有漏点或表述"
+    }
+  ],
+  "finished_at": "2026-07-31T02:13:59"
+}

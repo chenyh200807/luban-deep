@@ -69,20 +69,17 @@ evidence 作观测面。
 
 ### OPEN
 
-**OD-003 — #583 拒答事故原题只发题:模型空返回收束为 failed**(t4_q1_asis, A0;首捕获 r2)
-50s 后 turn 终态 failed,可见回复仅「这次模型没有返回可见答案…请重新发送一次」。
-非「拆小」罐头拒答(A5 绿),但事故原题仍不能稳定出答案。
-重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_asis`
-
 **OD-004 — agent-loop 旁路:判分产出但权威双空**(t4_q1_half, A6;首捕获 r2)
-回复完成逐点判分(A1 过),但 result metadata 的 score_authority 与
-grading_rubric_provenance 均空,execution_path=tutorbot_kb_first_full_agent_policy——
-判分由通用 agent 路径现编,未走判分权威链(违反「降级路径必须发声」硬不变量)。
+**仍开放,已部分修复。** live 三轮(run `promo_gate_20260801_t4_verify_r1/2/3`,
+SHA `79e21ed7`)结果 2/3:
+- r1/r3 PASS:`execution_path=tutorbot_case_grading_v1_direct`,
+  `score_authority=rubric_scored_v1_diagnostic`,`grading_rubric_provenance=derived_from_stem`。
+- r2 FAIL:同一输入掉回 `execution_path=tutorbot_kb_first_full_agent_policy`,
+  `score_authority=v1_unavailable:no_reference`(降级已发声,较 r3 的全空是进步),
+  但 `grading_rubric_provenance` 仍空。
+根因面:**admission 非确定性**——判分入闸对同一半答卷 2/3 命中、1/3 漏判,
+落回通用 agent 路径现编。r3 的英文独白泄漏形态三轮均未复现(公共流无英文过程叙述)。
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_half`
-
-**r3 复验(SHA d1c2b44a,含 #601-#607)**:OD-003 原样复现;OD-004 恶化(OD-001/002 已于 2026-08-01 经 PR#610 修复关闭,见 CLOSED)——
-turn 直接 failed 且英文 agent 独白泄漏为可见回复(「Let me also search for…」,
-独白剥离病复发形态)。详见 runs/promo_gate/promo_gate_20260731_r3/report.md。
 
 ### CLOSED
 
@@ -96,6 +93,13 @@ miss用语[漏点/漏掉/漏错] + 点名[第3问/问题3/问题4],未答内容(
 修复:同 PR #610,SHA `b039ae8d`。关闭证据:同 run,t3_half 命中 13(r3 时为 0)、
 得分预估 5.85/10;grading_rubric_provenance=`derived_from_stem`(参考改锚题面);
 分数梯度 t3_full 10/10 > t3_half 5.85/10 > t3_wrong 1.52/10 合理。
+
+**OD-003 — #583 拒答事故原题只发题:模型空返回收束为 failed** — CLOSED 2026-08-01
+修复:PR #612(修复轮结构差异化——剥工具形态,不依赖 provider tool_choice=none),
+SHA `79e21ed7`。关闭证据:run `promo_gate_20260801_t4_verify_r1/2/3` 连续三轮
+3/3 turn=completed、回复 3278/2928/3299 字非模板、终轮 finish_reason=stop
+(r1/r2 经 `agent_loop_repair` 收束 content_chunk 415/381,r3 主循环直接 stop)。
+t4_g1 两场景防回归 run `promo_gate_20260801_t4_g1_regress` 2/2 PASS。
 
 (暂无其他)
 

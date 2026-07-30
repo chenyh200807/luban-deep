@@ -1,0 +1,119 @@
+{
+  "run_id": "promo_gate_20260801_t4_verify_r2",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=79e21ed7a41e74ef138387d191c90678a92f5d5d\nDEEPTUTOR_RELEASE_ID=1.0.0+79e21ed7a41e74ef138387d191c90678a92f5d5d+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-07-31T02:06:48",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 2,
+    "pass": 1,
+    "fail": 1
+  },
+  "scenarios": [
+    {
+      "id": "t4_q1_asis",
+      "title": "历史事故原文·#583拒答事故原题(办公楼5小问,只发题)",
+      "form": "question_only",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785434811947_375779e5f0",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 65223.1,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=2928(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=2928 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "## 结论\n\n这道题共5问，逐问拆解，结论先行。\n\n---\n\n## 问题1：现浇混凝土安全事故类型还有哪些？现浇混凝土安全控制主要内容还有哪些？\n\n**结论：** 安全事故类型还有高空坠落、物体打击、触电、机械伤害、脚手架失稳、重物吊装。安全控制主要内容还有模板施工、混凝土浇筑施工安全、模板拆除施工安全。\n\n**判断依据：**\n\n安全事故类型（补充）：\n- 高空坠落\n- 物体打击\n- 触电\n- 机械伤害\n- 脚手架失稳\n- 重物吊装\n\n安全控制主要内容（补充）：\n- 模板施工（安装与拆除）\n- 混凝土浇筑施工安全\n- 模板拆除施工安全\n\n**采分点：**\n- 安全事故类型：写出高空坠落、物体打击、触电、机械伤害、脚手架失稳、重物吊装，每个 ==0.5分==\n- 安全控制主要内容：写出模板施工、混凝土浇筑施工安全、模板拆除施工安全，每个 ==1分==\n\n**易错点：**\n- 题干已给出\"模板"
+    },
+    {
+      "id": "t4_q1_half",
+      "title": "历史事故原题·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785434881324_e0119ec21a",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 41491.3,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=2904(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "PASS",
+          "evidence": "miss用语['未作答', '未答', '漏点'] + 点名漏点['问题3', '问题4', '问题5']"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(2.0, 3.0), (2.0, 3.0), (4.0, 6.0), (3.0, 4.0), (3.0, 4.0), (6.0, 8.0), (2.0, 3.0), (2.0, 3.0), (3.0, 4.0), (3.0, 4.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "score_authority='v1_unavailable:no_reference'; grading_rubric_provenance=''(必须均非空)"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "v1_unavailable:no_reference",
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。好的，我看到了你的作答。这道题是一道综合案例题，我先按你提交的答案逐问批改。\n\n---\n\n## 评分口径\n\n本次按采分点推演阅卷，采分点来源为题库标准答案与解析。\n\n---\n\n## 问题1：现浇混凝土安全事故类型还有哪些？安全控制主要内容还有哪些？\n\n### 你的答案\n\n> 安全事故类型还有：高处坠落、物体打击、机械伤害、触电。\n> 安全控制主要内容还有：模板拆除安全控制、泵送混凝土管路固定与作业安全、临边洞口防护。\n\n### 判分\n\n**安全事故类型（满分3分）**\n\n| 采分点 | 状态 | 得分 |\n| --- | --- | --- |\n| 高处坠落 | ✅ 命中 | 0.5 |\n| 物体打击 | ✅ 命中 | 0.5 |\n| 机械伤害 | ✅ 命中 | 0.5 |\n| 触电 |"
+    }
+  ],
+  "finished_at": "2026-07-31T02:08:45"
+}
