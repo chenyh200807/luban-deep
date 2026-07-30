@@ -2496,6 +2496,7 @@ async def _grade_one_case_v1(
     # 题面名义分显著分歧 = 复合 qid 可能错配到别的小问，先发声观测一个窗口再定 blocking。
     score_total_mismatch = False
     point_pool_excess = 0.0
+    stem_fallback_used = ""
     if points:
         try:
             _nominal = float((cg or {}).get("max_score") or 0)
@@ -2565,8 +2566,44 @@ async def _grade_one_case_v1(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
         else:
-            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
-            return {"status": "no_reference", "question_id": qid}
+            # OD-004 根治（2026-08-01，取证订正：病灶不在 admission 而在此处 bail-out）：
+            # live 5 轮 3/5——同一半答卷，某轮判分入口不是 tutorbot 直批而是
+            # agent-loop 侧调用，其 graded_context 没有 question_stem（自由粘贴无
+            # active question）→ 与 reference 双空 → 整条 no_reference 降级 →
+            # 落回通用 agent 现编判分（权威双空）。上一刀把兜底打在 tutorbot ctx
+            # 构建器，此入口根本不经过它（五轮零触发实证）。
+            # 判分行为在场必须有判分基座：兜底上移到**共享判分核**，一处覆盖所有
+            # 入口——学生提交的文本本身就是案例题面时用它推导（tier3 只从学生自己
+            # 贴的内容推，不涉他题钥匙，与 OD-002 fail-closed 正交）。
+            _fallback_stem = ""
+            _answer_text = str(answer or "")
+            if len(_answer_text) >= 120 and re.search(r"【背景资料】|背景资料|【问题】", _answer_text):
+                _fallback_stem = _answer_text[:4000]
+            if _fallback_stem:
+                logger.warning(
+                    "LUBAN_DIAG _grade_one_case_v1: stem fallback from submission qid={} len={}",
+                    qid or "(none)", len(_fallback_stem),
+                )
+                kb_evidence = (
+                    await _fetch_stem_kb_evidence(_fallback_stem, kb_name)
+                    if _stem_rubric_kb_grounding_enabled()
+                    else []
+                )
+                points = await _G.derive_rubric_from_stem_async(
+                    _fallback_stem,
+                    complete,
+                    key,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                    kb_evidence=kb_evidence,
+                )
+                points = _G.normalize_points_to_nominal(
+                    points, nominal_total=float((cg or {}).get("max_score") or 0))
+                provenance = "derived_from_stem"
+                stem_fallback_used = "submission_text"
+            if not points:
+                logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
+                return {"status": "no_reference", "question_id": qid}
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: post-tier points={} provenance={} qid={}",
         len(points), provenance, qid or "(none)",
@@ -2628,6 +2665,8 @@ async def _grade_one_case_v1(
         event["case_rubric_score_total_mismatch"] = True
     if point_pool_excess > 0:
         event["point_pool_exceeds_max"] = point_pool_excess
+    if stem_fallback_used:
+        event["case_stem_fallback"] = stem_fallback_used
     if is_diagnostic_rubric:
         event["grading_source"] = "rubric_scored_v1_diagnostic"
         event["answer_key_authority"] = "derived_from_stem_pending_calibration"
