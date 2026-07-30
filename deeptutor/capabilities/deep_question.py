@@ -2592,6 +2592,15 @@ async def _grade_one_case_v1(
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
+    # slot 身份逐轮导出（护栏③）：slot 漂移六周无人知的洞，用导出封死。
+    try:
+        _bank_id = _G.active_bank_identity()
+        event["case_rubric_bank_slot"] = (
+            f"{_bank_id.get('slot') or '?'}:{_bank_id.get('governance') or '?'}:"
+            f"{_bank_id.get('qid_count') or 0}"
+        )
+    except Exception:  # noqa: BLE001 — 观测导出永不破坏判分
+        pass
     if score_total_mismatch:
         event["case_rubric_score_total_mismatch"] = True
     if is_diagnostic_rubric:

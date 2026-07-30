@@ -812,3 +812,29 @@ async def test_case_rubric_v1_score_total_mismatch_marker(monkeypatch: pytest.Mo
     )
     assert event_ok["event_type"] == "case_grading_completed"
     assert "case_rubric_score_total_mismatch" not in event_ok
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_event_carries_bank_slot_identity(monkeypatch: pytest.MonkeyPatch) -> None:
+    """护栏③：判分事件逐轮携带活动 bank 身份（slot:governance:qid_count）——slot
+    未授权漂移六周无人知的洞，用导出封死。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+    monkeypatch.setattr(
+        G, "active_bank_identity",
+        lambda: {"slot": "legacy", "qid_count": 174, "governance": "authorized"},
+    )
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "共用开关箱不妥",
+         "construction_grading_result": {"type": "case", "max_score": 3}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_rubric_bank_slot"] == "legacy:authorized:174"
