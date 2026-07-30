@@ -69,26 +69,7 @@ evidence 作观测面。
 
 ### OPEN
 
-**OD-004 — agent-loop 旁路:判分产出但权威双空**(t4_q1_half, A6;首捕获 r2)
-**仍开放。** #614(兜底上移共享判分核)后 10 轮 live(runs
-`promo_gate_20260801_od004_final_r1..r10`,SHA `edc52b5e`):**5/10 PASS**(r1/r2/r5/r6/r8 过;r3/r4/r7/r9/r10 红)
-(PASS 轮 = `tutorbot_case_grading_v1_direct` + `rubric_scored_v1_diagnostic` +
-`derived_from_stem`;FAIL 轮 = `kb_first_full_agent_policy` +
-`v1_unavailable:no_reference` + provenance 空)。十轮公共流均无英文叙述。
-**`case_stem_fallback` 十轮零出现——兜底位置已正确,但触发条件挡住了。**
-
-**源码级根因(容器内 grep,SHA 已对账 `edc52b5e`)**:
-`deeptutor/capabilities/deep_question.py::_grade_one_case_v1` 的兜底闸为
-`len(answer) >= 120 and re.search(r"【背景资料】|背景资料|【问题】", answer)`。
-本场景题面是 #583 事故原文(真实考卷粘贴形态):以「某办公楼工程地下二层…」开头、
-小问用半角「问题:」——**三个锚一个都不命中**(长度 838 满足,锚不满足),
-于是径直 `return {"status": "no_reference"}`,与打这刀之前完全同路。
-判别位实证:门内其余带判分的场景(t1_half/t2_half/t3_half/t4_g1_asis)题面**全部**
-含「背景资料/【问题】」锚 → 全绿;t4_q1_half 是**唯一不含锚**的 → 唯一红。
-锚的有无与通过与否完全相关。
-(观察,非修复建议之外的断言:该场景确实含 `【我的作答】` 提交标记——
-「判分行为在场」这个语义在文本里是有痕的,只是当前闸看的是背景资料括号。)
-重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_half`
+(空——台账清零)
 
 ### CLOSED
 
@@ -109,6 +90,21 @@ SHA `79e21ed7`。关闭证据:run `promo_gate_20260801_t4_verify_r1/2/3` 连续�
 3/3 turn=completed、回复 3278/2928/3299 字非模板、终轮 finish_reason=stop
 (r1/r2 经 `agent_loop_repair` 收束 content_chunk 415/381,r3 主循环直接 stop)。
 t4_g1 两场景防回归 run `promo_gate_20260801_t4_g1_regress` 2/2 PASS。
+
+**OD-004 — agent-loop 旁路:判分产出但权威双空** — CLOSED 2026-08-01
+修复:PR #615(判分基座判据从形状锚改为语义判据 `case_submission_stem_candidate`
+——提交标记/多小问结构/案例壳,复用作答标记族单一权威),SHA `35ce8b22`。
+关闭证据:runs `promo_gate_20260801_od004_v615_r1..r10` **10/10 PASS**,
+全部 `execution_path=tutorbot_case_grading_v1_direct` +
+`score_authority=rubric_scored_v1_diagnostic` + `grading_rubric_provenance=derived_from_stem`,
+十轮公共流零英文过程叙述。
+**兜底触发实证**:`case_stem_fallback=raw_submission` 在 r3/r4/r6/r9/r10 共 **5/10** 轮
+出现——前两刀(#613/#614)该 marker 均为零触发。5/10 的触发率与 #614 时期
+5/10 的失败率吻合:同一批「ctx 构建拿不到题面」的轮次,过去因形状锚不命中而
+落回通用 agent 路径(权威双空),现在靠语义判据取到基座、留在直批路径。
+即兜底是**在分叉前把题面补上**,而非分叉后救场。
+遗留待查(已由指挥官在 PR 标为独立项,非本条阻塞):同一输入为何约半数轮次
+ctx 拿不到题面——分叉源本身未定位。
 
 (暂无其他)
 
