@@ -69,17 +69,6 @@ evidence 作观测面。
 
 ### OPEN
 
-**OD-001 — 库外案例半答:未答小问被静默丢弃**(t3_half, A1;首捕获 r2, SHA 8d8bc5e4)
-未答的问3/问4 在判分卡零提及(「评定方法/构造柱/坎台」全文不出现),半张卷被当
-全卷收束——owner 翻车形态在库外题复发(库内 t1_half/t2_half 已能点破)。
-重放:`python3 scripts/promo_gate/run_promo_gate.py --only t3_half`
-
-**OD-002 — 库外案例已答小问被错参考判零**(t3_half 伴生;首捕获 r2)
-已答的问1/问2 被判「命中0/漏错10」,判分参考答案与题面数据对不上(如参考
-「1F柱等效龄期19d、累计616℃·d」与表2累计口径不符),疑似库外题错锚编译 rubric
-而非题面自证。当前无独立确定性断言(需语义比对),经 t3_half evidence 人工复核。
-重放:`python3 scripts/promo_gate/run_promo_gate.py --only t3_half`(看 evidence 判零面)
-
 **OD-003 — #583 拒答事故原题只发题:模型空返回收束为 failed**(t4_q1_asis, A0;首捕获 r2)
 50s 后 turn 终态 failed,可见回复仅「这次模型没有返回可见答案…请重新发送一次」。
 非「拆小」罐头拒答(A5 绿),但事故原题仍不能稳定出答案。
@@ -91,13 +80,24 @@ grading_rubric_provenance 均空,execution_path=tutorbot_kb_first_full_agent_pol
 判分由通用 agent 路径现编,未走判分权威链(违反「降级路径必须发声」硬不变量)。
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_half`
 
-**r3 复验(SHA d1c2b44a,含 #601-#607)**:OD-001/002/003 原样复现;OD-004 恶化——
+**r3 复验(SHA d1c2b44a,含 #601-#607)**:OD-003 原样复现;OD-004 恶化(OD-001/002 已于 2026-08-01 经 PR#610 修复关闭,见 CLOSED)——
 turn 直接 failed 且英文 agent 独白泄漏为可见回复(「Let me also search for…」,
 独白剥离病复发形态)。详见 runs/promo_gate/promo_gate_20260731_r3/report.md。
 
 ### CLOSED
 
-(暂无)
+**OD-001 — 库外案例半答:未答小问被静默丢弃** — CLOSED 2026-08-01
+修复:PR #610(作答标记族单一权威+参考入判 fail-closed),SHA `b039ae8d`。
+关闭证据:run `promo_gate_20260801_t3_od001_verify` t3_half A1 PASS——
+miss用语[漏点/漏掉/漏错] + 点名[第3问/问题3/问题4],未答内容(评定方法/构造柱/坎台)
+逐条出现在判分卡。t3 全组 4/4 无回归。
+
+**OD-002 — 库外案例已答小问被错参考判零** — CLOSED 2026-08-01
+修复:同 PR #610,SHA `b039ae8d`。关闭证据:同 run,t3_half 命中 13(r3 时为 0)、
+得分预估 5.85/10;grading_rubric_provenance=`derived_from_stem`(参考改锚题面);
+分数梯度 t3_full 10/10 > t3_half 5.85/10 > t3_wrong 1.52/10 合理。
+
+(暂无其他)
 
 ## 事故入集登记
 
