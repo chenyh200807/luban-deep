@@ -1,0 +1,1087 @@
+{
+  "run_id": "promo_gate_20260731_r2",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=8d8bc5e42e778016413bbbb271ec4afcb7abb0e7\nDEEPTUTOR_RELEASE_ID=1.0.0+8d8bc5e42e778016413bbbb271ec4afcb7abb0e7+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-07-31T00:20:14",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 21,
+    "pass": 16,
+    "fail": 5
+  },
+  "scenarios": [
+    {
+      "id": "t1_full",
+      "title": "题库内案例(合同价款,qid=8817)·全答",
+      "form": "full",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428418208_3253514953",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 41952.0,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=2916(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(2.36, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 2 个采分点，部分命中 0 个，还有 11 个需要补。后面我按小问逐一拆。\n\n⚠️ **判分覆盖范围**：本次仅对 问题1、问题2、问题3 命中了采分点参考（题面共 5 问）；问题4、问题5 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。\n\n**得分预估（仅已覆盖小问）：** 2.36 / 10 分。\n**采分情况：** 命中 2 个，部分命中 0 个，漏/错 11 个。\n\n**先看最该补的地方：**\n1. 第1问：指出不妥之处：甲乙双方通过协商修改了合同协议书、专用条款、通用条款签订了施工合同。\n2. 第1问：正确做法：保持待签合同与招标文件、投标文"
+    },
+    {
+      "id": "t1_half",
+      "title": "题库内案例(qid=8817)·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428464237_07eef862b5",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 26663.0,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1585(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "PASS",
+          "evidence": "命中「未纳入本次判分」"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 3 个需要补。后面我按小问逐一拆。\n\n⚠️ **判分覆盖范围**：本次仅对 问题1 命中了采分点参考（题面共 5 问）；问题2、问题3、问题4、问题5 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。\n\n**得分预估（仅已覆盖小问）：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 3 个。\n\n**先看最该补的地方：**\n1. 第1问：合同签订中，甲乙双方通过协商对合同协议书、专用合同条款、通用合同条款修改意见达成一致，这属于不妥之处。\n2. 第1问：正确做法：合同协议书、专用合同"
+    },
+    {
+      "id": "t1_question_only",
+      "title": "题库内案例(qid=8817)·只发题不作答",
+      "form": "question_only",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428495237_16c64078d2",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 38732.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3438(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=3438 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道题是典型的综合案例题，5问覆盖合同、造价、采购、劳动力、变更索赔5个模块。我按小问逐一拆。\n\n---\n\n## 第1问·合同签订不妥与文件解释顺序\n\n**结论：** 两处不妥，合同文件解释顺序按9个层级递减排列。\n\n### 不妥之处\n\n**不妥一：** 甲乙双方通过协商修改了合同协议书、专用条款、通用条款后签订施工合同。\n\n**正确做法：** 待签合同应与招标文件、投标文件保持一致性（承包范围、工期、造价、计价方式、质量要求等实质性内容），否则合同无效且将被责令改正。\n\n**不妥二：** 背景资料只列出了5个合同文件，但《建设工程施工合同（示范文本）》规定的解释顺序共9个层次，不应只列5个。\n\n### 合同文件解释优先顺序（递减）\n\n> **「协议书 → 中标通知书 → 投标函及其附录 → 专用合同条款 → 通用合同条款 → 标准规范 → 设计图纸 → 已标价工程量清单 → 其他合同文件"
+    },
+    {
+      "id": "t1_wrong",
+      "title": "题库内案例(qid=8817)·答错(数值与顺序均错)",
+      "form": "wrong",
+      "question_group": "T1",
+      "qid": 8817,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428537947_6966ebd3c0",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 21165.7,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1585(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 3 个需要补。后面我按小问逐一拆。\n\n⚠️ **判分覆盖范围**：本次仅对 问题1 命中了采分点参考（题面共 5 问）；问题2、问题3、问题4、问题5 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。\n\n**得分预估（仅已覆盖小问）：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 3 个。\n\n**先看最该补的地方：**\n1. 第1问：合同签订中，甲乙双方通过协商对合同协议书、专用合同条款、通用合同条款修改意见达成一致，这属于不妥之处。\n2. 第1问：正确做法：合同协议书、专用合同"
+    },
+    {
+      "id": "t2_full",
+      "title": "题库内案例(2023质量检测,qid=17357)·全答",
+      "form": "full",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428564712_01ce8ad674",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 20636.3,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1594(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(5.84, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 3 个采分点，部分命中 1 个，还有 1 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 5.84 / 10 分。\n**采分情况：** 命中 3 个，部分命中 1 个，漏/错 1 个。\n\n**先看最该补的地方：**\n1. 第1问：正确做法：建设单位应当在编制工程概预算时合理核算建设工程质量检测费用，单独列支并按照合同约定及时支付。\n2. 第1问：见证记录内容还包括：取样、制样、标识、封志、送检、现场检测。\n\n提示：本评分为 AI 阅卷草稿，非正式成绩。\n\n## 问题1：指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不妥，多答不得分）混凝土试件制作与取样见证记录内容还有哪些？\n**你写的：** 已看到「试验员"
+    },
+    {
+      "id": "t2_half",
+      "title": "题库内案例(qid=17357)·半答(只答不妥之处,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785428588323_9f945350e0",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 22295.2,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1374(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "FAIL",
+          "evidence": "半答卷未标记漏答:无「未纳入本次判分」;miss用语命中=[];漏点点名命中=['见证记录内容', '见证记录']"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(6.68, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 4 个采分点，部分命中 0 个，还有 1 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 6.68 / 10 分。\n**采分情况：** 命中 4 个，部分命中 0 个，漏/错 1 个。\n\n**先看最该补的地方：**\n1. 第1问：见证记录内容还包括：取样、制样、标识、封志、送检、现场检测。\n\n提示：本评分为 AI 阅卷草稿，非正式成绩。\n\n## 问题1：指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不妥，多答不得分）混凝土试件制作与取样见证记录内容还有哪些？\n**你写的：** 已看到「试验员制作见证记录不妥」，但还要补充「见证记录内容还包括：取样、制样、标识、封志、送检、现场检测。」。\n\n**判定：** 部"
+    },
+    {
+      "id": "t2_question_only",
+      "title": "题库内案例(qid=17357)·只发题不作答",
+      "form": "question_only",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428614763_5c2ff8cc0b",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 13848.0,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1082(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=1082 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_exact_fast_path",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "## 结论\n\n**第1问共2处不妥，见证记录还需补充6项内容。** 你写到的\"试验员制作见证记录不妥\"命中了第1处，但第2处（检测费用支付主体）和见证记录内容补充项需要补上。\n\n---\n\n## 问题1拆解\n\n### 不妥之处①\n\n**不妥：** 试验员如实记录了其取样、现场检测等情况，制作了见证记录。\n\n**正确做法：** 应由 ==见证人员==（监理工程师或建设单位人员）负责记录其取样、现场检测情况，制作见证记录。试验员是施工方人员，不能代替见证人填写见证记录。\n\n### 不妥之处②\n\n**不妥：** 总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n\n**正确做法：** 建设单位应当在编制工程概预算时 ==合理核算== 建设工程质量检测费用，==单独列支== 并按照合同约定 ==及时支付==。检测费用由建设单位承担，不应由施工单位代付。\n\n> **「建设单位应单独列支检测费"
+    },
+    {
+      "id": "t2_wrong",
+      "title": "题库内案例(qid=17357)·答错(不妥点判断全错)",
+      "form": "wrong",
+      "question_group": "T2",
+      "qid": 17357,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428632851_d2aadfeb15",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 22026.9,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1571(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(1.67, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 1 个采分点，部分命中 0 个，还有 4 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 1.67 / 10 分。\n**采分情况：** 命中 1 个，部分命中 0 个，漏/错 4 个。\n\n**先看最该补的地方：**\n1. 第1问：正确做法：应由见证人员记录其取样、现场检测情况，制作见证记录。\n2. 第1问：指出不妥之处：总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n3. 第1问：正确做法：建设单位应当在编制工程概预算时合理核算建设工程质量检测费用，单独列支并按照合同约定及时支付。\n\n提示：本评分为 AI 阅卷草稿，非正式成绩。\n\n## 问题1：指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不"
+    },
+    {
+      "id": "t3_full",
+      "title": "题库外长案例(2022案例一改写)·全答",
+      "form": "full",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428658876_87d0f057fa",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 17761.8,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=803(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        },
+        {
+          "id": "A4",
+          "status": "PASS",
+          "evidence": "库外免责命中 ['得分预估']"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 4 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 4 个。\n\n**先看最该补的地方：**\n1. 焊接材料\n2. 焊接方法\n3. 焊接位置\n\n提示：本评分为 AI 阅卷草稿，非正式成绩。\n\n**采分点：**\n- ❌ 漏点：焊接材料（你的作答没有覆盖这个得分含义）\n- ❌ 漏点：焊接方法（你的作答没有覆盖这个得分含义）\n- ❌ 漏点：焊接位置（你的作答没有覆盖这个得分含义）\n- ❌ 漏点：首次采用的钢材（你的作答没有覆盖这个得分含义）\n\n**易错点：** 本问主要漏「焊接材料」和「焊接方法」，复盘时要写成可判分的完整"
+    },
+    {
+      "id": "t3_half",
+      "title": "题库外长案例·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785428680911_3a3658fab7",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 26891.1,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1370(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "FAIL",
+          "evidence": "半答卷未标记漏答:无「未纳入本次判分」;miss用语命中=[];漏点点名命中=[]"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        },
+        {
+          "id": "A4",
+          "status": "PASS",
+          "evidence": "库外免责命中 ['得分预估']"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 10 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 10 个。\n\n**先看最该补的地方：**\n1. A: 限制\n2. B: 禁止\n3. C: 不得用于25米及以上的建设工程\n\n提示：本评分为 AI 阅卷草稿，非正式成绩。\n\n**采分点：**\n- ❌ 术语不精确：A: 限制（术语不精确：本采分点要求规范术语，近义/口语表述不得分）\n- ❌ 术语不精确：B: 禁止（术语不精确：本采分点要求规范术语，近义/口语表述不得分）\n- ❌ 术语不精确：C: 不得用于25米及以上的建设工程（术语不精确：本采分点要求规范术语，近义"
+    },
+    {
+      "id": "t3_question_only",
+      "title": "题库外长案例·只发题不作答",
+      "form": "question_only",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428711966_17e7212c7f",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 116531.8,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=708(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=708 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": null,
+        "execution_path": "deep_question_grading",
+        "turn_capability": "deep_question"
+      },
+      "response_excerpt": "### 阅卷结论\n你的答案“错”未按问题要求填写具体信息，本题判定为不得分。诊断类型为“答题不规范”——你没有针对问题1-4中的任何一问写出具体内容，因此无法获得任何采分点。\n\n### 正确答案\n问题1：A—限制；B—禁止；C—不得用于25米及以上的建设工程；D—普通钢筋调直机、数控钢筋调直切断机的钢筋调直工艺；E—人货两用施工升降机；F—LED灯、节能灯等；G—LED灯、节能灯等。\n问题2：1F柱等效龄期19d，累计气温611℃·d；2F柱等效龄期18d，累计气温600.5℃·d；3F柱等效龄期18d，累计气温616.5℃·d。\n问题3：两种方法为统计方法（标准差已知/未知）和非统计方法。1F~3F柱实体强度评定为合格。评定理由：按非统计方法，mfcu=46.67N/mm²≥λ₁·fcu,k=46N/mm²，fcu,min=38.5N/mm²≥λ₂·fcu,k=38N/mm²。\n问题4："
+    },
+    {
+      "id": "t3_wrong",
+      "title": "题库外长案例·答错(等效龄期与评定结论均错)",
+      "form": "wrong",
+      "question_group": "T3",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428832711_c38d0b14b6",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 33994.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1502(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        },
+        {
+          "id": "A4",
+          "status": "PASS",
+          "evidence": "库外免责命中 ['得分预估']"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 0 个采分点，部分命中 0 个，还有 14 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 0 / 10 分。\n**采分情况：** 命中 0 个，部分命中 0 个，漏/错 14 个。\n\n**先看最该补的地方：**\n1. A: 限制\n2. B: 禁止\n3. C: 不得用于25米及以上的建设工程\n\n提示：本评分为 AI 阅卷草稿，非正式成绩。\n\n**采分点：**\n- ❌ 术语不精确：A: 限制（术语不精确：本采分点要求规范术语，近义/口语表述不得分）\n- ❌ 术语不精确：B: 禁止（术语不精确：本采分点要求规范术语，近义/口语表述不得分）\n- ❌ 术语不精确：C: 不得用于25米及以上的建设工程（术语不精确：本采分点要求规范术语，近义"
+    },
+    {
+      "id": "t4_g1_asis",
+      "title": "历史事故原文·判分死亡事故原题(碳排放案例,带完整作答)",
+      "form": "full",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428871090_db868bd691",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 43666.5,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3137(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(9.11, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段带出处"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1_diagnostic; grading_rubric_provenance=derived_from_stem"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1_diagnostic",
+        "grading_rubric_provenance": "derived_from_stem",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 4 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 18 个采分点，部分命中 0 个，还有 1 个需要补。后面我按小问逐一拆。\n\n**诊断得分预估：** 9.11 / 10 分。\n**采分情况：** 命中 18 个，部分命中 0 个，漏/错 1 个。\n\n**先看最该补的地方：**\n1. 第2问：混凝土浇筑施工机具使用先后顺序为：A-B-C-D-E\n\n提示：未命中题库原题/标准答案，本轮是题干推导诊断批改，不能作为正式阅卷成绩。\n\n## 问题1：答出图1中B~F处的施工机具名称。（如：A 混凝土搅拌运输车）\n**你写的：** 能直接给分的表述包括「B: 混凝土固定泵」。\n\n**判定：** 基本正确，保分点已经抓住，注意术语和步骤完整。\n\n**采分点：**\n- ✅ "
+    },
+    {
+      "id": "t4_g1_wrong",
+      "title": "历史事故原题·答错版(机具/顺序/结论均改错)",
+      "form": "wrong",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785428918837_7d55b4f24f",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 58916.8,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=4087(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.92, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1_diagnostic; grading_rubric_provenance=derived_from_stem"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1_diagnostic",
+        "grading_rubric_provenance": "derived_from_stem",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 8 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 1 个采分点，部分命中 2 个，还有 17 个需要补。后面我按小问逐一拆。\n\n**诊断得分预估：** 0.92 / 10 分。\n**采分情况：** 命中 1 个，部分命中 2 个，漏/错 17 个。\n\n**先看最该补的地方：**\n1. 第1问：C: 布料机\n2. 第1问：D: 串筒\n3. 第1问：E: 振捣棒（或插入式振捣器）\n\n提示：未命中题库原题/标准答案，本轮是题干推导诊断批改，不能作为正式阅卷成绩。\n\n## 问题1：答出图1中B~F处的施工机具名称。（如：A 混凝土搅拌运输车）\n**你写的：** 已看到「B: 汽车泵」，但还要补充「C: 布料机」。\n\n**判定：** 部分正确，有命中点，但仍有漏点或表述"
+    },
+    {
+      "id": "t4_q1_asis",
+      "title": "历史事故原文·#583拒答事故原题(办公楼5小问,只发题)",
+      "form": "question_only",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785428981675_6b82e8e10d",
+      "turn_status": "failed",
+      "attempts": 1,
+      "latency_ms": 50451.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=failed; visible_len=27(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=27 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+    },
+    {
+      "id": "t4_q1_half",
+      "title": "历史事故原题·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785429036299_8cbf25bd79",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 62109.8,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3535(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "PASS",
+          "evidence": "miss用语['未作答', '未答'] + 点名漏点['第3问', '第4问', '第5问']"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "回复中未出现 X/Y 型得分表述(无可违反面)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "FAIL",
+          "evidence": "score_authority=''; grading_rubric_provenance=''(必须均非空)"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这是一道综合案例题，你答了第1、2问，其余小问标注了\"按规范补充\"。下面我按5个小问逐一拆解，把你已答的部分一起判。\n\n---\n\n## 问题1：现浇混凝土安全事故类型还有哪些？安全控制主要内容还有哪些？\n\n**你写的：** 类型：高处坠落、物体打击、机械伤害、触电。安全控制主要内容：模板拆除安全控制、泵送混凝土管路固定与作业安全、临边洞口防护。\n\n**判定：** 部分命中，漏了关键点。\n\n### 采分点\n\n**安全事故类型（还有哪些）：**\n- ✅ 高处坠落（你写了）\n- ✅ 物体打击（你写了）\n- ✅ 机械伤害（你写了）\n- ✅ 触电（你写了）\n- ❌ **脚手架失稳**（漏了）\n- ❌ **重物吊装**（漏了）\n\n**安全控制主要内容（还有哪些）：**\n- ✅ 模板拆除安全控制（你写了，算命中）\n- ❌ **模板支撑系统设计**（题面已给出，但你还需补充完整）\n- ❌ **混凝土浇筑用"
+    },
+    {
+      "id": "t5_correct",
+      "title": "MCQ(qid=8731 氯离子复试)·答对并给理由",
+      "form": "full",
+      "question_group": "T5",
+      "qid": 8731,
+      "verdict": "FAIL",
+      "turn_id": "turn_1785429102506_33470f7d82",
+      "turn_status": "ws_timeout",
+      "attempts": 1,
+      "latency_ms": 10693.8,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "FAIL",
+          "evidence": "turn status=ws_timeout; visible_len=0(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "M1",
+          "status": "FAIL",
+          "evidence": "contains_all['外加剂'] 缺 ['外加剂']"
+        },
+        {
+          "id": "L1",
+          "status": "FAIL",
+          "evidence": "len=0 (>=60)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": ""
+    },
+    {
+      "id": "t5_question_only",
+      "title": "MCQ(qid=8731)·只发题不作答(答题必有解析)",
+      "form": "question_only",
+      "question_group": "T5",
+      "qid": 8731,
+      "verdict": "PASS",
+      "turn_id": "turn_1785429113611_175923526d",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 17714.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=564(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "M1",
+          "status": "PASS",
+          "evidence": "contains_all['外加剂'] 缺 []"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=564 (>=60)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：B（B. 外加剂）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n外加剂中常含有氯盐，是氯离子的主要来源，因此在有氯离子限制时，应首先检测外加剂的氯离子含量。粉煤灰、碎石、河砂也可能含氯，但通常含量较低，且规范要求优先检测外加剂。故选B。\n\n## ⚠️ 易错点\n| 易错项 | 题库依据 |\n| :--- | :--- |\n| A. 粉煤灰 | 粉煤灰作为矿物掺合料，其氯离子含量通常较低，不是氯离子的主要或首要来源。 [概念混淆] |\n| C. 碎石 | 碎石作为粗骨料，其氯离子含量通常极低，且不易溶出，不是首要检验对象。 [概念混淆] |\n| D. 河砂 | 河砂作为细骨料，可能含有氯离子（如海砂），但在有外加剂的情况下，外加剂是更首要的氯离子来源。 [概念混淆] |\n\n## 🎯 核心要点\n- ✅ 命中"
+    },
+    {
+      "id": "t5_wrong",
+      "title": "MCQ(qid=8731)·答错(选D河砂)",
+      "form": "wrong",
+      "question_group": "T5",
+      "qid": 8731,
+      "verdict": "PASS",
+      "turn_id": "turn_1785429131230_97727a91c9",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 33520.9,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1022(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "M1",
+          "status": "PASS",
+          "evidence": "contains_all['外加剂'] 缺 []"
+        },
+        {
+          "id": "M2",
+          "status": "PASS",
+          "evidence": "contains_any['不正确', '不对', '错误', '误选', '不是', '并非'] 命中 ['错误', '不是']"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=1022 (>=60)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": "### 阅卷结论\n你答了D（河砂），正确答案是B（外加剂）。判定为错误，诊断类型：概念混淆——误将“用量大”等同于“氯离子首要来源”。\n\n### 正确答案\n**B. 外加剂**\n外加剂（尤其是早强剂、防冻剂等）常含有氯盐，是混凝土中氯离子的主要来源，规范要求在有氯离子含量限制时优先检验。\n\n### 为什么错\n你的推理“河砂用量最大，氯离子总量贡献最大”是典型的**概念混淆**。混凝土中氯离子的首要来源不是用量最大的骨料，而是外加剂中的氯盐成分（如氯盐类早强剂、防冻剂）。河砂虽可能含氯（如海砂），但通常含量较低，且规范明确要求优先检验外加剂。你忽略了外加剂作为“活性组分”的特殊性，用“总量”思维替代了“来源优先级”思维。\n\n### 知识点\n**混凝土原材料氯离子含量检验顺序**\n进场复试中，对有氯离子含量要求时，应优先检验外加剂的氯离子含量。外加剂是混凝土中氯离子最主要的来源，其含量直接影响"
+    },
+    {
+      "id": "t6_edge_ask",
+      "title": "KB边界偏门题(金属幕墙板材/气密性)·只问",
+      "form": "question_only",
+      "question_group": "T6",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785429165201_53161ee607",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 17149.4,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1293(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=1293 (>=150)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": "## 结论\n\n1. **金属幕墙常用板材**：铝板（含铝塑复合板、铝蜂窝复合板）、不锈钢板、搪瓷钢板、锌合金板、钛合金板等。\n2. **铝塑复合板现场加工讲究**：核心是**严禁现场开槽**，必须工厂预制加工；现场只能做切割、折边等不破坏面板结构的工序。\n3. **幕墙气密性能**：**是必须检测的项目**，属于幕墙工程交工前\"四性\"检测之一。\n\n---\n\n## 判断依据\n\n### 一、金属幕墙常用板材\n\n教材《建筑工程管理与实务》将金属幕墙板材分为两类：\n\n- **金属板幕墙**：铝板、不锈钢板、搪瓷钢板、锌合金板、钛合金板等\n- **金属复合板幕墙**：铝塑复合板、铝蜂窝复合板、钛锌复合板等\n\n考试中铝板（含铝塑复合板）出现频率最高。\n\n### 二、铝塑复合板现场加工要求\n\n**规范对铝塑复合板的加工有严格限制：**\n\n- 铝塑复合板**严禁在现场开槽、折弯**，必须在工厂按设计尺寸预"
+    },
+    {
+      "id": "t6_edge_full",
+      "title": "KB边界偏门题·带自己的理解求核对",
+      "form": "full",
+      "question_group": "T6",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785429182499_ea70a70c71",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 29336.4,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1236(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=1236 (>=150)"
+        }
+      ],
+      "observed_metadata": null,
+      "response_excerpt": "检索证据已覆盖三个问题。下面逐一核对你说的。\n\n---\n\n## 结论\n\n你的理解**基本正确，但不全面**。金属幕墙板材你漏了锌合金板、钛合金板、搪瓷钢板三大类；气密性能的理解方向对，但幕墙工程检测的是\"四性\"而非\"三性\"。\n\n---\n\n## 一、金属幕墙常用板材\n\n检索证据显示，教材口径分两类：\n\n**金属板幕墙**（单一金属板）：铝板、不锈钢板、搪瓷钢板、锌合金板、钛合金板等。\n\n**金属复合板幕墙**（复合构造）：铝塑复合板、铝蜂窝复合板、钛锌复合板等。\n\n✅ 你说的单层铝板、铝塑复合板、蜂窝铝板、不锈钢板都正确。\n❌ 漏了：**搪瓷钢板、锌合金板、钛合金板、钛锌复合板**。\n\n> 考试判断抓手：看到\"金属幕墙\"问板材，先想\"金属板\"和\"金属复合板\"两个子类，各记3~4种，考场上不容易漏选。\n\n---\n\n## 二、铝塑复合板现场加工使用的讲究\n\n检索证据中关于铝塑复合板现场加工的具体"
+    }
+  ],
+  "finished_at": "2026-07-31T00:33:30"
+}
