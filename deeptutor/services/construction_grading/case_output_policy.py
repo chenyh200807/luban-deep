@@ -14,6 +14,18 @@ _OFFICIAL_GRADING_RE = re.compile(
     r"判错|阅卷|给分|扣分|满分)"
 )
 _DIAGNOSTIC_ONLY_MARKER = "本次不硬估标准分"
+
+# 案例作答标记族的单一权威（OD-001/002 取证裁决 2026-07-31）：此前切割侧
+# （question_lifecycle_skills）与标题抽取侧（rubric_grader_v1）各持一张标记
+# 名单——切割侧缺【我的作答】括号形，一个缺口让整套倒诬防线（身份闸+数字
+# 变体闸+覆盖对账）同时解除武装（假命中 17315 的答案钥匙判学生正确作答为零）。
+# 两侧现共用本模式；增标记只改这里。
+CASE_ANSWER_MARKER_PATTERN: str = (
+    r"(?:(?:^|[\r\n]|[ \t。；;!！?？])(?:回答[ \t]*)?"
+    r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*"
+    r"|【我的作答】[ \t]*|【作答】[ \t]*|【我的答案】[ \t]*"
+    r"|(?:^|[\r\n])[ \t]*我的(?:答案|作答)[ \t]*(?:[:：][ \t]*)?(?=[\r\n]|$))"
+)
 _CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "subjective"}
 
 # 判分权威导出键的单一权威（倾向四收权，2026-07-30 owner 拍板根治）。

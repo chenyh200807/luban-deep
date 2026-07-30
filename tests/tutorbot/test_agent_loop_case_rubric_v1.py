@@ -1988,3 +1988,23 @@ def test_build_ctx_exports_user_stem_for_coverage() -> None:
     ctx = AgentLoop._build_v1_case_ctx(md, user_paste)
     assert "问题4" in ctx["user_stem"]          # 整题面在
     assert "问题4" not in ctx["question_stem"]  # eq.stem 只有 1 问（判分接地不变）
+
+
+def test_build_ctx_fail_closed_when_stem_unsplittable() -> None:
+    """OD-002 fail-closed 保底闸：疑似案例投稿但作答切割失败（user_stem 空）时，
+    题库参考答案不得入判——核验面缺失宁降 tier3，不许拿别人家钥匙倒诬。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "【背景资料】另一道题的题干。",
+            "correct_answer": "别人家的答案钥匙",
+            "covered_subquestions": [
+                {"prompt": "【问题1】？", "authoritative_answer": "别人家的答案", "display_index": "1"},
+            ],
+        },
+    }
+    # 无任何可识别作答标记的长案例形状文本 → split 失败 → user_stem 空
+    weird = "【背景资料】某工程质量问题描述很长" + "内容" * 60 + "\n【问题】相关小问混排无标记作答内容混在一起"
+    ctx = AgentLoop._build_v1_case_ctx(md, weird)
+    assert md.get("exact_question_blocked_reason") == "unverifiable_submission_shape"
+    assert ctx["correct_answer"] == ""  # 钥匙没入判

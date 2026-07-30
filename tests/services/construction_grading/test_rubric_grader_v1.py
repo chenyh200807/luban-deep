@@ -1910,3 +1910,27 @@ def test_question_titles_cut_answer_markers_before_counting() -> None:
     assert sorted(G._extract_case_question_titles(raw)) == [1, 2, 3, 4]
     raw2 = raw.replace("【我的作答】", "\n我的答案：")
     assert sorted(G._extract_case_question_titles(raw2)) == [1, 2, 3, 4]
+
+
+def test_answer_marker_single_authority_bracket_forms() -> None:
+    """OD-001/002 根治：标记族单一权威——切割侧与标题抽取侧共用
+    CASE_ANSWER_MARKER_PATTERN，括号形【我的作答】两侧同时生效。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_ANSWER_MARKER_PATTERN,
+    )
+    from deeptutor.services.question_lifecycle_skills import (
+        split_full_case_answer_submission,
+        _FREE_TEXT_CASE_ANSWER_MARKER_RE,
+    )
+
+    assert _FREE_TEXT_CASE_ANSWER_MARKER_RE.pattern == CASE_ANSWER_MARKER_PATTERN
+    paste = (
+        "【背景资料】某工程混凝土施工出现质量问题。\n【问题】\n1. 指出错误？\n2. 正确做法？\n"
+        "3. 评定方法？\n4. 构造柱做法？\n【我的作答】\n问1：B：限制。"
+    )
+    stem, answer = split_full_case_answer_submission(paste)
+    assert stem and "问题" in stem and "我的作答" not in stem
+    assert "B：限制" in answer
+    # 标题抽取侧同一模式：作答里的编号不进题面计数
+    titles = G._extract_case_question_titles(paste)
+    assert sorted(titles) == [1, 2, 3, 4]
