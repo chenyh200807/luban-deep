@@ -92,6 +92,10 @@
 - `exact_question.answer_kind`
 - `exact_question.case_bundle`
 - `exact_question.coverage_state`
+- `exact_question.question_id`（tier1/2 可达性 2026-07-30：payload 顶层显式身份键；
+  连同 `source_chunk_id`/`exam_year` 构成 pgo 复合 qid
+  `{exam_year}::{source_chunk_id}::E{n}` 的原料——消费方是判分 ctx 组装，
+  不得作为路由/relevance 信号）
 - `authoritative_answer`
 - `corrected_from`
 - `bot_id`
