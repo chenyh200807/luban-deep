@@ -91,9 +91,13 @@ grading_rubric_provenance 均空,execution_path=tutorbot_kb_first_full_agent_pol
 判分由通用 agent 路径现编,未走判分权威链(违反「降级路径必须发声」硬不变量)。
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_half`
 
+**r3 复验(SHA d1c2b44a,含 #601-#607)**:OD-001/002/003 原样复现;OD-004 恶化——
+turn 直接 failed 且英文 agent 独白泄漏为可见回复(「Let me also search for…」,
+独白剥离病复发形态)。详见 runs/promo_gate/promo_gate_20260731_r3/report.md。
+
 ### CLOSED
 
-(暂无;r3 对 #607 部署 SHA 的复验结果见 runs/promo_gate/promo_gate_20260731_r3/)
+(暂无)
 
 ## 事故入集登记
 
