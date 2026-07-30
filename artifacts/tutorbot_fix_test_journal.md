@@ -9,6 +9,14 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-30 - 1b 收官：观测导出再剥三层+Langfuse 黑洞立案
+
+- 问题：tier2 复活 live 达成后，指挥官验收判据「trace 顶层可见 provenance」持续不满足。
+- 根因链（观测侧又三层）：①#595 的 update_current_trace 推送=假接线（langfuse 4.7.1 无此方法，getattr 防御吞成永久静默 no-op）；②真桥=turn.runtime 根 span 的 _summarize_assistant_events lift（#597 接入）——lift 本身容器内真数据验证通过；③终态事件另有第二张透传白名单（_build_terminal_turn_observation_event）把 lift 产出二次过滤，jsonl 耐久 sink 0 命中（#598 补齐）。
+- 重大立案（task#19）：**Langfuse 终点 update 黑洞**——全部 turn 的全部终点键从未落 Langfuse span/trace（root span 仅 start 指纹）。合成复现矩阵（chain 类型/手动 __enter__/跨 await/11KB 载荷）全部通过、真实 turn 全灭、DEBUG 日志无异常。系统性既往病，没人发现因为 BI 实际读本地 jsonl。
+- 验证（数字）：#598 部署（SHA b790c910）后 live 探针 jsonl sink 四键齐（on_the_fly_reference/allowed/rubric_scored_v1/v1_case_graded=True）；此前 0 命中。
+- 教训：①同一个键上"顶层"要过三道独立白名单（summarizer lift/case 元组/终态名单）——第四处出现必须收敛为单一导出契约常量（已写入 contracts/turn.md）；②验收"某 sink 可见"前先测绘：这个 sink 谁写、哪个进程、几张名单；③getattr 能力探测在 SDK 升级时会把 API 消失吞成静默 no-op——能力断言应在启动时 fail-loud 一次而非每次调用静默跳过。
+
 ## 2026-07-30 - tier1/2 可达性 1b：门死锁+exact 恒 miss 全链根因（四层剥洋葱）
 
 - 问题：批1a 前置了 prefetch 管道后，live 探针（在库案例粘贴）判分仍恒 tier3（derived_from_stem）、零检索观测。业务事实=「粘贴题库内案例题必须拿到题库判分权威」在四个不同层各断一刀。
