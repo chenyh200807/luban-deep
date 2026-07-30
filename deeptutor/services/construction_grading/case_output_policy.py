@@ -20,6 +20,7 @@ CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
     "v1_case_graded",
     "score_authority",
     "case_grading_direct_fell_through",
+    "case_grading_prefetch_gate",
     "grading_rubric_provenance",
     "grading_to_brain_loop",
     "learning_evidence_event_id",
