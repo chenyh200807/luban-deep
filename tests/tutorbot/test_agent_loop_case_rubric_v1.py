@@ -1644,7 +1644,8 @@ async def test_case_grading_direct_prefetches_exact_before_v1(tmp_path, monkeypa
 
     from deeptutor.tutorbot.bus.events import InboundMessage
     msg = InboundMessage(channel="test", sender_id="u", chat_id="c", content="题干…\n作答…")
-    md_ref = {"question_lifecycle_scene": "case_grading"}
+    # 1b admission：直批取回权威只看 kb 在场（不再受聊天门管辖）。
+    md_ref = {"question_lifecycle_scene": "case_grading", "default_kb": "construction-exam"}
     out = await loop._run_case_grading_direct(
         msg=msg, session=SimpleNamespace(metadata={}, key="k", messages=[], last_consolidated=0),
         history=[], current_message="【题目】某工程…\n【我的作答】…",
@@ -1692,3 +1693,226 @@ async def test_grounded_prefetch_is_idempotent_per_turn(tmp_path, monkeypatch) -
         current_message="q", runtime_metadata=md,
     )
     assert executed["rag"] == 0  # 幂等：直接短路，未触检索
+
+
+# ---------------------------------------------------------------------------
+# tier1/2 可达性收复 批1b（2026-07-30 指挥官修正令：门+A3+复合qid观测+成功侧导出同批）
+# ---------------------------------------------------------------------------
+def _direct_loop(tmp_path):
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class _P(LLMProvider):
+        async def chat(self, *a, **k):
+            return LLMResponse(content="占位")
+
+        def get_default_model(self):
+            return "fake"
+
+    return AgentLoop(
+        bus=MessageBus(), provider=_P(), workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+
+
+async def _run_direct(loop, md_ref, monkeypatch, *, plan=None):
+    from deeptutor.tutorbot.bus.events import InboundMessage
+
+    calls = {"prefetch": 0}
+
+    async def _fake_prefetch(*, initial_messages, current_message, runtime_metadata, **kw):
+        calls["prefetch"] += 1
+        return initial_messages
+
+    async def _fake_plan(*, runtime_metadata, user_message):
+        return plan
+
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _fake_prefetch)
+    monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_plan)
+    monkeypatch.setattr(loop, "_is_case_grading_scene", lambda md: True)
+    msg = InboundMessage(channel="test", sender_id="u", chat_id="c", content="题干…\n作答…")
+    await loop._run_case_grading_direct(
+        msg=msg, session=SimpleNamespace(metadata={}, key="k", messages=[], last_consolidated=0),
+        history=[], current_message="【题目】某工程基坑深6米…问题1：指出不妥之处。\n【我的作答】深度超5米应专家论证。",
+        runtime_metadata=md_ref, runtime_instruction="",
+    )
+    return calls
+
+
+@pytest.mark.asyncio
+async def test_direct_admission_ignores_chat_gate_veto(tmp_path, monkeypatch) -> None:
+    """死锁回归（live 实证 denied:decision）：权威空壳 active_object（键在值空）曾触发
+    通用聊天门禁检索——「没权威→禁取权威」。1b 收权后：直批 admission 只看 kb 在场，
+    聊天门（此处保持真实实现，会拒）无否决权。"""
+    md_ref = {
+        "question_lifecycle_scene": "case_grading",
+        "knowledge_bases": ["construction-exam"],
+        # 生产实况复刻：无 default_tools + 空壳 active_object（question_id/correct_answer 全空）
+        "active_object": {
+            "object_type": "single_question",
+            "state_snapshot": {"question": "某工程基坑…", "question_id": "", "correct_answer": None,
+                               "user_answer": ""},
+        },
+    }
+    calls = await _run_direct(_direct_loop(tmp_path), md_ref, monkeypatch)
+    assert calls["prefetch"] == 1
+    assert md_ref.get("case_grading_prefetch_gate") == "allowed_no_exact_hit"
+
+
+@pytest.mark.asyncio
+async def test_direct_admission_no_kb_denies_with_voice(tmp_path, monkeypatch) -> None:
+    md_ref = {"question_lifecycle_scene": "case_grading"}
+    calls = await _run_direct(_direct_loop(tmp_path), md_ref, monkeypatch)
+    assert calls["prefetch"] == 0
+    assert md_ref.get("case_grading_prefetch_gate") == "denied:no_default_kb"
+
+
+@pytest.mark.asyncio
+async def test_direct_admission_authority_present_skips_fetch(tmp_path, monkeypatch) -> None:
+    md_ref = {
+        "question_lifecycle_scene": "case_grading",
+        "default_kb": "construction-exam",
+        "exact_question": {
+            "answer_kind": "case_study",
+            "correct_answer": "开挖深度超过5m（含）应组织专家论证。",
+        },
+    }
+    calls = await _run_direct(_direct_loop(tmp_path), md_ref, monkeypatch)
+    assert calls["prefetch"] == 0
+    assert md_ref.get("case_grading_prefetch_gate") == "authority_already_present"
+
+
+def test_case_stem_numeric_variant_gate() -> None:
+    """改数变体闸：同单位、值不同、且用户值不在题库题任何数字中 → 判变体；
+    子集粘贴（用户数字 ⊆ 题库数字）永不触发。"""
+    eq = {
+        "stem": "某基坑开挖深度6米，合同价3000万元。",
+        "covered_subquestions": [{"prompt": "问题1：指出不妥之处？", "question": ""}],
+    }
+    # 改数变体：6米 → 8米
+    assert AgentLoop._case_stem_numeric_variant(eq, "某基坑开挖深度8米，问题1：指出不妥之处？") is True
+    # 同题原数：不触发
+    assert AgentLoop._case_stem_numeric_variant(eq, "某基坑开挖深度6米，问题1：指出不妥之处？") is False
+    # 子集粘贴（只提金额）：不触发
+    assert AgentLoop._case_stem_numeric_variant(eq, "合同价3000万元的工程，问题1？") is False
+    # 题库无带单位数字：闸不表态
+    assert AgentLoop._case_stem_numeric_variant({"stem": "论述质量管理要点。"}, "深度8米") is False
+
+
+def test_build_ctx_numeric_variant_demotes_eq() -> None:
+    """真实威胁形状：小问文字与题库题完全一致（锚定匹配放行），但背景资料数字被改
+    （6米→8米）。2-gram/锚定匹配对此无鉴别力，数字变体闸必须兜底撤销 eq——
+    否则官方 rubric 会去判一道数值语义已变的题。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "【背景资料】某基坑开挖深度6米。",
+            "covered_subquestions": [
+                {"question": "【问题1】指出土方开挖中的不妥之处？",
+                 "authoritative_answer": "应专家论证", "display_index": "1"},
+            ],
+        },
+    }
+    ctx = AgentLoop._build_v1_case_ctx(
+        md,
+        "【背景资料】某基坑开挖深度8米。【问题1】指出土方开挖中的不妥之处？\n我的答案：需要论证。",
+    )
+    assert md.get("exact_question_blocked_reason") == "case_numeric_variant"
+    assert ctx["correct_answer"] == ""  # eq 已撤，参考答案不得泄入
+
+
+def test_build_ctx_composite_qid_candidate_observe_only() -> None:
+    """复合 qid【观测不武装】：唯一性审计实证运行时 display_index(1基) 与编译期
+    En(0基) 无共享权威（模拟命中 23/354 全部错绑）——候选键只导出 marker，
+    绝不进 ctx.question_id 喂 load_rubric。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "question_id": 9348,
+            "source_chunk_id": "EXAM_1A430000_P0014_06",
+            "exam_year": 2024,
+            "stem": "【背景资料】某工程基坑开挖深度6米。",
+            "covered_subquestions": [
+                {"prompt": "【问题1】指出土方开挖中的不妥之处？",
+                 "authoritative_answer": "开挖深度超过5m（含）应组织专家论证。",
+                 "display_index": "1"},
+                {"prompt": "【问题2】说明正确做法？",
+                 "authoritative_answer": "应编制专项施工方案。",
+                 "display_index": "2"},
+            ],
+        },
+    }
+    ctx = AgentLoop._build_v1_case_ctx(
+        md,
+        "【背景资料】某工程基坑开挖深度6米。【问题1】指出土方开挖中的不妥之处？\n我的答案：深度超5米应专家论证。",
+    )
+    assert md.get("case_grading_composite_qid_candidate") == "2024::EXAM_1A430000_P0014_06::E1"
+    assert ctx["question_id"] == "9348"  # 不武装：仍是 bank 整数 id，永不命中 pgo 键
+
+
+@pytest.mark.asyncio
+async def test_outer_seam_reentry_only_on_authority_upgrade(tmp_path, monkeypatch) -> None:
+    """单发闸窄豁免：fell_through 后仅当 qid 客观升级（空→有）才放行一次再入，
+    升级也发声（case_grading_outer_seam_reentry marker）。"""
+    loop = _direct_loop(tmp_path)
+    # 目录级既往病免疫：别处测试会把模块 logger 换成缺方法的 SimpleNamespace。
+    import deeptutor.tutorbot.agent.loop as _loop_mod
+    monkeypatch.setattr(
+        _loop_mod, "logger",
+        SimpleNamespace(debug=lambda *a, **k: None, info=lambda *a, **k: None,
+                        warning=lambda *a, **k: None, error=lambda *a, **k: None),
+    )
+
+    # (a) qid 未升级 → 维持关闭
+    md_a = {"case_grading_direct_fell_through": True, "case_grading_direct_attempt_qid": ""}
+    monkeypatch.setattr(loop, "_build_v1_case_ctx", lambda md, um: {"question_id": ""})
+    assert await loop._v1_case_stream_plan(runtime_metadata=md_a, user_message="q") is None
+    assert "case_grading_outer_seam_reentry" not in md_a
+
+    # (b) qid 升级 → 放行一次并发声（scene 置非 case_grading 让其随即返回，
+    # marker 在场即证明已越过单发闸）
+    md_b = {
+        "case_grading_direct_fell_through": True,
+        "case_grading_direct_attempt_qid": "",
+        "question_lifecycle_scene": "mcq_grading",
+    }
+    monkeypatch.setattr(loop, "_build_v1_case_ctx", lambda md, um: {"question_id": "9348"})
+    assert await loop._v1_case_stream_plan(runtime_metadata=md_b, user_message="q") is None
+    assert md_b.get("case_grading_outer_seam_reentry") == "authority_upgraded"
+
+    # (c) 已再入过 → 不得二次放行
+    md_c = dict(md_b)
+    assert await loop._v1_case_stream_plan(runtime_metadata=md_c, user_message="q") is None
+
+
+def test_case_grading_new_markers_projected_per_turn() -> None:
+    """观测对称律：新 marker 必须在 CASE_GRADING_TURN_METADATA_KEYS 里随每跳导出。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_TURN_METADATA_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    for key in (
+        "case_grading_prefetch_gate",
+        "case_grading_direct_attempt_qid",
+        "case_grading_composite_qid_candidate",
+        "case_grading_outer_seam_reentry",
+        "case_rubric_score_total_mismatch",
+    ):
+        assert key in CASE_GRADING_TURN_METADATA_KEYS, key
+    # 通用 marker 不得入 case 元组（strip 会在非 case 轮剥掉别的路径写的值）
+    assert "exact_question_blocked_reason" not in CASE_GRADING_TURN_METADATA_KEYS
+    assert "case_reference_blocked_reason" not in CASE_GRADING_TURN_METADATA_KEYS
+
+    source = {
+        "question_lifecycle_scene": "case_grading",
+        "case_grading_prefetch_gate": "allowed",
+        "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+    }
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(source, target)
+    assert target["case_grading_prefetch_gate"] == "allowed"
+    assert target["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"

@@ -21,6 +21,14 @@ CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
     "score_authority",
     "case_grading_direct_fell_through",
     "case_grading_prefetch_gate",
+    # 注意：exact_question_blocked_reason / case_reference_blocked_reason 是跨场景
+    # 通用 marker（mcq/澄清路径也写），不得收进本元组——strip 语义会在非 case 轮
+    # 把它们剥掉（CI 实证 low_information_exam_query 断言被破坏）。它们的 trace
+    # 顶层导出走 manager 推送处附带（只导出不持久不剥离）。
+    "case_grading_direct_attempt_qid",
+    "case_grading_composite_qid_candidate",
+    "case_grading_outer_seam_reentry",
+    "case_rubric_score_total_mismatch",
     "grading_rubric_provenance",
     "grading_to_brain_loop",
     "learning_evidence_event_id",

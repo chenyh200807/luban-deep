@@ -778,3 +778,37 @@ def test_summarize_pgo_query_result_all_scorable_flags_no_unscorable():
     assert summary["scoring_point_count"] == 2
     assert summary["scorable_point_count"] == 2
     assert summary["has_unscorable_points"] is False
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_score_total_mismatch_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
+    题面名义分显著分歧 = qid 可能错绑到别的小问 → event 落
+    ``case_rubric_score_total_mismatch`` marker 发声；一致时无 marker（观测对称）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+
+    # rubric 总分 3.0 vs 名义 10 分 → 发声
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "共用开关箱不妥",
+         "construction_grading_result": {"type": "case", "max_score": 10}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_rubric_score_total_mismatch"] is True
+
+    # rubric 总分 3.0 vs 名义 3 分 → 无 marker
+    event_ok = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "共用开关箱不妥",
+         "construction_grading_result": {"type": "case", "max_score": 3}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event_ok["event_type"] == "case_grading_completed"
+    assert "case_rubric_score_total_mismatch" not in event_ok

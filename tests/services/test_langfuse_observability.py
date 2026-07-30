@@ -824,3 +824,61 @@ def test_get_client_normalizes_langfuse_host_before_sdk_init(
     assert adapter._get_client() is not None
     assert captured["host"] == "http://localhost:3001"
     assert captured["base_url"] == "http://localhost:3001"
+
+
+# ---------------------------------------------------------------------------
+# 成功侧 trace 顶层导出（1b 观测对称律 2026-07-30）
+# ---------------------------------------------------------------------------
+def test_update_current_trace_metadata_pushes_to_trace_top_level(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """判分权威标记（score_authority/provenance/gate marker）此前只活在
+    events_json——trace 顶层属性在 start 时刻定格。本方法必须把 turn 结束后
+    才产生的键补写到 CURRENT TRACE。"""
+
+    class _TraceClient:
+        def __init__(self) -> None:
+            self.trace_updates: list[dict] = []
+
+        def update_current_trace(self, *, metadata=None, **_kw) -> None:
+            self.trace_updates.append(dict(metadata or {}))
+
+    adapter = LangfuseObservability()
+    client = _TraceClient()
+    monkeypatch.setattr(adapter, "_get_client", lambda: client)
+
+    adapter.update_current_trace_metadata(
+        {
+            "score_authority": "rubric_scored_v1",
+            "grading_rubric_provenance": "on_the_fly_reference",
+            "case_grading_prefetch_gate": "allowed",
+        }
+    )
+
+    assert client.trace_updates, "trace 顶层必须收到更新"
+    pushed = client.trace_updates[-1]
+    assert pushed["grading_rubric_provenance"] == "on_the_fly_reference"
+    assert pushed["score_authority"] == "rubric_scored_v1"
+    assert pushed["case_grading_prefetch_gate"] == "allowed"
+
+
+def test_update_current_trace_metadata_is_fail_safe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    adapter = LangfuseObservability()
+    # 无 client → 静默 no-op
+    monkeypatch.setattr(adapter, "_get_client", lambda: None)
+    adapter.update_current_trace_metadata({"score_authority": "x"})
+
+    # client 缺方法 → 静默 no-op
+    monkeypatch.setattr(adapter, "_get_client", lambda: object())
+    adapter.update_current_trace_metadata({"score_authority": "x"})
+
+    # 空 metadata → 不触 client
+    class _Boom:
+        def update_current_trace(self, **_kw):
+            raise AssertionError("空 metadata 不得触发 trace 更新")
+
+    monkeypatch.setattr(adapter, "_get_client", lambda: _Boom())
+    adapter.update_current_trace_metadata({})
+    adapter.update_current_trace_metadata(None)

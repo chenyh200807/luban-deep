@@ -2492,6 +2492,16 @@ async def _grade_one_case_v1(
     # 1) governed compiled rubric (best ammunition) if in the bank
     points = _G.load_rubric(qid) if qid else []
     provenance = "compiled_rubric"
+    # C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
+    # 题面名义分显著分歧 = 复合 qid 可能错配到别的小问，先发声观测一个窗口再定 blocking。
+    score_total_mismatch = False
+    if points:
+        try:
+            _nominal = float((cg or {}).get("max_score") or 0)
+            _rubric_total = sum(float(p.get("score") or 0) for p in points if isinstance(p, dict))
+            score_total_mismatch = _nominal > 0 and abs(_rubric_total - _nominal) > 0.01
+        except (TypeError, ValueError):
+            score_total_mismatch = False
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
         qid or "(none)", len(points),
@@ -2582,6 +2592,8 @@ async def _grade_one_case_v1(
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
+    if score_total_mismatch:
+        event["case_rubric_score_total_mismatch"] = True
     if is_diagnostic_rubric:
         event["grading_source"] = "rubric_scored_v1_diagnostic"
         event["answer_key_authority"] = "derived_from_stem_pending_calibration"

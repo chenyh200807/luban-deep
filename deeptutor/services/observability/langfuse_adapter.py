@@ -1167,6 +1167,29 @@ class LangfuseObservability:
         except Exception as exc:
             logger.debug(f"Langfuse observation update skipped: {exc}", exc_info=True)
 
+    def update_current_trace_metadata(self, metadata: dict[str, Any] | None) -> None:
+        """Push post-run metadata onto the CURRENT TRACE (top level, not the observation).
+
+        观测对称律（2026-07-30）：判分成功侧的权威标记（score_authority /
+        grading_rubric_provenance / prefetch gate）此前只活在 events_json 里——
+        trace 顶层属性全部在 start 时刻定格，跑完后的键永远上不去。诊断只能考古
+        events_json。本方法在观测上下文仍活跃时调用（trace 仍为 current），把
+        turn 结束后才产生的权威标记补到 trace 顶层。Best-effort：绝不影响 turn。"""
+        if not metadata:
+            return
+        client = self._get_client()
+        if client is None:
+            return
+        try:
+            update = getattr(client, "update_current_trace", None)
+            if not callable(update):
+                return
+            safe = self.sanitize_metadata(dict(metadata))
+            if safe:
+                update(metadata=safe)
+        except Exception as exc:
+            logger.debug(f"Langfuse trace metadata update skipped: {exc}", exc_info=True)
+
     def flush(self) -> None:
         client = self._get_client()
         if client is None:
