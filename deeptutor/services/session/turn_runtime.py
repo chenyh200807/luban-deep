@@ -1842,6 +1842,22 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 # observation event (and the offline review agent) can see them.
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
+                # 观测对称律（1b 2026-07-30）：判分成功侧权威标记必须到达 trace 顶层
+                # （根 span=turn.runtime，顶层 metadata 由本 summary 构成）。此前真值
+                # 只活在 result event 的 metadata_json 里，诊断只能考古 events——
+                # 与 content_truth 同通道提升。清单与 CASE_GRADING_TURN_METADATA_KEYS
+                # 的判分权威子集对齐（marker 在 result event 里已被 case 场景闸过滤，
+                # 此处只做无条件提升，不再判场景=不新增第二 decider）。
+                "score_authority",
+                "grading_rubric_provenance",
+                "grading_official_score_allowed",
+                "v1_case_graded",
+                "case_grading_prefetch_gate",
+                "case_grading_direct_fell_through",
+                "case_grading_direct_attempt_qid",
+                "case_grading_composite_qid_candidate",
+                "case_grading_outer_seam_reentry",
+                "case_rubric_score_total_mismatch",
             ):
                 if metadata_key in candidate and metadata_key not in retrieval_metadata:
                     retrieval_metadata[metadata_key] = candidate[metadata_key]

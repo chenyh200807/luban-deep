@@ -13490,3 +13490,36 @@ async def test_concurrent_start_turn_superseded_turn_not_published_and_not_bille
     assert any("第二轮的正常回答" in content for content in assistant_contents)
     # And the superseded turn never captures billing on worker A.
     assert billing_calls == []
+
+
+def test_summarize_assistant_events_lifts_case_grading_authority_markers():
+    """观测对称律（1b 2026-07-30）：判分成功侧权威标记（provenance/score_authority/
+    prefetch gate）必须从 result event 提升进 turn summary——根 span=turn.runtime
+    的 trace 顶层 metadata 由该 summary 构成，此前真值只能去 events_json 考古。"""
+    from deeptutor.services.session.turn_runtime import _summarize_assistant_events
+
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "question_lifecycle_scene": "case_grading",
+                    "score_authority": "rubric_scored_v1",
+                    "grading_rubric_provenance": "on_the_fly_reference",
+                    "v1_case_graded": True,
+                    "case_grading_prefetch_gate": "allowed",
+                    "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+                },
+            }
+        ]
+    )
+    assert summary["grading_rubric_provenance"] == "on_the_fly_reference"
+    assert summary["score_authority"] == "rubric_scored_v1"
+    assert summary["case_grading_prefetch_gate"] == "allowed"
+    assert summary["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+    assert summary["v1_case_graded"] is True
+
+    # 非 case 轮不携带这些键 → summary 不虚增
+    plain = _summarize_assistant_events([{"type": "result", "metadata": {"selected_mode": "fast"}}])
+    assert "grading_rubric_provenance" not in plain
+    assert "case_grading_prefetch_gate" not in plain
