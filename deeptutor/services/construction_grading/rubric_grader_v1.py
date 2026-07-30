@@ -592,7 +592,13 @@ def _extract_case_question_titles(question_stem: str) -> dict[int, str]:
         return {}
     if "【问题】" in text:
         text = text.split("【问题】", 1)[1]
-    text = re.split(r"\n\s*(?:回答|作答)\s*[:：]", text, maxsplit=1)[0]
+    # 作答切割必须先于计数（live 实证：切不掉时作答里的 (1)-(6) 编号被数成
+    # "题面共 6 问"并点名幽灵问题5/6）。标记族齐备，不依赖上游消息包装形状。
+    text = re.split(
+        r"(?:\n\s*(?:回答|作答)\s*[:：]|【我的作答】|【作答】|【我的答案】|\n\s*我的(?:答案|作答)\s*[:：]?)",
+        text,
+        maxsplit=1,
+    )[0]
 
     titles: dict[int, str] = {}
     patterns = (
