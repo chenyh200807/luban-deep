@@ -957,10 +957,20 @@ class SupabasePipeline:
                     record_stage("availability_gate", stage_started)
                     exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
                     exact_text_started_at: float | None = None
+                    # case 粘贴的 probe query 恒长于 max_text_len（MCQ 时代校准的门），
+                    # 此前把整个 text-first 任务连同 case_exact_queries 一起闷死——
+                    # case 切片候选器成了永不消费的孤岛（1b live 实证：在库案例题
+                    # 文本路径从未运行、exact 恒 miss）。case 候选在场即放行；长
+                    # probe query 交给 build_exact_question_text_candidates 的
+                    # case_like 切片，身份仍由 exact_question_identity_corresponds
+                    # 单一裁决（候选供给变宽，采信权威不变）。
                     if (
                         exact_probe
                         and config.exact_question_text_first
-                        and len(exact_probe.query) <= config.exact_question_max_text_len
+                        and (
+                            len(exact_probe.query) <= config.exact_question_max_text_len
+                            or case_exact_queries
+                        )
                     ):
                         exact_text_candidates = [exact_probe.query]
                         for candidate in case_exact_queries:
