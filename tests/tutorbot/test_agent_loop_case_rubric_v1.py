@@ -2038,3 +2038,19 @@ def test_toolless_repair_truncates_huge_evidence() -> None:
     out = AgentLoop._toolless_repair_messages(messages, repair_prompt="p", max_evidence_chars=1000)
     ev = next(m for m in out if "已检索到的全部证据" in str(m.get("content") or ""))
     assert len(ev["content"]) < 1400 and "证据已截断" in ev["content"]
+
+
+def test_build_ctx_stem_fallback_when_scene_jitter_drops_case_context() -> None:
+    """OD-004 补刀：scene 抖动（LLM 参与）导致 eq/fc/split 全空时，判分不得因
+    题面缺位整条降级——学生已交案例作答=判分行为在场，题面兜底取其原文
+    （tier3 从学生自己贴的题面推导，不涉他题钥匙，无倒诬风险）。"""
+    md = {}
+    raw = ("【背景资料】某工程施工中出现质量问题需要整改" + "详细描述" * 30 +
+           "\n【问题】1. 指出不妥？2. 正确做法？\n以上是我的理解，请批改。")
+    ctx = AgentLoop._build_v1_case_ctx(md, raw)
+    assert ctx["question_stem"], "题面不得为空（否则 no_reference 整条降级）"
+    assert md.get("case_stem_fallback") == "raw_submission"
+    # 短文本/非案例形状不兜底（不制造假判分面）
+    md2 = {}
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, "这题怎么做？")
+    assert "case_stem_fallback" not in md2

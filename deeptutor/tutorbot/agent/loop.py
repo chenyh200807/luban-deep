@@ -1765,6 +1765,19 @@ class AgentLoop:
         # derivation, and mismatched exact hits are demoted before their reference answer can score.
         # Forward-reachability (S4): an active_object-derived case keeps its stem in
         # ``fc["question"]`` (NOT ``question_stem``); read it so Tier-3 has a stem to ground on.
+        # OD-004 补刀（2026-08-01，指挥官"判分行为在场"面）：live 2/3 抖动实证——
+        # lifecycle scene 有 LLM 参与，某轮判成非 case_grading → 直批跳过 → 外层
+        # V1 拿不到题面（eq/fc 皆空且 split 未成）→ question_stem 空 → 与 reference
+        # 双空 → no_reference 整条降级 → 落回通用 agent 现编判分（权威双空）。
+        # 学生已提交案例作答=判分行为在场，就必须有判分基座：题面兜底取其原文
+        # （tier3 从"学生自己贴的题面"推导，不涉任何他题钥匙，无倒诬风险）。
+        if not (str(eq.get("stem") or eq.get("question") or "").strip()
+                or str(fc.get("question_stem") or fc.get("question") or "").strip()
+                or user_stem):
+            _raw = str(user_message or "").strip()
+            if len(_raw) >= 120 and re.search(r"【背景资料】|背景资料|【问题】", _raw):
+                user_stem = _raw
+                md["case_stem_fallback"] = "raw_submission"
         question_stem = str(
             eq.get("stem") or eq.get("question")
             or fc.get("question_stem") or fc.get("question")
