@@ -5162,10 +5162,23 @@ class DeepQuestionCapability(BaseCapability):
                     if isinstance(_g2b_meta.get("personalization_context"), dict)
                     else None
                 )
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    resolve_case_answer_method_for_render,
+                )
+
+                # A1 真口诀（拍A）：high 置信命中才挂编译口诀，否则回落现模板+发声。
+                _am_ctx = resolve_case_answer_method_for_render(_stem)
+                v1_event["case_mnemonic_source"] = (
+                    "lecture_pack:" + ",".join(
+                        str(u.get("unit_id") or "?") for u in (_am_ctx or {}).get("units") or []
+                    )
+                    if _am_ctx else "fallback_template"
+                )
                 v1_render = render_case_rubric_feedback(
                     v1_event,
                     question_stem=_stem,
                     personalization_context_pack=_g2b_pcp,
+                    answer_method_context=_am_ctx,
                 )
             if v1_render is not None:
                 answer = v1_render

@@ -37,6 +37,9 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # 护栏③（2026-07-30）：活动 bank slot 身份逐轮上全 sink——slot 未授权漂移
     # 六周无人知的洞，用导出封死。形如 "legacy:authorized:174"。
     "case_rubric_bank_slot",
+    # A1 真口诀（拍A 2026-07-30）：口诀来源发声——lecture_pack:<unit_ids> 或
+    # fallback_template。挂载率/回落率的观测基础。
+    "case_mnemonic_source",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (

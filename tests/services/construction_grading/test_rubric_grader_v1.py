@@ -1785,3 +1785,57 @@ def test_rubric_bank_governance_gate_refuses_when_default_also_unauthorized(
         assert G.active_bank_identity()["governance"] == "refused:unauthorized"
     finally:
         G._rubric_bank.cache_clear()
+
+
+def test_resolve_case_answer_method_high_band_only(monkeypatch) -> None:
+    """A1 真口诀（宁缺勿错挂）：只接受 high 置信带；medium/None/异常一律回落。"""
+    import deeptutor.services.compiled_knowledge.lecture_answer_methods as LAM
+
+    unit = {
+        "unit_id": "U1", "lecture": "1A43", "topic": "质量验收",
+        "source_ref": {"chunk_id": "CH1"},
+        "answer_method": {"mnemonics": ["先判后改，条条对点"], "trap_alerts": ["别漏见证人"],
+                          "red_lines": [], "must_mentions": [], "formula_or_thresholds": []},
+    }
+
+    def _fake(text, **_k):
+        return {"activation": {"band": "high"}, "selected_units": [dict(unit)]}
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context", _fake)
+    out = G.resolve_case_answer_method_for_render("某案例题干…")
+    assert out and out["units"][0]["unit_id"] == "U1"
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
+                        lambda text, **_k: {"activation": {"band": "medium"}, "selected_units": [dict(unit)]})
+    assert G.resolve_case_answer_method_for_render("某案例题干…") is None
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
+                        lambda text, **_k: (_ for _ in ()).throw(RuntimeError("boom")))
+    assert G.resolve_case_answer_method_for_render("某案例题干…") is None
+    assert G.resolve_case_answer_method_for_render("") is None
+
+
+def test_render_case_feedback_uses_real_mnemonics_with_citation() -> None:
+    event = {
+        "event_type": "case_grading_completed", "awarded_score": 2.0, "max_score": 3.0,
+        "scoring_points": [
+            {"point_id": "P1", "text": "共用开关箱不妥", "score": 1.0, "awarded": 0.0,
+             "status": "miss", "policy": "list"},
+        ],
+        "official_score_allowed": False,
+    }
+    am = {"units": [{
+        "unit_id": "U1", "lecture": "1A43", "topic": "临时用电",
+        "source_ref": {"chunk_id": "CH9"},
+        "answer_method": {"mnemonics": ["一机一闸一漏一箱"], "trap_alerts": ["共用开关箱必扣"],
+                          "red_lines": ["严禁带电作业"]},
+    }]}
+    rendered = G.render_case_rubric_feedback(event, question_stem="临时用电案例", answer_method_context=am)
+    assert "一机一闸一漏一箱" in rendered
+    assert "⚠️ 陷阱：共用开关箱必扣" in rendered
+    assert "⛔ 红线：严禁带电作业" in rendered
+    assert "出处：1A43·临时用电，CH9" in rendered
+    # 无编译上下文 → 回落现模板（不渲染引用行）
+    fallback = G.render_case_rubric_feedback(event, question_stem="临时用电案例")
+    assert "出处：" not in fallback
+    assert "## 记忆口诀" in fallback
