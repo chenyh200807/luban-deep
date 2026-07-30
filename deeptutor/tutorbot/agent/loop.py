@@ -1825,6 +1825,7 @@ class AgentLoop:
                 ("adjudication_group_count", "case_grading_adjudication_group_count"),
                 ("adjudication_point_count", "case_grading_adjudication_point_count"),
                 ("case_rubric_score_total_mismatch", "case_rubric_score_total_mismatch"),
+                ("case_rubric_bank_slot", "case_rubric_bank_slot"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)

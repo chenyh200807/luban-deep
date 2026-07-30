@@ -346,6 +346,11 @@ def build_pgo_runtime_supply_pointer(bundle: dict[str, Any]) -> dict[str, Any]:
         "namespace": NAMESPACE,
         "status": manifest.get("status") or STATUS,
         "published": False,
+        # 装载授权位（护栏③ 2026-07-30）：content_hash 只证完整性不证授权——完整的
+        # 赝品仍是赝品（pgo 未授权覆写服役六周的教训）。重建默认 false；翻 true
+        # 必须经 PGO 重晋级治理批 + owner 拍板，不随 build 自动获得。
+        "production_authorized": False,
+        "authorization_note": "重建默认未授权；晋级须治理批+owner 拍板",
         "expected_content_hash": manifest.get("content_hash") or "",
         "rollback_pointer": "LUBAN_CASE_RUBRIC_BANK_SLOT=legacy",
     }

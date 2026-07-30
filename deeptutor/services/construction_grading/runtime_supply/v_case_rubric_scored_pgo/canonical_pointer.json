@@ -3,5 +3,7 @@
   "status": "release_candidate",
   "published": false,
   "expected_content_hash": "1d48bf1aebb621b7a7f25eabbed01dc4989d746194f027f5294bffed62589aff",
-  "rollback_pointer": "LUBAN_CASE_RUBRIC_BANK_SLOT=legacy"
+  "rollback_pointer": "LUBAN_CASE_RUBRIC_BANK_SLOT=legacy",
+  "production_authorized": false,
+  "authorization_note": "2026-07-11 异源终审红线「=pgo 禁止拨」（A级判分错误入库/评分对象边界坍塌/authority冒牌）；翻 true 须经 PGO 重晋级治理批+owner 拍板"
 }

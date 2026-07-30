@@ -34,6 +34,9 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     "case_grading_composite_qid_candidate",
     "case_grading_outer_seam_reentry",
     "case_rubric_score_total_mismatch",
+    # 护栏③（2026-07-30）：活动 bank slot 身份逐轮上全 sink——slot 未授权漂移
+    # 六周无人知的洞，用导出封死。形如 "legacy:authorized:174"。
+    "case_rubric_bank_slot",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (

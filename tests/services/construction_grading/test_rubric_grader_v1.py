@@ -1000,6 +1000,8 @@ def _write_test_rubric_bank(
             {
                 "status": "release_candidate",
                 "published": False,
+                # 测试替身默认已授权（本 helper 测 slot 机制非治理；治理闸有专测）
+                "production_authorized": True,
                 "expected_content_hash": pointer_hash or content_hash,
             },
             ensure_ascii=False,
@@ -1720,3 +1722,66 @@ def test_derive_kb_block_and_grounded_flow():
         "临时用水管理案例题干B（无证据）", _fn, "k", kb_evidence=[]))
     assert "[E1]" not in seen_prompts[1] and "溯源要求" not in seen_prompts[1]
     assert pts2[0]["evidence_tier"] == "llm_unverified"
+
+
+def test_rubric_bank_governance_gate_refuses_unauthorized_slot_and_falls_back(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """护栏③（2026-07-30 owner 拍板）：content_hash 只证完整性不证授权——pgo 未授权
+    覆写服役六周的教训。pointer 缺 production_authorized=true → 拒装发声并回落授权
+    默认 slot（legacy）；身份随 active_bank_identity 导出。"""
+    import json as _json
+
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored", "case_rubric_scored.json",
+        [{"qid": "Q-L", "point_id": "L1", "text": "legacy", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json",
+        [{"qid": "Q-P", "point_id": "P1", "text": "pgo", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    # 撤销 pgo 的授权位（重建默认态）
+    pgo_pointer = tmp_path / "runtime_supply" / "v_case_rubric_scored_pgo" / "canonical_pointer.json"
+    d = _json.loads(pgo_pointer.read_text("utf-8"))
+    d["production_authorized"] = False
+    pgo_pointer.write_text(_json.dumps(d), encoding="utf-8")
+
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    G._rubric_bank.cache_clear()
+    try:
+        assert G.load_rubric("Q-P") == []          # 未授权 slot 的键绝不可达
+        assert [p["point_id"] for p in G.load_rubric("Q-L")] == ["L1"]  # 回落 legacy
+        ident = G.active_bank_identity()
+        assert ident["slot"] == "legacy"
+        assert ident["governance"] == "fallback_from:pgo"
+        assert ident["qid_count"] == 1
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_governance_gate_refuses_when_default_also_unauthorized(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import json as _json
+
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored", "case_rubric_scored.json",
+        [{"qid": "Q-L", "point_id": "L1", "text": "legacy", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    lp = tmp_path / "runtime_supply" / "v_case_rubric_scored" / "canonical_pointer.json"
+    d = _json.loads(lp.read_text("utf-8"))
+    d.pop("production_authorized", None)   # 缺位=未授权（fail-closed）
+    lp.write_text(_json.dumps(d), encoding="utf-8")
+
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
+    G._rubric_bank.cache_clear()
+    try:
+        assert G.load_rubric("Q-L") == []
+        assert G.active_bank_identity()["governance"] == "refused:unauthorized"
+    finally:
+        G._rubric_bank.cache_clear()

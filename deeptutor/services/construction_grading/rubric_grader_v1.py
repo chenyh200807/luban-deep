@@ -1218,34 +1218,38 @@ def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | N
     return f"【长期画像提示】你之前也出现过同类问题：{label}。这个提示只用于调整讲评侧重点，不会改变本次采分点得分。"
 
 
-@lru_cache(maxsize=1)
-def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
-    """Load + verify-gate the active scoring-point bank ONCE per process.
+# 活动 bank 身份（护栏③）：slot 漂移六周无人知的洞，用导出封死。装载时写入，
+# 判分事件逐轮携带（case_rubric_bank_slot → CASE_GRADING_AUTHORITY_EXPORT_KEYS 全 sink）。
+_ACTIVE_BANK_IDENTITY: dict[str, Any] = {"slot": "", "qid_count": 0, "governance": "not_loaded"}
 
-    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the bank slot (default ``legacy``). The cache is deliberately
-    process-wide: flipping the slot requires a worker restart, which keeps rollback explicit and avoids
-    mid-process mixed authority.
-    """
+
+def active_bank_identity() -> dict[str, Any]:
+    return dict(_ACTIVE_BANK_IDENTITY)
+
+
+def _load_bank_slot(slot: str) -> tuple[dict[str, list[dict[str, Any]]] | None, str]:
+    """Load ONE slot through the full verify chain.
+
+    返回 (bundle, reason)。reason="unauthorized"（治理拒绝）是唯一允许上层回落授权
+    默认 slot 的情形；完整性类失败（unknown/missing/hash 不符）维持既有法条：
+    fail-closed 不回落——打错 slot 名静默换权威比空 bank 更危险。"""
     import json
-    import os
     from pathlib import Path
 
-    raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
-    slot = str(raw_slot or "legacy").strip().lower() or "legacy"
     slot_spec = _RUBRIC_BANK_SLOTS.get(slot)
     if slot_spec is None:
         logger.warning("rubric_grader_v1: unknown rubric bank slot %r; refusing bank", slot)
-        return {}
+        return None, "unknown_slot"
     slot_dir, bank_name = slot_spec
     p = Path(__file__).parent / "runtime_supply" / slot_dir / bank_name
     if not p.exists():
         logger.warning("rubric_grader_v1: rubric bank slot %s missing at %s; refusing bank", slot, p)
-        return {}
+        return None, "missing"
     try:
         b = json.loads(p.read_text("utf-8"))
-    except Exception:  # noqa: BLE001 — unreadable/corrupt bank -> empty -> open-world (fail-safe)
+    except Exception:  # noqa: BLE001 — unreadable/corrupt bank -> refused (fail-safe)
         logger.warning("rubric_grader_v1: rubric bank slot %s unreadable; refusing bank", slot, exc_info=True)
-        return {}
+        return None, "unreadable"
     from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
     m = b.get("manifest") or {}
     records = b.get("records") or []
@@ -1253,19 +1257,63 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
     manifest_hash = str(m.get("content_hash") or "")
     if actual_hash != manifest_hash:
         logger.warning("rubric_grader_v1: rubric bank slot %s content_hash mismatch; refusing bank", slot)
-        return {}
+        return None, "hash_mismatch"
     pointer_path = p.parent / "canonical_pointer.json"
     try:
         pointer = json.loads(pointer_path.read_text("utf-8"))
-    except Exception:  # noqa: BLE001 — missing/corrupt pointer -> empty -> open-world (fail-safe)
+    except Exception:  # noqa: BLE001 — missing/corrupt pointer -> refused (fail-safe)
         logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer unreadable; refusing bank",
                        slot, exc_info=True)
-        return {}
+        return None, "pointer_unreadable"
     expected_hash = str(pointer.get("expected_content_hash") or pointer.get("content_hash") or "")
     if expected_hash != actual_hash:
         logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer hash mismatch; refusing bank",
                        slot)
+        return None, "pointer_hash_mismatch"
+    # 治理闸（护栏③ 2026-07-30）：content_hash 只证完整性、不证授权——完整的赝品
+    # 仍是赝品。pgo 未授权覆写服役 100% 流量六周（07-11 红线在案、装载面不读治理
+    # 态所以没拦住）的教训：pointer 必须显式携带 production_authorized=true 才许
+    # 装载，否则拒装发声（绝不静默）。
+    if pointer.get("production_authorized") is not True:
+        logger.error(
+            "rubric_grader_v1: rubric bank slot %s POINTER NOT PRODUCTION-AUTHORIZED "
+            "(governance gate); refusing bank. note=%s",
+            slot, str(pointer.get("authorization_note") or "")[:120],
+        )
+        return None, "unauthorized"
+    return b, "ok"
+
+
+@lru_cache(maxsize=1)
+def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
+    """Load + verify-gate the active scoring-point bank ONCE per process.
+
+    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the bank slot (default ``legacy``). The cache is deliberately
+    process-wide: flipping the slot requires a worker restart, which keeps rollback explicit and avoids
+    mid-process mixed authority. 治理闸（护栏③）：请求 slot 未获生产授权时拒装并
+    回落授权默认 slot（legacy），全程发声，绝不静默用赝品。
+    """
+    import os
+
+    raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
+    slot = str(raw_slot or "legacy").strip().lower() or "legacy"
+    governance = "authorized"
+    b, reason = _load_bank_slot(slot)
+    # 仅治理拒绝（unauthorized）允许回落授权默认 slot；完整性类失败维持既有
+    # fail-closed 法条（unknown/missing/hash 不回落——打错 slot 名静默换权威更危险）。
+    if b is None and reason == "unauthorized" and slot != "legacy":
+        logger.error(
+            "rubric_grader_v1: slot %s refused by governance gate; falling back to "
+            "authorized default slot legacy",
+            slot,
+        )
+        governance = f"fallback_from:{slot}"
+        slot = "legacy"
+        b, reason = _load_bank_slot(slot)
+    if b is None:
+        _ACTIVE_BANK_IDENTITY.update({"slot": slot, "qid_count": 0, "governance": f"refused:{reason}"})
         return {}
+    records = b.get("records") or []
     by_q: dict[str, list[dict[str, Any]]] = {}
     for r in records:
         point = {
@@ -1296,6 +1344,7 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
         if "source_qid" not in point and r.get("qid") is not None:
             point["source_qid"] = r.get("qid")
         by_q.setdefault(str(r.get("qid")), []).append(point)
+    _ACTIVE_BANK_IDENTITY.update({"slot": slot, "qid_count": len(by_q), "governance": governance})
     return by_q
 
 
