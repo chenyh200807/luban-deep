@@ -1,0 +1,38 @@
+{
+  "id": "t5_wrong",
+  "question_group": "T5",
+  "form": "wrong",
+  "qid": 8731,
+  "title": "MCQ(qid=8731)·答错(选D河砂)",
+  "query_file": "queries/t5_wrong.txt",
+  "case_grading": false,
+  "assertions": [
+    {
+      "id": "A5"
+    },
+    {
+      "id": "M1",
+      "type": "contains_all",
+      "terms": [
+        "外加剂"
+      ]
+    },
+    {
+      "id": "M2",
+      "type": "contains_any",
+      "terms": [
+        "不正确",
+        "不对",
+        "错误",
+        "误选",
+        "不是",
+        "并非"
+      ]
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 60
+    }
+  ]
+}

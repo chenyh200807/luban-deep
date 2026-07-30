@@ -1,0 +1,32 @@
+{
+  "id": "t4_g1_asis",
+  "question_group": "T4",
+  "form": "full",
+  "title": "历史事故原文·判分死亡事故原题(碳排放案例,带完整作答)",
+  "query_file": "queries/t4_g1_asis.txt",
+  "official_full_score": 30,
+  "case_grading": true,
+  "incident": "案例判分死亡事故(replay_g1_carbon)",
+  "assertions": [
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "A7"
+    },
+    {
+      "id": "A8",
+      "skip": true,
+      "note": "错因码分布断言,拍板后启用"
+    }
+  ]
+}

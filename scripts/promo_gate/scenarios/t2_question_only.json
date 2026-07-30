@@ -1,0 +1,22 @@
+{
+  "id": "t2_question_only",
+  "question_group": "T2",
+  "form": "question_only",
+  "qid": 17357,
+  "title": "题库内案例(qid=17357)·只发题不作答",
+  "query_file": "queries/t2_question_only.txt",
+  "case_grading": false,
+  "assertions": [
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 300
+    }
+  ]
+}

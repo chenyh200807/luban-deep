@@ -1,0 +1,22 @@
+{
+  "id": "t3_question_only",
+  "question_group": "T3",
+  "form": "question_only",
+  "title": "题库外长案例·只发题不作答",
+  "query_file": "queries/t3_question_only.txt",
+  "case_grading": false,
+  "out_of_bank": true,
+  "assertions": [
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 300
+    }
+  ]
+}

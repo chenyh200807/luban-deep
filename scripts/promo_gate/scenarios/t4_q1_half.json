@@ -1,0 +1,53 @@
+{
+  "id": "t4_q1_half",
+  "question_group": "T4",
+  "form": "half",
+  "title": "历史事故原题·半答(只答问1-2,其余小问按规范补充)",
+  "query_file": "queries/t4_q1_half.txt",
+  "official_full_score": 30,
+  "case_grading": true,
+  "incident": "PR#583 罐头拒答事故",
+  "assertions": [
+    {
+      "id": "A1",
+      "missing_tokens": [
+        "第3问",
+        "第4问",
+        "第5问",
+        "第三问",
+        "第四问",
+        "第五问",
+        "问题3",
+        "问题4",
+        "问题5",
+        "问3",
+        "问4",
+        "问5",
+        "临时用水",
+        "厕所",
+        "浴室",
+        "污染物"
+      ]
+    },
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "A7"
+    },
+    {
+      "id": "A8",
+      "skip": true,
+      "note": "错因码分布断言,拍板后启用"
+    }
+  ]
+}
