@@ -70,15 +70,20 @@ evidence 作观测面。
 ### OPEN
 
 **OD-004 — agent-loop 旁路:判分产出但权威双空**(t4_q1_half, A6;首捕获 r2)
-**仍开放,已部分修复。** live 三轮(run `promo_gate_20260801_t4_verify_r1/2/3`,
-SHA `79e21ed7`)结果 2/3:
-- r1/r3 PASS:`execution_path=tutorbot_case_grading_v1_direct`,
-  `score_authority=rubric_scored_v1_diagnostic`,`grading_rubric_provenance=derived_from_stem`。
-- r2 FAIL:同一输入掉回 `execution_path=tutorbot_kb_first_full_agent_policy`,
-  `score_authority=v1_unavailable:no_reference`(降级已发声,较 r3 的全空是进步),
-  但 `grading_rubric_provenance` 仍空。
-根因面:**admission 非确定性**——判分入闸对同一半答卷 2/3 命中、1/3 漏判,
-落回通用 agent 路径现编。r3 的英文独白泄漏形态三轮均未复现(公共流无英文过程叙述)。
+**仍开放。** #613 后 5 轮 live(runs `promo_gate_20260801_od004_r1..r5`,SHA `1b91d70b`):
+**3/5 PASS**(r1/r2/r4 = `tutorbot_case_grading_v1_direct` + `rubric_scored_v1_diagnostic`
++ `derived_from_stem`);**r3/r5 FAIL** = `tutorbot_kb_first_full_agent_policy` +
+`score_authority=v1_unavailable:no_reference` + provenance 空。五轮公共流均无英文叙述。
+**`case_stem_fallback` 五轮零出现——#613 兜底从未触发。**
+
+关键取证:FAIL 与 PASS 轮的**上游判定逐字节相同**——
+`question_lifecycle_scene=case_grading`(deterministic, confidence 1.0)、
+`business_gate_result=passed`、`case_grading_prefetch_gate=allowed_no_exact_hit`、
+`required_anchor_status=satisfied`、技能栈相同、`case_grading_direct_attempt_qid` 均为空。
+分叉只发生在 scene 已定为 case_grading **之后**的 v1 判分尝试内部:参考基座推导
+2/5 概率返回空→报 `no_reference`→整条落回通用 agent 路径。
+即:非确定性不在 admission/路由,在**题面参考推导本身**(PASS 轮能 `derived_from_stem`,
+FAIL 轮同一输入推不出),而 #613 的 tier3 兜底位于该 bail-out 之后或被别的条件挡住。
 重放:`python3 scripts/promo_gate/run_promo_gate.py --only t4_q1_half`
 
 ### CLOSED
