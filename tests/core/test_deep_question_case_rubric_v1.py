@@ -990,3 +990,40 @@ async def test_case_rubric_v1_core_stem_fallback_from_submission(monkeypatch: py
         student_id="s1", complete=None, key="k", _G=G,
     )
     assert ev2.get("status") == "no_reference"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_stem_fallback_on_real_paper_form(monkeypatch: pytest.MonkeyPatch) -> None:
+    """OD-004 终修 domain test：真实考卷粘贴形态（无括号锚、半角「问题:」+提交
+    标记）必须触发共享判分核的基座兜底，而非 no_reference 整条降级。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+    seen = {}
+
+    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat",
+                           provider_authority="", kb_evidence=None):
+        seen["stem"] = stem
+        return [{"point_id": "D1", "text": "安全交底", "score": 1.0, "policy": "list", "required_terms": []}]
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"D1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "derive_rubric_from_stem_async", _fake_derive)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+    real_paper = (
+        "某办公楼工程，地下二层，地上16层，建筑面积3.6万平方米，现浇钢筋混凝土框架剪力墙结构。"
+        + "施工过程描述内容补充。" * 12
+        + "\n问题:\n1. 指出项目部做法中的不妥之处并说明理由。\n2. 写出正确做法。\n"
+        "【我的作答】\n问题1：安全交底不妥。"
+    )
+    event = await _grade_one_case_v1(
+        {"question_id": "", "user_answer": real_paper, "question_stem": "", "correct_answer": "",
+         "construction_grading_result": {"type": "case", "max_score": 10}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event.get("event_type") == "case_grading_completed"
+    assert event.get("case_stem_fallback") == "submission_text"
+    assert "问题:" in seen["stem"]

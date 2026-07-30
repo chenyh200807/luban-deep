@@ -1774,8 +1774,12 @@ class AgentLoop:
         if not (str(eq.get("stem") or eq.get("question") or "").strip()
                 or str(fc.get("question_stem") or fc.get("question") or "").strip()
                 or user_stem):
-            _raw = str(user_message or "").strip()
-            if len(_raw) >= 120 and re.search(r"【背景资料】|背景资料|【问题】", _raw):
+            from deeptutor.services.construction_grading.case_output_policy import (
+                case_submission_stem_candidate,
+            )
+
+            _raw = case_submission_stem_candidate(str(user_message or ""))
+            if _raw:
                 user_stem = _raw
                 md["case_stem_fallback"] = "raw_submission"
         question_stem = str(
