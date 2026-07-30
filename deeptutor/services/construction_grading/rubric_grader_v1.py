@@ -639,6 +639,81 @@ def _question_text_overlap_score(point_text: str, question_title: str) -> int:
     return score
 
 
+def _point_question_label(point: dict[str, Any]) -> str:
+    """单一小问归属权威（render 分组与覆盖对账共用，不许各判各的）。"""
+    for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
+        idx = _positive_int_or_none(point.get(key), max_value=100)
+        if idx is not None:
+            return f"问题{idx}"
+    for key in ("source_qid", "qid", "point_id"):
+        text = str(point.get(key) or "").strip()
+        match = re.search(r"(?:^|[^A-Za-z])Q(?:uestion)?[-_ ]?(\d+)(?:$|[^0-9])", text, re.I)
+        if match:
+            idx = _positive_int_or_none(match.group(1), max_value=100)
+            if idx is not None:
+                return f"问题{idx}"
+        match = re.search(r"::E(\d+)(?:$|::|[^0-9])", text, re.I)
+        if not match:
+            continue
+        idx = _positive_int_or_none(match.group(1), max_value=100)
+        if idx is not None:
+            return f"问题{idx}"
+    return "整题"
+
+
+def case_subquestion_coverage(
+    event: dict[str, Any],
+    *,
+    question_stem: str,
+) -> dict[str, Any] | None:
+    """覆盖对账（2026-07-30 live 事故：学生只答 2/4 问、tier2 参考只盖住已答小问，
+    渲染却宣判整题 10/10 漏 0——半张卷被当整张）。返回 None=无法判定（题面无
+    小问结构、或 rubric 点全部无法归属小问）；判定不出宁可沉默，不许猜。"""
+    titles = _extract_case_question_titles(question_stem)
+    if not titles or len(titles) < 2:
+        return None
+    sp = [p for p in (event.get("scoring_points") or []) if isinstance(p, dict)]
+    if not sp:
+        return None
+    covered: set[int] = set()
+    attributed = 0
+    for point in sp:
+        label = _point_question_label(point)
+        if label == "整题":
+            label = _infer_question_label_from_title(point, titles)
+        match = re.fullmatch(r"问题(\d+)", label)
+        if not match:
+            continue
+        idx = int(match.group(1))
+        attributed += 1
+        if idx in titles:
+            covered.add(idx)
+    if not attributed:
+        return None
+    total = sorted(titles)
+    uncovered = [idx for idx in total if idx not in covered]
+    return {
+        "total": total,
+        "covered": sorted(covered),
+        "uncovered": uncovered,
+        "ratio": round(len(covered) / len(total), 3) if total else 0.0,
+    }
+
+
+def build_case_subq_coverage_note(coverage: dict[str, Any] | None) -> str:
+    """部分覆盖时的学生可见声明；全覆盖/无法判定返回空串（渲染零变化）。"""
+    if not isinstance(coverage, dict) or not coverage.get("uncovered"):
+        return ""
+    covered = "、".join(f"问题{i}" for i in coverage.get("covered") or [])
+    uncovered = "、".join(f"问题{i}" for i in coverage.get("uncovered") or [])
+    total_n = len(coverage.get("total") or [])
+    return (
+        f"⚠️ **判分覆盖范围**：本次仅对 {covered} 命中了采分点参考（题面共 {total_n} 问）；"
+        f"{uncovered} 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，"
+        "不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。"
+    )
+
+
 def _infer_question_label_from_title(point: dict[str, Any], question_titles: dict[int, str]) -> str:
     if not question_titles:
         return "整题"
@@ -739,24 +814,7 @@ def render_case_rubric_feedback(
         return "❌ 漏写", span, "未作答 / 漏写本采分点"
 
     def _question_label(point: dict[str, Any]) -> str:
-        for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
-            idx = _positive_int_or_none(point.get(key), max_value=100)
-            if idx is not None:
-                return f"问题{idx}"
-        for key in ("source_qid", "qid", "point_id"):
-            text = str(point.get(key) or "").strip()
-            match = re.search(r"(?:^|[^A-Za-z])Q(?:uestion)?[-_ ]?(\d+)(?:$|[^0-9])", text, re.I)
-            if match:
-                idx = _positive_int_or_none(match.group(1), max_value=100)
-                if idx is not None:
-                    return f"问题{idx}"
-            match = re.search(r"::E(\d+)(?:$|::|[^0-9])", text, re.I)
-            if not match:
-                continue
-            idx = _positive_int_or_none(match.group(1), max_value=100)
-            if idx is not None:
-                return f"问题{idx}"
-        return "整题"
+        return _point_question_label(point)
 
     weak = [str(p.get("knowledge_point") or "") for p in sp if p.get("hit") != HIT]
     weak = [w for w in weak if w]
@@ -764,6 +822,8 @@ def render_case_rubric_feedback(
     partial_count = sum(1 for p in sp if p.get("hit") == PARTIAL)
     miss_count = sum(1 for p in sp if p.get("hit") == MISS)
     question_titles = _extract_case_question_titles(question_stem)
+    coverage = case_subquestion_coverage(event, question_stem=question_stem)
+    coverage_note = build_case_subq_coverage_note(coverage)
     if total:
         ratio = float(awarded or 0) / float(total or 1)
     else:
@@ -774,6 +834,8 @@ def render_case_rubric_feedback(
         verdict = "有部分采分点命中，但漏点和表述不完整会明显扣分。"
     else:
         verdict = "核心采分点缺失较多，需要先按标准采分点重建答案。"
+    if coverage_note:
+        verdict = coverage_note + "\n\n" + verdict
 
     def _fmt_score(value: Any) -> str:
         try:
@@ -1175,6 +1237,8 @@ def build_case_rubric_score_first_stream(
     score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
     weak_summaries = _case_first_screen_weak_summaries(scoring_points)
 
+    coverage_note = str(event.get("case_subq_coverage_note") or "").strip()
+    score_scope = "（仅已覆盖小问）" if coverage_note else ""
     score_lines = [
         "## 批改结论",
         (
@@ -1182,8 +1246,9 @@ def build_case_rubric_score_first_stream(
             f"命中 {hit_count} 个采分点，部分命中 {partial_count} 个，"
             f"还有 {miss_count} 个需要补。后面我按小问逐一拆。"
         ),
+        *( ["", coverage_note] if coverage_note else [] ),
         "",
-        f"**{score_label}：** {awarded} / {maximum} 分。",
+        f"**{score_label}{score_scope}：** {awarded} / {maximum} 分。",
         f"**采分情况：** 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。",
     ]
     if weak_summaries:

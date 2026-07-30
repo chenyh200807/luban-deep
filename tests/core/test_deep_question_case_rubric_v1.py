@@ -884,3 +884,37 @@ async def test_case_rubric_v1_mnemonic_source_marker_on_render_path(monkeypatch:
     result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
     event = result["luban_case_rubric_v1"]["grading_event"]
     assert event["case_mnemonic_source"] == "fallback_template"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_event_carries_subq_coverage(monkeypatch: pytest.MonkeyPatch) -> None:
+    """覆盖对账（live 事故：答 2/4 问被判整题满分）：judging 事件必须携带
+    case_subq_coverage/uncovered/声明，供渲染双面与全 sink 同源消费。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    rubric = [
+        {"point_id": "P1", "question_no": 1, "text": "见证记录", "score": 1.0,
+         "policy": "list", "required_terms": []},
+        {"point_id": "P2", "question_no": 4, "text": "工艺流程", "score": 1.0,
+         "policy": "list", "required_terms": []},
+    ]
+    monkeypatch.setattr(G, "load_rubric", lambda qid: rubric if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    stem = (
+        "【背景资料】某工程。\n【问题】\n问题1：指出不妥？\n问题2：缺陷名称？\n"
+        "问题3：构造名称？\n问题4：工艺流程？"
+    )
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "见证记录相关作答",
+         "question_stem": stem,
+         "construction_grading_result": {"type": "case", "max_score": 2}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["case_subq_coverage"] == "2/4"
+    assert event["case_subq_uncovered"] == "2,3"
+    assert "未纳入本次判分" in event["case_subq_coverage_note"]
