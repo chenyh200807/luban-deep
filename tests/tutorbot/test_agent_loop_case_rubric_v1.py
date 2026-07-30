@@ -1916,3 +1916,54 @@ def test_case_grading_new_markers_projected_per_turn() -> None:
     copy_current_case_grading_turn_metadata(source, target)
     assert target["case_grading_prefetch_gate"] == "allowed"
     assert target["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+
+
+@pytest.mark.asyncio
+async def test_prefetch_tool_query_override_and_empty_exact_honesty(tmp_path, monkeypatch) -> None:
+    """1b live 实证双修：①直批身份检索只喂题干（作答噪声污染 shape 分类与匹配）；
+    ②pipeline 未命中时 trace 元数据带 exact_question: {}，空壳不得写入
+    _prefetched_exact_question 冒充命中（marker 必须落 allowed_no_exact_hit）。"""
+    loop = _direct_loop(tmp_path)
+    seen = {"query": None}
+
+    class _FakeRagTool:
+        def preview_args(self, params):
+            seen["query"] = params.get("query")
+            return dict(params)
+
+        def consume_trace_metadata(self):
+            return {"exact_question": {}}  # pipeline 未命中的真实形状
+
+    class _FakeTools:
+        def get(self, name):
+            return _FakeRagTool() if name == "rag" else None
+
+        async def execute(self, name, _args):
+            return "无命中的普通检索文本"
+
+    loop.tools = _FakeTools()
+
+    class _Ctx:
+        def add_assistant_message(self, messages, content, **_k):
+            return [*messages, {"role": "assistant", "content": content}]
+
+        def add_tool_result(self, messages, tool_call_id, name, result):
+            return [*messages, {"role": "tool", "name": name, "content": result}]
+
+    loop.context = _Ctx()
+    monkeypatch.setattr(loop, "_augment_rag_trace_metadata",
+                        lambda **k: dict((k.get("tool_trace_metadata") or {})))
+    monkeypatch.setattr(loop, "_record_rag_trace_status", lambda *a, **k: None)
+
+    md = {}
+    await loop._maybe_prefetch_grounded_rag(
+        initial_messages=[{"role": "user", "content": "全文"}],
+        current_message="【背景资料】题干…【问题】1. …\n我的答案：作答…",
+        runtime_metadata=md,
+        force_authority_fetch=True,
+        tool_query_override="【背景资料】题干…【问题】1. …",
+    )
+    # ① 检索 query 被题干覆写（不含作答）
+    assert seen["query"] == "【背景资料】题干…【问题】1. …"
+    # ② 空壳 exact 不得入场
+    assert "_prefetched_exact_question" not in md

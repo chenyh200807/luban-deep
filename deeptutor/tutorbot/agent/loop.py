@@ -2107,7 +2107,8 @@ class AgentLoop:
         # 恒空 → 179 题编译 rubric bank 在聊天通道结构性不可达、全部落 tier3。
         # 前移既有 prefetch（匹配权威不变：pipeline 身份链 + case_like 形状闸 +
         # loop demoter），带幂等闸防 fell_through 后外层重复检索。
-        if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
+        _existing_eq = runtime_metadata.get("_prefetched_exact_question")
+        if not (isinstance(_existing_eq, dict) and _existing_eq):
             # 直批的权威取回不归通用聊天 RAG 门管（1b 收权，2026-07-30）。live 实证
             # 该门在直批时点必拒（denied:decision）：生命周期为粘贴题建的 active_object
             # 是权威空壳（question_id/correct_answer 全空），却因 state_snapshot 键形状
@@ -2120,13 +2121,19 @@ class AgentLoop:
                 or runtime_metadata.get("knowledge_bases")
             ):
                 runtime_metadata["case_grading_prefetch_gate"] = "allowed"
+                # 身份检索只喂题干：live 实证整段粘贴（题干+作答）会让 shape 分类
+                # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
+                # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
+                _probe_stem, _probe_answer = self._split_case_grading_submission(current_message)
                 initial_messages = await self._maybe_prefetch_grounded_rag(
                     initial_messages=initial_messages,
                     current_message=current_message,
                     runtime_metadata=runtime_metadata,
                     force_authority_fetch=True,
+                    tool_query_override=(_probe_stem or "").strip() or None,
                 )
-                if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
+                _prefetched_eq = runtime_metadata.get("_prefetched_exact_question")
+                if not (isinstance(_prefetched_eq, dict) and _prefetched_eq):
                     runtime_metadata["case_grading_prefetch_gate"] = "allowed_no_exact_hit"
             else:
                 # 降级必须发声（AGENTS 硬不变量）：无 kb 时拒绝也要留可导出判据。
@@ -3127,6 +3134,7 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         force_authority_fetch: bool = False,
+        tool_query_override: str | None = None,
     ) -> list[dict[str, Any]]:
         # Idempotency (tier1/2 可达性 2026-07-30): the case-grading direct path
         # now prefetches BEFORE V1; when it falls through to the normal flow,
@@ -3149,6 +3157,9 @@ class AgentLoop:
             metadata["_grounded_rag_prefetch_done"] = True
 
         preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
+        # 直批身份检索的查询覆写（1b）：作答文本不参与「这是哪道题」的裁决。
+        if str(tool_query_override or "").strip():
+            preview_args["query"] = str(tool_query_override).strip()
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
@@ -3188,7 +3199,10 @@ class AgentLoop:
             if isinstance(merged_metadata.get("exact_question"), dict)
             else None
         )
-        if isinstance(exact_candidate, dict):
+        if isinstance(exact_candidate, dict) and exact_candidate:
+            # 空壳诚实（1b live 实证）：pipeline 未命中时 trace 元数据带
+            # exact_question: {}，空 dict 冒充命中会让 _prefetched_exact_question
+            # 变成假权威在场（marker 撒谎 + 直批外层幂等闸误判已取回）。非空才写。
             # Project a bank MCQ exact_question onto the LEARNER's pasted option surface
             # before it becomes the grading authority. The bank may store the correct
             # value under a different letter (5% = D in the bank, but the learner pasted
