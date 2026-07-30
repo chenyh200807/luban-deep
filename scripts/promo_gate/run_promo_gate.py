@@ -474,6 +474,10 @@ def main(argv: list[str] | None = None) -> int:
         ws_error = str(out.get("ws_error") or "")
         if status == "ws_exception":
             return True
+        # WS 握手级超时(零事件+低延迟,websockets 默认 open_timeout=10s)是传输层,可重试;
+        # 跑满 --timeout-seconds 的真挂死(判分死亡事故形态)绝不重试。
+        if status == "ws_timeout" and not out.get("event_types") and float(out.get("latency_ms") or 0) < 60000:
+            return True
         if "create_conversation_failed:5" in status or "start_turn_failed:5" in status:
             return True
         return bool(re.search(r"failed:5\d\d", ws_error))
