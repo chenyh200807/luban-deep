@@ -1901,19 +1901,18 @@ def test_case_grading_new_markers_projected_per_turn() -> None:
         "case_grading_composite_qid_candidate",
         "case_grading_outer_seam_reentry",
         "case_rubric_score_total_mismatch",
-        "exact_question_blocked_reason",
-        "case_reference_blocked_reason",
     ):
         assert key in CASE_GRADING_TURN_METADATA_KEYS, key
+    # 通用 marker 不得入 case 元组（strip 会在非 case 轮剥掉别的路径写的值）
+    assert "exact_question_blocked_reason" not in CASE_GRADING_TURN_METADATA_KEYS
+    assert "case_reference_blocked_reason" not in CASE_GRADING_TURN_METADATA_KEYS
 
     source = {
         "question_lifecycle_scene": "case_grading",
         "case_grading_prefetch_gate": "allowed",
         "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
-        "exact_question_blocked_reason": "case_numeric_variant",
     }
     target: dict = {}
     copy_current_case_grading_turn_metadata(source, target)
     assert target["case_grading_prefetch_gate"] == "allowed"
     assert target["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
-    assert target["exact_question_blocked_reason"] == "case_numeric_variant"

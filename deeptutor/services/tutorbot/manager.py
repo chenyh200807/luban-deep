@@ -1233,6 +1233,11 @@ class TutorBotManager:
                     # 考古——趁观测上下文仍活跃补写到 trace 顶层。
                     _case_trace_keys = {}
                     copy_current_case_grading_turn_metadata(runtime_metadata, _case_trace_keys)
+                    # 跨场景 blocked_reason 只在此处附带导出（不入 case 元组：strip
+                    # 语义会在非 case 轮剥掉别的路径写的通用 marker）。
+                    for _reason_key in ("exact_question_blocked_reason", "case_reference_blocked_reason"):
+                        if runtime_metadata.get(_reason_key):
+                            _case_trace_keys[_reason_key] = runtime_metadata[_reason_key]
                     if _case_trace_keys:
                         observability.update_current_trace_metadata(_case_trace_keys)
                     if any(
