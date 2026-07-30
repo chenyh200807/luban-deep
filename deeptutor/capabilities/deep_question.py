@@ -2575,10 +2575,13 @@ async def _grade_one_case_v1(
             # 判分行为在场必须有判分基座：兜底上移到**共享判分核**，一处覆盖所有
             # 入口——学生提交的文本本身就是案例题面时用它推导（tier3 只从学生自己
             # 贴的内容推，不涉他题钥匙，与 OD-002 fail-closed 正交）。
-            _fallback_stem = ""
-            _answer_text = str(answer or "")
-            if len(_answer_text) >= 120 and re.search(r"【背景资料】|背景资料|【问题】", _answer_text):
-                _fallback_stem = _answer_text[:4000]
+            # 判据回到语义（终修）：形状正则（括号锚）在真实考卷粘贴上十轮零命中；
+            # 「判分行为在场」的痕迹是提交标记/多小问结构，不是题面用不用括号。
+            from deeptutor.services.construction_grading.case_output_policy import (
+                case_submission_stem_candidate,
+            )
+
+            _fallback_stem = case_submission_stem_candidate(str(answer or ""))
             if _fallback_stem:
                 logger.warning(
                     "LUBAN_DIAG _grade_one_case_v1: stem fallback from submission qid={} len={}",
