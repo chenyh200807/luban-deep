@@ -148,7 +148,7 @@ export function Member360Drawer({
             加入跟进
           </BiButton>
           <BiButton
-            onClick={onOpenConversation}
+            onClick={() => onOpenConversation()}
             variant="primary"
             size="sm"
             aria-label="查看会员对话回顾"
@@ -336,7 +336,7 @@ export function Member360Drawer({
                   <div className="text-2xl font-black tabular-nums text-slate-50">{conversations.length}</div>
                   <div className="text-[11px] text-slate-400">最近会话</div>
                 </div>
-                <BiButton onClick={onOpenConversation} variant="secondary" size="xs" aria-label="打开会员对话工作台">
+                <BiButton onClick={() => onOpenConversation()} variant="secondary" size="xs" aria-label="打开会员对话工作台">
                   打开工作台
                 </BiButton>
               </div>
