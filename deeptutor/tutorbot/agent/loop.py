@@ -1847,10 +1847,22 @@ class AgentLoop:
             )
             self._schedule_v1_grading_personalization(runtime_metadata=md)
             pcp = md.get("personalization_context") if isinstance(md.get("personalization_context"), dict) else None
+            # A1 真口诀（拍A）：high 置信命中 → 编译口诀/陷阱/红线带出处；否则回落
+            # 现模板。升降必发声（case_mnemonic_source 随单源常量上全 sink）。
+            _am_ctx = _G.resolve_case_answer_method_for_render(str(ctx.get("question_stem") or ""))
+            _am_source = (
+                "lecture_pack:" + ",".join(
+                    str(u.get("unit_id") or "?") for u in (_am_ctx or {}).get("units") or []
+                )
+                if _am_ctx else "fallback_template"
+            )
+            event["case_mnemonic_source"] = _am_source
+            md["case_mnemonic_source"] = _am_source
             rendered = _G.render_case_rubric_feedback(
                 event,
                 question_stem=str(ctx.get("question_stem") or ""),
                 personalization_context_pack=pcp,
+                answer_method_context=_am_ctx,
             )
             stream_plan = _G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
             if stream_plan:

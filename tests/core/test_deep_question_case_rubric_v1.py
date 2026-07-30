@@ -867,3 +867,20 @@ async def test_case_rubric_v1_point_pool_exceeds_max_marker(monkeypatch: pytest.
         student_id="s1", complete=None, key="k", _G=G,
     )
     assert "point_pool_exceeds_max" not in event_ok
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_mnemonic_source_marker_on_render_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A1 真口诀（拍A）：deep_question 渲染路径必须给 grading_event 落
+    case_mnemonic_source 发声——解析不中=fallback_template（宁缺勿错挂的回落面）。"""
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
+    event = result["luban_case_rubric_v1"]["grading_event"]
+    assert event["case_mnemonic_source"] == "fallback_template"

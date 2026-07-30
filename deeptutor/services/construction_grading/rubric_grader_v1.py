@@ -656,11 +656,45 @@ def _infer_question_label_from_title(point: dict[str, Any], question_titles: dic
     return f"问题{scored[0][0]}"
 
 
+def resolve_case_answer_method_for_render(question_stem: str) -> dict[str, Any] | None:
+    """A1 真口诀（拍A 2026-07-30，宁缺勿错挂）：判分回复的「记忆口诀」段此前是漏点
+    标题顿号拼接的假口诀；424 条真编译口诀（含陷阱/红线）在 lecture answer 包里
+    零消费。本 helper 是判分侧唯一采纳权威：只接受解析器 **high** 置信带（medium
+    也不挂——错挂口诀比不挂伤害大），且 unit 必须真带 mnemonics/trap/red_line
+    内容。返回 None → 渲染回落现模板，调用方必须打 case_mnemonic_source marker。"""
+    stem = str(question_stem or "").strip()
+    if not stem:
+        return None
+    try:
+        from deeptutor.services.compiled_knowledge.lecture_answer_methods import (
+            resolve_lecture_answer_method_context,
+        )
+
+        ctx = resolve_lecture_answer_method_context(stem)
+    except Exception:  # noqa: BLE001 — 诊断增强层永不破坏判分
+        return None
+    if not isinstance(ctx, dict):
+        return None
+    if str((ctx.get("activation") or {}).get("band") or "") != "high":
+        return None
+    units: list[dict[str, Any]] = []
+    for unit in ctx.get("selected_units") or []:
+        if not isinstance(unit, dict):
+            continue
+        method = unit.get("answer_method") if isinstance(unit.get("answer_method"), dict) else {}
+        if method.get("mnemonics") or method.get("trap_alerts") or method.get("red_lines"):
+            units.append(unit)
+    if not units:
+        return None
+    return {"units": units[:2], "activation": ctx.get("activation")}
+
+
 def render_case_rubric_feedback(
     event: dict[str, Any],
     *,
     question_stem: str = "",
     personalization_context_pack: dict[str, Any] | None = None,
+    answer_method_context: dict[str, Any] | None = None,
 ) -> str:
     """Render a GradingEvent into the student-facing case feedback (the text shown in chat).
 
@@ -952,11 +986,28 @@ def render_case_rubric_feedback(
     lines.append(f"- {note}")
     lines.append("")
     lines.append("## 记忆口诀")
-    mnemonic = _mnemonic_from_weak(weak)
-    if mnemonic:
-        lines.append(mnemonic)
+    _am_units = (answer_method_context or {}).get("units") or []
+    if _am_units:
+        # A1 真口诀：编译资产（口诀/陷阱/红线）+ 出处引用；仅 high 置信带到达此处。
+        for _unit in _am_units:
+            _method = _unit.get("answer_method") if isinstance(_unit.get("answer_method"), dict) else {}
+            for _m in (_method.get("mnemonics") or [])[:2]:
+                lines.append(f"- {_m}")
+            for _t in (_method.get("trap_alerts") or [])[:2]:
+                lines.append(f"- ⚠️ 陷阱：{_t}")
+            for _r in (_method.get("red_lines") or [])[:1]:
+                lines.append(f"- ⛔ 红线：{_r}")
+            _src = _unit.get("source_ref") if isinstance(_unit.get("source_ref"), dict) else {}
+            _origin = "·".join(x for x in (str(_unit.get("lecture") or ""), str(_unit.get("topic") or "")) if x)
+            if _origin or _src.get("chunk_id"):
+                _cite = f"（出处：{_origin}" + (f"，{_src.get('chunk_id')}" if _src.get("chunk_id") else "") + "）"
+                lines.append(f"  {_cite}")
     else:
-        lines.append("按问法分条作答，关键词前置，少写空话。")
+        mnemonic = _mnemonic_from_weak(weak)
+        if mnemonic:
+            lines.append(mnemonic)
+        else:
+            lines.append("按问法分条作答，关键词前置，少写空话。")
     lines.append("")
     lines.append("## 下一步建议")
     profile_note = _personalized_feedback_note(personalization_context_pack)
