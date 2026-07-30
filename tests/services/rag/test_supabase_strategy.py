@@ -861,3 +861,39 @@ def test_identity_short_fragments_never_authorize() -> None:
     # A tiny shared fragment (below the minimum discriminative surface) must
     # not authorize identity via the containment rule.
     assert not _identity("防水等级", "防水等级为（　）级。")
+
+
+# ---------------------------------------------------------------------------
+# tier1/2 可达性批1a（2026-07-30）：exact payload 顶层身份键
+# ---------------------------------------------------------------------------
+def test_exact_question_payload_carries_composite_qid_ingredients() -> None:
+    """A1/A4：payload 顶层必须显式携带 question_id/source_chunk_id/exam_year——
+    pgo 复合 qid = f"{exam_year}::{source_chunk_id}::E{n}" 的原料。此前顶层只有
+    "id"，ctx 组装按 question_id 取键恒空 → tier1/2 在聊天通道结构性不可达。"""
+    from deeptutor.services.rag.pipelines.supabase import SupabasePipeline
+
+    pipeline = SupabasePipeline.__new__(SupabasePipeline)
+    row = {
+        "id": 9663,
+        "chunk_id": "EXAM_1A432000_P0015_01",
+        "source_chunk_id": "EXAM_1A432000_P0015_01",
+        "exam_year": 2024,
+        "stem": "某住宅工程案例题干……问题：1.指出不妥之处。",
+        "question_type": "case_study",
+        "correct_answer": "官方参考答案……",
+        "analysis": "解析……",
+        "options": "",
+        "similarity": 0.97,
+    }
+    plans = [{
+        "group_name": "question_exact_text",
+        "results": [dict(row, _source_group="question_exact_text")],
+    }]
+    payload = pipeline._extract_exact_question_payload(
+        plans, original_query=row["stem"]
+    )
+
+    assert payload is not None
+    assert payload.get("question_id") == 9663
+    assert payload.get("source_chunk_id") == "EXAM_1A432000_P0015_01"
+    assert payload.get("exam_year") == 2024
