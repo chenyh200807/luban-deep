@@ -1227,6 +1227,14 @@ class TutorBotManager:
                         trace_metadata["turn_failure"] = runtime_metadata["turn_failure"]
                     copy_current_case_grading_turn_metadata(runtime_metadata, trace_metadata)
                     copy_current_case_grading_turn_metadata(runtime_metadata, merged_metadata)
+                    # 观测对称律（1b 2026-07-30）：成功侧判分权威标记必须与失败侧同等
+                    # 导出深度。trace 顶层属性在 start 时刻定格，turn 内产生的
+                    # score_authority/provenance/gate marker 此前只能去 events_json
+                    # 考古——趁观测上下文仍活跃补写到 trace 顶层。
+                    _case_trace_keys = {}
+                    copy_current_case_grading_turn_metadata(runtime_metadata, _case_trace_keys)
+                    if _case_trace_keys:
+                        observability.update_current_trace_metadata(_case_trace_keys)
                     if any(
                         item.get("name") == "web_search"
                         for item in tool_trace_summary["tool_calls"]

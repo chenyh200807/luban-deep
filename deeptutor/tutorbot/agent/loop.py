@@ -1374,7 +1374,12 @@ class AgentLoop:
         if isinstance(covered, list):
             for item in covered:
                 if isinstance(item, dict):
-                    parts.append(str(item.get("stem") or item.get("question") or ""))
+                    # A2（1b 补漏 2026-07-30）：supabase covered 子项只带 prompt/surface，
+                    # 旧键集在真实 payload 上恒空 → 撤销闸把每道在库题都误判 mismatch。
+                    parts.append(str(
+                        item.get("stem") or item.get("question")
+                        or item.get("surface") or item.get("prompt") or ""
+                    ))
         if _has_current_question_anchor(user_stem):
             anchored_parts = [part for part in parts if _has_current_question_anchor(part)]
             if anchored_parts:
@@ -1393,6 +1398,45 @@ class AgentLoop:
             return exact in user
         overlap = sum(1 for gram in grams if gram in user) / len(grams)
         return overlap >= 0.35
+
+    @staticmethod
+    def _case_stem_numeric_variant(exact_question: dict[str, Any], user_stem: str) -> bool:
+        """改数变体闸（1b 2026-07-30）：2-gram 文本重叠对「同题改数字」几乎无鉴别力，
+        而官方 rubric 判改数题作答是错配灾难的主通道。判据刻意保守（错配比不配危险，
+        降级是安全方向）：仅当用户题面出现「单位与题库题相同、但数值不同、且该数值
+        不在题库题任何数字中」的带单位数字时才判变体；只粘贴部分小问（用户数字是
+        题库数字子集）永不触发。"""
+
+        _UNIT_NUMBER_RE = re.compile(
+            r"(\d+(?:\.\d+)?)\s*(亿元|万元|元|%|米|mm|cm|平方米|万平方米|层|天|kN|MPa|kPa|℃|吨|m(?![a-zA-Z0-9²2]))"
+        )
+
+        def _pairs(text: str) -> set[tuple[str, str]]:
+            found = set()
+            for match in _UNIT_NUMBER_RE.finditer(str(text or "")):
+                value = match.group(1)
+                unit = "米" if match.group(2) == "m" else match.group(2)
+                found.add((value.rstrip("0").rstrip(".") if "." in value else value, unit))
+            return found
+
+        eq_parts = [
+            str(exact_question.get("stem") or ""),
+            str(exact_question.get("question") or ""),
+        ]
+        for item in exact_question.get("covered_subquestions") or []:
+            if isinstance(item, dict):
+                eq_parts.append(str(item.get("stem") or item.get("question") or item.get("prompt") or ""))
+        eq_pairs = _pairs("\n".join(eq_parts))
+        if not eq_pairs:
+            return False
+        eq_units = {unit for _value, unit in eq_pairs}
+        eq_values = {value for value, _unit in eq_pairs}
+        for value, unit in _pairs(user_stem):
+            if (value, unit) in eq_pairs:
+                continue
+            if unit in eq_units and value not in eq_values:
+                return True
+        return False
 
     @staticmethod
     def _case_reference_context_matches_user_stem(reference_context: dict[str, Any], user_stem: str) -> bool:
@@ -1489,6 +1533,7 @@ class AgentLoop:
 
         answers: list[str] = []
         matched_question_ids: list[str] = []
+        matched_display_indexes: list[str] = []
         candidates = list(reference_context.get("covered_subquestions") or []) + list(reference_context.get("items") or [])
         for item in candidates:
             if not isinstance(item, dict):
@@ -1501,10 +1546,18 @@ class AgentLoop:
                 qid = str(item.get("question_id") or "").strip()
                 if qid:
                     matched_question_ids.append(qid)
+                display_index = str(item.get("display_index") or "").strip()
+                if display_index:
+                    matched_display_indexes.append(display_index)
 
         return {
             "reference": "\n".join(answers).strip(),
             "question_id": matched_question_ids[0] if len(matched_question_ids) == 1 else "",
+            # 唯一命中一个小问时导出其 display_index，供复合 qid（tier1 pgo bank 键
+            # ``{exam_year}::{source_chunk_id}::E{n}``）确定性合成；多问或零命中留空。
+            "display_index": (
+                matched_display_indexes[0] if len(matched_display_indexes) == 1 else ""
+            ),
         }
 
     @staticmethod
@@ -1533,6 +1586,9 @@ class AgentLoop:
             user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
+            eq = {}
+        if user_stem and eq and AgentLoop._case_stem_numeric_variant(eq, user_stem):
+            md["exact_question_blocked_reason"] = "case_numeric_variant"
             eq = {}
         fc = AgentLoop._followup_context_from_metadata(md)
         # Forward-reachability (S4, 2026-06-29): the flat followup keys
@@ -1571,9 +1627,11 @@ class AgentLoop:
         if user_stem and fc and not str(fc_current.get("reference") or "").strip() and str(fc.get("correct_answer") or "").strip():
             md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
         covered = eq.get("covered_subquestions") or []
+        eq_display_index = ""
         if user_stem and eq:
             eq_current = AgentLoop._current_case_reference_from_context(eq, user_stem)
             ref = str(eq_current.get("reference") or "").strip()
+            eq_display_index = str(eq_current.get("display_index") or "").strip()
             if covered and not ref and any(
                 str(s.get("authoritative_answer") or s.get("correct_answer") or "").strip()
                 for s in covered if isinstance(s, dict)
@@ -1583,6 +1641,21 @@ class AgentLoop:
             ref = "\n".join(
                 str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
             ).strip()
+        # tier1 复合 qid（1b 2026-07-30）：pgo 编译 bank 的键是
+        # ``{exam_year}::{source_chunk_id}::E{n}``。【观测不武装】2026-07-30 唯一性
+        # 审计实证：运行时 display_index（"第N问"解析，1 基）与编译期 En（原始
+        # exercises[] 下标，0 基）之间没有共享权威——模拟建键命中 23/354、语义正确
+        # 0 条、全部错绑到相邻小问 rubric（拿错采分点判分且不报错）。E 索引在
+        # questions_bank 落显式列并回填兄弟行 source_chunk_id 前，候选键只导出
+        # marker 供观测窗口，绝不进 ctx.question_id 喂 load_rubric。
+        composite_qid_candidate = ""
+        _eq_exam_year = str(eq.get("exam_year") or "").strip()
+        _eq_source_chunk_id = str(eq.get("source_chunk_id") or "").strip()
+        if _eq_exam_year and _eq_source_chunk_id and eq_display_index.isdigit():
+            composite_qid_candidate = (
+                f"{_eq_exam_year}::{_eq_source_chunk_id}::E{eq_display_index}"
+            )
+            md["case_grading_composite_qid_candidate"] = composite_qid_candidate
         ref = current_reference or ref or str(
             fc_current.get("reference")
             or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis"))
@@ -1620,7 +1693,9 @@ class AgentLoop:
         )
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
-            "question_id": str(eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""),
+            "question_id": str(
+                eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""
+            ),
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
@@ -1639,7 +1714,17 @@ class AgentLoop:
         # engine (extract/derive + judge = 1-2 extra LLM calls on identical
         # inputs) nor let a flaky retry clobber the deep loop's diagnosis.
         if md.get("case_grading_direct_fell_through"):
-            return None
+            # 单发闸窄豁免（1b 2026-07-30，相称律）：唯一放行 = 权威输入客观升级——
+            # 直批时 qid 空/旧，随后 agent loop 内模型自主 rag 命中 exact、qid 新出现。
+            # 同输入重跑维持关闭（#589 立法目的：省 1-2 次 LLM、防 flaky retry 覆盖
+            # deep loop 诊断）。升级也发声：case_grading_outer_seam_reentry marker。
+            attempt_qid = str(md.get("case_grading_direct_attempt_qid") or "").strip()
+            qid_now = str(
+                self._build_v1_case_ctx(md, user_message).get("question_id") or ""
+            ).strip()
+            if not qid_now or qid_now == attempt_qid or md.get("case_grading_outer_seam_reentry"):
+                return None
+            md["case_grading_outer_seam_reentry"] = "authority_upgraded"
         logger.debug(
             "LUBAN_DIAG _v1_case_render: entered md_type={} scene={} pf_eq_qid={} cg_scene={} "
             "covered_sub_keys={}",
@@ -1697,6 +1782,8 @@ class AgentLoop:
             from deeptutor.services.llm.factory import complete
 
             ctx = self._build_v1_case_ctx(md, user_message)
+            # 直批尝试 qid 快照：单发闸窄豁免的对比基线（qid 未升级 → 外 seam 不再入）。
+            md["case_grading_direct_attempt_qid"] = str(ctx.get("question_id") or "")
             if ctx.get("node_code"):
                 md.setdefault("node_code", ctx.get("node_code"))
             kb_name = str(md.get("default_kb") or "").strip() or None
@@ -1737,6 +1824,7 @@ class AgentLoop:
             for _event_key, _metadata_key in (
                 ("adjudication_group_count", "case_grading_adjudication_group_count"),
                 ("adjudication_point_count", "case_grading_adjudication_point_count"),
+                ("case_rubric_score_total_mismatch", "case_rubric_score_total_mismatch"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)
@@ -2020,30 +2108,29 @@ class AgentLoop:
         # 前移既有 prefetch（匹配权威不变：pipeline 身份链 + case_like 形状闸 +
         # loop demoter），带幂等闸防 fell_through 后外层重复检索。
         if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
-            # 降级必须发声（AGENTS 硬不变量 2026-07-30）：门拒绝时留可导出
-            # 判据——批1a live 探针零检索且无声，诊断只能靠猜。本 marker 既是
-            # 观测仪器也是 1b 开门修复的证据基线。
-            gate_allowed = self._should_prefetch_grounded_rag(
-                current_message=current_message,
-                runtime_metadata=runtime_metadata,
-            )
-            if gate_allowed:
+            # 直批的权威取回不归通用聊天 RAG 门管（1b 收权，2026-07-30）。live 实证
+            # 该门在直批时点必拒（denied:decision）：生命周期为粘贴题建的 active_object
+            # 是权威空壳（question_id/correct_answer 全空），却因 state_snapshot 键形状
+            # 触发 _should_disable_rag_for_active_question_flow ——「没权威→禁取权威」
+            # 死锁。直批 admission 只看判分权威本身：已有权威不取；无权威且有 kb 必取。
+            if case_grading_score_authority_available(runtime_metadata):
+                runtime_metadata["case_grading_prefetch_gate"] = "authority_already_present"
+            elif bool(
+                str(runtime_metadata.get("default_kb") or "").strip()
+                or runtime_metadata.get("knowledge_bases")
+            ):
                 runtime_metadata["case_grading_prefetch_gate"] = "allowed"
                 initial_messages = await self._maybe_prefetch_grounded_rag(
                     initial_messages=initial_messages,
                     current_message=current_message,
                     runtime_metadata=runtime_metadata,
+                    force_authority_fetch=True,
                 )
                 if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
                     runtime_metadata["case_grading_prefetch_gate"] = "allowed_no_exact_hit"
             else:
-                has_kb = bool(
-                    str(runtime_metadata.get("default_kb") or "").strip()
-                    or runtime_metadata.get("knowledge_bases")
-                )
-                runtime_metadata["case_grading_prefetch_gate"] = (
-                    "denied:decision" if has_kb else "denied:no_default_kb"
-                )
+                # 降级必须发声（AGENTS 硬不变量）：无 kb 时拒绝也要留可导出判据。
+                runtime_metadata["case_grading_prefetch_gate"] = "denied:no_default_kb"
         stream_plan = await self._v1_case_stream_plan(
             runtime_metadata=runtime_metadata,
             user_message=current_message,
@@ -3039,6 +3126,7 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+        force_authority_fetch: bool = False,
     ) -> list[dict[str, Any]]:
         # Idempotency (tier1/2 可达性 2026-07-30): the case-grading direct path
         # now prefetches BEFORE V1; when it falls through to the normal flow,
@@ -3046,7 +3134,9 @@ class AgentLoop:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
         if metadata is not None and metadata.get("_grounded_rag_prefetch_done"):
             return initial_messages
-        if not self._should_prefetch_grounded_rag(
+        # force_authority_fetch: the case-grading direct admission (授权判据 =
+        # 判分权威缺位且有 kb) 已经裁决过必须取回，通用聊天门无否决权。
+        if not force_authority_fetch and not self._should_prefetch_grounded_rag(
             current_message=current_message,
             runtime_metadata=runtime_metadata,
         ):
