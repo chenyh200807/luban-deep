@@ -2495,13 +2495,22 @@ async def _grade_one_case_v1(
     # C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
     # 题面名义分显著分歧 = 复合 qid 可能错配到别的小问，先发声观测一个窗口再定 blocking。
     score_total_mismatch = False
+    point_pool_excess = 0.0
     if points:
         try:
             _nominal = float((cg or {}).get("max_score") or 0)
             _rubric_total = sum(float(p.get("score") or 0) for p in points if isinstance(p, dict))
             score_total_mismatch = _nominal > 0 and abs(_rubric_total - _nominal) > 0.01
+            # 踩点封顶观测（指挥官裁决② 2026-07-30，observe-only 先于改分）：
+            # 真题判分=踩点池封顶 min(Σ命中点分, 小题满分)，且池≥满分是常态
+            # （431 采分点实证，2025案例4 Σ=30/满分20）。V1 主路径无封顶——
+            # 池>满分的题会系统性打高分。先量化在服发生率与超额量，
+            # 确定性封顶是 canonical bank 上服的硬前置，不许盲改在服判分。
+            if _nominal > 0 and _rubric_total - _nominal > 0.01:
+                point_pool_excess = round(_rubric_total - _nominal, 2)
         except (TypeError, ValueError):
             score_total_mismatch = False
+            point_pool_excess = 0.0
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
         qid or "(none)", len(points),
@@ -2603,6 +2612,8 @@ async def _grade_one_case_v1(
         pass
     if score_total_mismatch:
         event["case_rubric_score_total_mismatch"] = True
+    if point_pool_excess > 0:
+        event["point_pool_exceeds_max"] = point_pool_excess
     if is_diagnostic_rubric:
         event["grading_source"] = "rubric_scored_v1_diagnostic"
         event["answer_key_authority"] = "derived_from_stem_pending_calibration"

@@ -40,6 +40,10 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # A1 真口诀（拍A 2026-07-30）：口诀来源发声——lecture_pack:<unit_ids> 或
     # fallback_template。挂载率/回落率的观测基础。
     "case_mnemonic_source",
+    # 踩点封顶观测（裁决② 2026-07-30，observe-only）：Σ点分池超小题满分的超额量。
+    # 真题判分=min(Σ命中,满分)且池≥满分是常态；V1 无封顶→先量化在服发生率，
+    # 确定性封顶=canonical bank 上服硬前置。
+    "point_pool_exceeds_max",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (

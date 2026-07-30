@@ -838,3 +838,32 @@ async def test_case_rubric_v1_event_carries_bank_slot_identity(monkeypatch: pyte
     )
     assert event["event_type"] == "case_grading_completed"
     assert event["case_rubric_bank_slot"] == "legacy:authorized:174"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_point_pool_exceeds_max_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """踩点封顶观测（裁决②）：Σ点分池>小题满分（真题常态，2025案例4 Σ30/满20）时
+    落 point_pool_exceeds_max=超额量；池≤满分不落。observe-only，分数行为不变。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    # 池 Σ=3.0 > 满分 2 → 超额 1.0
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "作答",
+         "construction_grading_result": {"type": "case", "max_score": 2}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["point_pool_exceeds_max"] == 1.0
+    # 池=满分 → 无 marker
+    event_ok = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "作答",
+         "construction_grading_result": {"type": "case", "max_score": 3}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert "point_pool_exceeds_max" not in event_ok
