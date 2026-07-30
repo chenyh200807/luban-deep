@@ -71,7 +71,7 @@ evidence 作观测面。
 
 **OD-004 — agent-loop 旁路:判分产出但权威双空**(t4_q1_half, A6;首捕获 r2)
 **仍开放。** #614(兜底上移共享判分核)后 10 轮 live(runs
-`promo_gate_20260801_od004_final_r1..r10`,SHA `edc52b5e`):**约 5/10 PASS**
+`promo_gate_20260801_od004_final_r1..r10`,SHA `edc52b5e`):**5/10 PASS**(r1/r2/r5/r6/r8 过;r3/r4/r7/r9/r10 红)
 (PASS 轮 = `tutorbot_case_grading_v1_direct` + `rubric_scored_v1_diagnostic` +
 `derived_from_stem`;FAIL 轮 = `kb_first_full_agent_policy` +
 `v1_unavailable:no_reference` + provenance 空)。十轮公共流均无英文叙述。
