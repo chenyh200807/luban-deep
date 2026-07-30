@@ -1839,3 +1839,62 @@ def test_render_case_feedback_uses_real_mnemonics_with_citation() -> None:
     fallback = G.render_case_rubric_feedback(event, question_stem="临时用电案例")
     assert "出处：" not in fallback
     assert "## 记忆口诀" in fallback
+
+
+_COV_STEM = (
+    "【背景资料】某住宅工程质量检测管理。\n1. 建设单位委托检测机构。\n2. 监理见证取样。\n"
+    "【问题】\n问题1：指出不妥之处并写出正确做法？\n问题2：写出质量缺陷名称？\n"
+    "问题3：写出防水构造层名称？\n问题4：补充治理工艺流程？"
+)
+
+
+def test_case_subquestion_coverage_partial_and_note() -> None:
+    """覆盖对账（live 事故：答 2/4 问被判整题满分零漏点）：rubric 只归属到部分
+    小问 → 覆盖事实+点名未覆盖小问；全覆盖/无法归属 → 沉默不猜。"""
+    event = {
+        "event_type": "case_grading_completed",
+        "scoring_points": [
+            {"point_id": "P1", "question_no": 1, "hit": G.HIT, "score": 1.0},
+            {"point_id": "P2", "question_no": 1, "hit": G.HIT, "score": 1.0},
+            {"point_id": "P3", "question_no": 4, "hit": G.HIT, "score": 1.0},
+        ],
+    }
+    cov = G.case_subquestion_coverage(event, question_stem=_COV_STEM)
+    assert cov["covered"] == [1, 4] and cov["uncovered"] == [2, 3]
+    note = G.build_case_subq_coverage_note(cov)
+    assert "问题2、问题3" in note and "未纳入本次判分" in note and "已覆盖部分" in note
+
+    # 全覆盖 → 无声明
+    event_full = {
+        "event_type": "case_grading_completed",
+        "scoring_points": [{"point_id": f"P{i}", "question_no": i, "hit": G.HIT} for i in (1, 2, 3, 4)],
+    }
+    assert G.build_case_subq_coverage_note(
+        G.case_subquestion_coverage(event_full, question_stem=_COV_STEM)
+    ) == ""
+    # 全部无法归属 → None（宁沉默不猜）
+    event_blind = {"event_type": "case_grading_completed",
+                   "scoring_points": [{"point_id": "X", "hit": G.HIT}]}
+    assert G.case_subquestion_coverage(event_blind, question_stem=_COV_STEM) is None
+
+
+def test_render_and_stream_declare_partial_coverage() -> None:
+    event = {
+        "event_type": "case_grading_completed", "awarded_score": 3.0, "max_score": 3.0,
+        "scoring_points": [
+            {"point_id": "P1", "question_no": 1, "text": "见证记录", "hit": G.HIT,
+             "score": 1.0, "awarded": 1.0, "policy": "list"},
+            {"point_id": "P3", "question_no": 4, "text": "工艺流程", "hit": G.HIT,
+             "score": 2.0, "awarded": 2.0, "policy": "list"},
+        ],
+        "official_score_allowed": False,
+    }
+    rendered = G.render_case_rubric_feedback(event, question_stem=_COV_STEM)
+    assert "判分覆盖范围" in rendered and "问题2、问题3" in rendered
+    # stream 面同源消费 event 上的声明
+    event["case_subq_coverage_note"] = G.build_case_subq_coverage_note(
+        G.case_subquestion_coverage(event, question_stem=_COV_STEM)
+    )
+    plan = G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+    assert plan and "判分覆盖范围" in plan["score_first"]
+    assert "仅已覆盖小问" in plan["score_first"]

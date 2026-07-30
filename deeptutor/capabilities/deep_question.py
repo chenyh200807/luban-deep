@@ -2601,6 +2601,18 @@ async def _grade_one_case_v1(
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
+    # 覆盖对账（2026-07-30 live 事故：半张卷被当整张宣判满分）：题面多问而 rubric
+    # 只归属到部分小问时，事件携带覆盖事实+学生可见声明；渲染两个面同源消费。
+    try:
+        _stem_for_cov = str(ctx.get("question_stem") or ctx.get("stem") or "")
+        _cov = _G.case_subquestion_coverage(event, question_stem=_stem_for_cov)
+        if isinstance(_cov, dict):
+            event["case_subq_coverage"] = f"{len(_cov.get('covered') or [])}/{len(_cov.get('total') or [])}"
+            if _cov.get("uncovered"):
+                event["case_subq_uncovered"] = ",".join(str(i) for i in _cov["uncovered"])
+                event["case_subq_coverage_note"] = _G.build_case_subq_coverage_note(_cov)
+    except Exception:  # noqa: BLE001 — 观测/声明层永不破坏判分
+        pass
     # slot 身份逐轮导出（护栏③）：slot 漂移六周无人知的洞，用导出封死。
     try:
         _bank_id = _G.active_bank_identity()

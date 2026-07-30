@@ -44,6 +44,10 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # 真题判分=min(Σ命中,满分)且池≥满分是常态；V1 无封顶→先量化在服发生率，
     # 确定性封顶=canonical bank 上服硬前置。
     "point_pool_exceeds_max",
+    # 覆盖对账（2026-07-30）：判分实际覆盖的小问数/题面小问数 + 未覆盖清单。
+    # live 事故=学生答 2/4 问被判整题满分——部分覆盖必须发声且分数只代表已覆盖部分。
+    "case_subq_coverage",
+    "case_subq_uncovered",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
