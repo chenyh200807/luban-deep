@@ -9,6 +9,20 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-30 - tier1/2 可达性 1b：门死锁+exact 恒 miss 全链根因（四层剥洋葱）
+
+- 问题：批1a 前置了 prefetch 管道后，live 探针（在库案例粘贴）判分仍恒 tier3（derived_from_stem）、零检索观测。业务事实=「粘贴题库内案例题必须拿到题库判分权威」在四个不同层各断一刀。
+- 根因链（每修一层 live 再探才暴露下一层——单点归因会全部漏）：
+  1. **门死锁（duplicate decision + 权威假设未核验）**：生命周期为粘贴题建的 active_object 是权威空壳（question_id=''、correct_answer=None），`_should_disable_rag_for_active_question_flow` 只看 state_snapshot 键形状就禁检索——「没权威→禁取权威」。修法=收权：直批 admission 脱离通用聊天门（只看权威缺位+kb 在场，force_authority_fetch 旁路内层同门）。
+  2. **shape 误判（弱启发压过强结构）**：`_MCQ_STEM_RE` 的「不得/应当/可以」法规语言排在 `_looks_like_case_study` 前——案例题干必含这些词，"多答不得分"两字就让整段判成 mcq_like，case 切片/case_exact_queries/case_like 采用链全部失去运行资格。修法=结构证据（≥80字+背景资料+问题N）前移。
+  3. **text-first 门闷死 case 候选（unconsumed island）**：`probe.query≤100字`（MCQ 时代校准）把整个 text-first 任务连同 case 小问切片一起跳过。修法=case 候选在场即放行；只放宽候选供给，采信仍归单一 identity adjudicator。
+  4. **空壳冒充命中（观测撒谎）**：pipeline 未命中时 trace 元数据带 `exact_question: {}`，isinstance(dict) 检查让空壳写进 `_prefetched_exact_question`——marker 报 allowed、幂等闸误判已取回。修法=非空才写；直批检索只喂题干（作答①②③污染 shape 与匹配）。
+- 失败的尝试/被否决的方案：①复合 qid `E{display_index}` 直接武装——唯一性审计证伪：运行时 display_index(1基"第N问"解析) vs 编译期 En(0基数组下标) 无共享权威，模拟命中 23/354 全部错绑相邻小问 rubric→转观测不武装（marker 导出、不进 ctx.question_id）；②给通用门加 case 豁免（调参思路）——被收权方案取代：豁免是第 N+1 个 decider。
+- 成功修法：PR #595（门收权+数字变体闸+A2 撤销闸补漏 surface/prompt+单发闸窄豁免+update_current_trace_metadata 成功侧 trace 顶层导出+C2 marker）+ PR #596（shape 优先级+text-first 门+空壳诚实+题干 override）。
+- 验证（数字）：#595 tests/tutorbot+construction_grading 失败集合与 main 基线完全一致（全既往病）、新增 12 测试绿、CI 3 轮到绿；#596 端到端实证——修前真 pipeline 对同题干恒 miss，修后 EXACT HIT（id=17357，2023 同题带逐问官方答案、covered 5 项）；live 探针 SHA 84946ac2 gate 从 denied:decision→allowed。
+- 并行重大发现（两枚鱼雷，改写 tier1 路线）：①生产 LUBAN_CASE_RUBRIC_BANK_SLOT=pgo 是未获授权覆写（07-11 红线「=pgo 禁止拨」在案、canary 是两个全仓零引用孤儿 env、pgo 实吃 100% 案例判分流量六周、装载面只验 content_hash 不验授权）；②45/179 pgo 键永久不可达（2015/16 命名族无 DB 行）、兄弟小问 source_chunk_id 全 NULL。两报告在 scratchpad/{canonical_pointer_investigation,qid_uniqueness_audit}.md。
+- 教训：①「值与门与导出三者同批」之外第四件——权威假设必须被核验（键形状≠权威在场）；②弱启发（两字正则）绝不许排在强结构证据前裁决；③fail-open/空壳 dict 会把 miss 伪装成 hit，观测 marker 必须用非空判定；④分层断链的病要一层层 live 探针剥，静态推断会漏后三层。
+
 ## 2026-07-30 - KB 溯源 open-world 判分升级（owner 拍板）
 
 - 问题：owner 拍板升级——tier-3 题干推导采分点纯靠 LLM 专业知识、零教材溯源，与"采分点必须教材溯源"硬原则有差距；题库外题（用户粘贴主动线）的判分可信度需要证据支撑。
