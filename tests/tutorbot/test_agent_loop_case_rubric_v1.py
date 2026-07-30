@@ -1636,18 +1636,26 @@ async def test_case_grading_direct_prefetches_exact_before_v1(tmp_path, monkeypa
     monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _fake_prefetch)
     monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_plan)
     monkeypatch.setattr(loop, "_is_case_grading_scene", lambda md: True)
+    # 本测试聚焦管道时序（prefetch 先于 V1）；门策略另有专测，这里放行。
+    monkeypatch.setattr(
+        AgentLoop, "_should_prefetch_grounded_rag",
+        classmethod(lambda cls, **kw: True),
+    )
 
     from deeptutor.tutorbot.bus.events import InboundMessage
     msg = InboundMessage(channel="test", sender_id="u", chat_id="c", content="题干…\n作答…")
+    md_ref = {"question_lifecycle_scene": "case_grading"}
     out = await loop._run_case_grading_direct(
         msg=msg, session=SimpleNamespace(metadata={}, key="k", messages=[], last_consolidated=0),
         history=[], current_message="【题目】某工程…\n【我的作答】…",
-        runtime_metadata={"question_lifecycle_scene": "case_grading"},
+        runtime_metadata=md_ref,
         runtime_instruction="",
     )
 
     assert calls["prefetch"] == 1
     assert calls["plan_saw_eq"] is True
+    # 门必须发声（1b 仪器）：allowed 且命中 eq → marker=allowed。
+    assert str(md_ref.get("case_grading_prefetch_gate") or "").startswith("allowed")
 
 
 @pytest.mark.asyncio

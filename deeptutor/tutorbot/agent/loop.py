@@ -2020,11 +2020,30 @@ class AgentLoop:
         # 前移既有 prefetch（匹配权威不变：pipeline 身份链 + case_like 形状闸 +
         # loop demoter），带幂等闸防 fell_through 后外层重复检索。
         if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
-            initial_messages = await self._maybe_prefetch_grounded_rag(
-                initial_messages=initial_messages,
+            # 降级必须发声（AGENTS 硬不变量 2026-07-30）：门拒绝时留可导出
+            # 判据——批1a live 探针零检索且无声，诊断只能靠猜。本 marker 既是
+            # 观测仪器也是 1b 开门修复的证据基线。
+            gate_allowed = self._should_prefetch_grounded_rag(
                 current_message=current_message,
                 runtime_metadata=runtime_metadata,
             )
+            if gate_allowed:
+                runtime_metadata["case_grading_prefetch_gate"] = "allowed"
+                initial_messages = await self._maybe_prefetch_grounded_rag(
+                    initial_messages=initial_messages,
+                    current_message=current_message,
+                    runtime_metadata=runtime_metadata,
+                )
+                if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
+                    runtime_metadata["case_grading_prefetch_gate"] = "allowed_no_exact_hit"
+            else:
+                has_kb = bool(
+                    str(runtime_metadata.get("default_kb") or "").strip()
+                    or runtime_metadata.get("knowledge_bases")
+                )
+                runtime_metadata["case_grading_prefetch_gate"] = (
+                    "denied:decision" if has_kb else "denied:no_default_kb"
+                )
         stream_plan = await self._v1_case_stream_plan(
             runtime_metadata=runtime_metadata,
             user_message=current_message,
