@@ -2008,3 +2008,33 @@ def test_build_ctx_fail_closed_when_stem_unsplittable() -> None:
     ctx = AgentLoop._build_v1_case_ctx(md, weird)
     assert md.get("exact_question_blocked_reason") == "unverifiable_submission_shape"
     assert ctx["correct_answer"] == ""  # 钥匙没入判
+
+
+def test_toolless_repair_messages_strip_tool_shape() -> None:
+    """OD-003 根治：修复轮消息必须剥掉工具形态（tool_calls 壳+tool 角色），
+    证据展平为文本——模型没有可模仿的工具语法，才不会继续吐 tool_calls。"""
+    messages = [
+        {"role": "system", "content": "你是助教"},
+        {"role": "user", "content": "【背景资料】某工程…\n【问题】1. 指出不妥？"},
+        {"role": "assistant", "content": "", "tool_calls": [{"id": "c1", "function": {"name": "rag"}}]},
+        {"role": "tool", "tool_call_id": "c1", "name": "rag", "content": "检索证据A"},
+        {"role": "assistant", "content": "草稿片段", "tool_calls": [{"id": "c2", "function": {"name": "rag"}}]},
+        {"role": "tool", "tool_call_id": "c2", "name": "rag", "content": "检索证据B"},
+    ]
+    out = AgentLoop._toolless_repair_messages(messages, repair_prompt="请直接作答")
+    assert all("tool_calls" not in m for m in out)
+    assert all(m.get("role") != "tool" for m in out)
+    joined = "\n".join(str(m.get("content") or "") for m in out)
+    assert "检索证据A" in joined and "检索证据B" in joined   # 证据不丢
+    assert "【问题】1. 指出不妥？" in joined                  # 题面在
+    assert out[-1]["content"] == "请直接作答"                 # 修复指令末位
+    assert "草稿片段" in joined                               # 草稿保留供参考
+
+
+def test_toolless_repair_truncates_huge_evidence() -> None:
+    messages = [{"role": "system", "content": "s"}, {"role": "user", "content": "q"}]
+    messages += [{"role": "tool", "tool_call_id": f"c{i}", "name": "rag", "content": "证" * 3000}
+                 for i in range(5)]
+    out = AgentLoop._toolless_repair_messages(messages, repair_prompt="p", max_evidence_chars=1000)
+    ev = next(m for m in out if "已检索到的全部证据" in str(m.get("content") or ""))
+    assert len(ev["content"]) < 1400 and "证据已截断" in ev["content"]
