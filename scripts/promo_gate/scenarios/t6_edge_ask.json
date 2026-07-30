@@ -1,0 +1,21 @@
+{
+  "id": "t6_edge_ask",
+  "question_group": "T6",
+  "form": "question_only",
+  "title": "KB边界偏门题(金属幕墙板材/气密性)·只问",
+  "query_file": "queries/t6_edge_ask.txt",
+  "case_grading": false,
+  "assertions": [
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 150
+    }
+  ]
+}

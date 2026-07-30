@@ -1,0 +1,32 @@
+{
+  "id": "t1_wrong",
+  "question_group": "T1",
+  "form": "wrong",
+  "qid": 8817,
+  "title": "题库内案例(qid=8817)·答错(数值与顺序均错)",
+  "query_file": "queries/t1_wrong.txt",
+  "official_full_score": 30,
+  "case_grading": true,
+  "assertions": [
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "A7"
+    },
+    {
+      "id": "A8",
+      "skip": true,
+      "note": "错因码分布断言,拍板后启用"
+    }
+  ]
+}

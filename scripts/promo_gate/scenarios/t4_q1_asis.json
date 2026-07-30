@@ -1,0 +1,22 @@
+{
+  "id": "t4_q1_asis",
+  "question_group": "T4",
+  "form": "question_only",
+  "title": "历史事故原文·#583拒答事故原题(办公楼5小问,只发题)",
+  "query_file": "queries/t4_q1_asis.txt",
+  "case_grading": false,
+  "incident": "PR#583 罐头拒答事故",
+  "assertions": [
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 300
+    }
+  ]
+}

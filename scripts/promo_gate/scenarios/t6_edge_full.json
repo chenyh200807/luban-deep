@@ -1,0 +1,21 @@
+{
+  "id": "t6_edge_full",
+  "question_group": "T6",
+  "form": "full",
+  "title": "KB边界偏门题·带自己的理解求核对",
+  "query_file": "queries/t6_edge_full.txt",
+  "case_grading": false,
+  "assertions": [
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 150
+    }
+  ]
+}

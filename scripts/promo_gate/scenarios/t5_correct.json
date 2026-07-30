@@ -1,0 +1,26 @@
+{
+  "id": "t5_correct",
+  "question_group": "T5",
+  "form": "full",
+  "qid": 8731,
+  "title": "MCQ(qid=8731 氯离子复试)·答对并给理由",
+  "query_file": "queries/t5_correct.txt",
+  "case_grading": false,
+  "assertions": [
+    {
+      "id": "A5"
+    },
+    {
+      "id": "M1",
+      "type": "contains_all",
+      "terms": [
+        "外加剂"
+      ]
+    },
+    {
+      "id": "L1",
+      "type": "min_length",
+      "value": 60
+    }
+  ]
+}
