@@ -1696,6 +1696,9 @@ class AgentLoop:
             "question_id": str(
                 eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""
             ),
+            # 覆盖对账必须对学生所见题面（live 实证：exact 命中单小问兄弟行时，
+            # eq.stem 只含 1 问——拿 bank 行当整个世界，4 问粘贴被判 10/10）。
+            "user_stem": user_stem,
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
