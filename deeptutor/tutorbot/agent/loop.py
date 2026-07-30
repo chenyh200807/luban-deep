@@ -635,6 +635,75 @@ class AgentLoop:
         return cls._VISIBLE_ANSWER_REPAIR_PROMPTS[index]
 
     @staticmethod
+    def _toolless_repair_messages(
+        messages: list[dict[str, Any]],
+        *,
+        repair_prompt: str,
+        max_evidence_chars: int = 6000,
+    ) -> list[dict[str, Any]]:
+        """OD-003 根治（2026-08-01）：结构差异化重试——把工具形态从历史里剥掉。
+
+        取证实证：修复轮传的是**含 N 轮 assistant(tool_calls)+tool 结果的原样
+        历史**，模型被工具语法条件化，即便 tools=None、tool_choice="none" 仍继续
+        吐 tool_calls（dashscope 3 SHA 3/3 复现，正文 chunk=0 → 空返回 → 终态
+        失败模板）。收束不能依赖 provider 强制；把证据展平成纯文本、删除全部
+        tool_calls/tool 角色消息，模型就没有可模仿的工具形态。
+
+        保留：system 首条（人格/技能）、全部 user 消息（含题面）；
+        转换：tool 结果 → 一条 system 证据摘要；丢弃：assistant 的 tool_calls 壳。
+        """
+        system_head: list[dict[str, Any]] = []
+        user_turns: list[dict[str, Any]] = []
+        evidence: list[str] = []
+        assistant_texts: list[str] = []
+        for item in messages or []:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role") or "")
+            content = item.get("content")
+            text = content if isinstance(content, str) else ""
+            if role == "system":
+                if not user_turns and len(system_head) < 3:
+                    system_head.append({"role": "system", "content": text})
+                continue
+            if role == "user":
+                user_turns.append({"role": "user", "content": text})
+                continue
+            if role == "tool":
+                name = str(item.get("name") or "工具")
+                if text.strip():
+                    evidence.append(f"【{name} 结果】{text.strip()}")
+                continue
+            if role == "assistant":
+                # 只留正文，丢掉 tool_calls 壳（正是被模仿的形态）
+                if text.strip():
+                    assistant_texts.append(text.strip())
+        rebuilt: list[dict[str, Any]] = list(system_head)
+        if evidence:
+            joined = "\n\n".join(evidence)
+            if len(joined) > max_evidence_chars:
+                joined = joined[:max_evidence_chars] + "\n…（证据已截断）"
+            rebuilt.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "以下是本轮已检索到的全部证据（工具已停用，不会再有新检索）：\n\n"
+                        f"{joined}"
+                    ),
+                }
+            )
+        if assistant_texts:
+            rebuilt.append(
+                {
+                    "role": "system",
+                    "content": "你此前的草稿片段（仅供参考）：\n" + "\n".join(assistant_texts[-3:])[:2000],
+                }
+            )
+        rebuilt.extend(user_turns[-4:] or [{"role": "user", "content": "请基于上述证据作答。"}])
+        rebuilt.append({"role": "system", "content": repair_prompt})
+        return rebuilt
+
+    @staticmethod
     def _chunk_visible_text_for_stream(text: str, *, target_size: int = 14) -> list[str]:
         clean = str(text or "")
         if not clean:
@@ -2677,12 +2746,11 @@ class AgentLoop:
                     else self._strip_think(response.content)
                 )
                 if not self._is_user_visible_final_answer(clean):
-                    retry_messages = list(messages)
-                    retry_messages.append(
-                        {
-                            "role": "system",
-                            "content": self._visible_answer_repair_prompt(0),
-                        }
+                    # OD-003 根治：结构差异化重试（去工具形态），不再原样递含
+                    # tool_calls 的历史——模型会照着模仿，tools=None 也拦不住。
+                    retry_messages = self._toolless_repair_messages(
+                        messages,
+                        repair_prompt=self._visible_answer_repair_prompt(0),
                     )
                     retry_parts: list[str] = []
 
@@ -3495,12 +3563,11 @@ class AgentLoop:
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate
                 break
-            call_messages = list(call_messages)
-            call_messages.append(
-                {
-                    "role": "system",
-                    "content": self._visible_answer_repair_prompt(attempt),
-                }
+            # 同 OD-003 纪律：fast policy 的重试也走结构差异化（去工具形态），
+            # 避免同款"被自己历史条件化"的空返回。
+            call_messages = self._toolless_repair_messages(
+                call_messages,
+                repair_prompt=self._visible_answer_repair_prompt(attempt),
             )
 
         if final_content is None and not isinstance(runtime_metadata.get("turn_failure"), dict):
