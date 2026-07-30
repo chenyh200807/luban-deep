@@ -2729,6 +2729,11 @@ class SupabasePipeline:
             ]
             return {
                 "id": selected_row.get("id") or "",
+                # tier1 可达性（2026-07-30）：顶层显式 question_id 与复合 qid 原料
+                # （pgo bank 键 = f"{exam_year}::{source_chunk_id}::E{n}"）。
+                "question_id": selected_row.get("id") or "",
+                "source_chunk_id": str(selected_row.get("source_chunk_id") or "").strip(),
+                "exam_year": selected_row.get("exam_year"),
                 "chunk_id": selected_row.get("chunk_id") or "",
                 "stem": str(
                     selected_row.get("stem")
@@ -2776,6 +2781,9 @@ class SupabasePipeline:
         options = row.get("options") or ""
         payload: dict[str, Any] = {
             "id": row.get("id") or row.get("chunk_id") or "",
+            "question_id": row.get("id") or "",
+            "source_chunk_id": str(row.get("source_chunk_id") or "").strip(),
+            "exam_year": row.get("exam_year"),
             "chunk_id": row.get("chunk_id") or "",
             "stem": stem,
             "question_type": question_type,

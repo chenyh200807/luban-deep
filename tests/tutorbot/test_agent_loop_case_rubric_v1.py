@@ -1589,3 +1589,98 @@ async def test_prefetched_rag_grounding_projects_answer_to_learner_option_surfac
     assert options[0] == {"key": "A", "value": "5%"}
     assert "【答案】D" not in tool_message["content"]
     assert tool_results == [tool_message["content"]]
+
+
+# ---------------------------------------------------------------------------
+# tier1/2 可达性收复 批1a（2026-07-30 指挥官阶段1）
+# ---------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_case_grading_direct_prefetches_exact_before_v1(tmp_path, monkeypatch) -> None:
+    """直批此前先于 prefetch 执行 → 粘贴库内题 eq 恒缺、恒 tier3。收复后：
+    直批入口先跑既有 prefetch（匹配权威不变），V1 计划能看到 _prefetched_exact_question。"""
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class _P(LLMProvider):
+        async def chat(self, messages, tools=None, model=None, max_tokens=4096,
+                       temperature=0.7, reasoning_effort=None, tool_choice=None,
+                       on_content_delta=None):
+            return LLMResponse(content="占位")
+
+        def get_default_model(self):
+            return "fake"
+
+    loop = AgentLoop(
+        bus=MessageBus(), provider=_P(), workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    calls = {"prefetch": 0, "plan_saw_eq": None}
+
+    async def _fake_prefetch(*, initial_messages, current_message, runtime_metadata, **kw):
+        calls["prefetch"] += 1
+        runtime_metadata["_prefetched_exact_question"] = {
+            "answer_kind": "case_study", "question_id": 9348,
+            "source_chunk_id": "EXAM_1A430000_P0014_06", "exam_year": 2024,
+        }
+        return initial_messages
+
+    async def _fake_plan(*, runtime_metadata, user_message):
+        calls["plan_saw_eq"] = isinstance(
+            runtime_metadata.get("_prefetched_exact_question"), dict
+        )
+        return {"final_text": "## 批改\n占位判分正文", "score_first": "占位"}
+
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _fake_prefetch)
+    monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_plan)
+    monkeypatch.setattr(loop, "_is_case_grading_scene", lambda md: True)
+
+    from deeptutor.tutorbot.bus.events import InboundMessage
+    msg = InboundMessage(channel="test", sender_id="u", chat_id="c", content="题干…\n作答…")
+    out = await loop._run_case_grading_direct(
+        msg=msg, session=SimpleNamespace(metadata={}, key="k", messages=[], last_consolidated=0),
+        history=[], current_message="【题目】某工程…\n【我的作答】…",
+        runtime_metadata={"question_lifecycle_scene": "case_grading"},
+        runtime_instruction="",
+    )
+
+    assert calls["prefetch"] == 1
+    assert calls["plan_saw_eq"] is True
+
+
+@pytest.mark.asyncio
+async def test_grounded_prefetch_is_idempotent_per_turn(tmp_path, monkeypatch) -> None:
+    """幂等闸：直批已 prefetch 后 fell_through 到外层，同 turn 不得二次检索。"""
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class _P(LLMProvider):
+        async def chat(self, *a, **k):
+            return LLMResponse(content="x")
+
+        def get_default_model(self):
+            return "fake"
+
+    loop = AgentLoop(
+        bus=MessageBus(), provider=_P(), workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    md = {"_grounded_rag_prefetch_done": True}
+    executed = {"rag": 0}
+
+    class _Boom:
+        def preview_args(self, a):
+            executed["rag"] += 1
+            return a
+
+    monkeypatch.setattr(loop.tools, "get", lambda name: _Boom())
+    out = await loop._maybe_prefetch_grounded_rag(
+        initial_messages=[{"role": "user", "content": "q"}],
+        current_message="q", runtime_metadata=md,
+    )
+    assert executed["rag"] == 0  # 幂等：直接短路，未触检索

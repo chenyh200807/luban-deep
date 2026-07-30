@@ -1478,7 +1478,9 @@ class AgentLoop:
                 or ""
             ).strip()
 
-        for key in ("question", "question_stem", "stem"):
+        # A2（tier1/2 可达性 2026-07-30）：supabase covered_subquestions 子项只带
+        # prompt/surface，旧键集永远打不着——拓宽为两族键并存。
+        for key in ("question", "question_stem", "stem", "surface", "prompt"):
             if _matches_current(reference_context.get(key)):
                 return {
                     "reference": str(reference_context.get("correct_answer") or "").strip(),
@@ -1491,7 +1493,7 @@ class AgentLoop:
         for item in candidates:
             if not isinstance(item, dict):
                 continue
-            if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem")):
+            if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem", "surface", "prompt")):
                 continue
             answer = _answer_from_item(item)
             if answer:
@@ -2012,6 +2014,17 @@ class AgentLoop:
             chat_id=msg.chat_id,
             runtime_instruction=runtime_instruction,
         )
+        # tier1/2 可达性收复（2026-07-30 指挥官阶段1）：直批此前先于 RAG prefetch
+        # 执行，_prefetched_exact_question 恒缺 → 粘贴的题库内案例题 question_id
+        # 恒空 → 179 题编译 rubric bank 在聊天通道结构性不可达、全部落 tier3。
+        # 前移既有 prefetch（匹配权威不变：pipeline 身份链 + case_like 形状闸 +
+        # loop demoter），带幂等闸防 fell_through 后外层重复检索。
+        if not isinstance(runtime_metadata.get("_prefetched_exact_question"), dict):
+            initial_messages = await self._maybe_prefetch_grounded_rag(
+                initial_messages=initial_messages,
+                current_message=current_message,
+                runtime_metadata=runtime_metadata,
+            )
         stream_plan = await self._v1_case_stream_plan(
             runtime_metadata=runtime_metadata,
             user_message=current_message,
@@ -3008,6 +3021,12 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
     ) -> list[dict[str, Any]]:
+        # Idempotency (tier1/2 可达性 2026-07-30): the case-grading direct path
+        # now prefetches BEFORE V1; when it falls through to the normal flow,
+        # the outer call site must not re-run the same retrieval.
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
+        if metadata is not None and metadata.get("_grounded_rag_prefetch_done"):
+            return initial_messages
         if not self._should_prefetch_grounded_rag(
             current_message=current_message,
             runtime_metadata=runtime_metadata,
@@ -3017,6 +3036,8 @@ class AgentLoop:
         rag_tool = self.tools.get("rag")
         if rag_tool is None:
             return initial_messages
+        if metadata is not None:
+            metadata["_grounded_rag_prefetch_done"] = True
 
         preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
         try:
