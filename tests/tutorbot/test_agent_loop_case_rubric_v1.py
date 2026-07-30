@@ -1967,3 +1967,24 @@ async def test_prefetch_tool_query_override_and_empty_exact_honesty(tmp_path, mo
     assert seen["query"] == "【背景资料】题干…【问题】1. …"
     # ② 空壳 exact 不得入场
     assert "_prefetched_exact_question" not in md
+
+
+def test_build_ctx_exports_user_stem_for_coverage() -> None:
+    """覆盖对账基准（live 实证）：exact 命中单小问兄弟行时 eq.stem 只含 1 问，
+    ctx 必须另携学生所见整题面 user_stem 供覆盖对账。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "【背景资料】某工程。【问题1】指出不妥之处？",  # 单小问行
+            "covered_subquestions": [
+                {"prompt": "【问题1】指出不妥之处？", "authoritative_answer": "答案", "display_index": "1"},
+            ],
+        },
+    }
+    user_paste = (
+        "【背景资料】某工程。【问题1】指出不妥之处？【问题2】写出名称？"
+        "【问题3】构造名称？【问题4】工艺流程？\n我的答案：只答问题1。"
+    )
+    ctx = AgentLoop._build_v1_case_ctx(md, user_paste)
+    assert "问题4" in ctx["user_stem"]          # 整题面在
+    assert "问题4" not in ctx["question_stem"]  # eq.stem 只有 1 问（判分接地不变）

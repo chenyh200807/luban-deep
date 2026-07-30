@@ -2604,7 +2604,9 @@ async def _grade_one_case_v1(
     # 覆盖对账（2026-07-30 live 事故：半张卷被当整张宣判满分）：题面多问而 rubric
     # 只归属到部分小问时，事件携带覆盖事实+学生可见声明；渲染两个面同源消费。
     try:
-        _stem_for_cov = str(ctx.get("question_stem") or ctx.get("stem") or "")
+        # 对账基准=学生所见题面优先（bank 单小问行的 stem 只含 1 问，会让
+        # 保守闸静默；user_stem 才是"学生以为在判的整题"）。
+        _stem_for_cov = str(ctx.get("user_stem") or ctx.get("question_stem") or ctx.get("stem") or "")
         _cov = _G.case_subquestion_coverage(event, question_stem=_stem_for_cov)
         if isinstance(_cov, dict):
             event["case_subq_coverage"] = f"{len(_cov.get('covered') or [])}/{len(_cov.get('total') or [])}"
