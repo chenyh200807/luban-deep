@@ -1584,6 +1584,16 @@ class AgentLoop:
         ).strip()
         if not user_stem or not user_answer:
             user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        # fail-closed 保底闸（OD-002 倒诬根治，指挥官相称律裁决 2026-07-31）：
+        # 身份闸/数字变体闸都以 user_stem 为对照面——切割失败（疑似案例投稿但
+        # stem 为空）时它们整线解除武装，题库参考答案会无核验入判（假命中行
+        # 17315 的钥匙判学生正确作答为零）。参考答案入判=授予判零权，判据必须
+        # 可核验：核验面缺失 → 宁降 tier3 诊断，不许倒诬。
+        if eq and not user_stem:
+            _raw_probe = str(user_message or "")
+            if len(_raw_probe) >= 120 and re.search(r"【背景资料】|【问题】|背景资料", _raw_probe):
+                md["exact_question_blocked_reason"] = "unverifiable_submission_shape"
+                eq = {}
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
