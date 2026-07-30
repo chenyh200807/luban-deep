@@ -2054,3 +2054,22 @@ def test_build_ctx_stem_fallback_when_scene_jitter_drops_case_context() -> None:
     md2 = {}
     ctx2 = AgentLoop._build_v1_case_ctx(md2, "这题怎么做？")
     assert "case_stem_fallback" not in md2
+
+
+def test_case_stem_fallback_marker_projected_from_event() -> None:
+    """OD-004 根治配套（[luban_grading_engine] domain test）：共享判分核落的
+    case_stem_fallback 必须经 tutorbot 事件→md 映射上全 sink（兜底生效可观测）。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    assert "case_stem_fallback" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    source = {
+        "question_lifecycle_scene": "case_grading",
+        "case_stem_fallback": "submission_text",
+        "score_authority": "rubric_scored_v1_diagnostic",
+    }
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(source, target)
+    assert target["case_stem_fallback"] == "submission_text"
