@@ -15,21 +15,30 @@ _OFFICIAL_GRADING_RE = re.compile(
 )
 _DIAGNOSTIC_ONLY_MARKER = "本次不硬估标准分"
 _CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "subjective"}
-CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
-    "grading_engine_version",
-    "v1_case_graded",
+
+# 判分权威导出键的单一权威（倾向四收权，2026-07-30 owner 拍板根治）。
+# 此前同一组键散落三张互不同步的白名单（turn_runtime summarizer lift /
+# 本文件 TURN_METADATA_KEYS / turn_runtime 终态事件白名单），live 实证漏一张
+# 名单=该 sink 永久 0 命中。三处现全部消费本常量：增键改这里一处即全链生效。
+# 注意：exact_question_blocked_reason / case_reference_blocked_reason 是跨场景
+# 通用 marker（mcq/澄清路径也写），不得收进任何 case 专属清单——strip 语义会在
+# 非 case 轮把它们剥掉（CI 实证 low_information_exam_query 断言被破坏）。
+CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     "score_authority",
-    "case_grading_direct_fell_through",
+    "grading_rubric_provenance",
+    "grading_official_score_allowed",
+    "v1_case_graded",
     "case_grading_prefetch_gate",
-    # 注意：exact_question_blocked_reason / case_reference_blocked_reason 是跨场景
-    # 通用 marker（mcq/澄清路径也写），不得收进本元组——strip 语义会在非 case 轮
-    # 把它们剥掉（CI 实证 low_information_exam_query 断言被破坏）。它们的 trace
-    # 顶层导出走 manager 推送处附带（只导出不持久不剥离）。
+    "case_grading_direct_fell_through",
     "case_grading_direct_attempt_qid",
     "case_grading_composite_qid_candidate",
     "case_grading_outer_seam_reentry",
     "case_rubric_score_total_mismatch",
-    "grading_rubric_provenance",
+)
+
+CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
+    "grading_engine_version",
+    *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
     "grading_to_brain_loop",
     "learning_evidence_event_id",
     "learning_training_intent",
