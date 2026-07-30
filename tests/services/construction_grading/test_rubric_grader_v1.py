@@ -1898,3 +1898,15 @@ def test_render_and_stream_declare_partial_coverage() -> None:
     plan = G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
     assert plan and "判分覆盖范围" in plan["score_first"]
     assert "仅已覆盖小问" in plan["score_first"]
+
+
+def test_question_titles_cut_answer_markers_before_counting() -> None:
+    """live 实证（owner 输入重放）：作答切割认不出【我的作答】时，作答里的
+    (1)-(6) 编号被数成"题面共 6 问"并点名幽灵问题5/6。标记族必须齐备。"""
+    raw = (
+        "【背景资料】某工程。\n【问题】\n1. 指出不妥？\n2. 名称？\n3. 构造？\n4. 流程？\n"
+        "【我的作答】\n问题4：(1) 清理；(2) 支模；(3) 洒水；(4) 界面剂；(5) 浇筑；(6) 养护。"
+    )
+    assert sorted(G._extract_case_question_titles(raw)) == [1, 2, 3, 4]
+    raw2 = raw.replace("【我的作答】", "\n我的答案：")
+    assert sorted(G._extract_case_question_titles(raw2)) == [1, 2, 3, 4]
