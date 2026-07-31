@@ -2165,3 +2165,24 @@ def test_adoption_count_survives_missing_display_index() -> None:
         f"索引未知的采纳行必须计入分子（=1），不得回落检索行数，实得 "
         f"{ctx['case_reference_covered_count']}"
     )
+
+
+def test_surface_tracing_hashes_deterministic_and_answer_independent() -> None:
+    """逐跳 surface 插桩（codex 方案 §5.4）：ctx 构建必须导出 user_stem 的
+    hash/len 且只依赖题面——同题面配不同作答，hash 必须相同（这正是定位
+    通道漂移的判据）。"""
+    md1: dict = {}
+    md2: dict = {}
+    stem = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+            "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+            "问题2：写出质量缺陷名称有哪些内容？\n")
+    ctx1 = AgentLoop._build_v1_case_ctx(md1, stem + "我的答案：作答甲，内容一。")
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, stem + "我的答案：完全不同的作答乙，内容二二二。")
+    assert ctx1["case_user_stem_hash"] and len(ctx1["case_user_stem_hash"]) == 12
+    assert ctx1["case_user_stem_hash"] == ctx2["case_user_stem_hash"], "hash 只许依赖题面，不许受作答影响"
+    assert md1["case_user_stem_hash"] == ctx1["case_user_stem_hash"], "md 通道与 ctx 必须同源"
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+    )
+    for key in ("case_probe_stem_hash", "case_user_stem_hash", "case_probe_marker_count"):
+        assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS

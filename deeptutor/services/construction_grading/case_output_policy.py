@@ -58,6 +58,14 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # P0 兜底满分根治（2026-08-01）：参考只覆盖部分小问时的判分范围声明，
     # 形如 "1/4"——分数只代表该范围，且不得声称官方分。
     "case_grading_partial_scope",
+    # 逐跳 surface 对账插桩（2026-08-01，只 hash/长度不落全文）：定位通道漂移
+    # 与幽灵小问的分叉跳。
+    "case_probe_stem_hash",
+    "case_probe_stem_len",
+    "case_probe_answer_len",
+    "case_probe_marker_count",
+    "case_user_stem_hash",
+    "case_user_stem_len",
     # 踩点封顶观测（裁决② 2026-07-30，observe-only）：Σ点分池超小题满分的超额量。
     # 真题判分=min(Σ命中,满分)且池≥满分是常态；V1 无封顶→先量化在服发生率，
     # 确定性封顶=canonical bank 上服硬前置。
