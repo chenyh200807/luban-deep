@@ -1845,11 +1845,27 @@ class AgentLoop:
                 "question_id": str(reference_context.get("question_id") or "").strip(),
             }
 
+        def _question_segment(value: Any) -> str:
+            """行文本的小问段（C3 采纳修正 2026-08-01）：兄弟行题面=共享背景+
+            自己那一问，学生整卷=背景+问1..问N——非首问的行全文在整卷里**不是
+            连续子串**（中间隔着别的问），逐字包含必拒。取最后一个小问标题起的
+            段落做匹配——那一段在整卷里是连续的。"""
+            text = str(value or "")
+            hits = list(re.finditer(
+                r"(?:【问题】\s*[0-9０-９]|问题\s*[0-9０-９]|第\s*[0-9０-９]+\s*问"
+                r"|(?:^|\n)\s*[0-9０-９]+\s*[.．、)）])",
+                text,
+            ))
+            return text[hits[-1].start():] if hits else ""
+
         def _matches_current(value: Any) -> bool:
             if not _has_current_question_anchor(value):
                 return False
             identity = _compact(value)
-            return len(identity) >= 8 and (identity in user or user in identity)
+            if len(identity) >= 8 and (identity in user or user in identity):
+                return True
+            segment = _compact(_question_segment(value))
+            return len(segment) >= 8 and segment in user
 
         def _answer_from_item(item: dict[str, Any]) -> str:
             return str(
@@ -1862,7 +1878,16 @@ class AgentLoop:
 
         # A2（tier1/2 可达性 2026-07-30）：supabase covered_subquestions 子项只带
         # prompt/surface，旧键集永远打不着——拓宽为两族键并存。
+        # C3 修正（2026-08-01）：组 bundle（多子项）时禁走顶层直配早退——顶层
+        # stem=第 1 行全文，整卷粘贴必命中它并带着 matched_count=1 抢跑返回，
+        # 逐项采纳循环永远不执行 → 组取全了覆盖仍 1/4。多项时逐项循环才是权威。
+        _bundle_items = list(reference_context.get("covered_subquestions") or []) + list(
+            reference_context.get("items") or []
+        )
+        _multi_item_bundle = len([x for x in _bundle_items if isinstance(x, dict)]) > 1
         for key in ("question", "question_stem", "stem", "surface", "prompt"):
+            if _multi_item_bundle:
+                break
             if _matches_current(reference_context.get(key)):
                 # 顶层直配=命中的是这一行（兄弟行形态下即"一个小问"），
                 # 采纳集必须记 1 个，不能让上层回落到 payload 的行数。
@@ -1878,10 +1903,22 @@ class AgentLoop:
         matched_display_indexes: list[str] = []
         indexless_adopted = 0
         candidates = list(reference_context.get("covered_subquestions") or []) + list(reference_context.get("items") or [])
+        # 治理组整组采纳（C3 终修 2026-08-01）：case_bundle_source=group_query 的
+        # bundle，其成员资格已由 C1/C2 编译期治理裁决（case_group_id+canonical），
+        # 运行时不再用模糊文本逐项复核——种子命中（背景+首问逐字包含）已强锚定
+        # 试卷身份，逐项文本匹配只会把措辞有差的同一小问误拒（live 实证：bank
+        # 问2 与整卷问2 措辞不同字，逐项匹配 3/4）。非治理 bundle 保持逐项匹配
+        # （防随机检索杂行混入）。
+        _governed_group = (
+            str(reference_context.get("case_bundle_source") or "") == "group_query"
+        )
         for item in candidates:
             if not isinstance(item, dict):
                 continue
-            if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem", "surface", "prompt")):
+            if not _governed_group and not any(
+                _matches_current(item.get(key))
+                for key in ("question", "question_stem", "stem", "surface", "prompt")
+            ):
                 continue
             answer = _answer_from_item(item)
             if answer:

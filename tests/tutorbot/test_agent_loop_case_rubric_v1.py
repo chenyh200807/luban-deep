@@ -2270,3 +2270,40 @@ def test_case_group_bundle_markers_lift_to_md_and_all_sinks() -> None:
     md_mcq: dict = {"_prefetched_exact_question": {"answer_kind": "mcq", "stem": "选择题"}}
     AgentLoop._build_v1_case_ctx(md_mcq, "这题选什么？")
     assert "case_bundle_source" not in md_mcq
+
+
+def test_governed_group_bundle_adopts_all_canonical_items() -> None:
+    """C3 终修（2026-08-01 live 断点三连）：治理组 bundle（case_bundle_source=
+    group_query）整组采纳——①顶层直配早退不得抢跑（多项 bundle 禁早退）；
+    ②兄弟行全文含共享背景在整卷中非连续、逐字包含必拒（段落匹配只是缓解）；
+    ③成员资格已由编译期治理裁决，运行时不再模糊复核。"""
+    bg = "【背景资料】某施工企业中标新建一办公楼工程，" + "施工过程描述。" * 30
+    items = [
+        {"prompt": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+         "authoritative_answer": f"官方答案{i}", "display_index": str(i),
+         "question_id": str(17370 + i)}
+        for i in range(1, 5)
+    ]
+    paste = (bg + "\n【问题】1. 第1问的完整提问内容是什么？\n2. 措辞不同字的第二问？\n"
+             "3. 第3问的完整提问内容是什么？\n4. 第4问的完整提问内容是什么？\n"
+             "我的答案：作答内容若干。")
+    md = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": items[0]["prompt"],
+        "correct_answer": "官方答案1", "case_bundle_source": "group_query",
+        "covered_subquestions": items,
+        "covered_indexes": ["1", "2", "3", "4"],
+    }}
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 4, (
+        f"治理组必须整组采纳，实得 {ctx['case_reference_covered_count']}"
+    )
+    for i in range(1, 5):
+        assert f"官方答案{i}" in ctx["correct_answer"]
+    # 非治理 bundle：措辞不同字的问2 仍被逐项匹配拒掉（防杂行混入的旧契约不变）
+    md2 = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": items[0]["prompt"],
+        "correct_answer": "官方答案1",
+        "covered_subquestions": items, "covered_indexes": ["1", "2", "3", "4"],
+    }}
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, paste)
+    assert ctx2["case_reference_covered_count"] == 3
