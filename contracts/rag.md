@@ -86,6 +86,15 @@
 42. `lecture_answer_method_context` / `luban_lecture_answer_method_context` 是 TutorBot runtime 的只读讲义答题方法 overlay，默认可对一建建筑实务高命中考试问答启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.lecture_answer_methods` 从 tracked all8 `runtime_supply` manifest 生成 pack/grounding，不得扫散乱 artifacts、不得新建第二套 RAG/KB/taxonomy/learner-memory authority。该 overlay 只能提供采分关键词、陷阱/红线、口诀、公式/适用条件和 source-bounded 联想；不得成为 official answer key、不得给标准分、不得写 canonical learner truth；域外、低置信或 active question / exact-question / grading 场景必须 fail-open 回原 authority。
 43. `SupabasePipeline` 的延迟杠杆（Battle2 S1-C）只允许在保持 §4 语义契约不变的前提下裁剪耗时，不得改变检索真相或成为新的路由 authority：(a) `search_unified` 超时预算按实测成功 p95 校准（默认 6.0s，registry 可配），超时必须走既有 typed `RAGSearchError` fail-closed 语义，不得静默空成功；(b) 批量 embedding 与 q0 检索的双 RPC 允许合并为单次 fanout，但逐字段输出必须与拆分路径一致（oracle 一致性门保证）；(c) `rerank` document cap 默认 0（关闭 doc 级 rerank），开启时只做 bounded 截断，不得改变 exact-question / 标准 / 教材的 authority order；(d) source 可用性探测（availability probe）走 SWR memo 出热路径，stale 值只用于避让不可用 source group，绝不据此把项目级不可用（§16 的 402/quota）降级成普通 warning。以上杠杆全部 fail-open / fail-closed 语义保持不变，仅减少每轮检索的时钟耗时。
 
+44. **`case_group_id` 是案例题「题级归属」的唯一权威键，且是不可变 id**（方案 C / C2，2026-08-01 回填上线）。`public.questions_bank` 的四列 `case_group_id` / `case_subquestion_index` / `case_row_granularity` / `case_row_canonical` 构成该 authority，硬约束如下：
+
+    - **(a) id 合同（不可变 + 只追加）**：`case_group_id = {exam_year}-case{N}`。**一经写入即不可变**；同年新增题级组只能取该年当前 `max(N)+1`，**绝不重排既有 N**，即使发现漏题、发现 N 的页序推导有误也不重排（要纠正就新开一个组 id 并把旧组标废，不原地改号）。理由：`{year}-case{N}` 的 N 派生自年内页序排序，一次重排会让所有已消费该 id 的 trace、错题本、评分记录、eval 金标同时指错题——**排序派生的可读 id 只有在冻结后才能当 authority**。`case_group_id` 的年份前缀必须恒等于该行 `exam_year`，一个组不得跨年。
+    - **(b) 行粒度分叉**：`case_row_granularity ∈ {subquestion, whole_question}`。`whole_question` 行本身已含该案例全部小问，`case_subquestion_index` 必须为 NULL，消费方命中它时**不得再发兄弟行查询**；`subquestion` 行才走按组取全。粒度是数据事实，不是启发式——不得用题干长度、序号个数在运行时重判。
+    - **(c) `case_row_canonical` 三态，NULL ≠ false**：同一 `(case_group_id, case_subquestion_index)` 存在多个入库世代时，`true` = 收权行，`false` = 同格被收权的重复行，**`NULL` = 尚未裁决**（同格答案文本冲突，等人审）。消费方**不得把 NULL 当 false 过滤掉**——那会让存在答案冲突的小问在 bundle 里整个消失，把「有争议」静默变成「没这一问」。正确姿势：`canonical is not false`，并对 NULL 格标记 `case_answer_conflict_unresolved` 进 trace，宁可少给标准答案也不得假装该小问不存在。
+    - **(d) 只增不改既有列**：题级归属回填只写这四列，不得借机改写 `stem` / `correct_answer` / `question_type` / `source_chunk_id`。`question_type='case_study'` 今天仍混装真题案例行与教材/讲义自动生成的单问考核题（2026-08-01 实测 1959 行里 1574 行属后者），**`case_group_id IS NULL` 不代表「不是案例」**，只代表题级归属未建；消费方遇 NULL 必须 fail-open 回单行 bundle 并写 `case_bundle_hydration="skipped:null_group_key"`，不得据此反推 `question_type`。
+    - **(e) 组边界的可证伪性**：`case_group_id` 的组边界来自背景正文指纹合并，**它是可错的**，因此不得单独充当 identity 裁决。案例行晋升可见官方答案仍须走 §32b 的 `exact_question_identity_corresponds`；`case_group_id` 只负责「取全同组」，不负责「这是不是学员这道题」。
+    - 回填执行与证据：`docs/原始数据/数据盘点/2026-08-01-方案C-C2回填执行.md`；DDL：`supabase/migrations/20260801000100_questions_bank_case_group.sql`。
+
 ## 当前统一语义
 
 - `exact_question`

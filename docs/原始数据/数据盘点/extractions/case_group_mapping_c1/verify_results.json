@@ -1,0 +1,327 @@
+{
+ "summary": {
+  "passed": 18,
+  "failed": 0,
+  "failed_names": []
+ },
+ "results": [
+  {
+   "assert": "V0_write_scope_equals_plan",
+   "ok": true,
+   "detail": {
+    "db_rows_written": 383,
+    "planned_rows": 383,
+    "in_db_not_in_plan": [],
+    "in_plan_not_in_db": []
+   }
+  },
+  {
+   "assert": "V8_full_row_readback_matches_plan",
+   "ok": true,
+   "detail": {
+    "checked": 383,
+    "mismatches": [],
+    "n_mismatch": 0
+   }
+  },
+  {
+   "assert": "V8b_batch_row_counts",
+   "ok": true,
+   "detail": {
+    "B1_A_high_medium": 278,
+    "B2_B_whole_question": 96,
+    "B3_C_group_only": 9,
+    "B4_canonical_true": 118,
+    "B4_canonical_false": 90,
+    "canonical_null": 175,
+    "db_granularity": {
+     "subquestion": 287,
+     "whole_question": 96
+    }
+   }
+  },
+  {
+   "assert": "V1_group_index_unique_among_canonical",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V1b_no_two_canonical_rows_per_cell",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V2a_all_backfilled_indexes_contiguous_except_known_gaps",
+   "ok": true,
+   "detail": {
+    "known_gaps_registered": [
+     "2018-case3",
+     "2018-case4",
+     "2021-case5"
+    ],
+    "known_gaps_seen": {
+     "2021-case5": [
+      5
+     ],
+     "2018-case3": [
+      2,
+      3
+     ],
+     "2018-case4": [
+      3
+     ]
+    },
+    "new_regressions": {}
+   }
+  },
+  {
+   "assert": "V2b_canonical_holes_are_exactly_conflict_cells",
+   "ok": true,
+   "detail": {
+    "groups_with_canonical_holes": [
+     "2018-case5",
+     "2019-case1",
+     "2019-case5",
+     "2020-case1",
+     "2020-case2",
+     "2020-case5",
+     "2021-case5",
+     "2023-case2",
+     "2023-case4",
+     "2025-case4",
+     "2025-case5"
+    ],
+    "unexplained": {}
+   }
+  },
+  {
+   "assert": "V3_canonical_answer_non_empty",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V4_one_background_fingerprint_per_group",
+   "ok": true,
+   "detail": {
+    "groups": 56,
+    "multi_fingerprint_groups": {}
+   }
+  },
+  {
+   "assert": "V5_group_does_not_span_years",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V5b_group_id_prefix_matches_exam_year",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V6_whole_question_rows_have_null_index",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V7_only_real_exam_case_rows_have_group",
+   "ok": true,
+   "detail": {
+    "violations": []
+   }
+  },
+  {
+   "assert": "V9_answer_conflict_rows_left_uncanonical",
+   "ok": true,
+   "detail": {
+    "conflict_rows": 72,
+    "backfilled_conflict_rows": 70,
+    "violations": []
+   }
+  },
+  {
+   "assert": "V10_yousen_reconciliation_no_new_red",
+   "ok": true,
+   "detail": {
+    "groups_with_gold": 25,
+    "c1_file_red": [
+     "2022-case1",
+     "2023-case4"
+    ],
+    "live_recomputed_red": [
+     {
+      "case_group_id": "2022-case1",
+      "expected": [
+       1,
+       2,
+       3
+      ],
+      "live_covered": [
+       1,
+       2
+      ],
+      "missing": [
+       3
+      ]
+     },
+     {
+      "case_group_id": "2023-case4",
+      "expected": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6
+      ],
+      "live_covered": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "missing": [
+       6
+      ]
+     }
+    ],
+    "known_registered_gaps": [
+     "2022-case1",
+     "2023-case4"
+    ],
+    "new_regressions": []
+   }
+  },
+  {
+   "assert": "V11_group_shape",
+   "ok": true,
+   "detail": {
+    "groups": 56,
+    "per_year": {
+     "2015": 4,
+     "2016": 5,
+     "2017": 6,
+     "2018": 6,
+     "2019": 5,
+     "2020": 5,
+     "2021": 5,
+     "2022": 5,
+     "2023": 5,
+     "2024": 5,
+     "2025": 5
+    }
+   }
+  },
+  {
+   "assert": "V12_random10_fieldwise_readback_and_no_existing_column_drift",
+   "ok": true,
+   "detail": {
+    "sampled_ids": [
+     17231,
+     17450,
+     17377,
+     9447,
+     17225,
+     9067,
+     8978,
+     17453,
+     9235,
+     9443
+    ],
+    "drift": [],
+    "sample_new_cols": [
+     {
+      "id": 8978,
+      "case_group_id": "2023-case1",
+      "case_subquestion_index": null,
+      "case_row_granularity": "whole_question",
+      "case_row_canonical": null
+     },
+     {
+      "id": 9067,
+      "case_group_id": "2025-case4",
+      "case_subquestion_index": 2,
+      "case_row_granularity": "subquestion",
+      "case_row_canonical": null
+     },
+     {
+      "id": 9235,
+      "case_group_id": "2019-case5",
+      "case_subquestion_index": null,
+      "case_row_granularity": "whole_question",
+      "case_row_canonical": null
+     },
+     {
+      "id": 9443,
+      "case_group_id": "2021-case3",
+      "case_subquestion_index": null,
+      "case_row_granularity": "whole_question",
+      "case_row_canonical": null
+     },
+     {
+      "id": 9447,
+      "case_group_id": "2021-case5",
+      "case_subquestion_index": 5,
+      "case_row_granularity": "subquestion",
+      "case_row_canonical": null
+     },
+     {
+      "id": 17225,
+      "case_group_id": "2020-case2",
+      "case_subquestion_index": 4,
+      "case_row_granularity": "subquestion",
+      "case_row_canonical": true
+     },
+     {
+      "id": 17231,
+      "case_group_id": "2020-case5",
+      "case_subquestion_index": 1,
+      "case_row_granularity": "subquestion",
+      "case_row_canonical": null
+     },
+     {
+      "id": 17377,
+      "case_group_id": "2023-case4",
+      "case_subquestion_index": 2,
+      "case_row_granularity": "subquestion",
+      "case_row_canonical": true
+     },
+     {
+      "id": 17450,
+      "case_group_id": "2025-case1",
+      "case_subquestion_index": 3,
+      "case_row_granularity": "subquestion",
+      "case_row_canonical": true
+     },
+     {
+      "id": 17453,
+      "case_group_id": "2025-case2",
+      "case_subquestion_index": null,
+      "case_row_granularity": "whole_question",
+      "case_row_canonical": null
+     }
+    ]
+   }
+  },
+  {
+   "assert": "V13_table_row_count_unchanged",
+   "ok": true,
+   "detail": {
+    "total_rows_now": 4635,
+    "c1_snapshot": 4635
+   }
+  }
+ ]
+}

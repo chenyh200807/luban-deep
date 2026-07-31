@@ -1,0 +1,981 @@
+[
+ {
+  "case_group_id": "2019-case4",
+  "rows": 7,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.566,
+  "all_are_substrings_of_longest": true,
+  "variants": [
+   {
+    "fp": "e07b53d028c13245",
+    "ids": [
+     8816,
+     9233,
+     17176
+    ],
+    "sim_to_longest": 0.566,
+    "is_substring_of_longest": true,
+    "bg_len": 224
+   },
+   {
+    "fp": "44b972a0f8246a7a",
+    "ids": [
+     8817,
+     8825,
+     9234,
+     17177
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 568
+   }
+  ]
+ },
+ {
+  "case_group_id": "2020-case5",
+  "rows": 17,
+  "distinct_backgrounds": 3,
+  "min_similarity_to_longest": 0.594,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "05cbfb47637ae41e",
+    "ids": [
+     8867,
+     8868,
+     8869,
+     9309,
+     17226,
+     17227,
+     17228,
+     17229
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 659
+   },
+   {
+    "fp": "dfdc73e52e3aff52",
+    "ids": [
+     8872,
+     8873,
+     8874,
+     9326,
+     17231,
+     17232,
+     17233,
+     17234
+    ],
+    "sim_to_longest": 0.615,
+    "is_substring_of_longest": false,
+    "bg_len": 537
+   },
+   {
+    "fp": "d7a403ed429baea2",
+    "ids": [
+     17235
+    ],
+    "sim_to_longest": 0.594,
+    "is_substring_of_longest": false,
+    "bg_len": 517
+   }
+  ]
+ },
+ {
+  "case_group_id": "2018-case5",
+  "rows": 6,
+  "distinct_backgrounds": 3,
+  "min_similarity_to_longest": 0.725,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "e5ad9061b627f393",
+    "ids": [
+     8784,
+     17136
+    ],
+    "sim_to_longest": 0.725,
+    "is_substring_of_longest": false,
+    "bg_len": 179
+   },
+   {
+    "fp": "f3062981170af1c6",
+    "ids": [
+     9173,
+     17133
+    ],
+    "sim_to_longest": 0.924,
+    "is_substring_of_longest": true,
+    "bg_len": 237
+   },
+   {
+    "fp": "a0dac984737cf9ad",
+    "ids": [
+     9175,
+     17135
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 276
+   }
+  ]
+ },
+ {
+  "case_group_id": "2023-case2",
+  "rows": 13,
+  "distinct_backgrounds": 3,
+  "min_similarity_to_longest": 0.747,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "6c251968d4b72dfb",
+    "ids": [
+     8986,
+     8987,
+     8988,
+     9534,
+     17363,
+     17364,
+     17365,
+     17366
+    ],
+    "sim_to_longest": 0.747,
+    "is_substring_of_longest": false,
+    "bg_len": 402
+   },
+   {
+    "fp": "9de2d064c0f476ed",
+    "ids": [
+     8990,
+     9550,
+     17368,
+     17369
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 591
+   },
+   {
+    "fp": "ef121ee11dd37a66",
+    "ids": [
+     17370
+    ],
+    "sim_to_longest": 0.771,
+    "is_substring_of_longest": true,
+    "bg_len": 371
+   }
+  ]
+ },
+ {
+  "case_group_id": "2022-case1",
+  "rows": 5,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.748,
+  "all_are_substrings_of_longest": true,
+  "variants": [
+   {
+    "fp": "87172cdf1592bb7f",
+    "ids": [
+     8948,
+     9466,
+     17315,
+     17316
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 812
+   },
+   {
+    "fp": "8283899380be5b0b",
+    "ids": [
+     17317
+    ],
+    "sim_to_longest": 0.748,
+    "is_substring_of_longest": true,
+    "bg_len": 485
+   }
+  ]
+ },
+ {
+  "case_group_id": "2023-case4",
+  "rows": 11,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.749,
+  "all_are_substrings_of_longest": true,
+  "variants": [
+   {
+    "fp": "5664fad2f76473fa",
+    "ids": [
+     8998,
+     8999,
+     9000,
+     9001,
+     9576,
+     17376,
+     17377,
+     17378,
+     17379,
+     17380
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 529
+   },
+   {
+    "fp": "d73c513cccc230ed",
+    "ids": [
+     17381
+    ],
+    "sim_to_longest": 0.749,
+    "is_substring_of_longest": true,
+    "bg_len": 317
+   }
+  ]
+ },
+ {
+  "case_group_id": "2020-case1",
+  "rows": 15,
+  "distinct_backgrounds": 3,
+  "min_similarity_to_longest": 0.756,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "a550343df2f2beca",
+    "ids": [
+     8850,
+     8851,
+     8852,
+     9280,
+     17206,
+     17207,
+     17208,
+     17209
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 570
+   },
+   {
+    "fp": "0d0fd302f01c0ba9",
+    "ids": [
+     9297,
+     9298,
+     9300,
+     17214,
+     17215,
+     17217
+    ],
+    "sim_to_longest": 0.769,
+    "is_substring_of_longest": false,
+    "bg_len": 390
+   },
+   {
+    "fp": "edaa32d5645237f1",
+    "ids": [
+     17220
+    ],
+    "sim_to_longest": 0.756,
+    "is_substring_of_longest": false,
+    "bg_len": 380
+   }
+  ]
+ },
+ {
+  "case_group_id": "2025-case4",
+  "rows": 15,
+  "distinct_backgrounds": 3,
+  "min_similarity_to_longest": 0.793,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "00c01a8643e85c1d",
+    "ids": [
+     9067,
+     9717,
+     17461,
+     17462
+    ],
+    "sim_to_longest": 0.999,
+    "is_substring_of_longest": false,
+    "bg_len": 708
+   },
+   {
+    "fp": "448a44cbb13ee3e2",
+    "ids": [
+     9070,
+     9071,
+     9072,
+     9073,
+     9726,
+     17464,
+     17465,
+     17466,
+     17467,
+     17468
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 709
+   },
+   {
+    "fp": "dfc723187b570d31",
+    "ids": [
+     17463
+    ],
+    "sim_to_longest": 0.793,
+    "is_substring_of_longest": true,
+    "bg_len": 466
+   }
+  ]
+ },
+ {
+  "case_group_id": "2019-case2",
+  "rows": 8,
+  "distinct_backgrounds": 4,
+  "min_similarity_to_longest": 0.81,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "d2b73fcdaa0a2d8a",
+    "ids": [
+     8812,
+     17172
+    ],
+    "sim_to_longest": 0.827,
+    "is_substring_of_longest": false,
+    "bg_len": 229
+   },
+   {
+    "fp": "f70c2a78e39661fc",
+    "ids": [
+     8813,
+     17173
+    ],
+    "sim_to_longest": 0.81,
+    "is_substring_of_longest": false,
+    "bg_len": 237
+   },
+   {
+    "fp": "9d264ca0eb3a9ca2",
+    "ids": [
+     8814,
+     17174
+    ],
+    "sim_to_longest": 0.821,
+    "is_substring_of_longest": false,
+    "bg_len": 228
+   },
+   {
+    "fp": "da13eedbdf2e8d3a",
+    "ids": [
+     9216,
+     17171
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 279
+   }
+  ]
+ },
+ {
+  "case_group_id": "2020-case2",
+  "rows": 12,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.816,
+  "all_are_substrings_of_longest": true,
+  "variants": [
+   {
+    "fp": "c41741fc2e85e9dd",
+    "ids": [
+     9299,
+     9302,
+     9306,
+     9308,
+     17216,
+     17219,
+     17223,
+     17225
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 515
+   },
+   {
+    "fp": "eaf5549d49008c08",
+    "ids": [
+     9301,
+     9305,
+     17218,
+     17222
+    ],
+    "sim_to_longest": 0.816,
+    "is_substring_of_longest": true,
+    "bg_len": 355
+   }
+  ]
+ },
+ {
+  "case_group_id": "2023-case1",
+  "rows": 16,
+  "distinct_backgrounds": 5,
+  "min_similarity_to_longest": 0.82,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "1dfd48921521fed6",
+    "ids": [
+     8978,
+     17353
+    ],
+    "sim_to_longest": 0.851,
+    "is_substring_of_longest": false,
+    "bg_len": 358
+   },
+   {
+    "fp": "f575c3c2950a1103",
+    "ids": [
+     8979,
+     17354
+    ],
+    "sim_to_longest": 0.863,
+    "is_substring_of_longest": false,
+    "bg_len": 359
+   },
+   {
+    "fp": "93b2e4708e992fbb",
+    "ids": [
+     8980,
+     17355
+    ],
+    "sim_to_longest": 0.851,
+    "is_substring_of_longest": false,
+    "bg_len": 356
+   },
+   {
+    "fp": "62480b1191f68d6c",
+    "ids": [
+     8982,
+     8983,
+     8984,
+     9518,
+     17357,
+     17358,
+     17359,
+     17360
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 420
+   },
+   {
+    "fp": "903ea196a8e75d20",
+    "ids": [
+     9502,
+     17352
+    ],
+    "sim_to_longest": 0.82,
+    "is_substring_of_longest": false,
+    "bg_len": 392
+   }
+  ]
+ },
+ {
+  "case_group_id": "2021-case2",
+  "rows": 14,
+  "distinct_backgrounds": 3,
+  "min_similarity_to_longest": 0.87,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "b9b74a846df60369",
+    "ids": [
+     8910,
+     8911,
+     8912,
+     9416,
+     17281,
+     17282,
+     17283,
+     17284
+    ],
+    "sim_to_longest": 0.965,
+    "is_substring_of_longest": false,
+    "bg_len": 563
+   },
+   {
+    "fp": "387484784f14a934",
+    "ids": [
+     8921,
+     8922,
+     9441,
+     9442,
+     17286
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 591
+   },
+   {
+    "fp": "baaaeb284b7d31eb",
+    "ids": [
+     17285
+    ],
+    "sim_to_longest": 0.87,
+    "is_substring_of_longest": false,
+    "bg_len": 466
+   }
+  ]
+ },
+ {
+  "case_group_id": "2017-case1",
+  "rows": 4,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.878,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "91857bb1b892f0bb",
+    "ids": [
+     9096,
+     17079
+    ],
+    "sim_to_longest": 0.878,
+    "is_substring_of_longest": false,
+    "bg_len": 524
+   },
+   {
+    "fp": "8fe18ad738ec5b33",
+    "ids": [
+     9097,
+     17080
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 538
+   }
+  ]
+ },
+ {
+  "case_group_id": "2025-case1",
+  "rows": 11,
+  "distinct_backgrounds": 5,
+  "min_similarity_to_longest": 0.904,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "09417189e699be16",
+    "ids": [
+     9053,
+     9680,
+     17445
+    ],
+    "sim_to_longest": 0.904,
+    "is_substring_of_longest": false,
+    "bg_len": 469
+   },
+   {
+    "fp": "b39008f0ec8df055",
+    "ids": [
+     9056,
+     17449
+    ],
+    "sim_to_longest": 0.957,
+    "is_substring_of_longest": false,
+    "bg_len": 539
+   },
+   {
+    "fp": "fbd26c9c5d0d9276",
+    "ids": [
+     9057,
+     17450
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 560
+   },
+   {
+    "fp": "a5f501ec5eab1148",
+    "ids": [
+     9058,
+     17451
+    ],
+    "sim_to_longest": 0.956,
+    "is_substring_of_longest": false,
+    "bg_len": 543
+   },
+   {
+    "fp": "b26816338b81c7e5",
+    "ids": [
+     9682,
+     17448
+    ],
+    "sim_to_longest": 0.947,
+    "is_substring_of_longest": false,
+    "bg_len": 547
+   }
+  ]
+ },
+ {
+  "case_group_id": "2022-case5",
+  "rows": 10,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.929,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "e3d68a6ffec630a1",
+    "ids": [
+     9479,
+     17323
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 586
+   },
+   {
+    "fp": "667968ea6d44cdb0",
+    "ids": [
+     9480,
+     9481,
+     9482,
+     9483,
+     17324,
+     17325,
+     17326,
+     17327
+    ],
+    "sim_to_longest": 0.929,
+    "is_substring_of_longest": false,
+    "bg_len": 520
+   }
+  ]
+ },
+ {
+  "case_group_id": "2018-case2",
+  "rows": 11,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.943,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "6b0975a526a1e819",
+    "ids": [
+     8771,
+     9151,
+     17121
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 360
+   },
+   {
+    "fp": "17a829802b8a4964",
+    "ids": [
+     8773,
+     8774,
+     8775,
+     9152,
+     17123,
+     17124,
+     17125,
+     17126
+    ],
+    "sim_to_longest": 0.943,
+    "is_substring_of_longest": false,
+    "bg_len": 329
+   }
+  ]
+ },
+ {
+  "case_group_id": "2024-case2",
+  "rows": 4,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.955,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "7aabd74dc4a6e7f4",
+    "ids": [
+     9658,
+     17418
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 629
+   },
+   {
+    "fp": "e0ca8fe074b0d216",
+    "ids": [
+     9660,
+     17420
+    ],
+    "sim_to_longest": 0.955,
+    "is_substring_of_longest": false,
+    "bg_len": 596
+   }
+  ]
+ },
+ {
+  "case_group_id": "2021-case1",
+  "rows": 20,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.971,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "371b2bcd75e90227",
+    "ids": [
+     8900,
+     8901,
+     8902,
+     8903,
+     9366,
+     17271,
+     17272,
+     17273,
+     17274,
+     17275
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 312
+   },
+   {
+    "fp": "ca434074fc282425",
+    "ids": [
+     8905,
+     8906,
+     8907,
+     8908,
+     9391,
+     17276,
+     17277,
+     17278,
+     17279,
+     17280
+    ],
+    "sim_to_longest": 0.971,
+    "is_substring_of_longest": false,
+    "bg_len": 302
+   }
+  ]
+ },
+ {
+  "case_group_id": "2024-case1",
+  "rows": 4,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.986,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "a18c2338e9c9aa26",
+    "ids": [
+     9657,
+     17415
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 429
+   },
+   {
+    "fp": "ef6f1c14a1aba1cd",
+    "ids": [
+     9659,
+     17419
+    ],
+    "sim_to_longest": 0.986,
+    "is_substring_of_longest": false,
+    "bg_len": 429
+   }
+  ]
+ },
+ {
+  "case_group_id": "2020-case3",
+  "rows": 4,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.988,
+  "all_are_substrings_of_longest": true,
+  "variants": [
+   {
+    "fp": "fca8af05fb05058b",
+    "ids": [
+     9304,
+     17221
+    ],
+    "sim_to_longest": 0.988,
+    "is_substring_of_longest": true,
+    "bg_len": 286
+   },
+   {
+    "fp": "0ef909e2236fa247",
+    "ids": [
+     9325,
+     17230
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 293
+   }
+  ]
+ },
+ {
+  "case_group_id": "2022-case4",
+  "rows": 4,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.991,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "16a279e12514fccc",
+    "ids": [
+     9477,
+     17321
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 446
+   },
+   {
+    "fp": "ca44be94ae648ed0",
+    "ids": [
+     9478,
+     17322
+    ],
+    "sim_to_longest": 0.991,
+    "is_substring_of_longest": false,
+    "bg_len": 438
+   }
+  ]
+ },
+ {
+  "case_group_id": "2025-case2",
+  "rows": 5,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.996,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "029073a55c5d5d38",
+    "ids": [
+     9059,
+     9698,
+     17452
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 498
+   },
+   {
+    "fp": "e791ff59a84ef465",
+    "ids": [
+     9699,
+     17453
+    ],
+    "sim_to_longest": 0.996,
+    "is_substring_of_longest": false,
+    "bg_len": 498
+   }
+  ]
+ },
+ {
+  "case_group_id": "2025-case3",
+  "rows": 10,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.996,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "a82214abae9038d4",
+    "ids": [
+     9063,
+     9064,
+     9065,
+     9701,
+     17457,
+     17458,
+     17459,
+     17460
+    ],
+    "sim_to_longest": 0.996,
+    "is_substring_of_longest": false,
+    "bg_len": 338
+   },
+   {
+    "fp": "0e3b4f67a3b3f8b0",
+    "ids": [
+     9700,
+     17455
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 339
+   }
+  ]
+ },
+ {
+  "case_group_id": "2017-case2",
+  "rows": 4,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.997,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "72a5b41c0cea3948",
+    "ids": [
+     9098,
+     17082
+    ],
+    "sim_to_longest": 0.997,
+    "is_substring_of_longest": false,
+    "bg_len": 394
+   },
+   {
+    "fp": "050973563845a9d4",
+    "ids": [
+     9099,
+     17083
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 396
+   }
+  ]
+ },
+ {
+  "case_group_id": "2025-case5",
+  "rows": 12,
+  "distinct_backgrounds": 2,
+  "min_similarity_to_longest": 0.998,
+  "all_are_substrings_of_longest": false,
+  "variants": [
+   {
+    "fp": "0146937e08fdd409",
+    "ids": [
+     9077,
+     9078,
+     9079,
+     9080,
+     9753,
+     17470,
+     17471,
+     17472,
+     17473,
+     17474
+    ],
+    "sim_to_longest": 1.0,
+    "is_substring_of_longest": true,
+    "bg_len": 524
+   },
+   {
+    "fp": "20980657fac0e62f",
+    "ids": [
+     9751,
+     17469
+    ],
+    "sim_to_longest": 0.998,
+    "is_substring_of_longest": false,
+    "bg_len": 522
+   }
+  ]
+ }
+]
