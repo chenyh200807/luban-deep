@@ -1,0 +1,267 @@
+{
+ "total_case_study_rows": 1959,
+ "real_exam_candidates": 385,
+ "A_assigned_group_and_index": 280,
+ "B_whole_case_rows_group_only": 96,
+ "C_group_only_index_blank": 9,
+ "D_unassignable": 1574,
+ "groups": 56,
+ "groups_per_year": {
+  "2015": 4,
+  "2016": 5,
+  "2017": 6,
+  "2018": 6,
+  "2019": 5,
+  "2020": 5,
+  "2021": 5,
+  "2022": 5,
+  "2023": 5,
+  "2024": 5,
+  "2025": 5
+ },
+ "confidence_dist": {
+  "high": 186,
+  "medium": 92,
+  "low": 2
+ },
+ "idx_src_dist": {
+  "oid_xw_Q": 40,
+  "stem_ordinal": 218,
+  "stem_tail_ordinal": 20,
+  "anchor": 2
+ },
+ "gen_dist_assigned": {
+  "g0_xw": 40,
+  "g2_exam_chunk": 50,
+  "g3_exam_year": 118,
+  "g1_auto": 72
+ },
+ "row_granularity_dist_candidates": {
+  "single_subquestion": 280,
+  "whole_case": 96,
+  "ambiguous_multi": 2,
+  "no_question_text": 7
+ },
+ "groups_non_contiguous": [
+  "2021-case5",
+  "2018-case3",
+  "2018-case4"
+ ],
+ "groups_with_answer_conflict": {
+  "2019-case1": [
+   {
+    "index": 1,
+    "ids": [
+     9199,
+     9200,
+     17164,
+     17167
+    ]
+   }
+  ],
+  "2019-case5": [
+   {
+    "index": 2,
+    "ids": [
+     8820,
+     9261,
+     17180
+    ]
+   }
+  ],
+  "2020-case1": [
+   {
+    "index": 2,
+    "ids": [
+     8850,
+     9298,
+     17207,
+     17215
+    ]
+   },
+   {
+    "index": 3,
+    "ids": [
+     8851,
+     9300,
+     17208,
+     17217
+    ]
+   },
+   {
+    "index": 4,
+    "ids": [
+     8852,
+     9303,
+     17209
+    ]
+   },
+   {
+    "index": 1,
+    "ids": [
+     9280,
+     9297,
+     17206,
+     17214
+    ]
+   }
+  ],
+  "2020-case5": [
+   {
+    "index": 2,
+    "ids": [
+     8867,
+     8872,
+     17227,
+     17232
+    ]
+   },
+   {
+    "index": 3,
+    "ids": [
+     8868,
+     8873,
+     17228,
+     17233
+    ]
+   },
+   {
+    "index": 4,
+    "ids": [
+     8869,
+     8874,
+     9342,
+     17229,
+     17234
+    ]
+   },
+   {
+    "index": 1,
+    "ids": [
+     9309,
+     9326,
+     17226,
+     17231
+    ]
+   }
+  ],
+  "2021-case5": [
+   {
+    "index": 5,
+    "ids": [
+     8920,
+     9447,
+     17292
+    ]
+   }
+  ],
+  "2023-case2": [
+   {
+    "index": 2,
+    "ids": [
+     8986,
+     8990,
+     17364,
+     17369
+    ]
+   },
+   {
+    "index": 1,
+    "ids": [
+     9534,
+     9550,
+     17363,
+     17368
+    ]
+   }
+  ],
+  "2023-case4": [
+   {
+    "index": 5,
+    "ids": [
+     9001,
+     17380
+    ]
+   }
+  ],
+  "2025-case4": [
+   {
+    "index": 2,
+    "ids": [
+     9067,
+     9070,
+     17462,
+     17465
+    ]
+   }
+  ],
+  "2025-case5": [
+   {
+    "index": 1,
+    "ids": [
+     9751,
+     9753,
+     17469,
+     17470
+    ]
+   }
+  ],
+  "2018-case5": [
+   {
+    "index": 1,
+    "ids": [
+     9173,
+     9175,
+     17133,
+     17135
+    ]
+   }
+  ],
+  "2020-case2": [
+   {
+    "index": 1,
+    "ids": [
+     9299,
+     9301,
+     17216,
+     17218
+    ]
+   },
+   {
+    "index": 2,
+    "ids": [
+     9302,
+     9305,
+     17219,
+     17222
+    ]
+   }
+  ]
+ },
+ "rows_with_dup_index": 240,
+ "merge_operations": 56,
+ "unassignable_reasons": {
+  "非案例题:教材自动生成考核题被误标 question_type=case_study": 662,
+  "非案例题:讲义自动生成考核题被误标 question_type=case_study": 258,
+  "REAL_EXAM 但正文过短(59字)，疑似碎片/空行": 3,
+  "REAL_EXAM 但正文过短(54字)，疑似碎片/空行": 3,
+  "REAL_EXAM 但正文过短(57字)，疑似碎片/空行": 5,
+  "REAL_EXAM 但正文过短(65字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(67字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(48字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(53字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(70字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(31字)，疑似碎片/空行": 2,
+  "REAL_EXAM 但正文过短(77字)，疑似碎片/空行": 2,
+  "REAL_EXAM 但正文过短(15字)，疑似碎片/空行": 4,
+  "REAL_EXAM 但正文过短(14字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(5字)，疑似碎片/空行": 1,
+  "REAL_EXAM 但正文过短(13字)，疑似碎片/空行": 1,
+  "非案例题:教材条目被误标 question_type=case_study": 112,
+  "非案例题:教材习题被误标 question_type=case_study": 515
+ },
+ "group_only_reasons": {
+  "题级组已定，小问序号无原文证据(granularity=ambiguous_mu": 2,
+  "题级组已定，小问序号无原文证据(granularity=no_question_": 7
+ }
+}
