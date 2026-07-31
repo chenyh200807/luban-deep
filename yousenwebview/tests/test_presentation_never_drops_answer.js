@@ -232,6 +232,59 @@ assert(
 );
 
 // ---------------------------------------------------------------------------
+// 3c) 事故主因：结构块是「补充」而不是「替代」时，正文一个字都不能少。
+//     还原 rubric_grader_v1.py:1188 的真实形态——案例题判分下发
+//     content=完整批改正文（数千字）+ blocks=[一张两行的 recap 结论卡]。
+//     只要凭"出现了 recap"就吞正文，学员就只剩一张小结论卡（owner 线上现场）。
+//     判据必须按内容比对：正文显著长于结构块投影 => 必须保留。
+// ---------------------------------------------------------------------------
+var gradingNarrative = [];
+for (var g = 1; g <= 40; g++) {
+  gradingNarrative.push("第" + g + "段：本段展开采分点分析与教材依据引用，属于正文必须完整呈现的内容。");
+}
+var caseGradingBody = "## 批改结果\n\n" + gradingNarrative.join("\n\n");
+var caseGradingState = renderWith({
+  schema_version: 1,
+  blocks: [
+    {
+      type: "recap",
+      title: "批改结论",
+      summary: "本轮得分 8/12",
+      bullets: ["整体采分点覆盖不错", "本评分为 AI 阅卷草稿，非正式成绩。"],
+    },
+  ],
+  fallback_text: caseGradingBody,
+});
+// 正文可能落在 renderableContent 或被解析成 markdown blocks，两者都算可见
+var caseGradingVisibleText =
+  String(caseGradingState.renderableContent || "") +
+  JSON.stringify(caseGradingState.blocks || []);
+assert(
+  caseGradingVisibleText.indexOf("第40段") >= 0,
+  "案例题判分：recap 只是补充结论卡，数千字批改正文必须完整保留，" +
+    "不得因为出现 recap 就整篇吞掉（线上「只剩一张处理摘要卡片」的主因）",
+);
+
+// 反向对照：结构块确实已复述了正文时，仍应去重，避免同屏重复两遍
+var duplicatedState = renderWith({
+  schema_version: 1,
+  blocks: [
+    {
+      type: "recap",
+      title: "本节课总结",
+      summary: "先结构化，再渲染。",
+      bullets: ["步骤要稳定", "总结要轻量"],
+    },
+  ],
+  fallback_text: "先结构化，再渲染。",
+});
+assert.strictEqual(
+  String(duplicatedState.renderableContent || "").trim(),
+  "",
+  "结构块已完整复述正文时应去重，不得同屏重复两遍",
+);
+
+// ---------------------------------------------------------------------------
 // 4) 空 presentation / 无 presentation 的直通路径不受影响
 // ---------------------------------------------------------------------------
 [null, { schema_version: 1, blocks: [], fallback_text: ANSWER_BODY }].forEach(function (p) {

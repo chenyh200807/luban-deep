@@ -201,6 +201,13 @@ function buildPresentationState(presentation) {
   var canonical = renderSchema.createCanonicalMessage(presentation);
   var blocks = Array.isArray(canonical.blocks) ? canonical.blocks : [];
   var mcqBlock = null;
+  var hasProseSubsumingBlock = false;
+  for (var p = 0; p < blocks.length; p++) {
+    if (blocks[p] && PROSE_SUBSUMING_BLOCK_TYPES[blocks[p].type]) {
+      hasProseSubsumingBlock = true;
+      break;
+    }
+  }
   var renderBlocks = buildStructuredRenderableBlocks(canonical);
 
   for (var i = 0; i < blocks.length; i++) {
@@ -219,6 +226,7 @@ function buildPresentationState(presentation) {
     receipt: mcqBlock ? mcqBlock.receipt || "" : "",
     interactiveReady: mcqBlock ? mcqBlock.reviewMode !== true : false,
     reviewMode: !!(mcqBlock && mcqBlock.reviewMode),
+    hasProseSubsumingBlock: hasProseSubsumingBlock,
     hasStructuredContent: blocks.length > 0,
     hasNonMcqStructuredContent: renderBlocks.length > 0,
     hasOnlyMcqContent: !!mcqBlock && renderBlocks.length === 0,
@@ -255,30 +263,88 @@ function buildMcqProjectionSignature(cards) {
   return normalizeProjectionSignature(parts.join("\n"));
 }
 
-function hasMeaningfulFallbackOutsideMcq(fallbackText, cards) {
+// 把已渲染的结构块摊平成纯文本，用来判断"正文是否已被结构块完整覆盖"。
+function _structuredBlocksToPlainText(renderBlocks) {
+  var list = Array.isArray(renderBlocks) ? renderBlocks : [];
+  var parts = [];
+  for (var i = 0; i < list.length; i++) {
+    var block = list[i] || {};
+    if (block.type === "table") {
+      var headers = Array.isArray(block.headers) ? block.headers : [];
+      for (var h = 0; h < headers.length; h++) parts.push((headers[h] || {}).text || "");
+      var rows = Array.isArray(block.rows) ? block.rows : [];
+      for (var r = 0; r < rows.length; r++) {
+        var row = Array.isArray(rows[r]) ? rows[r] : [];
+        for (var c = 0; c < row.length; c++) parts.push((row[c] || {}).text || "");
+      }
+      parts.push(block.caption || "");
+      continue;
+    }
+    if (block.type === "steps") {
+      parts.push(block.title || "");
+      var steps = Array.isArray(block.steps) ? block.steps : [];
+      for (var s = 0; s < steps.length; s++) {
+        parts.push((steps[s] || {}).title || "");
+        parts.push((steps[s] || {}).detail || "");
+      }
+      continue;
+    }
+    if (block.type === "recap") {
+      parts.push(block.title || "");
+      parts.push(block.summary || "");
+      var bullets = Array.isArray(block.bullets) ? block.bullets : [];
+      for (var b = 0; b < bullets.length; b++) parts.push(bullets[b] || "");
+      continue;
+    }
+    if (block.type === "chart") {
+      parts.push(block.title || "");
+      parts.push(block.summary || "");
+      parts.push(block.caption || "");
+      continue;
+    }
+    parts.push(block.displayText || block.latex || block.copyText || "");
+  }
+  return parts.join("\n");
+}
+
+// 正文里是否还有结构块没覆盖到的内容。true = 必须继续渲染正文。
+// 保留 MCQ 版的原有判据（签名相同/被包含即视为重复；显著更长即视为有增量），
+// 只是把比较对象从"仅题卡"扩展到"题卡 + 所有已渲染的结构块"。
+function hasMeaningfulFallbackOutsideStructuredBlocks(fallbackText, renderBlocks, cards) {
   var fallback = String(fallbackText || "").trim();
   if (!fallback) return false;
   var fallbackSignature = normalizeProjectionSignature(fallback);
-  var mcqSignature = buildMcqProjectionSignature(cards);
   if (!fallbackSignature) return false;
-  if (!mcqSignature) return true;
-  if (fallbackSignature === mcqSignature || mcqSignature.indexOf(fallbackSignature) >= 0) {
+  var projectionSignature = normalizeProjectionSignature(
+    _structuredBlocksToPlainText(renderBlocks) + "\n" + (buildMcqProjectionSignature(cards) || ""),
+  );
+  if (!projectionSignature) return true;
+  if (
+    fallbackSignature === projectionSignature ||
+    projectionSignature.indexOf(fallbackSignature) >= 0
+  ) {
     return false;
   }
-  if (fallbackSignature.length > mcqSignature.length + 80) return true;
+  if (fallbackSignature.length > projectionSignature.length + 80) return true;
   return /结论|判断依据|核心考点|考试场景|采分点|易错点|解析|自查问题/.test(fallback);
 }
 
-// 只有当「每个块都真的渲染得出来」且「其中至少有一个块就是正文本身」时，
-// 才允许吞掉 fallbackText。任何一个没有渲染分支的类型都必须保留正文——
-// 宁可重复也绝不丢答案（fail-open），未来新增的未知类型同样按保留处理。
+// 吞掉 fallbackText（整篇正文）是一个**高危**操作，必须同时满足两个条件：
+//   1) presentation 里每一个块都真的渲染得出来（有渲染分支）；
+//   2) 这些块渲染出来的内容确实已经覆盖了正文（按内容比对，不是按类型猜）。
+// 否则一律保留正文——宁可重复也绝不丢答案（fail-open）。
 //
-// 事故记忆（2026-07-31 线上「答案不显示」）：这里原先是一份独立维护的「豁免名单」
-// {table, formula_block, chart, image}，遇到名单外的类型就 return false 吞掉正文；
-// 而 buildStructuredRenderableBlocks 只渲染 {table,steps,recap,chart,formula_*}。
-// 两份名单的差集 {paragraph,heading,callout,quote,code,list} 于是既被吞掉正文、
-// 又渲染不出块，导致服务端发了 3000+ 字的答案而客户端一个字都不显示。
-// 现在两处共用 STRUCTURED_RENDERED_BLOCK_TYPES，名单无法再各自漂移。
+// 事故记忆（2026-07-31 线上「答案不显示 / 流式输出消失」），这里踩了两个坑：
+//  坑一（类型名单漂移）：原先自己维护一份豁免名单 {table, formula_block, chart, image}，
+//    名单外的类型一律 return false 吞正文；而 buildStructuredRenderableBlocks 只渲染
+//    {table, steps, recap, chart, formula_*}。差集 {paragraph,heading,callout,quote,code,list}
+//    于是"既被吞掉正文、又渲染不出块" = 整篇答案凭空消失。
+//    现在两处共用 STRUCTURED_RENDERED_BLOCK_TYPES，名单无法再各自漂移。
+//  坑二（把"补充"误当成"替代"）：案例题判分 rubric_grader_v1 下发的是
+//    content=完整批改正文 + blocks=[一张两行的 recap 结论卡]，recap 是**补充**不是替代；
+//    仅凭"出现了 recap"就吞正文，学员就只剩一张小结论卡，3000+ 字正文全丢。
+//    服务端 build_canonical_presentation 恒把全文放进 fallback_text，
+//    blocks 只是投影，所以是否重复只能按内容判，不能按类型判。
 function shouldRenderStructuredFallback(presentationState, fallbackText) {
   if (!presentationState || !presentationState.canonical) return true;
   var blocks = Array.isArray(presentationState.canonical.blocks)
@@ -287,16 +353,20 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
   if (!blocks.length) return true;
   if (presentationState.hasOnlyMcqContent) return false;
 
-  var sawProseSubsumingBlock = false;
   for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
     var type = block && block.type;
     // 没有渲染分支的类型（含未知的新类型）：正文是它唯一的载体，必须保留。
     if (!STRUCTURED_RENDERED_BLOCK_TYPES[type]) return true;
-    if (PROSE_SUBSUMING_BLOCK_TYPES[type]) sawProseSubsumingBlock = true;
   }
   // 全是 table/chart/formula 这类图示型块时，它们不承载正文，正文必须并存。
-  return !sawProseSubsumingBlock;
+  if (!presentationState.hasProseSubsumingBlock) return true;
+  // 出现了题卡/步骤/总结这类"可能就是正文本身"的块：按内容判是否真的重复。
+  return hasMeaningfulFallbackOutsideStructuredBlocks(
+    fallbackText,
+    presentationState.renderBlocks,
+    presentationState.cards,
+  );
 }
 
 function hasTeachingSemanticFallback(text) {
@@ -408,11 +478,17 @@ function deriveAiMessageRenderState(input) {
   shouldAppendTeachingFallbackBlocks = !!(
     teachingFallbackBlocks && teachingFallbackBlocks.length
   );
+  // 教学正文渲染成 markdown 块（标题/列表/callout）而不是一坨纯文本，两种情况：
+  //  - 正文被结构块吞掉时（!renderStructuredFallback）：块是正文唯一的载体；
+  //  - 正文保留、但同屏已有题卡/步骤/总结这类"叙述型"卡片时：退回纯文本会和卡片
+  //    挤在一起且丢掉排版，同样走块渲染。图示型块（table/chart/formula）不在此列，
+  //    它们与正文并排显示是既定行为。
+  // 两种情况下 renderableContent 都置空，由 blocks 独家承载，避免重复。
   var shouldAppendFullFallbackBlocks = !!(
     parseBlocks &&
     presentationState &&
     presentationState.canonical &&
-    !renderStructuredFallback &&
+    (!renderStructuredFallback || presentationState.hasProseSubsumingBlock) &&
     !shouldAppendTeachingFallbackBlocks &&
     normalizedFallbackContent &&
     hasTeachingSemanticFallback(normalizedFallbackContent)
@@ -447,7 +523,10 @@ function deriveAiMessageRenderState(input) {
   );
 
   return renderSchema.createRenderModel({
-    renderableContent: shouldAppendTeachingFallbackBlocks ? "" : renderableContent,
+    renderableContent:
+      shouldAppendTeachingFallbackBlocks || shouldAppendFullFallbackBlocks
+        ? ""
+        : renderableContent,
     blocks: useStructuredBlocks
       ? presentationState.renderBlocks.concat(markdownBlocks || [])
       : markdownBlocks,
