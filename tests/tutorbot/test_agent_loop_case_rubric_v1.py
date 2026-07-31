@@ -2357,3 +2357,18 @@ def test_single_row_reference_exports_own_subquestion_index() -> None:
     assert [(s["index"], s["answer"]) for s in subqs] == [("2", "问题2的官方答案")]
     # OD-005 补刀：每问必须带**自己那一问**的题面（顶层直配时=该行 stem）。
     assert "问题2：这一问问什么？" in subqs[0]["stem"]
+
+
+def test_narration_subq_count_shares_grading_denominator_authority() -> None:
+    """开场白小问计数收权（2026-08-01 端侧实测：4 问卷说"按 3 个小问"）：
+    narration 与判分分母必须同一权威——行内"本问题 3 项不妥"之类文字不得
+    污染计数。"""
+    paste = ("【背景资料】某工程施工过程描述。" * 8 +
+             "\n【问题】1. 指出不妥之处并说明理由？\n"
+             "2.（本问题 3 项不妥之处，多答不得分）写出正确做法？\n"
+             "3. 写出构造名称？\n4. 补充工艺流程？\n"
+             "我的答案：作答内容。")
+    text = AgentLoop._case_grading_live_preview_text(paste)
+    assert "4 个小问" in text, text
+    ctx = AgentLoop._build_v1_case_ctx({}, paste)
+    assert ctx["case_stem_subquestion_count"] == 4, "narration 与分母必须同数"
