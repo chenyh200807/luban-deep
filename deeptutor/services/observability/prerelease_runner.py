@@ -6,22 +6,42 @@ import os
 from pathlib import Path
 from typing import Any
 
+from deeptutor.services.bi_service import get_bi_service
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.aae_composite import build_aae_composite_run
 from deeptutor.services.observability.arr_runner import run_arr, write_arr_artifacts
-from deeptutor.services.observability.change_impact import build_change_impact_run
-from deeptutor.services.observability.change_impact import collect_git_changed_files
-from deeptutor.services.observability.change_impact import render_change_impact_markdown
-from deeptutor.services.observability.metrics_loader import load_metrics_snapshot as load_metrics_snapshot_shared
-from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
-from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts
+from deeptutor.services.observability.change_impact import (
+    build_change_impact_run,
+    collect_git_changed_files,
+    render_change_impact_markdown,
+)
+from deeptutor.services.observability.control_plane_freshness import (
+    select_fresh_payload_for_release,
+)
+from deeptutor.services.observability.metrics_loader import (
+    build_metrics_error_provenance,
+    resolve_governed_metrics_urls,
+)
+from deeptutor.services.observability.metrics_loader import (
+    load_metrics_snapshot as load_metrics_snapshot_shared,
+)
 from deeptutor.services.observability.oa_runner import build_oa_run
+from deeptutor.services.observability.observer_snapshot import (
+    build_observer_snapshot,
+    write_observer_snapshot_artifacts,
+)
 from deeptutor.services.observability.om_snapshot import build_om_run
-from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload
+from deeptutor.services.observability.readiness_matrix import (
+    build_current_release_readiness_matrix_payload,
+)
 from deeptutor.services.observability.release_gate import build_release_gate_report
+from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
+from deeptutor.services.observability.runtime_authority import evaluate_runtime_authority
 from deeptutor.services.observability.surface_ack_smoke import run_surface_ack_smoke
-from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke
-from deeptutor.services.bi_service import get_bi_service
+from deeptutor.services.observability.unified_ws_smoke import (
+    run_unified_ws_smoke,
+    verify_eval_runner_identity,
+)
 
 
 def _write_markdown(path: Path, lines: list[str]) -> str:
@@ -96,15 +116,77 @@ def run_prerelease_observability(
     target_output_dir = (output_dir or (Path.cwd() / "tmp" / "observability" / "prerelease")).expanduser().resolve()
     target_output_dir.mkdir(parents=True, exist_ok=True)
     effective_metrics_token = metrics_token if metrics_token is not None else os.environ.get("DEEPTUTOR_METRICS_TOKEN")
+    expected_release = get_release_lineage_snapshot()
+    expected_metrics_url = f"{api_base_url.rstrip('/')}/metrics"
+    governed_metrics_urls = resolve_governed_metrics_urls()
+    preflight_path = target_output_dir / "runtime_authority_preflight.json"
+    try:
+        metrics_snapshot = load_metrics_snapshot(
+            api_base_url=api_base_url,
+            metrics_json=metrics_json,
+            metrics_token=effective_metrics_token,
+        )
+    except Exception as exc:
+        runtime_authority = evaluate_runtime_authority(
+            expected_release=expected_release,
+            metrics_snapshot=None,
+            metrics_error=build_metrics_error_provenance(
+                api_base_url=api_base_url,
+                exc=exc,
+            ),
+            expected_metrics_url=expected_metrics_url,
+            governed_metrics_urls=governed_metrics_urls,
+        )
+        preflight_path.write_text(
+            json.dumps(runtime_authority, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        raise RuntimeError(
+            f"runtime_authority_blocked: {runtime_authority['reason']}"
+        ) from exc
+    runtime_authority = evaluate_runtime_authority(
+        expected_release=expected_release,
+        metrics_snapshot=metrics_snapshot,
+        expected_metrics_url=expected_metrics_url,
+        governed_metrics_urls=governed_metrics_urls,
+    )
+    preflight_path.write_text(
+        json.dumps(runtime_authority, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    if runtime_authority["status"] != "PASS":
+        raise RuntimeError(
+            f"runtime_authority_{str(runtime_authority['status']).lower()}: "
+            f"{runtime_authority['reason']}"
+        )
 
     ws_smoke_payload = None
     if ws_smoke_message:
-        ws_smoke_payload = asyncio.run(
-            run_unified_ws_smoke(
+        ws_token = str(os.environ.get("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN") or "").strip()
+        identity = asyncio.run(
+            verify_eval_runner_identity(
                 api_base_url=api_base_url,
-                message=ws_smoke_message,
+                auth_token=ws_token,
             )
         )
+        if identity.get("verified"):
+            ws_smoke_payload = asyncio.run(
+                run_unified_ws_smoke(
+                    api_base_url=api_base_url,
+                    message=ws_smoke_message,
+                    auth_token=ws_token,
+                    metrics_token=effective_metrics_token,
+                )
+            )
+        else:
+            ws_smoke_payload = {
+                "run_id": "",
+                "passed": None,
+                "status": "DEFERRED",
+                "terminal_event": {},
+                "messages": [],
+                "identity_verification": identity,
+            }
 
     surface_smoke_payload = None
     if surface_smoke:
@@ -117,18 +199,49 @@ def run_prerelease_observability(
             metrics_token=effective_metrics_token,
         )
 
-    metrics_snapshot = load_metrics_snapshot(
-        api_base_url=api_base_url,
-        metrics_json=metrics_json,
-        metrics_token=effective_metrics_token,
+    try:
+        postflight_metrics_snapshot = load_metrics_snapshot(
+            api_base_url=api_base_url,
+            metrics_json=None,
+            metrics_token=effective_metrics_token,
+        )
+    except Exception as exc:
+        runtime_postflight = evaluate_runtime_authority(
+            expected_release=expected_release,
+            metrics_snapshot=None,
+            metrics_error=build_metrics_error_provenance(
+                api_base_url=api_base_url,
+                exc=exc,
+            ),
+            expected_metrics_url=expected_metrics_url,
+            governed_metrics_urls=governed_metrics_urls,
+        )
+    else:
+        runtime_postflight = evaluate_runtime_authority(
+            expected_release=expected_release,
+            metrics_snapshot=postflight_metrics_snapshot,
+            expected_metrics_url=expected_metrics_url,
+            governed_metrics_urls=governed_metrics_urls,
+        )
+    (target_output_dir / "runtime_authority_postflight.json").write_text(
+        json.dumps(runtime_postflight, ensure_ascii=False, indent=2),
+        encoding="utf-8",
     )
+    if runtime_postflight["status"] != "PASS":
+        raise RuntimeError(
+            f"runtime_authority_postflight_{str(runtime_postflight['status']).lower()}: "
+            f"{runtime_postflight['reason']}"
+        )
+    metrics_snapshot = postflight_metrics_snapshot
+
     smoke_checks: list[dict[str, Any]] = []
     if ws_smoke_payload is not None:
         terminal_event = ws_smoke_payload.get("terminal_event") or {}
         smoke_checks.append(
             {
                 "name": "unified_ws_smoke",
-                "ok": bool(ws_smoke_payload.get("passed")),
+                "ok": ws_smoke_payload.get("passed"),
+                "status": ws_smoke_payload.get("status") or ("PASS" if ws_smoke_payload.get("passed") else "FAIL"),
                 "summary": str(terminal_event.get("content") or terminal_event.get("type") or "").strip(),
                 "evidence": [
                     f"terminal_type={terminal_event.get('type')}",
@@ -175,7 +288,7 @@ def run_prerelease_observability(
             release_id=str((canonical_benchmark_payload.get("release_spine") or {}).get("release_id") or ""),
             payload=canonical_benchmark_payload,
         )
-    persisted_benchmark_payload = get_control_plane_store().latest_payload("benchmark_runs")
+    benchmark_payload = canonical_benchmark_payload if benchmark_store_paths else None
 
     feedback_payload = asyncio.run(_load_live_feedback())
     aae_payload = build_aae_composite_run(
@@ -199,7 +312,11 @@ def run_prerelease_observability(
     observer_payload = build_observer_snapshot(
         metrics_snapshot=metrics_snapshot,
         surface_snapshot=surface_smoke_payload,
-        benchmark_payload=persisted_benchmark_payload,
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        aae_payload=aae_payload,
+        benchmark_payload=benchmark_payload,
+        release=expected_release,
     )
     observer_artifacts = write_observer_snapshot_artifacts(
         observer_payload,
@@ -211,13 +328,9 @@ def run_prerelease_observability(
         release_id=str((observer_payload.get("release") or {}).get("release_id") or ""),
         payload=observer_payload,
     )
-    persisted_observer_payload = get_control_plane_store().latest_payload("observer_snapshots")
-    if not isinstance(persisted_observer_payload, dict):
-        raise RuntimeError("observer snapshot was written but could not be read from control plane latest")
-
     change_impact_payload = build_change_impact_run(
         changed_files=list(changed_files) if changed_files is not None else collect_git_changed_files(),
-        observer_payload=persisted_observer_payload,
+        observer_payload=observer_payload,
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
@@ -230,18 +343,14 @@ def run_prerelease_observability(
     )
     change_impact_md_path = Path(change_impact_store_paths["json_path"]).with_suffix(".md")
     change_impact_md_path.write_text(render_change_impact_markdown(change_impact_payload), encoding="utf-8")
-    persisted_change_impact_payload = get_control_plane_store().latest_payload("change_impact_runs")
-    if not isinstance(persisted_change_impact_payload, dict):
-        raise RuntimeError("change impact was written but could not be read from control plane latest")
-
     oa_payload = build_oa_run(
         mode="pre-release",
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
-        benchmark_payload=persisted_benchmark_payload,
-        observer_payload=persisted_observer_payload,
-        change_impact_payload=persisted_change_impact_payload,
+        benchmark_payload=benchmark_payload,
+        observer_payload=observer_payload,
+        change_impact_payload=change_impact_payload,
         feedback_payload=feedback_payload,
     )
     oa_artifacts = _write_control_plane_artifact(
@@ -256,8 +365,16 @@ def run_prerelease_observability(
         ],
     )
 
-    plan_completion_payload = get_control_plane_store().latest_payload("plan_completion_audits")
-    incident_payload = get_control_plane_store().latest_payload("incident_ledger", fallback=False)
+    plan_completion_payload = select_fresh_payload_for_release(
+        store=get_control_plane_store(),
+        kind="plan_completion_audits",
+        release=expected_release,
+    )
+    incident_payload = select_fresh_payload_for_release(
+        store=get_control_plane_store(),
+        kind="incident_ledger",
+        release=expected_release,
+    )
     readiness_payload = build_current_release_readiness_matrix_payload(
         store=get_control_plane_store(),
         release=(om_payload.get("release") or arr_payload.get("release") or {}),
@@ -266,11 +383,11 @@ def run_prerelease_observability(
     release_gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
-        benchmark_payload=persisted_benchmark_payload,
+        benchmark_payload=benchmark_payload,
         incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
-        change_impact_payload=persisted_change_impact_payload,
+        change_impact_payload=change_impact_payload,
         plan_completion_payload=plan_completion_payload,
         readiness_payload=readiness_payload,
         quality_evidence_required=True,
@@ -295,8 +412,8 @@ def run_prerelease_observability(
             "arr": arr_payload,
             "aae": aae_payload,
             "feedback": feedback_payload,
-            "observer_snapshot": persisted_observer_payload,
-            "change_impact": persisted_change_impact_payload,
+            "observer_snapshot": observer_payload,
+            "change_impact": change_impact_payload,
             "oa": oa_payload,
             "release_gate": release_gate_payload,
         },

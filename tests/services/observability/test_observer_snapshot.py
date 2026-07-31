@@ -436,8 +436,12 @@ def test_build_observer_snapshot_freezes_window_and_excludes_same_run_smoke_sess
     assert payload["recent_conversations"]["excluded_session_ids"] == ["session-smoke"]
     assert [item["session_id"] for item in payload["recent_conversations"]["recent_sessions"]] == ["session-real"]
     assert payload["langfuse_trace_linkage"]["trace_id_count"] == 1
+    assert payload["langfuse_trace_linkage"]["verification_status"] == "not_verified"
+    assert payload["langfuse_trace_linkage"]["verified_trace_count"] == 0
     assert payload["data_sources"]["recent_conversations"]["has_data"] is True
-    assert payload["data_sources"]["langfuse_trace_linkage"]["has_data"] is True
+    assert payload["data_sources"]["langfuse_trace_linkage"]["has_data"] is False
+    assert "persistence was not verified" in payload["data_sources"]["langfuse_trace_linkage"]["reason"]
+    assert "missing_langfuse_trace_linkage" in {item["type"] for item in payload["blind_spots"]}
     assert payload["data_sources"]["backend_logs"]["has_data"] is False
 
 
@@ -647,4 +651,7 @@ def test_observer_with_release_uses_run_local_payloads_not_foreign_latest(tmp_pa
     assert payload["source_runs"]["arr_run_id"] == "run-arr"
     assert payload["source_runs"]["aae_run_id"] == "run-aae"
     assert payload["source_runs"]["benchmark_run_id"] is None
-    assert payload["source_runs"]["daily_trend_run_id"] is None
+    assert "daily_trend_run_id" not in payload["source_runs"]
+    assert "daily_trend" not in payload["data_sources"]
+    assert "daily_trend_metrics" not in payload["signals"]
+    assert "missing_daily_trend" not in {item["type"] for item in payload["blind_spots"]}

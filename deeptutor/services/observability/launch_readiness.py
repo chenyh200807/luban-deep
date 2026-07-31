@@ -495,8 +495,14 @@ def _langfuse_row(
             recorded_at=observer_record.get("recorded_at"),
             source_kind="observer_snapshots",
         )
-    trace_count = int(trace_linkage.get("trace_id_count") or source.get("sample_count") or 0)
-    has_data = bool(source.get("has_data")) or trace_count > 0
+    trace_count = int(trace_linkage.get("trace_id_count") or 0)
+    verified_trace_count = int(trace_linkage.get("verified_trace_count") or source.get("sample_count") or 0)
+    verification_status = str(trace_linkage.get("verification_status") or "").strip().lower()
+    has_data = (
+        bool(source.get("has_data"))
+        and verified_trace_count > 0
+        and verification_status == "verified"
+    )
     return _row(
         check_id="langfuse",
         label="Langfuse Trace Linkage",
@@ -505,6 +511,8 @@ def _langfuse_row(
         summary="Langfuse trace_id linkage 可见" if has_data else "未看到可回链的 Langfuse trace_id",
         evidence=[
             f"trace_id_count={trace_count}",
+            f"verified_trace_count={verified_trace_count}",
+            f"verification_status={verification_status or 'unknown'}",
             f"langfuse_host={trace_linkage.get('langfuse_host') or source.get('source_id') or ''}",
             f"freshness={source.get('freshness') or ''}",
         ],

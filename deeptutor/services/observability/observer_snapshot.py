@@ -569,6 +569,8 @@ def _build_trace_linkage_snapshot(events: list[dict[str, Any]]) -> dict[str, Any
         "trace_id_count": len(trace_ids),
         "unique_trace_id_count": len(unique_trace_ids),
         "sample_trace_ids": unique_trace_ids[:20],
+        "verified_trace_count": 0,
+        "verification_status": "not_verified",
         "langfuse_enabled": str(os.getenv("LANGFUSE_ENABLED", "") or "").strip().lower()
         in {"1", "true", "yes", "on"},
         "langfuse_host": str(os.getenv("LANGFUSE_BASE_URL", "") or os.getenv("LANGFUSE_HOST", "") or "").strip(),
@@ -769,12 +771,10 @@ def build_observer_snapshot(
         if allow_latest_fallback and benchmark_payload is None
         else None
     )
-    daily_trend_record = _safe_latest_run(control_store, "daily_trends") if allow_latest_fallback else None
     om_payload = om_payload or _payload_from_record(om_record)
     arr_payload = arr_payload or _payload_from_record(arr_record)
     aae_payload = aae_payload or _payload_from_record(aae_record)
     benchmark_payload = benchmark_payload or _payload_from_record(benchmark_record)
-    daily_trend_payload = _payload_from_record(daily_trend_record)
     if start_ts is not None and end_ts is not None:
         turn_events = turn_log.load_events_window(
             start_ts=float(start_ts),
@@ -850,7 +850,6 @@ def build_observer_snapshot(
         arr_payload,
         benchmark_payload,
         aae_payload,
-        daily_trend_payload,
         canonical_turn_events[0] if canonical_turn_events else (raw_turn_events[0] if raw_turn_events else None),
     )
 
@@ -942,21 +941,15 @@ def build_observer_snapshot(
         ),
         "langfuse_trace_linkage": _source_entry(
             "langfuse_trace_linkage",
-            has_data=int(trace_linkage.get("trace_id_count") or 0) > 0,
+            has_data=int(trace_linkage.get("verified_trace_count") or 0) > 0,
             source_id=str(trace_linkage.get("langfuse_host") or ""),
-            sample_count=int(trace_linkage.get("trace_id_count") or 0),
-            confidence="medium" if int(trace_linkage.get("trace_id_count") or 0) > 0 else "low",
-            reason="no trace_id values in turn event window",
-            now=now,
-        ),
-        "daily_trend": _source_entry(
-            "daily_trend",
-            has_data=bool(daily_trend_payload),
-            source_id=((daily_trend_payload or {}).get("run_manifest") or {}).get("run_id")
-            or (daily_trend_payload or {}).get("run_id"),
-            recorded_at=(daily_trend_record or {}).get("recorded_at"),
-            sample_count=1 if daily_trend_payload else 0,
-            reason="missing daily trend",
+            sample_count=int(trace_linkage.get("verified_trace_count") or 0),
+            confidence="high" if int(trace_linkage.get("verified_trace_count") or 0) > 0 else "low",
+            reason=(
+                "turn events contain trace ids, but Langfuse persistence was not verified"
+                if int(trace_linkage.get("trace_id_count") or 0) > 0
+                else "no trace_id values in turn event window"
+            ),
             now=now,
         ),
         "live_metrics": _source_entry(
@@ -989,8 +982,6 @@ def build_observer_snapshot(
         blind_spots.append({"type": "missing_arr_run", "severity": "medium"})
     if not has_surface_coverage:
         blind_spots.append({"type": "missing_surface_coverage", "severity": "medium"})
-    if not daily_trend_payload:
-        blind_spots.append({"type": "missing_daily_trend", "severity": "low"})
     if recent_conversations.get("read_error"):
         blind_spots.append(
             {
@@ -1022,7 +1013,7 @@ def build_observer_snapshot(
         )
     if int(backend_logs.get("scanned_lines") or 0) <= 0:
         blind_spots.append({"type": "missing_backend_log_evidence", "severity": "medium"})
-    if int(trace_linkage.get("trace_id_count") or 0) <= 0:
+    if int(trace_linkage.get("verified_trace_count") or 0) <= 0:
         blind_spots.append({"type": "missing_langfuse_trace_linkage", "severity": "medium"})
 
     run_id = f"observer-snapshot-{int(time.time())}"
@@ -1054,15 +1045,12 @@ def build_observer_snapshot(
             "aae_run_id": (aae_payload or {}).get("run_id"),
             "benchmark_run_id": ((benchmark_payload or {}).get("run_manifest") or {}).get("run_id")
             or (benchmark_payload or {}).get("run_id"),
-            "daily_trend_run_id": ((daily_trend_payload or {}).get("run_manifest") or {}).get("run_id")
-            or (daily_trend_payload or {}).get("run_id"),
         },
         "signals": {
             "om_health_summary": (om_payload or {}).get("health_summary") or {},
             "arr_summary": (arr_payload or {}).get("summary") or {},
             "aae_scorecard": (aae_payload or {}).get("scorecard") or {},
             "benchmark_summary": (benchmark_payload or {}).get("summary") or {},
-            "daily_trend_metrics": (daily_trend_payload or {}).get("metrics") or {},
             "surface_snapshot": surface_payload,
             "live_metrics_snapshot": metrics_snapshot or {},
             "recent_conversations": recent_conversations,
