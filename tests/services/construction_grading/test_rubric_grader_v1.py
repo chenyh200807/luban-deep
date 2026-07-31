@@ -1958,3 +1958,28 @@ def test_case_submission_stem_candidate_semantic_anchor() -> None:
     # 只有多小问结构（无提交标记）也算判分行为在场
     multi_q = "某工程概述内容。" * 20 + "\n1. 指出不妥之处？\n2. 说明正确做法？"
     assert candidate(multi_q)
+
+
+def test_finalize_case_score_single_writer_invariants() -> None:
+    """单一 finalizer（[luban_grading_engine] domain test）：缩放后封顶 +
+    对外分母/范围上限分离 + 无名义满分时不动分。验算锚=审计 §2.2。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    # 审计验算锚：缩放后命中 8.33、cap 10、对外分母 20
+    ev = {"awarded_score": 8.33, "max_score": 10.0}
+    out = finalize_case_score(ev, nominal_full_score=20.0, scope_ratio=0.5)
+    assert out["awarded_score"] == 8.33
+    assert out["max_score"] == 20.0
+    assert out["scoring_scope_max"] == 10.0
+    assert "case_score_capped_from" not in out
+
+    # 封顶生效：命中超过范围上限
+    ev2 = {"awarded_score": 12.0, "max_score": 10.0}
+    finalize_case_score(ev2, nominal_full_score=20.0, scope_ratio=0.5)
+    assert ev2["awarded_score"] == 10.0
+    assert ev2["case_score_capped_from"] == 12.0
+
+    # 无名义满分：不动分（tier-1 门禁形状——封顶待 canonical 431 上服）
+    ev3 = {"awarded_score": 30.0, "max_score": 30.0}
+    finalize_case_score(ev3, nominal_full_score=0)
+    assert ev3["awarded_score"] == 30.0 and ev3["max_score"] == 30.0
