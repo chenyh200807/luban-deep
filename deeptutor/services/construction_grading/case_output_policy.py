@@ -55,6 +55,9 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # OD-004（2026-08-01）：判分基座兜底发声——scene 抖动导致题面缺位时，
     # 以学生原文为 tier3 推导基座（"判分行为在场必须有判分基座"）。
     "case_stem_fallback",
+    # P0 兜底满分根治（2026-08-01）：参考只覆盖部分小问时的判分范围声明，
+    # 形如 "1/4"——分数只代表该范围，且不得声称官方分。
+    "case_grading_partial_scope",
     # 踩点封顶观测（裁决② 2026-07-30，observe-only）：Σ点分池超小题满分的超额量。
     # 真题判分=min(Σ命中,满分)且池≥满分是常态；V1 无封顶→先量化在服发生率，
     # 确定性封顶=canonical bank 上服硬前置。

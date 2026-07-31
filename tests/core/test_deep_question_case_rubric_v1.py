@@ -1027,3 +1027,47 @@ async def test_case_rubric_v1_stem_fallback_on_real_paper_form(monkeypatch: pyte
     assert event.get("event_type") == "case_grading_completed"
     assert event.get("case_stem_fallback") == "submission_text"
     assert "问题:" in seen["stem"]
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_partial_reference_scope_honest_denominator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P0 兜底满分根治（2026-08-01 取证）：参考答案只覆盖 1/4 小问时，全中不得
+    等于整题满分——按覆盖比例缩放点池、分母还原整题名义满分、发声 partial_scope。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+
+    async def _fake_extract(reference, stem, complete_fn, api_key, *, model="deepseek-chat",
+                            provider_authority=""):
+        return [{"point_id": "R1", "text": "见证记录", "score": 1.0, "policy": "list",
+                 "required_terms": []}]
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"R1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "extract_rubric_from_reference_async", _fake_extract)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+    ctx = {
+        "question_id": "", "user_answer": "我的作答内容",
+        "question_stem": "【背景资料】某工程。\n问题1：A？\n问题2：B？\n问题3：C？\n问题4：D？",
+        "correct_answer": "问题1的官方答案（兄弟行，只覆盖 1 问）",
+        "case_reference_covered_count": 1,
+        "case_stem_subquestion_count": 4,
+        "construction_grading_result": {"type": "case", "max_score": 10},
+    }
+    event = await _grade_one_case_v1(ctx, student_id="s1", complete=None, key="k", _G=G)
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_grading_partial_scope"] == "1/4"
+    assert event["max_score"] == 10.0, "分母必须是整题名义满分"
+    assert event["awarded_score"] <= 2.51, f"1/4 覆盖全中最多得 2.5，实得 {event['awarded_score']}"
+    assert event["official_score_allowed"] is False
+
+    # 全覆盖时行为不变（不得误伤）
+    ctx_full = dict(ctx, case_reference_covered_count=4, case_stem_subquestion_count=4)
+    ev_full = await _grade_one_case_v1(ctx_full, student_id="s1", complete=None, key="k", _G=G)
+    assert "case_grading_partial_scope" not in ev_full
+    assert ev_full["awarded_score"] == ev_full["max_score"] == 10.0
