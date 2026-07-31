@@ -21,7 +21,12 @@
   A5 禁止罐头拒答(「拆小」类语句出现即红);
   A6 result 事件 metadata 必须含非空 score_authority 与 grading_rubric_provenance;
   A7 案例判分必须走 deep(metadata selected_mode);
-  A8 预留(错因码分布,拍板后启用,当前 SKIP)。
+  A8 预留(错因码分布,拍板后启用,当前 SKIP);
+  A9 弱答案不得满分:金标已判定为低能力档的作答,得分率必须 < 场景配置的
+     max_score_ratio(默认 0.5)——P0「兜底满分」事故的回归位;
+  A10 局部覆盖必须诚实:metadata 的 case_grading_partial_scope 在场时,学员可见
+     分母必须是整题名义满分(scenario.nominal_full_score),得分不得超过
+     满分×覆盖比例,且 grading_official_score_allowed 必须为 false。
 """
 
 from __future__ import annotations
@@ -160,6 +165,93 @@ def check_a7(metadata: dict[str, Any] | None) -> dict[str, Any]:
     return _result("A7", False, f"selected_mode={mode!r}(案例判分必须走 deep)")
 
 
+def _score_pairs(text: str) -> list[tuple[float, float]]:
+    """回复中所有 X/Y 型得分对(与 A2 同一解析权威,不许各判各的)。"""
+    pairs: list[tuple[float, float]] = []
+    for regex in (SCORE_SLASH_RE, SCORE_LABEL_RE, FULLSCORE_PAIR_RE):
+        for m in regex.finditer(text):
+            pairs.append((float(m.group(1)), float(m.group(2))))
+    return pairs
+
+
+def check_a9(text: str, max_score_ratio: float) -> dict[str, Any]:
+    """A9 弱答案不得满分(P0「兜底满分」回归位)。
+
+    金标已判定为低能力档(expected_score_ratio 远低于 0.5)的作答,若判分核给出
+    高得分率,就是 2026-08-01 P0 事故的复发。解析不到得分 = 判不了 = FAIL
+    (证据缺失不算绿)。"""
+    pairs = _score_pairs(text)
+    if not pairs:
+        return _result("A9", False, "回复中解析不到 X/Y 型得分,无法证明未给满分(证据缺失不算绿)")
+    ratios = [(x / y) for x, y in pairs if y > 0]
+    if not ratios:
+        return _result("A9", False, f"得分对 {pairs} 分母非正,无法计算得分率")
+    worst = max(ratios)
+    if worst < max_score_ratio:
+        return _result("A9", True, f"最高得分率 {worst:.3f} < {max_score_ratio}(得分对 {pairs})")
+    return _result(
+        "A9", False,
+        f"弱答案得分率 {worst:.3f} >= {max_score_ratio}(得分对 {pairs})——P0 兜底满分形态复发",
+    )
+
+
+PARTIAL_SCOPE_RE = re.compile(r"^\s*(\d+)\s*/\s*(\d+)\s*$")
+
+
+def check_a10(
+    text: str, metadata: dict[str, Any] | None, nominal_full_score: float | None
+) -> dict[str, Any]:
+    """A10 局部覆盖必须诚实(P0 分母修复的回归位)。
+
+    参考答案只覆盖部分小问时,采分点池不得缩放到整题名义满分;学员看到的分母
+    必须仍是整题满分(否则「1/4 张卷子的满分」被说成整题满分)。"""
+    if metadata is None:
+        return _result("A10", False, "未取到 result 事件 metadata(远端查询失败或无 result 事件)")
+    scope = str(metadata.get("case_grading_partial_scope") or "").strip()
+    if not scope:
+        return _result(
+            "A10", False,
+            "metadata 无 case_grading_partial_scope——本场景的前置(tier-2 命中兄弟行、"
+            "参考答案只覆盖部分小问)未成立,判不了分母诚实性",
+        )
+    m = PARTIAL_SCOPE_RE.match(scope)
+    if not m:
+        return _result("A10", False, f"case_grading_partial_scope={scope!r} 不是 N/M 形态")
+    covered, total = float(m.group(1)), float(m.group(2))
+    if not (0 < covered < total):
+        return _result("A10", False, f"partial_scope={scope} 不满足 0 < N < M(局部覆盖才该在场)")
+    official_allowed = metadata.get("grading_official_score_allowed")
+    if official_allowed is not False:
+        return _result(
+            "A10", False,
+            f"partial_scope={scope} 在场但 grading_official_score_allowed={official_allowed!r}"
+            "(局部覆盖分不得作官方成绩)",
+        )
+    pairs = _score_pairs(text)
+    if not pairs:
+        return _result("A10", False, f"partial_scope={scope},但回复里解析不到 X/Y 得分,分母无从校验")
+    if nominal_full_score is None:
+        return _result("A10", False, "场景未配置 nominal_full_score,无法校验分母是否为整题满分")
+    bad_denominator = [(x, y) for x, y in pairs if abs(y - nominal_full_score) > 0.01]
+    if bad_denominator:
+        return _result(
+            "A10", False,
+            f"partial_scope={scope} 在场,但分母不是整题名义满分 {nominal_full_score}: {bad_denominator}",
+        )
+    cap = nominal_full_score * (covered / total) + 0.01
+    over = [(x, y) for x, y in pairs if x > cap]
+    if over:
+        return _result(
+            "A10", False,
+            f"partial_scope={scope} 得分超覆盖比例上限 {cap:.2f}: {over}",
+        )
+    return _result(
+        "A10", True,
+        f"partial_scope={scope}; 分母={nominal_full_score}(整题满分); 得分对 {pairs} 均 <= "
+        f"{cap:.2f}; official_score_allowed=false",
+    )
+
+
 def check_generic(assertion: dict[str, Any], text: str) -> dict[str, Any]:
     aid = str(assertion.get("id") or "GEN")
     atype = str(assertion.get("type") or "")
@@ -209,6 +301,13 @@ def evaluate_assertions(
             results.append(check_a6(metadata))
         elif aid == "A7":
             results.append(check_a7(metadata))
+        elif aid == "A9":
+            results.append(check_a9(text, float(assertion.get("max_score_ratio") or 0.5)))
+        elif aid == "A10":
+            nominal = scenario.get("nominal_full_score")
+            results.append(
+                check_a10(text, metadata, float(nominal) if nominal is not None else None)
+            )
         else:
             results.append(check_generic(assertion, text))
     return results
@@ -227,6 +326,9 @@ KEYS = [
     "effective_response_mode", "decision_source", "grading_engine_version",
     "case_grading_adjudication_strategy", "case_rubric_bank_slot",
     "case_mnemonic_source", "question_lifecycle_scene", "capability",
+    # P0 分母修复(2026-08-01)的判据面:局部覆盖比例 + 官方成绩闸 + 命中的 bank 行
+    "case_grading_partial_scope", "grading_official_score_allowed",
+    "case_grading_direct_attempt_qid", "case_subq_coverage",
 ]
 out = {{"found": False}}
 try:
@@ -409,7 +511,7 @@ def load_scenarios(only: list[str]) -> list[dict[str, Any]]:
         query_file = SCENARIO_DIR / scenario["query_file"]
         scenario["_query"] = query_file.read_text(encoding="utf-8").strip()
         scenarios.append(scenario)
-    order = {"T1": 1, "T2": 2, "T3": 3, "T4": 4, "T5": 5, "T6": 6}
+    order = {"T1": 1, "T2": 2, "T3": 3, "T4": 4, "T5": 5, "T6": 6, "T7": 7, "T8": 8}
     scenarios.sort(key=lambda s: (order.get(s.get("question_group"), 9), s["id"]))
     return scenarios
 
@@ -512,7 +614,7 @@ def main(argv: list[str] | None = None) -> int:
         turn_ok = bool(turn_out.get("ok")) and bool(response.strip())
 
         metadata: dict[str, Any] | None = None
-        needs_remote = any(a.get("id") in ("A6", "A7") for a in scenario.get("assertions", []))
+        needs_remote = any(a.get("id") in ("A6", "A7", "A10") for a in scenario.get("assertions", []))
         if turn_id and not args.skip_remote:
             # 案例场景一律摘取 metadata 作观测;A6/A7 场景是断言必需
             if needs_remote or scenario.get("case_grading") or scenario.get("question_group") in ("T1", "T2", "T3", "T4"):
@@ -536,7 +638,9 @@ def main(argv: list[str] | None = None) -> int:
             "observed_metadata": {
                 k: metadata.get(k) for k in (
                     "score_authority", "grading_rubric_provenance", "selected_mode",
-                    "execution_path", "turn_capability")
+                    "execution_path", "turn_capability",
+                    "case_grading_partial_scope", "grading_official_score_allowed",
+                    "case_grading_direct_attempt_qid")
             } if metadata else None,
             "response_excerpt": response[:400],
         }
