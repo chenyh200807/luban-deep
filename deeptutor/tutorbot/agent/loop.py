@@ -90,6 +90,224 @@ if TYPE_CHECKING:
 observability = get_langfuse_observability()
 
 
+# ---------------------------------------------------------------------------
+# 案例判分渐进吐字（sequenced emit, L4 2026-08-01）
+#
+# 病：效率画像 §1.4/§5-W5 实证——学生 1.6s 看到 65 字开场白，然后死寂 20.2s(p50) /
+# 41.8s(p95)，再 3034 字一次涌出。死寂窗口精确对应 rubric 推导（22.3s p50）+ batch
+# judge：中间产物算完了但没人吐出去。
+#
+# 治：纯表达层。**总时延不变、终态真值不变**。做法是把判分核已经算出的事实（走了哪
+# 一档 rubric、拆出几个采分点、第几组判完）在它们发生的时刻就流给学生。
+#
+# 三条不变量（本模块的存在理由，改动前先读）：
+#   1. **终态即真值**：所有 narration 只发生在 score_first 之前，因此判分正文
+#      （stream_plan.final_text）始终是 streamed public text 的**严格后缀**。
+#      turn_runtime._replace_public_result_response_with_stream 的后缀豁免分支
+#      （contracts/turn.md:144）据此保持 result.response 与 finalize 链输出逐字节
+#      相同——narration 不进终态、不进 session、不进计费判定。
+#   2. **单写者**：narration 与判分正文共用同一个 on_content_delta，且 heartbeat 任务
+#      在 score_first 之前必被取消（`async with` 退出），不存在两个写者交叉。
+#   3. **零判分权力**：narration 只复述已完成的结构化事实，不含任何得分/命中断言
+#      （得分归 score_first 一处），不参与任何路由/评分/计费决策。
+#
+# 文案红线（宣传门 scripts/promo_gate/run_promo_gate.py 的断言面 = 流式 content 拼接，
+# 见 scripts/run_student_turn.py 的 visible_response）：narration 不得引入
+#   - A1 miss 用语（未作答/漏答/漏点/需要补/未覆盖…）——否则半答卷断言会被旁路成假绿；
+#   - A2/A9/A10 的 X/Y 得分对形态（`数字/数字 分`、`得分:N/M`、`得N分…满分M`）；
+#   - A4 免责用语（诊断得分预估/得分预估/仅供参考…）——免责只能由判分正文说；
+#   - A5 罐头拒答用语（拆小/一道一道发/…）。
+# 这四条由 tests/tutorbot/test_case_grading_sequenced_emit.py 用宣传门同源正则守门。
+# ---------------------------------------------------------------------------
+
+# 心跳间隔：live 判据是"最大单次停顿 ≤10s"（从 20.2s 降）。7s 留 3s 余量给
+# provider 抖动与 chunk 发送耗时。
+_CASE_GRADING_HEARTBEAT_INTERVAL_S = 7.0
+# 心跳上限：正常轮 2-3 次即被下一个真实里程碑打断。封顶防 provider 挂死时刷屏
+# （超过约 60s 还没里程碑，问题不在表达层，交给既有超时/typed failure）。
+_CASE_GRADING_MAX_HEARTBEATS = 8
+
+
+def _case_grading_progress_line(kind: str, facts: dict[str, Any]) -> str:
+    """判分进度文案的**单一权威**（纯函数，零 I/O）。
+
+    每一句只复述判分核已经算出的结构化事实；没有事实支撑的 kind 返回空串（不发）。
+    """
+    def _int(key: str) -> int:
+        try:
+            return int(facts.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    if kind == "authority_lookup_start":
+        return "先去题库里比对这道题的原题和已编译的采分点。"
+    if kind == "authority_lookup_done":
+        # 只说命中与否。内部 question_id 不进学员可见文本（是系统标识不是学习信息）。
+        if facts.get("hit"):
+            return "题库里定位到了这道题的原题，按它的编译采分点批改。"
+        return "题库里没有匹配到这道题的原题，接下来按你贴的题干自己拆采分点。"
+    if kind == "rubric_source":
+        tier = str(facts.get("tier") or "").strip()
+        if tier == "compiled":
+            count = _int("point_count")
+            if count > 0:
+                return f"编译采分点已加载，共 {count} 个，马上逐点比对你的作答。"
+            return "编译采分点已加载，马上逐点比对你的作答。"
+        if tier == "reference":
+            return "已拿到这道题的参考答案，正在把它拆成可以独立判定的采分点。"
+        if tier in ("stem", "submission_stem"):
+            return "这道题没有现成的参考答案，正在按题干推导采分点，这一步最花时间（通常二十几秒）。"
+        return ""
+    if kind == "rubric_ready":
+        count = _int("point_count")
+        if count > 0:
+            return f"采分点拆好了，共 {count} 个，现在逐点比对你的作答。"
+        return "采分点拆好了，现在逐点比对你的作答。"
+    if kind == "judge_group_done":
+        completed = _int("completed")
+        total = _int("total")
+        size = _int("size")
+        if completed <= 0 or total <= 0:
+            return ""
+        if total == 1:
+            return f"这一组采分点判完了（本组 {size} 个点）。" if size > 0 else "采分点判完了。"
+        return f"第 {completed} 组采分点判完了（本组 {size} 个点，共 {total} 组）。"
+    if kind == "judge_done":
+        return "逐点比对完成，正在汇总结论和讲评。"
+    if kind == "heartbeat":
+        label = str(facts.get("stage_label") or "").strip()
+        elapsed = _int("elapsed_s")
+        if not label or elapsed <= 0:
+            return ""
+        return f"{label}（已用时 {elapsed} 秒，完成后先给结论再给逐点明细）。"
+    return ""
+
+
+# 心跳文案里的阶段名：与 _case_grading_progress_line 的 kind 一一对应，
+# 不另起第二套阶段枚举。
+_CASE_GRADING_STAGE_LABELS: dict[str, str] = {
+    "authority_lookup_start": "还在题库里比对原题",
+    "authority_lookup_done": "还在准备采分点",
+    "rubric_source": "采分点推导中",
+    "rubric_ready": "逐点比对中",
+    "judge_group_done": "逐点比对中",
+    "judge_done": "汇总讲评中",
+}
+
+
+class _CaseGradingProgressNarrator:
+    """案例判分静默窗口的顺序发射器（单写者）。
+
+    只做两件事：(a) 判分核每报一个里程碑就把对应文案吐给学生；(b) 里程碑之间超过
+    ``interval_s`` 没有任何发射时，补一条带真实已用时的心跳，把最大停顿压到
+    ``interval_s`` 量级。它不知道也不需要知道任何得分。
+    """
+
+    def __init__(
+        self,
+        emit: Callable[[str], Awaitable[None]] | None,
+        *,
+        interval_s: float = _CASE_GRADING_HEARTBEAT_INTERVAL_S,
+        max_heartbeats: int = _CASE_GRADING_MAX_HEARTBEATS,
+        enabled: bool = True,
+    ) -> None:
+        self._emit = emit
+        self._interval_s = max(float(interval_s), 0.0)
+        self._max_heartbeats = max(int(max_heartbeats), 0)
+        self._enabled = bool(enabled and emit is not None)
+        self._lock = asyncio.Lock()
+        self._heartbeat_task: asyncio.Task[None] | None = None
+        self._stage_label = ""
+        self._heartbeats = 0
+        self._last_emit_at = 0.0
+        self.emitted_lines: list[str] = []
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    async def start(self) -> None:
+        if not self._enabled or self._heartbeat_task is not None:
+            return
+        loop = asyncio.get_running_loop()
+        self._last_emit_at = loop.time()
+        self._heartbeat_task = loop.create_task(
+            self._heartbeat_loop(), name="case_grading_progress_heartbeat"
+        )
+
+    async def stop(self) -> None:
+        """必须在 score_first 之前调用：单写者不变量靠它兑现。"""
+        task = self._heartbeat_task
+        self._heartbeat_task = None
+        self._enabled = False
+        if task is None:
+            return
+        task.cancel()
+        try:
+            await task
+        except (asyncio.CancelledError, Exception):  # noqa: BLE001 — 收尾永不破坏判分
+            pass
+
+    async def __aenter__(self) -> _CaseGradingProgressNarrator:
+        await self.start()
+        return self
+
+    async def __aexit__(self, *_exc: Any) -> None:
+        await self.stop()
+
+    async def stage(self, kind: str, **facts: Any) -> None:
+        """判分核的进度回调入口（signature 与 deep_question._emit_case_grading_stage 对齐）。"""
+        if not self._enabled:
+            return
+        label = _CASE_GRADING_STAGE_LABELS.get(kind)
+        if label:
+            self._stage_label = label
+        await self._emit_line(_case_grading_progress_line(kind, dict(facts)))
+
+    async def _emit_line(self, line: str) -> None:
+        text = str(line or "").strip()
+        if not text or self._emit is None:
+            return
+        async with self._lock:
+            try:
+                await self._emit("\n\n" + text)
+            except Exception:  # noqa: BLE001 — 进度叙述永不破坏判分
+                logger.warning("case grading progress narration emit failed", exc_info=True)
+                return
+            self.emitted_lines.append(text)
+            self._last_emit_at = asyncio.get_running_loop().time()
+
+    async def _heartbeat_loop(self) -> None:
+        if self._interval_s <= 0:
+            return
+        started_at = asyncio.get_running_loop().time()
+        while self._heartbeats < self._max_heartbeats:
+            now = asyncio.get_running_loop().time()
+            wait_s = self._interval_s - (now - self._last_emit_at)
+            if wait_s > 0:
+                await asyncio.sleep(wait_s)
+                continue
+            if not self._stage_label:
+                # 还没有任何里程碑 = 还没进入判分核，交给下一次循环。
+                await asyncio.sleep(self._interval_s)
+                continue
+            self._heartbeats += 1
+            elapsed_s = int(asyncio.get_running_loop().time() - started_at)
+            await self._emit_line(
+                _case_grading_progress_line(
+                    "heartbeat",
+                    {"stage_label": self._stage_label, "elapsed_s": max(elapsed_s, 1)},
+                )
+            )
+
+
+def _case_grading_sequenced_emit_enabled() -> bool:
+    """紧急 kill switch（与 LUBAN_CASE_RUBRIC_V1_ENABLED 同款纪律：默认 ON，
+    出事一个 env 变量回滚，零数据迁移面）。"""
+    raw = str(os.environ.get("LUBAN_CASE_GRADING_SEQUENCED_EMIT", "") or "").strip().lower()
+    return raw not in ("false", "0", "off", "no")
+
+
 def _extract_case_question_titles_for_scope(text: str) -> dict:
     """题面小问计数（覆盖分母）——复用 rubric_grader_v1 的标题抽取单一权威。"""
     try:
@@ -1902,7 +2120,13 @@ class AgentLoop:
             "construction_grading_result": {"type": "case", "max_score": nominal},
         }
 
-    async def _v1_case_stream_plan(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any] | None:
+    async def _v1_case_stream_plan(
+        self,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+        user_message: str,
+        on_stage: Callable[..., Awaitable[None]] | None = None,
+    ) -> dict[str, Any] | None:
         """Grade a TutorBot case turn with the V1 rubric engine (single fat-skill core, reused from
         deep_question) and return a score-first stream plan. Returns None when V1 should not take over
         (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
@@ -1992,6 +2216,7 @@ class AgentLoop:
                     kb_name = next(
                         (str(x).strip() for x in knowledge_bases if str(x or "").strip()), None
                     )
+            _stage_kwargs = {"on_stage": on_stage} if on_stage is not None else {}
             event = await _grade_one_case_v1(
                 ctx,
                 student_id=student_id,
@@ -2000,6 +2225,7 @@ class AgentLoop:
                 _G=_G,
                 provider_authority=provider_authority,
                 kb_name=kb_name,
+                **_stage_kwargs,
             )
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
                 # Observability (P0 2026-07-29): this silent None used to leave
@@ -2318,6 +2544,17 @@ class AgentLoop:
             on_content_delta,
         )
 
+        async def _emit_progress_line(text: str) -> None:
+            await self._emit_visible_text_deltas(text, on_content_delta)
+
+        # 渐进吐字（L4 2026-08-01）：narrator 从这里活到 score_first 之前，全部发射
+        # 都落在判分正文的前缀区 —— final_content 仍是 streamed public text 的严格
+        # 后缀，result.response 逐字节不变（见模块顶部三条不变量）。
+        narrator = _CaseGradingProgressNarrator(
+            _emit_progress_line if on_content_delta is not None else None,
+            enabled=_case_grading_sequenced_emit_enabled(),
+        )
+
         initial_messages = self.context.build_messages(
             history=history,
             current_message=current_message,
@@ -2331,59 +2568,71 @@ class AgentLoop:
         # 恒空 → 179 题编译 rubric bank 在聊天通道结构性不可达、全部落 tier3。
         # 前移既有 prefetch（匹配权威不变：pipeline 身份链 + case_like 形状闸 +
         # loop demoter），带幂等闸防 fell_through 后外层重复检索。
-        _existing_eq = runtime_metadata.get("_prefetched_exact_question")
-        if not (isinstance(_existing_eq, dict) and _existing_eq):
-            # 直批的权威取回不归通用聊天 RAG 门管（1b 收权，2026-07-30）。live 实证
-            # 该门在直批时点必拒（denied:decision）：生命周期为粘贴题建的 active_object
-            # 是权威空壳（question_id/correct_answer 全空），却因 state_snapshot 键形状
-            # 触发 _should_disable_rag_for_active_question_flow ——「没权威→禁取权威」
-            # 死锁。直批 admission 只看判分权威本身：已有权威不取；无权威且有 kb 必取。
-            if case_grading_score_authority_available(runtime_metadata):
-                runtime_metadata["case_grading_prefetch_gate"] = "authority_already_present"
-            elif bool(
-                str(runtime_metadata.get("default_kb") or "").strip()
-                or runtime_metadata.get("knowledge_bases")
-            ):
-                runtime_metadata["case_grading_prefetch_gate"] = "allowed"
-                # 身份检索只喂题干：live 实证整段粘贴（题干+作答）会让 shape 分类
-                # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
-                # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
-                _probe_stem, _probe_answer = self._split_case_grading_submission(
-                    self._case_submission_surface(runtime_metadata, current_message)
-                )
-                # 逐跳 surface 插桩（2026-08-01，codex 兄弟行方案 §5.4 最小先手）：
-                # 定位「同题面不同作答走不同判分通道」与「幽灵小问」两条未解病。
-                # 只导出 hash/长度/marker 数，不落全文。判据：同题面多份作答，
-                # probe_stem_hash 必须逐轮相同——第一次分叉的那跳就是根因层。
-                runtime_metadata["case_probe_stem_hash"] = hashlib.sha256(
-                    (_probe_stem or "").strip().encode("utf-8")
-                ).hexdigest()[:12]
-                runtime_metadata["case_probe_stem_len"] = len((_probe_stem or "").strip())
-                runtime_metadata["case_probe_answer_len"] = len((_probe_answer or "").strip())
-                runtime_metadata["case_probe_marker_count"] = len(
-                    re.findall(
-                        CASE_ANSWER_MARKER_PATTERN,
-                        str(current_message or ""),
-                        flags=re.IGNORECASE,
+        await narrator.start()
+        try:
+            _existing_eq = runtime_metadata.get("_prefetched_exact_question")
+            if not (isinstance(_existing_eq, dict) and _existing_eq):
+                # 直批的权威取回不归通用聊天 RAG 门管（1b 收权，2026-07-30）。live 实证
+                # 该门在直批时点必拒（denied:decision）：生命周期为粘贴题建的 active_object
+                # 是权威空壳（question_id/correct_answer 全空），却因 state_snapshot 键形状
+                # 触发 _should_disable_rag_for_active_question_flow ——「没权威→禁取权威」
+                # 死锁。直批 admission 只看判分权威本身：已有权威不取；无权威且有 kb 必取。
+                if case_grading_score_authority_available(runtime_metadata):
+                    runtime_metadata["case_grading_prefetch_gate"] = "authority_already_present"
+                elif bool(
+                    str(runtime_metadata.get("default_kb") or "").strip()
+                    or runtime_metadata.get("knowledge_bases")
+                ):
+                    runtime_metadata["case_grading_prefetch_gate"] = "allowed"
+                    await narrator.stage("authority_lookup_start")
+                    # 身份检索只喂题干：live 实证整段粘贴（题干+作答）会让 shape 分类
+                    # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
+                    # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
+                    _probe_stem, _probe_answer = self._split_case_grading_submission(
+                        self._case_submission_surface(runtime_metadata, current_message)
                     )
-                )
-                initial_messages = await self._maybe_prefetch_grounded_rag(
-                    initial_messages=initial_messages,
-                    current_message=current_message,
-                    runtime_metadata=runtime_metadata,
-                    force_authority_fetch=True,
-                    tool_query_override=(_probe_stem or "").strip() or None,
-                )
-                _prefetched_eq = runtime_metadata.get("_prefetched_exact_question")
-                if not (isinstance(_prefetched_eq, dict) and _prefetched_eq):
-                    runtime_metadata["case_grading_prefetch_gate"] = "allowed_no_exact_hit"
-            else:
-                # 降级必须发声（AGENTS 硬不变量）：无 kb 时拒绝也要留可导出判据。
-                runtime_metadata["case_grading_prefetch_gate"] = "denied:no_default_kb"
-        stream_plan = await self._v1_case_stream_plan(
-            runtime_metadata=runtime_metadata,
-            user_message=current_message,
-        )
+                    # 逐跳 surface 插桩（2026-08-01，codex 兄弟行方案 §5.4 最小先手）：
+                    # 定位「同题面不同作答走不同判分通道」与「幽灵小问」两条未解病。
+                    # 只导出 hash/长度/marker 数，不落全文。判据：同题面多份作答，
+                    # probe_stem_hash 必须逐轮相同——第一次分叉的那跳就是根因层。
+                    runtime_metadata["case_probe_stem_hash"] = hashlib.sha256(
+                        (_probe_stem or "").strip().encode("utf-8")
+                    ).hexdigest()[:12]
+                    runtime_metadata["case_probe_stem_len"] = len((_probe_stem or "").strip())
+                    runtime_metadata["case_probe_answer_len"] = len((_probe_answer or "").strip())
+                    runtime_metadata["case_probe_marker_count"] = len(
+                        re.findall(
+                            CASE_ANSWER_MARKER_PATTERN,
+                            str(current_message or ""),
+                            flags=re.IGNORECASE,
+                        )
+                    )
+                    initial_messages = await self._maybe_prefetch_grounded_rag(
+                        initial_messages=initial_messages,
+                        current_message=current_message,
+                        runtime_metadata=runtime_metadata,
+                        force_authority_fetch=True,
+                        tool_query_override=(_probe_stem or "").strip() or None,
+                    )
+                    _prefetched_eq = runtime_metadata.get("_prefetched_exact_question")
+                    if not (isinstance(_prefetched_eq, dict) and _prefetched_eq):
+                        runtime_metadata["case_grading_prefetch_gate"] = "allowed_no_exact_hit"
+                    # 进度只复述已经落定的检索事实（命中与否），不预告任何得分。
+                    await narrator.stage(
+                        "authority_lookup_done",
+                        hit=bool(isinstance(_prefetched_eq, dict) and _prefetched_eq),
+                    )
+                else:
+                    # 降级必须发声（AGENTS 硬不变量）：无 kb 时拒绝也要留可导出判据。
+                    runtime_metadata["case_grading_prefetch_gate"] = "denied:no_default_kb"
+            stream_plan = await self._v1_case_stream_plan(
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+                on_stage=narrator.stage,
+            )
+        finally:
+            # 单写者不变量：score_first 之前心跳必停。
+            await narrator.stop()
         final_content = str((stream_plan or {}).get("final_text") or "").strip()
         if not final_content:
             # Fall-through-to-understanding (P0 2026-07-29): a V1 operational
