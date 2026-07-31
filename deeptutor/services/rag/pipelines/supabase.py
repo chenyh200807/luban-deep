@@ -2916,11 +2916,18 @@ class SupabasePipeline:
                 score = float(row.get("similarity") or row.get("score") or 0.0)
                 if score < 0.70:
                     continue
-                if not self._case_question_row_matches_query(
-                    row,
-                    query=match_query,
-                    query_shape=query_shape,
-                    exact_probe=exact_probe,
+                identity_surface = " ".join(
+                    value
+                    for value in [
+                        str(row.get("background_context") or "").strip(),
+                        str(row.get("stem") or row.get("question_stem") or "").strip(),
+                    ]
+                    if value
+                )
+                if not exact_question_identity_corresponds(
+                    original_query=match_query,
+                    matched_stem=identity_surface,
+                    question_type=str(row.get("question_type") or ""),
                 ):
                     continue
                 row["_source_group"] = "question_bank_case_match"
@@ -2955,33 +2962,6 @@ class SupabasePipeline:
                 ),
             )
         ]
-
-    def _case_question_row_matches_query(
-        self,
-        row: dict[str, Any],
-        *,
-        query: str,
-        query_shape: str,
-        exact_probe: Any = None,
-    ) -> bool:
-        if exact_probe is not None or query_shape == "case_like":
-            return True
-        tokens = self._case_support_tokens(query)
-        if not tokens:
-            return False
-        haystack = " ".join(
-            [
-                str(row.get("stem") or ""),
-                str(row.get("question_stem") or ""),
-                str(row.get("card_title") or ""),
-                str(row.get("rag_content") or ""),
-            ]
-        ).lower()
-        overlap = 0
-        for token in tokens[:10]:
-            if token.lower() in haystack:
-                overlap += 1
-        return overlap >= min(3, max(2, len(tokens)))
 
     def _select_option_matched_question_bank_row(
         self,

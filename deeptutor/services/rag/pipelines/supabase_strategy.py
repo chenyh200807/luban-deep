@@ -996,11 +996,6 @@ def exact_question_identity_corresponds(
     against genuine paste variants (all >=0.94 coverage or contained).
     """
 
-    if str(question_type or "").strip().lower() in _EXACT_STEM_CASE_TYPES:
-        # 指挥官裁决(2026-07-12):case 家族收权推迟——case 型命中继续由
-        # case_bundle 覆盖判定裁决,此处保持无条件放行。触发重评条件:
-        # case 型假命中 live 证据,或案例家族战役开工。
-        return True
     if not _calculation_question_identity_corresponds(
         original_query=original_query,
         matched_stem=matched_stem,

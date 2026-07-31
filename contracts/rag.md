@@ -151,3 +151,10 @@
 - `tests/services/rag/test_supabase_strategy.py`
 - `tests/agents/chat/test_agentic_parallel_tools.py`
 - `tests/services/citations/test_normalizer.py`
+
+## Case exact identity（2026-07-31）
+
+`question_exact_*` 对 case/case_study 不得按 query shape、相似度或题型名称无条件放行。
+所有候选必须经过唯一的 `exact_question_identity_corresponds` 表面身份裁决；未能证明为同一题时，
+保留为普通 `questions_bank` 召回，不得铸成 exact authority。case bundle 只投影已经确认的
+子问覆盖，不承担题目身份裁决。
