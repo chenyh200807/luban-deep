@@ -1904,7 +1904,11 @@ class AgentLoop:
                     "matched_indexes": _own_index(),
                     "question_id": str(reference_context.get("question_id") or "").strip(),
                     "subquestions": (
-                        [{"index": _own_index(), "answer": _own_answer}]
+                        [{
+                            "index": _own_index(),
+                            "answer": _own_answer,
+                            "stem": str(reference_context.get("stem") or "").strip(),
+                        }]
                         if _own_answer and _own_index()
                         else []
                     ),
@@ -1943,7 +1947,15 @@ class AgentLoop:
                 if display_index:
                     matched_display_indexes.append(display_index)
                     if display_index.isdigit():
-                        subquestions.append({"index": display_index, "answer": answer})
+                        # OD-005 补刀：把该行**自己那一问的题面**一起带走。bundle 行的
+                        # surface = 共享背景 + 它自己那一问，是这一问题面的权威来源；
+                        # 判分核据此不必再去切分（切分只是退路，切错=拿兄弟问的题面
+                        # 去抽这一问的点，live 实证会直接产出串问采分点）。
+                        subquestions.append({
+                            "index": display_index,
+                            "answer": answer,
+                            "stem": str(item.get("surface") or item.get("prompt") or "").strip(),
+                        })
                 else:
                     indexless_adopted += 1
 

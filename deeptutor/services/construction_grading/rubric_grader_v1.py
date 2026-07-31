@@ -630,16 +630,23 @@ def case_subquestion_stem(question_stem: str, index: Any) -> str:
     OD-005 逐问抽取用：每问的抽取只该看自己那一问，否则 LLM 会从整份题面里把
     兄弟问的点也抽出来，逐问封顶就被"点位串问"绕开。切分复述题面原文、零内容
     真值断言（结构判据只做结构抽取，不裁决内容——teaching_modes.py:247 抗体）。
-    切不出该问时 fail-open 返回整题题面（不制造第二个切分权威、不假装切成功）。
+
+    **切不出该问时 fail-CLOSED 返回空串**（OD-005 补刀 2026-08-01 live 取证）：
+    上一版这里 fail-open 返回整题题面，而生产的 ``question_stem`` 是 **bank 行**
+    的题面（背景 + 只有它自己那一问）——于是问 2/3/4 全部拿到**问 1 的题面**，
+    抽取被题面带跑，产出问 1 的采分点顶着 q2/q3/q4 的号（live 实证 22:09 轮
+    q2 池 2.5 分全是"质量计划动态管理"）。学生逐字抄的问 1 答案再命中它们，
+    3.15 分凭空出现。**给错题面比不给题面坏得多**：空题面时抽取只看参考答案
+    （``_extract_prompt`` 的 stem 块整块省略），那才是这一问的真权威。
     """
     text = str(question_stem or "").strip()
     idx = _positive_int_or_none(index, max_value=30)
     if not text or idx is None:
-        return text
+        return ""
     titles = _extract_case_question_titles(text)
     title = str(titles.get(idx) or "").strip()
     if not title:
-        return text
+        return ""
     positions = [pos for pos in (text.find(t) for t in titles.values()) if pos > 0]
     head = text[: min(positions)] if positions else ""
     # 切点落在标题正文上，行首的 "问题N：" / "【问题】" 标记残留在 head 尾部——去掉。
