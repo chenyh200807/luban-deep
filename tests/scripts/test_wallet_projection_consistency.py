@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sqlite3
+from types import SimpleNamespace
 
 import pytest
 
+import scripts.audit_wallet_projection_consistency as audit_module
 from scripts.audit_wallet_projection_consistency import (
     audit_wallet_projection_consistency,
     build_wallet_projection_audit_sql,
@@ -32,6 +35,70 @@ def test_audit_wallet_projection_consistency_blocks_without_postgres(tmp_path: P
 
     assert summary["status"] == "blocked"
     assert (tmp_path / "wallet_projection_consistency.json").exists()
+
+
+def test_audit_executes_in_read_only_transaction_without_db_url_in_argv(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def _fake_run_command(command, **kwargs):
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return SimpleNamespace(stdout='on\n{"ledger_sum_diff_count": 0}\n')
+
+    monkeypatch.setattr(audit_module, "run_command", _fake_run_command)
+    summary = audit_wallet_projection_consistency(
+        output_dir=tmp_path,
+        env=WalletAuthorityEnv(db_url="postgresql://secret@example.invalid/app"),
+        limit=10,
+        execute=True,
+    )
+
+    assert summary["status"] == "ok"
+    assert summary["transaction_read_only"] is True
+    assert summary["result"]["ledger_sum_diff_count"] == 0
+    assert "postgresql://secret@example.invalid/app" not in captured["command"]
+    assert "ON_ERROR_STOP=1" in captured["command"]
+    assert captured["kwargs"]["env"]["PGHOST"] == "example.invalid"
+    assert captured["kwargs"]["env"]["PGDATABASE"] == "app"
+    assert captured["kwargs"]["env"]["PGUSER"] == "secret"
+    sql = captured["kwargs"]["input_text"].lower()
+    assert "begin transaction read only" in sql
+    assert "current_setting('transaction_read_only')" in sql
+    assert sql.rstrip().endswith("rollback;")
+
+
+def test_audit_rejects_session_that_is_not_read_only(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        audit_module,
+        "run_command",
+        lambda *_args, **_kwargs: SimpleNamespace(stdout='off\n{"ledger_sum_diff_count": 0}\n'),
+    )
+
+    with pytest.raises(RuntimeError, match="read-only"):
+        audit_wallet_projection_consistency(
+            output_dir=tmp_path,
+            env=WalletAuthorityEnv(db_url="postgresql://secret@example.invalid/app"),
+            execute=True,
+        )
+
+
+def test_main_returns_nonzero_when_audit_is_blocked(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(audit_module, "discover_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(audit_module, "resolve_wallet_env", lambda **_kwargs: WalletAuthorityEnv())
+    monkeypatch.setattr("sys.argv", ["audit_wallet_projection_consistency.py", "--execute"])
+
+    assert audit_module.main() == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "blocked"
 
 
 def test_build_rebuild_wallet_projection_sql_targets_single_user() -> None:
