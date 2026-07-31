@@ -2099,3 +2099,39 @@ def test_build_ctx_exports_reference_coverage_counts() -> None:
     ctx = AgentLoop._build_v1_case_ctx(md, paste)
     assert ctx["case_reference_covered_count"] == 1
     assert ctx["case_stem_subquestion_count"] == 4
+
+
+def test_coverage_numerator_uses_adopted_subquestions_not_row_count() -> None:
+    """P0-b（2026-08-01 live 实证）：覆盖分子必须是"参考答案实际采纳了几个小问"，
+    不是"检索回来几行兄弟行"——payload 报 4 行但按用户题面过滤后只采纳 1 问时，
+    分子必须是 1（旧行为算 4 → 1/4 的作答拿到 8/10）。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+            "covered_indexes": ["1", "2", "3", "4"],      # payload 说覆盖 4 个
+            "covered_subquestions": [
+                {"prompt": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+                 "authoritative_answer": "官方答案1", "display_index": "1"},
+                {"prompt": "问题2：写出完全不同主题的另一个小问内容？",
+                 "authoritative_answer": "官方答案2", "display_index": "2"},
+                {"prompt": "问题3：再一个不相关的小问内容描述？",
+                 "authoritative_answer": "官方答案3", "display_index": "3"},
+                {"prompt": "问题4：第四个不相关的小问内容描述？",
+                 "authoritative_answer": "官方答案4", "display_index": "4"},
+            ],
+        },
+    }
+    md["_prefetched_exact_question"]["correct_answer"] = "官方答案1"
+    # 学生贴了整题 4 问，但参考只采纳了与题面匹配的问题1
+    paste = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+             "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+             "问题2：写出质量缺陷名称有哪些内容？\n"
+             "问题3：写出防水构造层的名称？\n"
+             "问题4：补充完整治理工艺流程？\n"
+             "我的答案：我认为试验员记录不妥。")
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 1, (
+        f"分子应为实际采纳的 1 个小问，实得 {ctx['case_reference_covered_count']}"
+    )
+    assert ctx["case_stem_subquestion_count"] == 4
