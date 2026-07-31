@@ -50,6 +50,16 @@ def _worker(lock_env: str, data_path: str, prefix: str, count: int) -> None:
         _rmw_once(lock_env, data_path, f"{prefix}-{i}")
 
 
+def _resolve_lock_path(lock_env: str, results) -> None:
+    """Return one spawned worker's independently resolved lock path."""
+    import os
+
+    os.environ["DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE"] = lock_env
+    from deeptutor.services.member_console import external_auth as ea
+
+    results.put(str(ea._store_lock_path()))
+
+
 @pytest.fixture()
 def store(tmp_path, monkeypatch):
     users = tmp_path / "users.json"
@@ -72,14 +82,66 @@ def test_lock_path_does_not_depend_on_file_existence(tmp_path, monkeypatch):
         assert lock_path.exists()
 
 
+def test_implicit_legacy_store_and_lock_share_one_effective_path(
+    tmp_path, monkeypatch
+):
+    """受支持的 implicit legacy writer 不得被不可写 primary 锁路径阻断。"""
+    primary = tmp_path / "primary" / "users.json"
+    legacy = tmp_path / "legacy" / "users.json"
+    legacy.parent.mkdir()
+    legacy.write_text("{}", encoding="utf-8")
+    monkeypatch.delenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", raising=False)
+    monkeypatch.setattr(external_auth, "_PRIMARY_USERS_FILE", primary)
+    monkeypatch.setattr(external_auth, "_LEGACY_USERS_FILE", legacy)
+    monkeypatch.setattr(
+        external_auth, "_allow_legacy_external_auth_default", lambda: True
+    )
+
+    assert external_auth._resolve_users_file_for_write() == legacy
+    assert external_auth._store_lock_path() == legacy.with_name(
+        ".external_auth.lock"
+    )
+    with external_auth._STORE_LOCK:
+        assert external_auth._store_lock_path().exists()
+
+
+def test_lock_releases_after_exception(store):
+    """异常路径必须释放 thread lock 与 flock，后续 mutation 才不会永久挂死。"""
+    with pytest.raises(RuntimeError, match="boom"):
+        with external_auth._STORE_LOCK:
+            raise RuntimeError("boom")
+    with external_auth._STORE_LOCK:
+        assert external_auth._store_lock_path().exists()
+
+
 def test_all_processes_resolve_the_same_lock_path(tmp_path, monkeypatch):
     """互斥的唯一要求:所有 worker 算出同一个路径。"""
-    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "u.json"))
-    assert external_auth._store_lock_path() == external_auth._store_lock_path()
+    users = str(tmp_path / "u.json")
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", users)
+    expected = str(external_auth._store_lock_path())
+    ctx = mp.get_context("spawn")
+    results = ctx.Queue()
+    procs = [
+        ctx.Process(target=_resolve_lock_path, args=(users, results))
+        for _ in range(3)
+    ]
+    for proc in procs:
+        proc.start()
+    resolved = [results.get(timeout=30) for _ in procs]
+    for proc in procs:
+        proc.join(timeout=30)
 
+    assert all(proc.exitcode == 0 for proc in procs), "子进程异常退出"
+    assert resolved == [expected] * len(procs)
+
+    primary = tmp_path / "primary" / "users.json"
     monkeypatch.delenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", raising=False)
+    monkeypatch.setattr(external_auth, "_PRIMARY_USERS_FILE", primary)
+    monkeypatch.setattr(
+        external_auth, "_allow_legacy_external_auth_default", lambda: False
+    )
     fallback = external_auth._store_lock_path()
-    assert fallback.parent == external_auth._PRIMARY_USERS_FILE.parent
+    assert fallback.parent == primary.parent
 
 
 def test_threads_do_not_lose_updates(store):
