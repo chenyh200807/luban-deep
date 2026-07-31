@@ -997,7 +997,7 @@ async def bi_member_overlay_audit(
 
 
 @router.patch("/member/{user_id}/overlays/{bot_id}")
-async def bi_patch_member_overlay(
+def bi_patch_member_overlay(
     user_id: str,
     bot_id: str,
     body: Any = Body(...),
@@ -1017,7 +1017,7 @@ async def bi_patch_member_overlay(
 
 
 @router.post("/member/{user_id}/overlays/{bot_id}/promotions/apply")
-async def bi_apply_member_overlay_promotions(
+def bi_apply_member_overlay_promotions(
     user_id: str,
     bot_id: str,
     body: dict[str, Any] | None = Body(default=None),
@@ -1172,7 +1172,7 @@ async def bi_member_batch_action(
 
 
 @router.post("/member/manual-purchase")
-async def bi_manual_purchase_membership(
+def bi_manual_purchase_membership(
     body: ManualPurchaseRequest,
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
@@ -1197,7 +1197,7 @@ async def bi_manual_purchase_membership(
 
 
 @router.post("/member/manual-purchase/reverse")
-async def bi_reverse_manual_purchase_membership(
+def bi_reverse_manual_purchase_membership(
     body: ManualPurchaseReversalRequest,
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
