@@ -128,7 +128,7 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
-            "concept": {"label": "主体结构验收"},
+            "concept": {"label": "主体结构工程施工"},
             "error": {"label": "验收程序混淆"},
             "training_intent_id": "intent-1",
             "event_id": "evt-home-1",
@@ -375,7 +375,7 @@ def test_home_personalization_write_rejects_markerless_projection() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
-            "concept": {"label": "主体结构验收"},
+            "concept": {"label": "主体结构工程施工"},
             "error": {"label": "验收程序混淆"},
             "event_id": "evt-markerless",
         },
@@ -458,7 +458,7 @@ def test_home_personalization_write_persists_only_canonical_projection() -> None
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
-            "concept": {"label": "主体结构验收"},
+            "concept": {"label": "主体结构工程施工"},
             "error": {"label": "验收程序混淆"},
             "event_id": "evt-canonical-write",
         },
