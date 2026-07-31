@@ -305,6 +305,12 @@ def build_mode_execution_policy(
         normalized_selected = "deep" if normalized_requested == "deep" else "fast"
 
     if normalized_selected == "fast":
+        # 产品口径（主控裁决 2026-08-01）：**任何档位都不降判分质量**。fast 只压
+        # 主 agent 循环的 tool 轮数与时延预算（max_tool_rounds=1 / 6s），
+        # **不跳判分链**——案例判分永远跑完整 rubric + judge，且被钉在主模型上
+        # （capabilities/tutorbot.py 的 grading_turn 闸清空 fast_preferred_model）。
+        # 效率画像 §3.3 记录的"快速档≈没有体感差别"由**渐进吐字**兑现（判分正文
+        # 之前的顺序发射，contracts/turn.md「渐进发射不改变终态」），不是靠少判。
         return ModeExecutionPolicy(
             requested_mode=normalized_requested,
             selected_mode="fast",
