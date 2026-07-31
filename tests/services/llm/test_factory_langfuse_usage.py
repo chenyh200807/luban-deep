@@ -61,6 +61,10 @@ async def test_factory_complete_prefers_provider_usage_for_langfuse(monkeypatch)
         base_url="https://api.openai.com/v1",
         binding="openai",
         max_retries=0,
+        prompt_registry_identity={
+            "source_path": "deeptutor/agents/question/prompts/en/idea_agent.yaml",
+            "content_hash": "a" * 64,
+        },
     )
 
     assert result == "provider-ok"
@@ -73,6 +77,10 @@ async def test_factory_complete_prefers_provider_usage_for_langfuse(monkeypatch)
     assert fake_observability.started[-1]["metadata"]["prompt_content_hash"] == _prompt_content_hash(
         [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "hello"}]
     )
+    assert fake_observability.started[-1]["metadata"]["prompt_registry_identity"] == {
+        "source_path": "deeptutor/agents/question/prompts/en/idea_agent.yaml",
+        "content_hash": "a" * 64,
+    }
 
 
 @pytest.mark.asyncio

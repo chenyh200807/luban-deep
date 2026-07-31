@@ -250,6 +250,7 @@ async def complete(
     retry_delay: float = DEFAULT_RETRY_DELAY,
     exponential_backoff: bool = DEFAULT_EXPONENTIAL_BACKOFF,
     observation_name: str = "llm.complete",
+    prompt_registry_identity: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> str:
     """
@@ -475,6 +476,7 @@ async def complete(
             "provider_mode": provider_mode,
             "base_url": base_url,
             "prompt_content_hash": _prompt_content_hash(input_payload),
+            "prompt_registry_identity": dict(prompt_registry_identity or {}),
         },
         model=model,
         model_parameters=model_parameters,
@@ -536,6 +538,7 @@ async def stream(
     max_retries: int = DEFAULT_MAX_RETRIES,
     retry_delay: float = DEFAULT_RETRY_DELAY,
     exponential_backoff: bool = DEFAULT_EXPONENTIAL_BACKOFF,
+    prompt_registry_identity: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> AsyncGenerator[str, None]:
     """Stream LLM responses with retry handling."""
@@ -618,6 +621,7 @@ async def stream(
             "base_url": base_url,
             "streaming": True,
             "prompt_content_hash": _prompt_content_hash(input_payload),
+            "prompt_registry_identity": dict(prompt_registry_identity or {}),
         },
         model=model,
         model_parameters=model_parameters,
