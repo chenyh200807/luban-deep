@@ -2497,6 +2497,7 @@ async def _grade_one_case_v1(
     score_total_mismatch = False
     point_pool_excess = 0.0
     stem_fallback_used = ""
+    partial_scope = ""
     if points:
         try:
             _nominal = float((cg or {}).get("max_score") or 0)
@@ -2542,8 +2543,18 @@ async def _grade_one_case_v1(
                 model=_v1_model,
                 provider_authority=provider_authority,
             )
+            # P0 兜底满分根治（2026-08-01）：参考答案只覆盖部分小问时，点池不得
+            # 缩放到整题名义满分——否则"全中即满分"是结构性必然（live 实证 tier-2
+            # 命中 4/4 全 10/10，含弱答案）。按确定性覆盖比例缩放，分母保持整题满分。
+            _nominal_full = float((cg or {}).get("max_score") or 0)
+            _cov_n = int(ctx.get("case_reference_covered_count") or 0)
+            _sub_n = int(ctx.get("case_stem_subquestion_count") or 0)
+            _scope_ratio = 1.0
+            if _nominal_full > 0 and _sub_n > 1 and 0 < _cov_n < _sub_n:
+                _scope_ratio = _cov_n / _sub_n
+                partial_scope = f"{_cov_n}/{_sub_n}"
             points = _G.normalize_points_to_nominal(
-                points, nominal_total=float((cg or {}).get("max_score") or 0))
+                points, nominal_total=_nominal_full * _scope_ratio)
             provenance = "on_the_fly_reference"
         elif stem:
             # Tier 3: no official answer-key authority, but this is still a gradable learner need.
@@ -2670,6 +2681,17 @@ async def _grade_one_case_v1(
         event["point_pool_exceeds_max"] = point_pool_excess
     if stem_fallback_used:
         event["case_stem_fallback"] = stem_fallback_used
+    if partial_scope:
+        # 分母还原为整题名义满分：学生看到的是 "2.5 / 10"（诚实），而不是
+        # "10 / 10"（把 1/4 张卷子的满分说成整题满分）。
+        try:
+            _full = float((cg or {}).get("max_score") or 0)
+            if _full > 0:
+                event["max_score"] = _full
+        except (TypeError, ValueError):
+            pass
+        event["case_grading_partial_scope"] = partial_scope
+        event["official_score_allowed"] = False
     if is_diagnostic_rubric:
         event["grading_source"] = "rubric_scored_v1_diagnostic"
         event["answer_key_authority"] = "derived_from_stem_pending_calibration"

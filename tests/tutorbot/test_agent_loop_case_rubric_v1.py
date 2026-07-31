@@ -2073,3 +2073,29 @@ def test_case_stem_fallback_marker_projected_from_event() -> None:
     target: dict = {}
     copy_current_case_grading_turn_metadata(source, target)
     assert target["case_stem_fallback"] == "submission_text"
+
+
+def test_build_ctx_exports_reference_coverage_counts() -> None:
+    """P0 兜底满分根治（[luban_grading_engine] domain test）：ctx 必须携带确定性
+    覆盖计数——参考答案覆盖的小问数（来自 supabase covered_indexes，此前零消费者）
+    与学生题面小问总数，供判分核按比例缩放分母。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            # 兄弟行的真实形状：stem 就是那一个小问（与用户题面中该问逐字一致）
+            "stem": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+            "covered_indexes": ["1"],          # 兄弟行：只覆盖问题1
+            "covered_subquestions": [
+                {"prompt": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+                 "authoritative_answer": "官方答案1",
+                 "display_index": "1"},
+            ],
+        },
+    }
+    paste = ("【背景资料】某工程施工出现问题。\n"
+             "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+             "问题2：写出质量缺陷名称？\n问题3：写出防水构造层名称？\n"
+             "问题4：补充治理工艺流程？\n我的答案：只答了问题1。")
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 1
+    assert ctx["case_stem_subquestion_count"] == 4
