@@ -88,6 +88,18 @@ if TYPE_CHECKING:
 observability = get_langfuse_observability()
 
 
+def _extract_case_question_titles_for_scope(text: str) -> dict:
+    """题面小问计数（覆盖分母）——复用 rubric_grader_v1 的标题抽取单一权威。"""
+    try:
+        from deeptutor.services.construction_grading.rubric_grader_v1 import (
+            _extract_case_question_titles,
+        )
+
+        return _extract_case_question_titles(str(text or ""))
+    except Exception:  # noqa: BLE001 — 计数失败按未知处理（不缩放，不假装覆盖）
+        return {}
+
+
 class AgentLoop:
     """
     The agent loop is the core processing engine.
@@ -1787,6 +1799,19 @@ class AgentLoop:
             or fc.get("question_stem") or fc.get("question")
             or user_stem or ""
         )
+        # P0 兜底满分根治（2026-08-01 取证 PR#623）：参考答案只覆盖部分小问时，
+        # 分母必须诚实。exact 匹配按小问拆行存，命中的往往是**兄弟行**（只含 1 问的
+        # 答案钥匙），而 normalize_points_to_nominal 把该点池缩放到**整题名义满分** →
+        # 全中即 10/10（live 实证 tier-2 命中 4/4 全满分，含弱答案）。
+        # 覆盖比例用确定性信号：eq 的 covered_indexes（supabase 侧已按 display_index
+        # 算好、此前全仓零消费者）÷ 学生题面小问数——不靠 n-gram 事后猜（钉三实证
+        # 那条链同输入会给出 3/4 与 4/4 两个结果）。
+        _ref_covered = [
+            str(x).strip()
+            for x in (eq.get("covered_indexes") or [])
+            if str(x or "").strip().isdigit()
+        ]
+        _stem_titles = _extract_case_question_titles_for_scope(user_stem or str(eq.get("stem") or ""))
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
             "question_id": str(
@@ -1795,6 +1820,8 @@ class AgentLoop:
             # 覆盖对账必须对学生所见题面（live 实证：exact 命中单小问兄弟行时，
             # eq.stem 只含 1 问——拿 bank 行当整个世界，4 问粘贴被判 10/10）。
             "user_stem": user_stem,
+            "case_reference_covered_count": len(set(_ref_covered)),
+            "case_stem_subquestion_count": len(_stem_titles),
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
@@ -1926,6 +1953,7 @@ class AgentLoop:
                 ("case_rubric_score_total_mismatch", "case_rubric_score_total_mismatch"),
                 ("case_rubric_bank_slot", "case_rubric_bank_slot"),
                 ("case_stem_fallback", "case_stem_fallback"),
+                ("case_grading_partial_scope", "case_grading_partial_scope"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)
