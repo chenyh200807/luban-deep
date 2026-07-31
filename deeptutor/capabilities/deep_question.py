@@ -2498,6 +2498,7 @@ async def _grade_one_case_v1(
     point_pool_excess = 0.0
     stem_fallback_used = ""
     partial_scope = ""
+    scope_ratio = 1.0
     if points:
         try:
             _nominal = float((cg or {}).get("max_score") or 0)
@@ -2553,6 +2554,7 @@ async def _grade_one_case_v1(
             if _nominal_full > 0 and _sub_n > 1 and 0 < _cov_n < _sub_n:
                 _scope_ratio = _cov_n / _sub_n
                 partial_scope = f"{_cov_n}/{_sub_n}"
+            scope_ratio = _scope_ratio
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=_nominal_full * _scope_ratio)
             provenance = "on_the_fly_reference"
@@ -2681,15 +2683,19 @@ async def _grade_one_case_v1(
         event["point_pool_exceeds_max"] = point_pool_excess
     if stem_fallback_used:
         event["case_stem_fallback"] = stem_fallback_used
+    # 分数三字段唯一 finalizer（多写者收敛 2026-08-01 审计）：踩点封顶
+    # min(Σ命中, 范围上限) + 对外分母=整题名义满分。capability 层此后不改分。
+    # tier-1（compiled_rubric）刻意不参与封顶：cg.max_score 出自 V0 文本解析，
+    # 可靠性不足（实证夹具池 3/名义 1——按它封顶会把判对的分砍错）；编译库的
+    # 确定性封顶 = canonical 431 带逐点分值上服后的硬前置，在那之前只保留
+    # point_pool_exceeds_max observe-only marker，不动分。
+    if provenance != "compiled_rubric":
+        _G.finalize_case_score(
+            event,
+            nominal_full_score=float((cg or {}).get("max_score") or 0),
+            scope_ratio=scope_ratio,
+        )
     if partial_scope:
-        # 分母还原为整题名义满分：学生看到的是 "2.5 / 10"（诚实），而不是
-        # "10 / 10"（把 1/4 张卷子的满分说成整题满分）。
-        try:
-            _full = float((cg or {}).get("max_score") or 0)
-            if _full > 0:
-                event["max_score"] = _full
-        except (TypeError, ValueError):
-            pass
         event["case_grading_partial_scope"] = partial_scope
         event["official_score_allowed"] = False
     if is_diagnostic_rubric:

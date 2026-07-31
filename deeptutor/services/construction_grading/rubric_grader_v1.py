@@ -2201,6 +2201,47 @@ async def derive_rubric_from_stem_async(
     return points
 
 
+def finalize_case_score(
+    event: dict[str, Any], *, nominal_full_score: float = 0.0, scope_ratio: float = 1.0,
+) -> dict[str, Any]:
+    """题级分数唯一 finalizer（2026-08-01 codex 不变量审计：多写者收敛 + 踩点封顶）。
+
+    审计实证 event 的 awarded/max 此前有 4 个代码写点（grader 普通/PGO 构造、
+    capability 事后改写、batch 重求和）——本函数收敛为**事件构造后唯一合法写者**，
+    capability 层不得再改分（deep_question 的 partial-scope 事后改写块已删）。
+
+    三条不变量（缩放后封顶——命中与 cap 必须同一分值坐标系）：
+    - ``effective_scope_cap = nominal_full × scope_ratio``：本次判分范围的可得上限
+      （真题规则「踩点给分封顶」min(Σ命中, 小题满分) 的确定性实现；池>满分是
+      常态——431 采分点实证 Σ=30/满分20——无封顶则系统性打高分）。
+    - ``awarded_score = min(awarded, effective_scope_cap)``。
+    - ``max_score = nominal_full``（对外分母=整题名义满分，与「可得上限」分离，
+      部分覆盖时学生看到 2.5/10 而非 2.5/2.5）。
+    验算锚（审计 §2.2）：池 30 / 满分 20 / 命中 25 / 覆盖 2/4 → 8.33/20。
+    ``nominal_full_score<=0`` 时不动分数（无名义满分即无封顶依据，保持 grader 原值）。
+    Mutates event in place and returns it.
+    """
+    try:
+        nominal = float(nominal_full_score or 0)
+    except (TypeError, ValueError):
+        nominal = 0.0
+    if nominal <= 0:
+        return event
+    ratio = max(0.0, min(1.0, float(scope_ratio or 1.0)))
+    cap = round(nominal * (ratio if ratio > 0 else 1.0), 2)
+    try:
+        awarded = float(event.get("awarded_score") or 0)
+    except (TypeError, ValueError):
+        awarded = 0.0
+    capped = round(min(max(awarded, 0.0), cap), 2)
+    if capped < awarded:
+        event["case_score_capped_from"] = round(awarded, 2)
+    event["awarded_score"] = capped
+    event["max_score"] = round(nominal, 2)
+    event["scoring_scope_max"] = cap
+    return event
+
+
 def normalize_points_to_nominal(
     points: list[dict[str, Any]], *, nominal_total: float = 0.0, fallback_base: float = 10.0,
 ) -> list[dict[str, Any]]:

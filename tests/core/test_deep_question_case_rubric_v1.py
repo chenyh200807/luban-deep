@@ -1071,3 +1071,75 @@ async def test_case_rubric_v1_partial_reference_scope_honest_denominator(
     ev_full = await _grade_one_case_v1(ctx_full, student_id="s1", complete=None, key="k", _G=G)
     assert "case_grading_partial_scope" not in ev_full
     assert ev_full["awarded_score"] == ev_full["max_score"] == 10.0
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_finalizer_audit_anchor_numbers(monkeypatch: pytest.MonkeyPatch) -> None:
+    """单一 finalizer 验算锚（codex 不变量审计 §2.2）：池 30 / 名义满分 20 /
+    命中 25 / 覆盖 2/4 → 缩放后命中 8.33、对外 8.33/20。同时验证 capability
+    层不再事后改分（分数三字段全部出自 finalize_case_score）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+
+    async def _fake_extract(reference, stem, complete_fn, api_key, *, model="deepseek-chat",
+                            provider_authority=""):
+        return [
+            {"point_id": "R1", "text": "点一", "score": 10.0, "policy": "list", "required_terms": []},
+            {"point_id": "R2", "text": "点二", "score": 10.0, "policy": "list", "required_terms": []},
+            {"point_id": "R3", "text": "点三", "score": 10.0, "policy": "list", "required_terms": []},
+        ]
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"R1": {"status": G.HIT}, "R2": {"status": G.HIT},
+                "R3": {"status": G.PARTIAL, "partial_ratio": 0.5}}
+
+    monkeypatch.setattr(G, "extract_rubric_from_reference_async", _fake_extract)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+    event = await _grade_one_case_v1(
+        {"question_id": "", "user_answer": "我的作答内容",
+         "question_stem": "【背景资料】某工程。\n问题1：A？\n问题2：B？\n问题3：C？\n问题4：D？",
+         "correct_answer": "问题1与问题2的官方答案",
+         "case_reference_covered_count": 2, "case_stem_subquestion_count": 4,
+         "construction_grading_result": {"type": "case", "max_score": 20}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["max_score"] == 20.0
+    assert event["scoring_scope_max"] == 10.0
+    assert abs(event["awarded_score"] - 8.33) <= 0.02, f"实得 {event['awarded_score']}"
+    assert event["case_grading_partial_scope"] == "2/4"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_tier1_pool_capped_at_nominal(monkeypatch: pytest.MonkeyPatch) -> None:
+    """tier-1 封顶门禁（2026-08-01 裁决）：编译点池 Σ=30 > 名义满分 20 时
+    **现阶段不封顶**——cg.max_score 出自 V0 文本解析不可靠（实证夹具池 3/名义 1），
+    按它封顶会砍错判对的分；确定性封顶 = canonical 431 带逐点分值上服的硬前置。
+    本测试钉住 observe-only 语义，防止封顶在前置未满足时被误开。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    pool = [
+        {"point_id": f"C{i}", "text": f"编译点{i}", "score": 10.0, "policy": "list",
+         "required_terms": []} for i in range(3)
+    ]
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [dict(p) for p in pool] if qid == "8817" else [])
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {p["point_id"]: {"status": G.HIT} for p in points}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+    event = await _grade_one_case_v1(
+        {"question_id": "8817", "user_answer": "我的作答", "question_stem": "题面",
+         "correct_answer": "官方答案",
+         "construction_grading_result": {"type": "case", "max_score": 20}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    # tier-1 现阶段刻意不封顶（cg.max_score 出自 V0 解析不可靠；确定性封顶
+    # = canonical 431 带逐点分值上服的硬前置），只发 observe-only marker。
+    assert event["awarded_score"] == 30.0
+    assert event["max_score"] == 30.0
+    assert "case_score_capped_from" not in event
+    assert event["point_pool_exceeds_max"] > 0
