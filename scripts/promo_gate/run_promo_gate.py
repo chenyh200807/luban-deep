@@ -27,6 +27,16 @@
   A10 局部覆盖必须诚实:metadata 的 case_grading_partial_scope 在场时,学员可见
      分母必须是整题名义满分(scenario.nominal_full_score),得分不得超过
      满分×覆盖比例,且 grading_official_score_allowed 必须为 false。
+
+场景私有断言类型(scenario JSON 的 assertions[].type,id 自取):
+  metadata_equals   result 事件 metadata 的 key **全等** value(不做子串匹配——
+                    dynamic_parallel_subquestion_groups 与
+                    dynamic_parallel_question_groups 互为近邻,子串判定必误判);
+  metadata_present  metadata 的 key 存在且非空(值原样入证据);
+  score_max         回复中分母 == denominator 的得分对里最高 X <= value(封顶回归位);
+  score_min         回复中分母 == denominator 的得分对里最高 X >= value(误封顶回归位);
+  contains_any / contains_all / not_contains_any / min_length  纯文本面。
+  score_* / metadata_* 一律 **fail-closed**:解析不到证据 = FAIL,不算绿。
 """
 
 from __future__ import annotations
@@ -252,6 +262,86 @@ def check_a10(
     )
 
 
+def _pairs_at_denominator(text: str, denominator: float | None) -> list[tuple[float, float]]:
+    pairs = _score_pairs(text)
+    if denominator is None:
+        return pairs
+    return [(x, y) for x, y in pairs if abs(y - denominator) <= 0.01]
+
+
+def check_metadata_equals(assertion: dict[str, Any], metadata: dict[str, Any] | None) -> dict[str, Any]:
+    """marker 全等断言。
+
+    **绝不子串匹配**:`dynamic_parallel_subquestion_groups` 与
+    `dynamic_parallel_question_groups`、`case_bundle_source` 的
+    `group_query`/`single_row_fallback` 这类值互为近邻,子串判定会把"走了旧链"
+    读成"新链在服"。取不到 metadata / marker 缺席一律 FAIL(证据缺失不算绿)。"""
+    aid = str(assertion.get("id") or "GEN")
+    key = str(assertion.get("key") or "")
+    expected = str(assertion.get("value") if assertion.get("value") is not None else "")
+    if not key:
+        return _result(aid, None, "metadata_equals 未配置 key,按 SKIP 处理")
+    if metadata is None:
+        return _result(aid, False, f"未取到 result 事件 metadata,无法校验 {key}=={expected!r}")
+    if key not in metadata:
+        return _result(aid, False, f"metadata 缺 marker `{key}`(期望 {expected!r})——该链未在服")
+    actual = str(metadata.get(key) if metadata.get(key) is not None else "").strip()
+    if actual == expected:
+        return _result(aid, True, f"{key}={actual!r} 全等期望值")
+    return _result(aid, False, f"{key}={actual!r} != 期望 {expected!r}(全等判定,不接受子串近邻)")
+
+
+def check_metadata_present(assertion: dict[str, Any], metadata: dict[str, Any] | None) -> dict[str, Any]:
+    aid = str(assertion.get("id") or "GEN")
+    key = str(assertion.get("key") or "")
+    if not key:
+        return _result(aid, None, "metadata_present 未配置 key,按 SKIP 处理")
+    if metadata is None:
+        return _result(aid, False, f"未取到 result 事件 metadata,无法校验 `{key}` 在场")
+    value = metadata.get(key)
+    if key in metadata and str(value if value is not None else "").strip():
+        return _result(aid, True, f"{key}={str(value)[:120]!r} 在场且非空")
+    return _result(aid, False, f"metadata 缺 marker `{key}` 或为空(实得 {value!r})——该链未在服")
+
+
+def check_score_max(assertion: dict[str, Any], text: str) -> dict[str, Any]:
+    """封顶回归位:分母 == denominator 的得分对里,最高 X 不得超过 value。"""
+    aid = str(assertion.get("id") or "GEN")
+    value = float(assertion.get("value"))
+    denom = assertion.get("denominator")
+    denom_f = float(denom) if denom is not None else None
+    pairs = _pairs_at_denominator(text, denom_f)
+    if not pairs:
+        return _result(
+            aid, False,
+            f"回复中解析不到分母={denom_f} 的 X/Y 得分对,封顶无从校验(证据缺失不算绿);"
+            f"全部得分对={_score_pairs(text)}",
+        )
+    worst = max(x for x, _ in pairs)
+    if worst <= value + 1e-9:
+        return _result(aid, True, f"最高得分 {worst} <= 封顶 {value}(分母={denom_f} 得分对 {pairs})")
+    return _result(aid, False, f"最高得分 {worst} > 封顶 {value}(分母={denom_f} 得分对 {pairs})")
+
+
+def check_score_min(assertion: dict[str, Any], text: str) -> dict[str, Any]:
+    """误封顶回归位:分母 == denominator 的得分对里,最高 X 不得低于 value。"""
+    aid = str(assertion.get("id") or "GEN")
+    value = float(assertion.get("value"))
+    denom = assertion.get("denominator")
+    denom_f = float(denom) if denom is not None else None
+    pairs = _pairs_at_denominator(text, denom_f)
+    if not pairs:
+        return _result(
+            aid, False,
+            f"回复中解析不到分母={denom_f} 的 X/Y 得分对,下限无从校验(证据缺失不算绿);"
+            f"全部得分对={_score_pairs(text)}",
+        )
+    best = max(x for x, _ in pairs)
+    if best >= value - 1e-9:
+        return _result(aid, True, f"最高得分 {best} >= 下限 {value}(分母={denom_f} 得分对 {pairs})")
+    return _result(aid, False, f"最高得分 {best} < 下限 {value}(分母={denom_f} 得分对 {pairs})——全答被封顶误伤")
+
+
 def check_generic(assertion: dict[str, Any], text: str) -> dict[str, Any]:
     aid = str(assertion.get("id") or "GEN")
     atype = str(assertion.get("type") or "")
@@ -284,8 +374,21 @@ def evaluate_assertions(
     )
     for assertion in scenario.get("assertions", []):
         aid = str(assertion.get("id") or "")
+        atype = str(assertion.get("type") or "")
         if assertion.get("skip"):
             results.append(_result(aid, None, str(assertion.get("note") or "预留断言")))
+            continue
+        if atype == "metadata_equals":
+            results.append(check_metadata_equals(assertion, metadata))
+            continue
+        if atype == "metadata_present":
+            results.append(check_metadata_present(assertion, metadata))
+            continue
+        if atype == "score_max":
+            results.append(check_score_max(assertion, text))
+            continue
+        if atype == "score_min":
+            results.append(check_score_min(assertion, text))
             continue
         if aid == "A1":
             results.append(check_a1(text, list(assertion.get("missing_tokens") or [])))
@@ -329,6 +432,11 @@ KEYS = [
     # P0 分母修复(2026-08-01)的判据面:局部覆盖比例 + 官方成绩闸 + 命中的 bank 行
     "case_grading_partial_scope", "grading_official_score_allowed",
     "case_grading_direct_attempt_qid", "case_subq_coverage",
+    # 方案 C(题级组取全)+ OD-005(逐问抽取/逐问封顶)的判据面:
+    # 这两族 marker 是「新链到底在不在服」的唯一分组依据,缺席即判 FAIL。
+    "case_bundle_source", "case_bundle_hydration", "case_answer_conflict_unresolved",
+    "case_per_subq_grading", "case_subq_score_caps", "case_subq_uncovered",
+    "case_stem_fallback", "case_grading_adjudication_group_count",
 ]
 out = {{"found": False}}
 try:
@@ -511,7 +619,7 @@ def load_scenarios(only: list[str]) -> list[dict[str, Any]]:
         query_file = SCENARIO_DIR / scenario["query_file"]
         scenario["_query"] = query_file.read_text(encoding="utf-8").strip()
         scenarios.append(scenario)
-    order = {"T1": 1, "T2": 2, "T3": 3, "T4": 4, "T5": 5, "T6": 6, "T7": 7, "T8": 8}
+    order = {"T1": 1, "T2": 2, "T3": 3, "T4": 4, "T5": 5, "T6": 6, "T7": 7, "T8": 8, "T9": 9}
     scenarios.sort(key=lambda s: (order.get(s.get("question_group"), 9), s["id"]))
     return scenarios
 
@@ -614,7 +722,11 @@ def main(argv: list[str] | None = None) -> int:
         turn_ok = bool(turn_out.get("ok")) and bool(response.strip())
 
         metadata: dict[str, Any] | None = None
-        needs_remote = any(a.get("id") in ("A6", "A7", "A10") for a in scenario.get("assertions", []))
+        needs_remote = any(
+            a.get("id") in ("A6", "A7", "A10")
+            or str(a.get("type") or "").startswith("metadata_")
+            for a in scenario.get("assertions", [])
+        )
         if turn_id and not args.skip_remote:
             # 案例场景一律摘取 metadata 作观测;A6/A7 场景是断言必需
             if needs_remote or scenario.get("case_grading") or scenario.get("question_group") in ("T1", "T2", "T3", "T4"):
@@ -640,7 +752,10 @@ def main(argv: list[str] | None = None) -> int:
                     "score_authority", "grading_rubric_provenance", "selected_mode",
                     "execution_path", "turn_capability",
                     "case_grading_partial_scope", "grading_official_score_allowed",
-                    "case_grading_direct_attempt_qid")
+                    "case_grading_direct_attempt_qid",
+                    "case_bundle_source", "case_bundle_hydration",
+                    "case_per_subq_grading", "case_subq_score_caps",
+                    "case_grading_adjudication_strategy", "case_stem_fallback")
             } if metadata else None,
             "response_excerpt": response[:400],
         }

@@ -1,0 +1,43 @@
+{
+  "id": "t9_full_paper_full_answer",
+  "question_group": "T9",
+  "form": "gold_v2_high_full_paper",
+  "qid": "Q2023-03",
+  "title": "金标v2·Q2023-03高能力档整卷全答(金标 expected_score_ratio=0.84)·全答不得被封顶误伤",
+  "query_file": "queries/t9_full_paper_full_answer.txt",
+  "official_full_score": 20,
+  "nominal_full_score": 10,
+  "case_grading": true,
+  "gold_pack": "docs/原始数据/数据盘点/extractions/gold_pack_v2/student_army_gold.v2.pilot.json",
+  "gold_answer_id": "Q2023-03::high",
+  "gold_expected_score_ratio": 0.84,
+  "gold_expected_point_score": 16.8,
+  "note": "OD-005(逐问抽取 + 逐问封顶)的**对照面**,与 t8_group_bundle_half 同一张卷、同一题面,唯一差异是作答完整度:t8 只答 1/4 问必须封顶 ≤3/10,t9 四问全答必须拿得到分。封顶只该压住没答的问,不该压住答满的问——单侧断言(只有 t8)会把「一律压低」误读成修好了,所以两条必须成对常驻。金标 high 档得分率 0.84(16.8/20);阈值取 0.6(nominal 10 → ≥6 分)留足判分核波动余量。",
+  "assertions": [
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "A7"
+    },
+    {
+      "id": "T9_PERSUBQ",
+      "type": "metadata_present",
+      "key": "case_per_subq_grading",
+      "note": "逐问链必须在服(marker 缺席 = 走了旧的整段一次抽取,分不清这轮走的哪条链)。值原样入证据。"
+    },
+    {
+      "id": "T9_FLOOR",
+      "type": "score_min",
+      "denominator": 10,
+      "value": 6.0,
+      "note": "全答不得被封顶误伤:金标 high 档 0.84,阈值 0.6(nominal 10 → ≥6 分)。解析不到分母=10 的得分对即 FAIL(证据缺失不算绿)。"
+    }
+  ]
+}

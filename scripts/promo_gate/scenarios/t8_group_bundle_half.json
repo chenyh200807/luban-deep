@@ -1,0 +1,47 @@
+{
+  "id": "t8_group_bundle_half",
+  "question_group": "T8",
+  "form": "group_bundle_half_answer",
+  "qid": 9559,
+  "title": "治理组整卷案例题(2023办公楼·题库按小问拆存)·整题4问粘贴+只答问1·半答必须封顶",
+  "query_file": "queries/t8_group_bundle_half.txt",
+  "official_full_score": 20,
+  "nominal_full_score": 10,
+  "case_grading": true,
+  "sibling_rows": [17371, 17372, 17373, 17374],
+  "duplicate_row": 9559,
+  "renamed_from": "t8_partial_scope",
+  "note": "本测例是 2026-08-01「兄弟行局部覆盖」事故的永久入集位,语义随修复演进但从不放水:(1) 原病:questions_bank 把该案例按小问拆成兄弟行,整题粘贴时 exact 只命中一行,tier-2 参考只覆盖部分小问,点池被缩放到整题名义满分 → 全中即 10/10。(2) 方案 C(题级组取全,contracts/rag.md §45)之后,整卷粘贴的参考覆盖面已是 covered 4/4,`case_grading_partial_scope` 不再出现——原 A10(局部覆盖分母诚实)在本形态下已无可断面,替换为「治理组接线在场 + 逐问链在服 + 半答封顶」三条,断言强度不降反升。(3) 半答封顶口径:nominal 10 分 × 覆盖 1/4 = 2.5,容差 +0.5 → 上限 3.0。原 A9 skip(覆盖比例来源虚高)随该病治好而移除。",
+  "assertions": [
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "T8_BUNDLE",
+      "type": "metadata_equals",
+      "key": "case_bundle_source",
+      "value": "group_query",
+      "note": "① 治理组接线在场:整卷粘贴必须走题级组取全,不得回落 single_row_fallback / whole_row。全等判定。"
+    },
+    {
+      "id": "T8_PERSUBQ",
+      "type": "metadata_equals",
+      "key": "case_per_subq_grading",
+      "value": "4/4",
+      "note": "② 逐问链在服且四问全抽到点位。marker 值是数字形 \"4/4\",不是词形——判读用全等,别写 [a-z] 正则。"
+    },
+    {
+      "id": "T8_CAP",
+      "type": "score_max",
+      "denominator": 10,
+      "value": 3.0,
+      "note": "③ 半答封顶:只答 4 问中的 1 问,总分不得超过 nominal 10 × 1/4 = 2.5(容差 +0.5)。解析不到分母=10 的得分对即 FAIL(证据缺失不算绿)。"
+    }
+  ]
+}
