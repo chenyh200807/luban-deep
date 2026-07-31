@@ -386,6 +386,9 @@ domains:
       - web/context/UnifiedChatContext.tsx
     test_files:
       - tests/api/test_experience_invite_contract.py
+      # 2026-07-31 test2 SEV: post-turn overlay 投影不得把安全闸模板写进
+      # working_memory_projection（写进去下一轮会被注入回上下文再次命中，形成吸收态）。
+      - tests/tutorbot/test_guardrail_input_subject_authority.py
       - tests/services/test_experience_invite.py
       - yousenwebview/tests/test_experience_billing_contract.js
       - tests/services/learner_state/test_lesson_evidence.py
@@ -954,6 +957,10 @@ domains:
       # WP4 科目薄切: loop.py 注入 get_subject_declaration_instruction()（protected loop.py）;
       # test_subject_declaration_instruction_exists_and_wired_into_loop 守门该 wiring。
       - tests/core/test_generation_topic_and_subject_authority.py
+      # 2026-07-31 test2 SEV: 入口安全闸的主语必须是学生真实提交(raw_user_message)，
+      # 不是 turn_runtime 组装出来的 current_message；否则注入的 `### 局部工作记忆投影`
+      # 会让系统自证有罪，整卷案例提交被确定性拒答（protected loop.py）。
+      - tests/tutorbot/test_guardrail_input_subject_authority.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
