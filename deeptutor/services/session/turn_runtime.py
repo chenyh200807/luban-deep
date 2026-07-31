@@ -2943,12 +2943,24 @@ class TurnRuntimeManager:
                                     get_bot_learner_overlay_service,
                                 )
 
-                                operations: list[dict[str, Any]] = [
-                                    {
-                                        "op": "set",
-                                        "field": "working_memory_projection",
-                                        "value": assistant_content.strip()[:500],
-                                    },
+                                from deeptutor.services.security.tutorbot_security_skill import (
+                                    is_security_template_response,
+                                )
+
+                                operations: list[dict[str, Any]] = []
+                                # 安全闸模板不是学习事实：把它投影进 working_memory 会在下一轮
+                                # 被当成 `### 局部工作记忆投影` 证据注回上下文，闸再次命中自己
+                                # 吐出的文案 → 吸收态（2026-07-31 test2 SEV，该学员被永久拒答）。
+                                # 单一判据由安全 skill 自己给（不新建第二套模板清单）。
+                                if not is_security_template_response(assistant_content):
+                                    operations.append(
+                                        {
+                                            "op": "set",
+                                            "field": "working_memory_projection",
+                                            "value": assistant_content.strip()[:500],
+                                        }
+                                    )
+                                operations.append(
                                     {
                                         "op": "merge",
                                         "field": "engagement_state",
@@ -2957,8 +2969,8 @@ class TurnRuntimeManager:
                                             "last_context_route": str(context_route or "").strip(),
                                             "last_capability": str(capability_name or "chat").strip(),
                                         },
-                                    },
-                                ]
+                                    }
+                                )
                                 if task_anchor_type and task_anchor_type != "none":
                                     operations.append(
                                         {

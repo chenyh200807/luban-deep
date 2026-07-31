@@ -22,6 +22,24 @@ PRODUCT_IDENTITY_RESPONSE_ZH = (
 )
 
 
+#: 安全闸自己发射的固定文案。它们是「闸的输出」，不是「学员的学习事实」——
+#: 任何把 assistant 正文投影进学员长期/局部状态的 writer 必须先用
+#: ``is_security_template_response`` 排除，否则拒答会被回写成学员状态、
+#: 下一轮再被注入回上下文，形成自我强化的吸收态
+#: （2026-07-31 test2 SEV：整卷案例提交被永久拒答）。
+SECURITY_TEMPLATE_RESPONSES_ZH: tuple[str, ...] = (
+    INTERNAL_INFO_REFUSAL_ZH,
+    PRODUCT_IDENTITY_RESPONSE_ZH,
+)
+
+
+def is_security_template_response(text: str | None) -> bool:
+    """本轮可见正文是否就是安全闸的固定模板（而非真实教学输出）。"""
+
+    source = str(text or "").strip()
+    return bool(source) and source in SECURITY_TEMPLATE_RESPONSES_ZH
+
+
 @dataclass(frozen=True)
 class TutorBotSecurityDecision:
     blocked: bool

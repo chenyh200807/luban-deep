@@ -4979,7 +4979,23 @@ class AgentLoop:
                     ),
                 )
 
-        guard = classify_tutorbot_user_input(current_message)
+        # 入口闸的主语只能是「学生真实提交」——单一权威是 persist_user_content
+        # (= metadata.raw_user_message，见 4824-4825 与 _case_submission_surface 的同一口径)。
+        # 绝不能是 runtime 组装出来的 current_message：后者由 turn_runtime 的 context pack
+        # 拼成（`## 参考证据` / `### 当前题目` / `### 局部工作记忆投影` + `## 当前用户问题`，
+        # 见 services/session/turn_runtime.py:_render_evidence_block / 4137-4153），里面全是
+        # **本系统自己注入的内部上下文**。classify_user_input 的模式族是为「学生索取内部状态」
+        # 设计的，拿它去审自己注入的章节标题必然自证有罪。
+        #
+        # 2026-07-31 test2 SEV（整卷案例提交被确定性拒答）根因即此：
+        #   1. 判分正文以「…现在按小问逐条批改你的作答。」开头，被 turn_runtime 的 post-turn
+        #      回写存进 overlay.working_memory_projection；
+        #   2. 下一轮该文本被注入成 `### 局部工作记忆投影\n…现在按小问逐条…`，命中
+        #      internal_learner_memory_extraction（标签 + 48 字内的「逐条」）；
+        #   3. 闸吐 INTERNAL_INFO_REFUSAL_ZH，拒答又被回写进 working_memory，
+        #      而拒答自身含「…发给我」同样命中 → 吸收态，该学员此后每一轮都被拒答。
+        # 注入上下文的权威是 sanitize_untrusted_context（只消毒、绝不拦），不是入口闸。
+        guard = classify_tutorbot_user_input(persist_user_content)
         if guard.blocked:
             refusal = guard.content or ""
             session.add_message(
