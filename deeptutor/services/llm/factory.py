@@ -39,6 +39,8 @@ Retry Mechanism:
 import asyncio
 from collections.abc import AsyncGenerator, Mapping
 from datetime import datetime, timezone
+import hashlib
+import json
 from typing import TYPE_CHECKING, TypedDict
 
 import tenacity
@@ -77,6 +79,17 @@ DEFAULT_RETRY_DELAY = settings.retry.base_delay
 DEFAULT_EXPONENTIAL_BACKOFF = settings.retry.exponential_backoff
 
 CallKwargs = dict[str, object]
+
+
+def _prompt_content_hash(input_payload: object) -> str:
+    canonical = json.dumps(
+        input_payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _try_get_llm_config_for_traffic() -> LLMConfig | None:
@@ -461,6 +474,7 @@ async def complete(
             "provider_name": provider_name,
             "provider_mode": provider_mode,
             "base_url": base_url,
+            "prompt_content_hash": _prompt_content_hash(input_payload),
         },
         model=model,
         model_parameters=model_parameters,
@@ -603,6 +617,7 @@ async def stream(
             "provider_mode": provider_mode,
             "base_url": base_url,
             "streaming": True,
+            "prompt_content_hash": _prompt_content_hash(input_payload),
         },
         model=model,
         model_parameters=model_parameters,
