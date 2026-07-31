@@ -2488,6 +2488,101 @@ async def _emit_case_grading_stage(
         logger.warning("case_rubric_v1: grading stage progress hook failed", exc_info=True)
 
 
+def _per_subquestion_grading_enabled() -> bool:
+    """OD-005 kill switch（默认 ON）：``LUBAN_CASE_PER_SUBQ_GRADING=off`` 逐字回旧形状
+    （整段一次抽取 + 只有整题范围封顶）。"""
+    import os as _os
+
+    return str(_os.environ.get("LUBAN_CASE_PER_SUBQ_GRADING", "") or "").strip().lower() not in (
+        "false", "0", "off", "no",
+    )
+
+
+def _case_reference_subquestions(ctx: dict[str, Any]) -> list[dict[str, str]]:
+    """Pure: ctx 里的 per-问参考答案结构（治理组 bundle 才有），做完整性核验。
+
+    OD-005：判分核只在**参考本身就是逐问结构化**时走逐问链——不去把拼接串再切
+    一次（那会新起一个切分权威，且切错就把答案错绑到别的问）。少于 2 问、缺序号、
+    缺答案一律回落旧的整段路径（fail-open 到既有行为，不是 fail-closed 拒答）。
+    """
+    if not _per_subquestion_grading_enabled():
+        return []
+    raw = ctx.get("case_reference_subquestions")
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        index = str(item.get("index") or "").strip()
+        answer = str(item.get("answer") or "").strip()
+        if not index.isdigit() or not answer or index in seen:
+            continue
+        seen.add(index)
+        out.append({"index": index, "answer": answer})
+    return out if len(out) >= 2 else []
+
+
+async def _extract_rubric_per_subquestion(
+    subquestions: list[dict[str, str]], *, stem: str, nominal_full_score: float,
+    subquestion_total: int, complete: Any, key: str, _G: Any,
+    model: str, provider_authority: str,
+) -> tuple[list[dict[str, Any]], dict[str, float], int]:
+    """每小问独立抽取采分点 → (points, per-问封顶表, 实际有点位的小问数)。
+
+    - 每问一次 ``extract_rubric_from_reference_async``（并发 gather，L4 心跳已在
+      覆盖窗口内），题面只给该问（``case_subquestion_stem``）。
+    - 每问名义满分 = 整题名义满分 / 题面小问数（**均分**——questions_bank 行不带
+      per-问分值，见 PR Deviations）；点池按该值归一。
+    - ``point_id`` 加问号前缀：4 次抽取各自产出 P1..Pn，不改前缀会跨问撞键，
+      verdicts 按 point_id 索引 → 判分静默错绑（这是逐问链的真陷阱，不是洁癖）。
+    - ``question_no`` 由**结构化事实**（该答案来自哪一问）确定性盖章，不信 LLM 自报。
+    - 某问抽取失败/空 → 该问不进封顶表也不贡献点位（等价于"参考没覆盖这一问"），
+      分母仍是整题名义满分，学生看到的是诚实的部分覆盖，不是凭空满分。
+    """
+    import asyncio as _asyncio
+
+    total = max(int(subquestion_total or 0), len(subquestions))
+    per_sub_nominal = round(float(nominal_full_score) / total, 4) if total > 0 else 0.0
+    results = await _asyncio.gather(
+        *(
+            _G.extract_rubric_from_reference_async(
+                sub["answer"],
+                _G.case_subquestion_stem(stem, sub["index"]),
+                complete,
+                key,
+                model=model,
+                provider_authority=provider_authority,
+            )
+            for sub in subquestions
+        ),
+        return_exceptions=True,
+    )
+    points: list[dict[str, Any]] = []
+    caps: dict[str, float] = {}
+    covered = 0
+    for sub, result in zip(subquestions, results):
+        if isinstance(result, BaseException) or not result:
+            logger.warning(
+                "LUBAN_V1 per-subq extraction empty/failed for subquestion {}", sub["index"]
+            )
+            continue
+        scaled = _G.normalize_points_to_nominal(result, nominal_total=per_sub_nominal)
+        index = int(sub["index"])
+        for position, point in enumerate(scaled, 1):
+            if not isinstance(point, dict):
+                continue
+            points.append(dict(
+                point,
+                question_no=index,
+                point_id=f"q{index}_{point.get('point_id') or position}",
+            ))
+        caps[f"q{index}"] = per_sub_nominal
+        covered += 1
+    return points, caps, covered
+
+
 async def _grade_one_case_v1(
     ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
@@ -2521,6 +2616,8 @@ async def _grade_one_case_v1(
     stem_fallback_used = ""
     partial_scope = ""
     scope_ratio = 1.0
+    subquestion_caps: dict[str, float] = {}
+    per_subq_grading = ""
     if points:
         try:
             _nominal = float((cg or {}).get("max_score") or 0)
@@ -2562,29 +2659,54 @@ async def _grade_one_case_v1(
             bool(reference), len(reference), bool(stem), len(stem),
         )
         if reference:
-            await _emit_case_grading_stage(on_stage, "rubric_source", tier="reference")
-            points = await _G.extract_rubric_from_reference_async(
-                reference,
-                stem,
-                complete,
-                key,
-                model=_v1_model,
-                provider_authority=provider_authority,
-            )
-            # P0 兜底满分根治（2026-08-01）：参考答案只覆盖部分小问时，点池不得
-            # 缩放到整题名义满分——否则"全中即满分"是结构性必然（live 实证 tier-2
-            # 命中 4/4 全 10/10，含弱答案）。按确定性覆盖比例缩放，分母保持整题满分。
             _nominal_full = float((cg or {}).get("max_score") or 0)
-            _cov_n = int(ctx.get("case_reference_covered_count") or 0)
-            _sub_n = int(ctx.get("case_stem_subquestion_count") or 0)
-            _scope_ratio = 1.0
-            if _nominal_full > 0 and _sub_n > 1 and 0 < _cov_n < _sub_n:
-                _scope_ratio = _cov_n / _sub_n
-                partial_scope = f"{_cov_n}/{_sub_n}"
-            scope_ratio = _scope_ratio
-            points = _G.normalize_points_to_nominal(
-                points, nominal_total=_nominal_full * _scope_ratio)
-            provenance = "on_the_fly_reference"
+            _subq_refs = _case_reference_subquestions(ctx)
+            if _subq_refs and _nominal_full > 0:
+                # OD-005（2026-08-01）：逐小问独立抽取 + 逐小问封顶。
+                _sub_n = max(int(ctx.get("case_stem_subquestion_count") or 0), len(_subq_refs))
+                await _emit_case_grading_stage(
+                    on_stage, "rubric_source", tier="reference",
+                    subquestion_count=len(_subq_refs),
+                )
+                points, subquestion_caps, _covered_n = await _extract_rubric_per_subquestion(
+                    _subq_refs,
+                    stem=stem,
+                    nominal_full_score=_nominal_full,
+                    subquestion_total=_sub_n,
+                    complete=complete,
+                    key=key,
+                    _G=_G,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                )
+                scope_ratio = (_covered_n / _sub_n) if _sub_n > 0 else 1.0
+                if 0 < _covered_n < _sub_n:
+                    partial_scope = f"{_covered_n}/{_sub_n}"
+                per_subq_grading = f"{_covered_n}/{_sub_n}"
+                provenance = "on_the_fly_reference"
+            else:
+                await _emit_case_grading_stage(on_stage, "rubric_source", tier="reference")
+                points = await _G.extract_rubric_from_reference_async(
+                    reference,
+                    stem,
+                    complete,
+                    key,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                )
+                # P0 兜底满分根治（2026-08-01）：参考答案只覆盖部分小问时，点池不得
+                # 缩放到整题名义满分——否则"全中即满分"是结构性必然（live 实证 tier-2
+                # 命中 4/4 全 10/10，含弱答案）。按确定性覆盖比例缩放，分母保持整题满分。
+                _cov_n = int(ctx.get("case_reference_covered_count") or 0)
+                _sub_n = int(ctx.get("case_stem_subquestion_count") or 0)
+                _scope_ratio = 1.0
+                if _nominal_full > 0 and _sub_n > 1 and 0 < _cov_n < _sub_n:
+                    _scope_ratio = _cov_n / _sub_n
+                    partial_scope = f"{_cov_n}/{_sub_n}"
+                scope_ratio = _scope_ratio
+                points = _G.normalize_points_to_nominal(
+                    points, nominal_total=_nominal_full * _scope_ratio)
+                provenance = "on_the_fly_reference"
         elif stem:
             # Tier 3: no official answer-key authority, but this is still a gradable learner need.
             # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
@@ -2682,9 +2804,13 @@ async def _grade_one_case_v1(
     await _emit_case_grading_stage(on_stage, "rubric_ready", point_count=len(points))
     # The progress kwarg is only threaded when an observer exists, so third-party /
     # test doubles for ``_G`` keep their current signature (additive, not breaking).
-    _judge_progress_kwargs = (
+    _judge_progress_kwargs: dict[str, Any] = (
         {"on_group_done": _on_judge_group_done} if on_stage is not None else {}
     )
+    # OD-005：逐问抽取时"一组=一问"，逐组发射即"问 k 判完"。仅在该链声明，
+    # 其它调用方与测试替身的签名不受影响（additive）。
+    if subquestion_caps:
+        _judge_progress_kwargs["prefer_subquestion_groups"] = True
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
         complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model,
@@ -2733,11 +2859,16 @@ async def _grade_one_case_v1(
     # 确定性封顶 = canonical 431 带逐点分值上服后的硬前置，在那之前只保留
     # point_pool_exceeds_max observe-only marker，不动分。
     if provenance != "compiled_rubric":
+        # OD-005：逐问封顶与整题范围封顶串联，写分者仍只有 finalize_case_score 一个。
+        _finalize_kwargs = {"subquestion_caps": subquestion_caps} if subquestion_caps else {}
         _G.finalize_case_score(
             event,
             nominal_full_score=float((cg or {}).get("max_score") or 0),
             scope_ratio=scope_ratio,
+            **_finalize_kwargs,
         )
+    if per_subq_grading:
+        event["case_per_subq_grading"] = per_subq_grading
     if partial_scope:
         event["case_grading_partial_scope"] = partial_scope
         event["official_score_allowed"] = False

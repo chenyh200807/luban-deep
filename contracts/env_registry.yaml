@@ -145,6 +145,10 @@ feature_flags:
   # （exact_question + covered_indexes），不取正文/sources —— 该轮正文已被穷举
   # 证实零消费者（效率画像 §5-W1）。默认 ON；off = 直通轮回全量检索（旧行为）。
   - {name: LUBAN_CASE_DIRECT_LEAN_RAG, default: true, kind: killswitch, read: hand_rolled}
+  # OD-005 逐小问抽取+逐小问封顶（2026-08-01）。治理组 bundle 的 N 问参考答案
+  # 不再拼接成一段自由抽取——每问独立抽取、每问 min(Σ命中, 名义满分/问数)。
+  # 默认 ON；off = 回旧的整段一次抽取 + 只有整题范围封顶（整卷半答假满分复现）。
+  - {name: LUBAN_CASE_PER_SUBQ_GRADING, default: true, kind: killswitch, read: hand_rolled}
   # KB 溯源 tier-3 推导（2026-07-29）。默认 OFF（opt-in）：六月五臂 A/B 实证
   # RAG grounding 伤判分（distractor 抬分）；待学生军团 grounded vs ungrounded
   # 判分质量 A/B 非劣后翻 ON。
@@ -440,6 +444,7 @@ grandfathered_envs:
   - LUBAN_2026_SOURCE_ROOT
   - LUBAN_CASE_DIRECT_LEAN_RAG
   - LUBAN_CASE_GRADING_SEQUENCED_EMIT
+  - LUBAN_CASE_PER_SUBQ_GRADING
   - LUBAN_CASE_RUBRIC_BANK_SLOT
   - LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED
   - LUBAN_CASE_RUBRIC_V1_ENABLED
