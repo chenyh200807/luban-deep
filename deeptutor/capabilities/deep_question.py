@@ -2520,7 +2520,10 @@ def _case_reference_subquestions(ctx: dict[str, Any]) -> list[dict[str, str]]:
         if not index.isdigit() or not answer or index in seen:
             continue
         seen.add(index)
-        out.append({"index": index, "answer": answer})
+        # ``stem`` = 该行自带的那一问题面（bundle 行 surface）。缺席时留空，
+        # 由抽取侧退到"切学生整卷题面"，再切不出就不给题面——绝不顶替。
+        out.append({"index": index, "answer": answer,
+                    "stem": str(item.get("stem") or "").strip()})
     return out if len(out) >= 2 else []
 
 
@@ -2532,7 +2535,13 @@ async def _extract_rubric_per_subquestion(
     """每小问独立抽取采分点 → (points, per-问封顶表, 实际有点位的小问数)。
 
     - 每问一次 ``extract_rubric_from_reference_async``（并发 gather，L4 心跳已在
-      覆盖窗口内），题面只给该问（``case_subquestion_stem``）。
+      覆盖窗口内）。**题面权威阶梯**（OD-005 补刀，live 取证）：
+      ① 该问自带的 bundle 行 surface（背景 + 它自己那一问，权威）→
+      ② 从**学生整卷题面**切出该问（``case_subquestion_stem``）→
+      ③ **不给题面**（只凭参考答案抽点）。
+      绝不退到"整题题面"——生产的整题题面其实是 bank 行题面（只含问 1），
+      顶上去等于给问 2/3/4 喂问 1 的题面，抽取被带跑、产出串问采分点
+      （22:09 轮实证：q2 池 2.5 分全是问 1 的"质量计划动态管理"）。
     - 每问名义满分 = 整题名义满分 / 题面小问数（**均分**——questions_bank 行不带
       per-问分值，见 PR Deviations）；点池按该值归一。
     - ``point_id`` 加问号前缀：4 次抽取各自产出 P1..Pn，不改前缀会跨问撞键，
@@ -2545,17 +2554,31 @@ async def _extract_rubric_per_subquestion(
 
     total = max(int(subquestion_total or 0), len(subquestions))
     per_sub_nominal = round(float(nominal_full_score) / total, 4) if total > 0 else 0.0
+
+    def _stem_for(sub: dict[str, str]) -> str:
+        own = str(sub.get("stem") or "").strip()
+        if own:
+            return own
+        return str(_G.case_subquestion_stem(stem, sub["index"]) or "")
+
+    stems = [_stem_for(sub) for sub in subquestions]
+    for sub, sub_stem in zip(subquestions, stems):
+        if not sub_stem:
+            logger.warning(
+                "LUBAN_V1 per-subq: no own stem for subquestion {}; extracting from reference only",
+                sub["index"],
+            )
     results = await _asyncio.gather(
         *(
             _G.extract_rubric_from_reference_async(
                 sub["answer"],
-                _G.case_subquestion_stem(stem, sub["index"]),
+                sub_stem,
                 complete,
                 key,
                 model=model,
                 provider_authority=provider_authority,
             )
-            for sub in subquestions
+            for sub, sub_stem in zip(subquestions, stems)
         ),
         return_exceptions=True,
     )
@@ -2670,7 +2693,10 @@ async def _grade_one_case_v1(
                 )
                 points, subquestion_caps, _covered_n = await _extract_rubric_per_subquestion(
                     _subq_refs,
-                    stem=stem,
+                    # 切分源必须是**学生整卷题面**（含全部小问）。``stem`` 走的是
+                    # eq.stem = bank 行题面，只含一问——拿它切别的问必然切不出，
+                    # 旧版还会 fail-open 顶替成问 1 的题面（OD-005 补刀根因）。
+                    stem=str(ctx.get("user_stem") or "").strip() or stem,
                     nominal_full_score=_nominal_full,
                     subquestion_total=_sub_n,
                     complete=complete,

@@ -10,6 +10,7 @@ score (same source). Reuses the runtime-shadow test harness shape.
 from __future__ import annotations
 
 import asyncio
+import re
 import sys
 import types
 from types import SimpleNamespace
@@ -1395,4 +1396,153 @@ async def test_od005_single_subquestion_reference_keeps_legacy_shape(
     event = await _grade_one_case_v1(ctx, student_id="s1", complete=None, key="k", _G=G)
     assert len(calls) == 1
     assert event["case_grading_partial_scope"] == "1/4"
+    assert event["awarded_score"] <= 2.51
+
+
+# ---------------------------------------------------------------------------
+# OD-005 补刀：每问的**题面**也必须是自己那一问（live 22:09 轮取证）
+# ---------------------------------------------------------------------------
+
+# 生产形态：ctx["question_stem"] 来自 eq.stem = **bank 行**题面（背景 + 只有问 1）。
+_OD005B_BANK_ROW_STEM = (
+    "【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层。\n"
+    "【问题】1. 指出工程质量计划编制和管理中的不妥之处，并写出正确做法。"
+)
+# 各 bundle 行自带的 surface = 共享背景 + 它自己那一问（真正的每问题面权威）。
+_OD005B_ITEM_STEMS = {
+    "1": _OD005B_BANK_ROW_STEM,
+    "2": "【背景资料】某施工企业中标新建一办公楼工程。\n【问题】2. 灌注桩桩身完整性检测方法还有哪些？",
+    "3": "【背景资料】某施工企业中标新建一办公楼工程。\n【问题】3. 指出钢筋接头面积百分率要求中的不妥之处。",
+    "4": "【背景资料】某施工企业中标新建一办公楼工程。\n【问题】4. 写出屋面卷材流淌原因分析中的不妥项。",
+}
+
+
+def _od005b_install_fakes(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """抽取器行为建模（live 22:09 轮实证形态）：**题面压过参考答案**。
+
+    生产实证：给问 2 喂「问 2 的参考答案 + 问 1 的题面」，抽出来的 6 个点全是
+    问 1 的内容（"质量计划应动态管理""质量控制点关键部位"），池 2.5 分。
+    所以这里让假抽取器的点位**跟随题面里的问号**——题面给错，点就串问。
+    """
+    stems_seen: list[str] = []
+
+    async def _fake_extract(reference, stem, complete_fn, api_key, *, model="deepseek-chat",
+                            provider_authority=""):
+        stems_seen.append(str(stem or ""))
+        match = re.search(r"【问题】\s*([0-9]+)", str(stem or ""))
+        tag = match.group(1) if match else "0"   # 无题面 → 只能凭参考答案
+        if tag == "0":
+            tag = (str(reference or "").strip() or "?")[:6]
+        return [
+            {"point_id": f"P{i}", "text": f"问{tag}要点{i}", "score": 1.0,
+             "policy": "qualitative", "required_terms": []}
+            for i in range(1, 5)
+        ]
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {
+            str(p.get("point_id")): {
+                "status": G.HIT if str(p.get("text") or "") in str(answer or "") else G.MISS
+            }
+            for p in points
+        }
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+    monkeypatch.setattr(G, "extract_rubric_from_reference_async", _fake_extract)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+    return stems_seen
+
+
+@pytest.mark.asyncio
+async def test_od005b_bank_row_stem_must_not_leak_into_sibling_subquestions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OD-005 补刀主证伪测（live SHA 6a730b41 实证：t8 半答 3 轮 5.65/5.16/5.65）。
+
+    逐问抽取与逐问封顶都正确工作了（marker 全在、一组一问、q1 得 2.50/2.50），
+    但问 2/3/4 的点池里装的是**问 1 的采分点**——因为它们的抽取拿到的是问 1 的
+    题面（``ctx["question_stem"]`` = bank 行题面，只含问 1；旧版切不出时 fail-open
+    顶替）。学生逐字抄问 1 的答案于是在 q2/q3/q4 上又拿了 3.15 分。
+
+    修法：每问用**自己那一问的题面**（bundle 行自带 surface）；切不出时宁可不给
+    题面，也绝不顶替兄弟问的题面。
+    """
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    stems_seen = _od005b_install_fakes(monkeypatch)
+    # 学生只答问 1：逐字写全问 1 的采分点表述。
+    answer = "问题1：" + "、".join(f"问1要点{k}" for k in range(1, 5))
+    ctx = {
+        "question_id": "17371",
+        "user_answer": answer,
+        # 生产实况：question_stem = bank 行题面（只含问 1），user_stem = 学生整卷
+        "question_stem": _OD005B_BANK_ROW_STEM,
+        "user_stem": (
+            "【背景资料】某施工企业中标新建一办公楼工程。\n"
+            "【问题】\n1. 指出工程质量计划编制和管理中的不妥之处。\n"
+            "2. 灌注桩桩身完整性检测方法还有哪些？\n"
+            "3. 指出钢筋接头面积百分率要求中的不妥之处。\n"
+            "4. 写出屋面卷材流淌原因分析中的不妥项。"
+        ),
+        "correct_answer": "\n".join(f"官方答案{i}" for i in range(1, 5)),
+        "case_reference_subquestions": [
+            {"index": str(i), "answer": f"官方答案{i}", "stem": _OD005B_ITEM_STEMS[str(i)]}
+            for i in range(1, 5)
+        ],
+        "case_reference_covered_count": 4,
+        "case_stem_subquestion_count": 4,
+        "construction_grading_result": {"type": "case", "max_score": 10},
+    }
+    event = await _grade_one_case_v1(ctx, student_id="s1", complete=None, key="k", _G=G)
+
+    # 每问的抽取必须拿到**自己那一问**的题面，一次都不许拿到兄弟问的。
+    assert len(stems_seen) == 4
+    seen_tags = sorted(re.search(r"【问题】\s*([0-9]+)", s).group(1) for s in stems_seen)
+    assert seen_tags == ["1", "2", "3", "4"], f"题面串问了：{seen_tags}"
+
+    # 点位不得串问：q2/q3/q4 的池里不许出现问 1 的采分点。
+    for point in event["scoring_points"]:
+        q = str(point.get("question_no"))
+        text = str(point.get("knowledge_point") or "")
+        assert text.startswith(f"问{q}要点"), f"q{q} 的池里混进了 {text!r}"
+
+    # 只答 1/4 问 → 总分 ≈ 2.5，绝不是 live 观测到的 5.65。
+    assert event["awarded_score"] <= 2.51, (
+        f"只答 1/4 问最多 2.5，实得 {event['awarded_score']}（串问采分点泄分）"
+    )
+    assert event["awarded_score"] >= 2.49
+    assert event["case_per_subq_grading"] == "4/4"
+
+
+@pytest.mark.asyncio
+async def test_od005b_missing_own_stem_falls_back_to_slicing_then_to_no_stem(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """题面权威阶梯：①行自带 surface ②切学生整卷 ③不给题面。
+    第③档下抽取只凭参考答案 —— 仍然不许顶替兄弟问的题面。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    stems_seen = _od005b_install_fakes(monkeypatch)
+    answer = "问题1：" + "、".join(f"问1要点{k}" for k in range(1, 5))
+    ctx = {
+        "question_id": "17371",
+        "user_answer": answer,
+        "question_stem": _OD005B_BANK_ROW_STEM,   # 只含问 1
+        "user_stem": "",                          # 连整卷题面也没有 → 只能退到第③档
+        "correct_answer": "\n".join(f"官方答案{i}" for i in range(1, 5)),
+        "case_reference_subquestions": [
+            {"index": str(i), "answer": f"官方答案{i}", "stem": ""} for i in range(1, 5)
+        ],
+        "case_reference_covered_count": 4,
+        "case_stem_subquestion_count": 4,
+        "construction_grading_result": {"type": "case", "max_score": 10},
+    }
+    event = await _grade_one_case_v1(ctx, student_id="s1", complete=None, key="k", _G=G)
+    # 问 1 可以从 question_stem 里**正当地**切出自己那一问（它本来就只含问 1）；
+    # 问 2/3/4 切不出 → 必须留空，绝不顶替成问 1 的题面。
+    assert "指出工程质量计划编制和管理中的不妥之处" in stems_seen[0], "问 1 应切出自己那一问"
+    assert stems_seen[1:] == ["", "", ""], (
+        f"退化档不得顶替兄弟问题面：{[x[:30] for x in stems_seen[1:]]}"
+    )
     assert event["awarded_score"] <= 2.51

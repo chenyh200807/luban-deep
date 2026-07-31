@@ -2063,10 +2063,32 @@ def test_case_subquestion_stem_slices_background_plus_that_question() -> None:
     assert "写出正确做法" in out
     assert "指出不妥之处" not in out
     assert "写出构造名称" not in out
-    # 切不出 → 整题题面（不制造第二个切分权威、不假装切成功）
-    assert case_subquestion_stem(stem, "9") == stem
-    assert case_subquestion_stem("没有小问标记的一段题面", "1") == "没有小问标记的一段题面"
+    # 切不出 → **fail-CLOSED 空串**（OD-005 补刀 2026-08-01 live 取证）：
+    # 生产 question_stem 是 bank 行题面（只含它自己那一问），旧版 fail-open 返回
+    # 整段，等于把**问 1 的题面**喂给问 2/3/4 的抽取 → 抽出问 1 的采分点顶着
+    # q2/q3/q4 的号 → 学生逐字抄的问 1 答案凭空多拿 3.15 分。给错题面比不给坏。
+    assert case_subquestion_stem(stem, "9") == ""
+    assert case_subquestion_stem("没有小问标记的一段题面", "1") == ""
     assert case_subquestion_stem("", "1") == ""
+
+
+def test_case_subquestion_stem_never_serves_a_sibling_question() -> None:
+    """OD-005 补刀主证伪测（live 22:09 轮取证）：生产 ``question_stem`` 是 **bank 行**
+    题面 —— 背景 + 只有它自己那一问。拿它去切问 2/3/4 必然切不出；旧版 fail-open
+    把**问 1 的整段题面**顶了上去，抽取被题面带跑，产出问 1 的采分点顶着 q2/q3/q4
+    的号（实证：q2 池 2.5 分全是"质量计划应动态管理"）。学生逐字抄问 1 的答案再
+    命中它们 → 3.15 分凭空出现、总分 5.65 而非 2.5。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import case_subquestion_stem
+
+    bank_row_stem = (
+        "【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层。\n"
+        "【问题】1. 指出工程质量计划编制和管理中的不妥之处，并写出正确做法。"
+    )
+    assert case_subquestion_stem(bank_row_stem, "1")
+    for sibling in ("2", "3", "4"):
+        got = case_subquestion_stem(bank_row_stem, sibling)
+        assert got == "", f"问{sibling} 拿到了别的问的题面：{got[:60]!r}"
+        assert "质量计划" not in got
 
 
 def test_dynamic_groups_prefer_one_group_per_subquestion_when_declared() -> None:

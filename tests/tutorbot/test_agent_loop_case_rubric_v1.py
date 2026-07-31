@@ -2353,6 +2353,7 @@ def test_single_row_reference_exports_own_subquestion_index() -> None:
     }}
     paste = stem + "\n我的答案：作答内容若干。"
     ctx = AgentLoop._build_v1_case_ctx(md, paste)
-    assert ctx["case_reference_subquestions"] == [
-        {"index": "2", "answer": "问题2的官方答案"}
-    ]
+    subqs = ctx["case_reference_subquestions"]
+    assert [(s["index"], s["answer"]) for s in subqs] == [("2", "问题2的官方答案")]
+    # OD-005 补刀：每问必须带**自己那一问**的题面（顶层直配时=该行 stem）。
+    assert "问题2：这一问问什么？" in subqs[0]["stem"]
