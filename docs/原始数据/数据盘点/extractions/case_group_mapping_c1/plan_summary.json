@@ -1,0 +1,28 @@
+{
+ "affected_rows_total": 385,
+ "plan_rows_total": 383,
+ "batches": {
+  "B1_A_high_medium": 278,
+  "B2_B_whole_question": 96,
+  "B3_C_group_only": 9
+ },
+ "skipped_low_confidence_ids": [
+  9303,
+  9342
+ ],
+ "canonical": {
+  "true": 118,
+  "false": 90,
+  "null_conflict": 70
+ },
+ "canonical_cells_total": 137,
+ "canonical_cells_singleton": 40,
+ "canonical_cells_multi_resolved": 78,
+ "canonical_cells_conflict": 19,
+ "gen_priority": {
+  "g3_exam_year": 0,
+  "g2_exam_chunk": 1,
+  "g1_auto": 2,
+  "g0_xw": 3
+ }
+}

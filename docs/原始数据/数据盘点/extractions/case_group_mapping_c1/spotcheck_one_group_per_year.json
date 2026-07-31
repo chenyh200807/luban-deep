@@ -1,0 +1,170 @@
+[
+ {
+  "exam_year": 2015,
+  "case_group_id": "2015-case3",
+  "rows": 4,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   13889,
+   13890,
+   13891,
+   13892
+  ]
+ },
+ {
+  "exam_year": 2016,
+  "case_group_id": "2016-case5",
+  "rows": 5,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   13846,
+   13847,
+   13848,
+   13849,
+   13850
+  ]
+ },
+ {
+  "exam_year": 2017,
+  "case_group_id": "2017-case6",
+  "rows": 10,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   9104,
+   17088,
+   8744,
+   17089,
+   8745,
+   17090,
+   8746,
+   17091,
+   8747,
+   17092
+  ]
+ },
+ {
+  "exam_year": 2018,
+  "case_group_id": "2018-case2",
+  "rows": 11,
+  "min_background_similarity": 0.943,
+  "row_ids": [
+   9152,
+   17123,
+   8773,
+   17124,
+   8774,
+   17125,
+   8775,
+   17126,
+   8771,
+   9151,
+   17121
+  ]
+ },
+ {
+  "exam_year": 2019,
+  "case_group_id": "2019-case1",
+  "rows": 10,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   9199,
+   9200,
+   17164,
+   17167,
+   8808,
+   17168,
+   8809,
+   17169,
+   8810,
+   17170
+  ]
+ },
+ {
+  "exam_year": 2020,
+  "case_group_id": "2020-case2",
+  "rows": 12,
+  "min_background_similarity": 0.816,
+  "row_ids": [
+   9299,
+   9301,
+   17216,
+   17218,
+   9302,
+   9305,
+   17219,
+   17222,
+   9306,
+   17223,
+   9308,
+   17225
+  ]
+ },
+ {
+  "exam_year": 2021,
+  "case_group_id": "2021-case3",
+  "rows": 2,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   9443,
+   17287
+  ]
+ },
+ {
+  "exam_year": 2022,
+  "case_group_id": "2022-case2",
+  "rows": 2,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   9475,
+   17319
+  ]
+ },
+ {
+  "exam_year": 2023,
+  "case_group_id": "2023-case3",
+  "rows": 8,
+  "min_background_similarity": 1.0,
+  "row_ids": [
+   9559,
+   17371,
+   8993,
+   17372,
+   8994,
+   17373,
+   8995,
+   17374
+  ]
+ },
+ {
+  "exam_year": 2024,
+  "case_group_id": "2024-case1",
+  "rows": 4,
+  "min_background_similarity": 0.986,
+  "row_ids": [
+   9657,
+   9659,
+   17415,
+   17419
+  ]
+ },
+ {
+  "exam_year": 2025,
+  "case_group_id": "2025-case5",
+  "rows": 12,
+  "min_background_similarity": 0.998,
+  "row_ids": [
+   9751,
+   9753,
+   17469,
+   17470,
+   9077,
+   17471,
+   9078,
+   17472,
+   9079,
+   17473,
+   9080,
+   17474
+  ]
+ }
+]

@@ -93,6 +93,15 @@
     - 该 profile 的轮次不进 `rag_saturation` 台账（空 sources 会让 `_source_overlap` 恒 `None`，播种它反而毒化下一轮的比较基线）；fell-through 轮的饱和判据回到「首个 in-loop 轮 = round 1」。
     - 观测：`evidence_bundle.performance_policy.retrieval_profile` + 结果顶层 `retrieval_profile`；TutorBot 侧逐轮导出 `case_direct_rag_profile ∈ {lean, full}`。kill switch `LUBAN_CASE_DIRECT_LEAN_RAG`（默认 ON，off 回全量）。
 
+44. **`case_group_id` 是案例题「题级归属」的唯一权威键，且是不可变 id**（方案 C / C2，2026-08-01 回填上线）。`public.questions_bank` 的四列 `case_group_id` / `case_subquestion_index` / `case_row_granularity` / `case_row_canonical` 构成该 authority，硬约束如下：
+
+    - **(a) id 合同（不可变 + 只追加）**：`case_group_id = {exam_year}-case{N}`。**一经写入即不可变**；同年新增题级组只能取该年当前 `max(N)+1`，**绝不重排既有 N**，即使发现漏题、发现 N 的页序推导有误也不重排（要纠正就新开一个组 id 并把旧组标废，不原地改号）。理由：`{year}-case{N}` 的 N 派生自年内页序排序，一次重排会让所有已消费该 id 的 trace、错题本、评分记录、eval 金标同时指错题——**排序派生的可读 id 只有在冻结后才能当 authority**。`case_group_id` 的年份前缀必须恒等于该行 `exam_year`，一个组不得跨年。
+    - **(b) 行粒度分叉**：`case_row_granularity ∈ {subquestion, whole_question}`。`whole_question` 行本身已含该案例全部小问，`case_subquestion_index` 必须为 NULL，消费方命中它时**不得再发兄弟行查询**；`subquestion` 行才走按组取全。粒度是数据事实，不是启发式——不得用题干长度、序号个数在运行时重判。
+    - **(c) `case_row_canonical` 三态，NULL ≠ false**：同一 `(case_group_id, case_subquestion_index)` 存在多个入库世代时，`true` = 收权行，`false` = 同格被收权的重复行，**`NULL` = 尚未裁决**（同格答案文本冲突，等人审）。消费方**不得把 NULL 当 false 过滤掉**——那会让存在答案冲突的小问在 bundle 里整个消失，把「有争议」静默变成「没这一问」。正确姿势：`canonical is not false`，并对 NULL 格标记 `case_answer_conflict_unresolved` 进 trace，宁可少给标准答案也不得假装该小问不存在。
+    - **(d) 只增不改既有列**：题级归属回填只写这四列，不得借机改写 `stem` / `correct_answer` / `question_type` / `source_chunk_id`。`question_type='case_study'` 今天仍混装真题案例行与教材/讲义自动生成的单问考核题（2026-08-01 实测 1959 行里 1574 行属后者），**`case_group_id IS NULL` 不代表「不是案例」**，只代表题级归属未建；消费方遇 NULL 必须 fail-open 回单行 bundle 并写 `case_bundle_hydration="skipped:null_group_key"`，不得据此反推 `question_type`。
+    - **(e) 组边界的可证伪性**：`case_group_id` 的组边界来自背景正文指纹合并，**它是可错的**，因此不得单独充当 identity 裁决。案例行晋升可见官方答案仍须走 §32b 的 `exact_question_identity_corresponds`；`case_group_id` 只负责「取全同组」，不负责「这是不是学员这道题」。
+    - 回填执行与证据：`docs/原始数据/数据盘点/2026-08-01-方案C-C2回填执行.md`；DDL：`supabase/migrations/20260801000100_questions_bank_case_group.sql`。
+
 ## 当前统一语义
 
 - `exact_question`

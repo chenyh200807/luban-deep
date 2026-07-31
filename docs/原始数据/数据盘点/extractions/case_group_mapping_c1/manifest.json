@@ -1,0 +1,37 @@
+{
+  "name": "questions_bank case 行题级归属映射 v1 (方案C / C1 阶段)",
+  "built_at": "2026-08-01",
+  "phase": "C1_mapping_proposal_only",
+  "authority": "case_group_mapping_proposal_only",
+  "NOT_applied": true,
+  "note": "本目录只是回填方案的提议映射，未写入任何生产表；C2 执行前须由主控核验",
+  "db_snapshot": {
+    "project": "zgupgizexqpwtajvghno.supabase.co",
+    "table": "public.questions_bank",
+    "read_at": "2026-08-01",
+    "total_rows": 4635,
+    "case_study_rows": 1959,
+    "access": "SELECT only (session set readonly)"
+  },
+  "files": {
+    "export_rows.py": "只读导出脚本（生成 raw_case_rows.jsonl，raw 不入库，留在 scratchpad）",
+    "build_mapping_v3.py": "映射构建脚本（确定性，可重跑复现全部产物）",
+    "mapping.csv": "A 类：可归属 case_group_id + subquestion_index 的 280 行",
+    "mapping.jsonl": "同上，全字段",
+    "mapping_whole_case_rows.jsonl": "B 类：整题行 96 行（组已定，index 必须留空）",
+    "mapping_group_only.jsonl": "C 类：组已定但小问序号无证据 9 行",
+    "unassignable.csv": "D 类：不可归属 1574 行 + B/C 类清单，含原因分类",
+    "group_report.json": "56 个题级组的逐组校验报告",
+    "reconciliation_vs_yousen.json": "与佑森 431 采分点资产（2021/2022补考/2023/2024/2025）的题号对账",
+    "merge_log.json": "跨入库世代的组合并操作审计",
+    "stats.json": "全量统计"
+  },
+  "group_key_derivation": "case_group_fingerprint = md5(hardnorm(background))[:16]，hardnorm = 只保留汉字与数字；case_group_id = {exam_year}-case{N}",
+  "index_authority_ladder": [
+    "1. original_id = XW_{year}_CASE_{n}_Q{m} 的 Q{m}",
+    "2. 题面【问题】之后的行首阿拉伯序号",
+    "3. 题面无标记时尾部升序连续序号 run",
+    "4. source_meta.original_anchor 的 问题N / 第N题",
+    "5. 以上皆无 → 留空不猜"
+  ]
+}

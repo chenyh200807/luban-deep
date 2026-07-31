@@ -1,0 +1,503 @@
+{
+ "batch": "B2_B_whole_question",
+ "dry": false,
+ "rows_written": 96,
+ "patch_units": 30,
+ "ids": [
+  8770,
+  8771,
+  8779,
+  8815,
+  8816,
+  8817,
+  8825,
+  8919,
+  8921,
+  8922,
+  8978,
+  8979,
+  8980,
+  9053,
+  9059,
+  9096,
+  9097,
+  9098,
+  9099,
+  9100,
+  9101,
+  9102,
+  9103,
+  9149,
+  9150,
+  9151,
+  9171,
+  9232,
+  9233,
+  9234,
+  9235,
+  9304,
+  9307,
+  9441,
+  9442,
+  9443,
+  9445,
+  9446,
+  9475,
+  9476,
+  9477,
+  9478,
+  9479,
+  9502,
+  9657,
+  9658,
+  9659,
+  9660,
+  9662,
+  9663,
+  9664,
+  9680,
+  9698,
+  9699,
+  9700,
+  17079,
+  17080,
+  17082,
+  17083,
+  17085,
+  17086,
+  17087,
+  17118,
+  17119,
+  17121,
+  17130,
+  17175,
+  17176,
+  17177,
+  17178,
+  17221,
+  17224,
+  17286,
+  17287,
+  17290,
+  17291,
+  17319,
+  17320,
+  17321,
+  17322,
+  17323,
+  17352,
+  17353,
+  17354,
+  17355,
+  17415,
+  17418,
+  17419,
+  17420,
+  17422,
+  17423,
+  17424,
+  17445,
+  17452,
+  17453,
+  17455
+ ],
+ "elapsed_s": 39.9,
+ "units": [
+  {
+   "ids": [
+    9096,
+    9097,
+    17079,
+    17080
+   ],
+   "values": {
+    "case_group_id": "2017-case1",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 4
+  },
+  {
+   "ids": [
+    9098,
+    9099,
+    17082,
+    17083
+   ],
+   "values": {
+    "case_group_id": "2017-case2",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 4
+  },
+  {
+   "ids": [
+    9100,
+    17085
+   ],
+   "values": {
+    "case_group_id": "2017-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9101,
+    17086
+   ],
+   "values": {
+    "case_group_id": "2017-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9102,
+    9103,
+    17087
+   ],
+   "values": {
+    "case_group_id": "2017-case5",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 3
+  },
+  {
+   "ids": [
+    8770,
+    9149,
+    9150,
+    17118,
+    17119
+   ],
+   "values": {
+    "case_group_id": "2018-case1",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 5
+  },
+  {
+   "ids": [
+    8771,
+    9151,
+    17121
+   ],
+   "values": {
+    "case_group_id": "2018-case2",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 3
+  },
+  {
+   "ids": [
+    8779,
+    9171,
+    17130
+   ],
+   "values": {
+    "case_group_id": "2018-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 3
+  },
+  {
+   "ids": [
+    8815,
+    9232,
+    17175
+   ],
+   "values": {
+    "case_group_id": "2019-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 3
+  },
+  {
+   "ids": [
+    8816,
+    8817,
+    8825,
+    9233,
+    9234,
+    17176,
+    17177
+   ],
+   "values": {
+    "case_group_id": "2019-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 7
+  },
+  {
+   "ids": [
+    9235,
+    17178
+   ],
+   "values": {
+    "case_group_id": "2019-case5",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9304,
+    17221
+   ],
+   "values": {
+    "case_group_id": "2020-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9307,
+    17224
+   ],
+   "values": {
+    "case_group_id": "2020-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    8921,
+    8922,
+    9441,
+    9442,
+    17286
+   ],
+   "values": {
+    "case_group_id": "2021-case2",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 5
+  },
+  {
+   "ids": [
+    9443,
+    17287
+   ],
+   "values": {
+    "case_group_id": "2021-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9445,
+    17290
+   ],
+   "values": {
+    "case_group_id": "2021-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    8919,
+    9446,
+    17291
+   ],
+   "values": {
+    "case_group_id": "2021-case5",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 3
+  },
+  {
+   "ids": [
+    9475,
+    17319
+   ],
+   "values": {
+    "case_group_id": "2022-case2",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9476,
+    17320
+   ],
+   "values": {
+    "case_group_id": "2022-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9477,
+    9478,
+    17321,
+    17322
+   ],
+   "values": {
+    "case_group_id": "2022-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 4
+  },
+  {
+   "ids": [
+    9479,
+    17323
+   ],
+   "values": {
+    "case_group_id": "2022-case5",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    8978,
+    8979,
+    8980,
+    9502,
+    17352,
+    17353,
+    17354,
+    17355
+   ],
+   "values": {
+    "case_group_id": "2023-case1",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 8
+  },
+  {
+   "ids": [
+    9657,
+    9659,
+    17415,
+    17419
+   ],
+   "values": {
+    "case_group_id": "2024-case1",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 4
+  },
+  {
+   "ids": [
+    9658,
+    9660,
+    17418,
+    17420
+   ],
+   "values": {
+    "case_group_id": "2024-case2",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 4
+  },
+  {
+   "ids": [
+    9662,
+    17422
+   ],
+   "values": {
+    "case_group_id": "2024-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9663,
+    17423
+   ],
+   "values": {
+    "case_group_id": "2024-case4",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9664,
+    17424
+   ],
+   "values": {
+    "case_group_id": "2024-case5",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  },
+  {
+   "ids": [
+    9053,
+    9680,
+    17445
+   ],
+   "values": {
+    "case_group_id": "2025-case1",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 3
+  },
+  {
+   "ids": [
+    9059,
+    9698,
+    9699,
+    17452,
+    17453
+   ],
+   "values": {
+    "case_group_id": "2025-case2",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 5
+  },
+  {
+   "ids": [
+    9700,
+    17455
+   ],
+   "values": {
+    "case_group_id": "2025-case3",
+    "case_subquestion_index": null,
+    "case_row_granularity": "whole_question"
+   },
+   "returned": 2
+  }
+ ]
+}
