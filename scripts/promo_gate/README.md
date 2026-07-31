@@ -18,7 +18,7 @@
 
 ```bash
 cd <repo root>
-python3 scripts/promo_gate/run_promo_gate.py                 # 全量 21 场景,串行
+python3 scripts/promo_gate/run_promo_gate.py                 # 全量 24 场景,串行
 python3 scripts/promo_gate/run_promo_gate.py --only t2_half  # 只跑单场景
 python3 scripts/promo_gate/run_promo_gate.py --dry-run       # 只校验场景文件
 ```
@@ -30,7 +30,7 @@ python3 scripts/promo_gate/run_promo_gate.py --dry-run       # 只校验场景�
 - 产出:`runs/promo_gate/<run_id>/report.md` + `report.json` + `evidence/*.md`,
   每场景跑完立即增量落盘。退出码:全绿=0,有 FAIL=1。
 
-## 场景矩阵(v1 = 6 题 × 适用作答形态 = 21 场景)
+## 场景矩阵(v1 = 6 题 × 适用作答形态 = 21 场景 + T7/T8/T9 事故位 3 场景 = 24)
 
 | 题 | 来源 | full 全答 | half 半答* | wrong 答错 | question_only 只发题 |
 |---|---|---|---|---|---|
@@ -42,7 +42,23 @@ python3 scripts/promo_gate/run_promo_gate.py --dry-run       # 只校验场景�
 | T6 KB 边界偏门题(金属幕墙/气密性) | 教材边缘 | ✓(带自己理解) | — | — | ✓ |
 
 \* 半答 = 只答部分小问 + 「其余小问按规范补充」——owner 实际翻车形态,必须常驻。
-MCQ 无半答形态、KB 边界题无判分形态,故 v1 为 21 场景而非 4×6=24。
+MCQ 无半答形态、KB 边界题无判分形态,故基础矩阵为 21 场景而非 4×6=24。
+
+**事故永久位(基础矩阵之外,单独 3 场景)**
+
+| 场景 | 来源 | 断言要点 |
+|---|---|---|
+| `t7_goldv2_low` | 金标 gold_pack_v2 `Q2023-03::low`(ratio 0.21) | A9 得分率 < 0.5——P0「兜底满分」回归位 |
+| `t8_group_bundle_half` | 2023 办公楼整卷粘贴 + 只答问 1 | `case_bundle_source=group_query`(全等)、`case_per_subq_grading=4/4`(全等)、总分 ≤3.0/10 |
+| `t9_full_paper_full_answer` | 同卷 + 金标 `Q2023-03::high`(ratio 0.84)全答 | `case_per_subq_grading` 在场、总分 ≥6.0/10——防封顶误伤 |
+
+**t8/t9 必须成对**:t8 单侧断言(半答封顶)会把「一律压低」误读成修好了;t9 是它的
+对照面(同卷同题面,唯一差异 = 作答完整度)。任何一侧被删,另一侧就失去判别力。
+
+**t8 语义演进留痕**:原名 `t8_partial_scope`,断言 A10(局部覆盖分母诚实)。方案 C
+(题级组取全)之后整卷粘贴 covered = 4/4,`case_grading_partial_scope` 不再出现,
+A10 在本形态下**无可断面**——不是放水,是被更强的三条(治理组接线 + 逐问链在服 +
+半答封顶)取代。原 A9 skip 项(覆盖比例来源虚高)随该病治好而移除。
 
 **T1 通道待补**:指挥官裁决 T1 应走练题流带 int qid;练题流驱动过重,v1 降级为
 「聊天粘贴同题」。练题流真入口通道(带 qid 的 practice 驱动)登记为 v2 待补项。
@@ -60,7 +76,21 @@ MCQ 无半答形态、KB 边界题无判分形态,故 v1 为 21 场景而非 4×
 | A6 | 判分权威可溯源 | result 事件 metadata 的 `score_authority` 与 `grading_rubric_provenance` 均非空(远端只读 DB 取证) |
 | A7 | 案例必须走 deep | result metadata `selected_mode` 含 deep |
 | A8 | 错因码分布 | 预留,拍板后启用,当前 SKIP |
+| A9 | 弱答案不得满分 | 金标低能力档作答的得分率 < `max_score_ratio`(仅 T7) |
+| A10 | 局部覆盖必须诚实 | `case_grading_partial_scope` 在场时分母=整题名义满分、得分≤满分×覆盖比例、`grading_official_score_allowed=false`。**方案 C 后整卷粘贴不再产生该 marker,当前无场景引用**;保留实现,兄弟行局部覆盖形态一旦复现即可挂回 |
 | L1/M1/M2 | 场景私有 | min_length / contains_all / contains_any(如 MCQ 必点名正确选项「外加剂」) |
+| T8_*/T9_* | 场景私有 marker 断言 | 见下「私有断言类型」 |
+
+**私有断言类型**(scenario JSON 的 `assertions[].type`,`id` 自取):
+
+| type | 语义 | 陷阱 |
+|---|---|---|
+| `metadata_equals` | `key` 的值 **全等** `value` | **绝不子串**:`dynamic_parallel_subquestion_groups` 与 `dynamic_parallel_question_groups` 互为近邻,子串判定会把「走了旧链」读成「新链在服」;`case_per_subq_grading` 的值是数字形 `"4/4"`,判读别只写 `[a-z]` 正则 |
+| `metadata_present` | `key` 存在且非空 | marker 缺席 = 该链未在服,判 FAIL |
+| `score_max` | 分母 == `denominator` 的得分对里最高 X ≤ `value` | 封顶回归位 |
+| `score_min` | 分母 == `denominator` 的得分对里最高 X ≥ `value` | 误封顶回归位,与 `score_max` 成对使用 |
+
+`score_*` / `metadata_*` 一律 **fail-closed**:解析不到证据 = FAIL,不算绿。
 
 案例只发题场景(question_only)不强断 A6/A7(未发生判分),但 metadata 照抓入
 evidence 作观测面。
