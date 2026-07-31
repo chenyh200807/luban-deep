@@ -351,6 +351,7 @@ def _write_markdown(summary: dict[str, Any], path: Path) -> None:
         "## Summary",
         "",
         f"- passed: {summary['summary']['passed']}",
+        f"- warned: {summary['summary'].get('warned', 0)}",
         f"- failed: {summary['summary']['failed']}",
         f"- deferred: {summary['summary']['deferred']}",
         f"- slow: {summary['summary'].get('slow', 0)}",
@@ -424,6 +425,7 @@ def main() -> int:
         "Eval gate completed: "
         f"verdict={summary['verdict']} "
         f"PASS={summary['summary']['passed']} "
+        f"WARN={summary['summary']['warned']} "
         f"FAIL={summary['summary']['failed']} "
         f"DEFERRED={summary['summary']['deferred']}"
     )
