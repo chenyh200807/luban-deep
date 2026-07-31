@@ -2213,3 +2213,60 @@ def test_case_surface_strips_cross_turn_context_wrapper() -> None:
     wrapper_b = wrapper.replace("其他题目", "完全不同的历史内容与更多噪声文字")
     ctx3 = AgentLoop._build_v1_case_ctx({}, wrapper_b)
     assert ctx3["case_user_stem_hash"] == ctx1["case_user_stem_hash"], "包装变化不得影响判分面 hash"
+
+
+def test_case_group_bundle_markers_lift_to_md_and_all_sinks() -> None:
+    """方案 C / C3（[luban_grading_engine] domain test，contracts/rag.md §45）：
+    supabase 侧单写进 exact payload 的三个题级组 marker 必须经 ctx 构建上到 md，
+    并在 CASE_GRADING_AUTHORITY_EXPORT_KEYS 里（否则 sink 永久 0 命中）。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    for key in (
+        "case_bundle_source",
+        "case_bundle_hydration",
+        "case_answer_conflict_unresolved",
+    ):
+        assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+
+    md: dict = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "题库整题题面",
+            "case_bundle_source": "group_query",
+            "case_bundle_hydration": "group_query:3",
+            "case_answer_conflict_unresolved": "2023-case2:2",
+            "covered_indexes": ["1", "3", "4"],
+            "covered_subquestions": [
+                {"display_index": "1", "prompt": "问题1：指出不妥之处并说明理由？",
+                 "authoritative_answer": "官方答案1"},
+                {"display_index": "3", "prompt": "问题3：写出构造名称？",
+                 "authoritative_answer": "官方答案3"},
+                {"display_index": "4", "prompt": "问题4：补充工艺流程？",
+                 "authoritative_answer": "官方答案4"},
+            ],
+        },
+    }
+    paste = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+             "问题1：指出不妥之处并说明理由？\n问题2：写出正确做法？\n"
+             "问题3：写出构造名称？\n问题4：补充工艺流程？\n"
+             "我的答案：我认为试验员记录不妥。")
+    AgentLoop._build_v1_case_ctx(md, paste)
+    assert md["case_bundle_source"] == "group_query"
+    assert md["case_bundle_hydration"] == "group_query:3"
+    assert md["case_answer_conflict_unresolved"] == "2023-case2:2"
+
+    # md → turn metadata 全 sink（漏一张名单 = 该 sink 永久 0 命中）。
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(
+        {"question_lifecycle_scene": "case_grading", **md}, target
+    )
+    assert target["case_bundle_source"] == "group_query"
+    assert target["case_answer_conflict_unresolved"] == "2023-case2:2"
+
+    # 非 case 轮不得凭空长出 marker（MCQ 路径零调用的对偶断言）。
+    md_mcq: dict = {"_prefetched_exact_question": {"answer_kind": "mcq", "stem": "选择题"}}
+    AgentLoop._build_v1_case_ctx(md_mcq, "这题选什么？")
+    assert "case_bundle_source" not in md_mcq
