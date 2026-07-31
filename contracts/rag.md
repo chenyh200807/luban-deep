@@ -93,7 +93,7 @@
     - 该 profile 的轮次不进 `rag_saturation` 台账（空 sources 会让 `_source_overlap` 恒 `None`，播种它反而毒化下一轮的比较基线）；fell-through 轮的饱和判据回到「首个 in-loop 轮 = round 1」。
     - 观测：`evidence_bundle.performance_policy.retrieval_profile` + 结果顶层 `retrieval_profile`；TutorBot 侧逐轮导出 `case_direct_rag_profile ∈ {lean, full}`。kill switch `LUBAN_CASE_DIRECT_LEAN_RAG`（默认 ON，off 回全量）。
 
-44. **`case_group_id` 是案例题「题级归属」的唯一权威键，且是不可变 id**（方案 C / C2，2026-08-01 回填上线）。`public.questions_bank` 的四列 `case_group_id` / `case_subquestion_index` / `case_row_granularity` / `case_row_canonical` 构成该 authority，硬约束如下：
+45. **`case_group_id` 是案例题「题级归属」的唯一权威键，且是不可变 id**（方案 C / C2，2026-08-01 回填上线）。`public.questions_bank` 的四列 `case_group_id` / `case_subquestion_index` / `case_row_granularity` / `case_row_canonical` 构成该 authority，硬约束如下：
 
     - **(a) id 合同（不可变 + 只追加）**：`case_group_id = {exam_year}-case{N}`。**一经写入即不可变**；同年新增题级组只能取该年当前 `max(N)+1`，**绝不重排既有 N**，即使发现漏题、发现 N 的页序推导有误也不重排（要纠正就新开一个组 id 并把旧组标废，不原地改号）。理由：`{year}-case{N}` 的 N 派生自年内页序排序，一次重排会让所有已消费该 id 的 trace、错题本、评分记录、eval 金标同时指错题——**排序派生的可读 id 只有在冻结后才能当 authority**。`case_group_id` 的年份前缀必须恒等于该行 `exam_year`，一个组不得跨年。
     - **(b) 行粒度分叉**：`case_row_granularity ∈ {subquestion, whole_question}`。`whole_question` 行本身已含该案例全部小问，`case_subquestion_index` 必须为 NULL，消费方命中它时**不得再发兄弟行查询**；`subquestion` 行才走按组取全。粒度是数据事实，不是启发式——不得用题干长度、序号个数在运行时重判。
