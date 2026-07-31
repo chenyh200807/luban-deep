@@ -1005,6 +1005,7 @@ def exact_question_identity_corresponds(
 
     query_surface = _normalize_identity_surface(original_query)
     stem_surface = _normalize_identity_surface(matched_stem)
+    case_identity = str(question_type or "").strip().lower() in _EXACT_STEM_CASE_TYPES
     if not query_surface or not stem_surface:
         return False
     if query_surface == stem_surface:
@@ -1012,7 +1013,11 @@ def exact_question_identity_corresponds(
 
     if len(stem_surface) >= _IDENTITY_MIN_SURFACE_LEN and stem_surface in query_surface:
         return True
-    if len(query_surface) >= _IDENTITY_MIN_SURFACE_LEN and query_surface in stem_surface:
+    if (
+        not case_identity
+        and len(query_surface) >= _IDENTITY_MIN_SURFACE_LEN
+        and query_surface in stem_surface
+    ):
         return True
 
     # All fuzzy (coverage-based) decisions below additionally require every
@@ -1030,7 +1035,8 @@ def exact_question_identity_corresponds(
     ):
         return True
     if (
-        numeric_facts_ok
+        not case_identity
+        and numeric_facts_ok
         and len(query_surface) >= _IDENTITY_MIN_FUZZY_SURFACE_LEN
         and matched_chars / len(query_surface) >= _IDENTITY_MIN_COVERAGE
     ):

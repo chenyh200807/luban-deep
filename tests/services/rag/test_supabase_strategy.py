@@ -862,6 +862,11 @@ def test_identity_case_type_requires_the_same_surface() -> None:
         _RED_STEM,
         question_type="case_study",
     )
+    assert not _identity(
+        "问题一：请计算工程造价并说明理由。",
+        "背景资料：某大型工程的完整背景事实。问题一：请计算工程造价并说明理由。",
+        question_type="case_study",
+    )
 
 
 def test_identity_short_fragments_never_authorize() -> None:
