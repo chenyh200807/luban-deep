@@ -635,6 +635,75 @@ class AgentLoop:
         return cls._VISIBLE_ANSWER_REPAIR_PROMPTS[index]
 
     @staticmethod
+    def _toolless_repair_messages(
+        messages: list[dict[str, Any]],
+        *,
+        repair_prompt: str,
+        max_evidence_chars: int = 6000,
+    ) -> list[dict[str, Any]]:
+        """OD-003 根治（2026-08-01）：结构差异化重试——把工具形态从历史里剥掉。
+
+        取证实证：修复轮传的是**含 N 轮 assistant(tool_calls)+tool 结果的原样
+        历史**，模型被工具语法条件化，即便 tools=None、tool_choice="none" 仍继续
+        吐 tool_calls（dashscope 3 SHA 3/3 复现，正文 chunk=0 → 空返回 → 终态
+        失败模板）。收束不能依赖 provider 强制；把证据展平成纯文本、删除全部
+        tool_calls/tool 角色消息，模型就没有可模仿的工具形态。
+
+        保留：system 首条（人格/技能）、全部 user 消息（含题面）；
+        转换：tool 结果 → 一条 system 证据摘要；丢弃：assistant 的 tool_calls 壳。
+        """
+        system_head: list[dict[str, Any]] = []
+        user_turns: list[dict[str, Any]] = []
+        evidence: list[str] = []
+        assistant_texts: list[str] = []
+        for item in messages or []:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role") or "")
+            content = item.get("content")
+            text = content if isinstance(content, str) else ""
+            if role == "system":
+                if not user_turns and len(system_head) < 3:
+                    system_head.append({"role": "system", "content": text})
+                continue
+            if role == "user":
+                user_turns.append({"role": "user", "content": text})
+                continue
+            if role == "tool":
+                name = str(item.get("name") or "工具")
+                if text.strip():
+                    evidence.append(f"【{name} 结果】{text.strip()}")
+                continue
+            if role == "assistant":
+                # 只留正文，丢掉 tool_calls 壳（正是被模仿的形态）
+                if text.strip():
+                    assistant_texts.append(text.strip())
+        rebuilt: list[dict[str, Any]] = list(system_head)
+        if evidence:
+            joined = "\n\n".join(evidence)
+            if len(joined) > max_evidence_chars:
+                joined = joined[:max_evidence_chars] + "\n…（证据已截断）"
+            rebuilt.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "以下是本轮已检索到的全部证据（工具已停用，不会再有新检索）：\n\n"
+                        f"{joined}"
+                    ),
+                }
+            )
+        if assistant_texts:
+            rebuilt.append(
+                {
+                    "role": "system",
+                    "content": "你此前的草稿片段（仅供参考）：\n" + "\n".join(assistant_texts[-3:])[:2000],
+                }
+            )
+        rebuilt.extend(user_turns[-4:] or [{"role": "user", "content": "请基于上述证据作答。"}])
+        rebuilt.append({"role": "system", "content": repair_prompt})
+        return rebuilt
+
+    @staticmethod
     def _chunk_visible_text_for_stream(text: str, *, target_size: int = 14) -> list[str]:
         clean = str(text or "")
         if not clean:
@@ -1584,6 +1653,16 @@ class AgentLoop:
         ).strip()
         if not user_stem or not user_answer:
             user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        # fail-closed 保底闸（OD-002 倒诬根治，指挥官相称律裁决 2026-07-31）：
+        # 身份闸/数字变体闸都以 user_stem 为对照面——切割失败（疑似案例投稿但
+        # stem 为空）时它们整线解除武装，题库参考答案会无核验入判（假命中行
+        # 17315 的钥匙判学生正确作答为零）。参考答案入判=授予判零权，判据必须
+        # 可核验：核验面缺失 → 宁降 tier3 诊断，不许倒诬。
+        if eq and not user_stem:
+            _raw_probe = str(user_message or "")
+            if len(_raw_probe) >= 120 and re.search(r"【背景资料】|【问题】|背景资料", _raw_probe):
+                md["exact_question_blocked_reason"] = "unverifiable_submission_shape"
+                eq = {}
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
@@ -1686,6 +1765,23 @@ class AgentLoop:
         # derivation, and mismatched exact hits are demoted before their reference answer can score.
         # Forward-reachability (S4): an active_object-derived case keeps its stem in
         # ``fc["question"]`` (NOT ``question_stem``); read it so Tier-3 has a stem to ground on.
+        # OD-004 补刀（2026-08-01，指挥官"判分行为在场"面）：live 2/3 抖动实证——
+        # lifecycle scene 有 LLM 参与，某轮判成非 case_grading → 直批跳过 → 外层
+        # V1 拿不到题面（eq/fc 皆空且 split 未成）→ question_stem 空 → 与 reference
+        # 双空 → no_reference 整条降级 → 落回通用 agent 现编判分（权威双空）。
+        # 学生已提交案例作答=判分行为在场，就必须有判分基座：题面兜底取其原文
+        # （tier3 从"学生自己贴的题面"推导，不涉任何他题钥匙，无倒诬风险）。
+        if not (str(eq.get("stem") or eq.get("question") or "").strip()
+                or str(fc.get("question_stem") or fc.get("question") or "").strip()
+                or user_stem):
+            from deeptutor.services.construction_grading.case_output_policy import (
+                case_submission_stem_candidate,
+            )
+
+            _raw = case_submission_stem_candidate(str(user_message or ""))
+            if _raw:
+                user_stem = _raw
+                md["case_stem_fallback"] = "raw_submission"
         question_stem = str(
             eq.get("stem") or eq.get("question")
             or fc.get("question_stem") or fc.get("question")
@@ -1829,6 +1925,7 @@ class AgentLoop:
                 ("adjudication_point_count", "case_grading_adjudication_point_count"),
                 ("case_rubric_score_total_mismatch", "case_rubric_score_total_mismatch"),
                 ("case_rubric_bank_slot", "case_rubric_bank_slot"),
+                ("case_stem_fallback", "case_stem_fallback"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)
@@ -2667,12 +2764,11 @@ class AgentLoop:
                     else self._strip_think(response.content)
                 )
                 if not self._is_user_visible_final_answer(clean):
-                    retry_messages = list(messages)
-                    retry_messages.append(
-                        {
-                            "role": "system",
-                            "content": self._visible_answer_repair_prompt(0),
-                        }
+                    # OD-003 根治：结构差异化重试（去工具形态），不再原样递含
+                    # tool_calls 的历史——模型会照着模仿，tools=None 也拦不住。
+                    retry_messages = self._toolless_repair_messages(
+                        messages,
+                        repair_prompt=self._visible_answer_repair_prompt(0),
                     )
                     retry_parts: list[str] = []
 
@@ -3485,12 +3581,11 @@ class AgentLoop:
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate
                 break
-            call_messages = list(call_messages)
-            call_messages.append(
-                {
-                    "role": "system",
-                    "content": self._visible_answer_repair_prompt(attempt),
-                }
+            # 同 OD-003 纪律：fast policy 的重试也走结构差异化（去工具形态），
+            # 避免同款"被自己历史条件化"的空返回。
+            call_messages = self._toolless_repair_messages(
+                call_messages,
+                repair_prompt=self._visible_answer_repair_prompt(attempt),
             )
 
         if final_content is None and not isinstance(runtime_metadata.get("turn_failure"), dict):

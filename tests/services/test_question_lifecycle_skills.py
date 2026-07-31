@@ -488,3 +488,23 @@ def test_routing_llm_timeout_env_parsing_defaults():
             os.environ.pop("DEEPTUTOR_ROUTING_LLM_TIMEOUT_S", None)
         else:
             os.environ["DEEPTUTOR_ROUTING_LLM_TIMEOUT_S"] = original
+
+
+def test_full_case_split_recognizes_bracket_answer_markers() -> None:
+    """OD-001/002 根治（[capability] domain test）：切割标记族收敛单一权威后，
+    【我的作答】括号形必须被识别——此前缺口让 user_stem 切成空串，整套倒诬
+    防线（身份闸/数字变体闸/覆盖对账）同时解除武装。"""
+    from deeptutor.services.question_lifecycle_skills import split_full_case_answer_submission
+
+    paste = (
+        "【背景资料】某框架结构工程混凝土施工出现质量缺陷，监理提出整改要求。\n"
+        "【问题】\n1. 指出施工中的错误之处？\n2. 说明正确做法？\n"
+        "【我的作答】\n问1：模板拆除过早不妥。"
+    )
+    stem, answer = split_full_case_answer_submission(paste)
+    assert stem and "【问题】" in stem and "我的作答" not in stem
+    assert "模板拆除过早" in answer
+    # 冒号形（既有行为）不回归
+    paste2 = paste.replace("【我的作答】", "我的作答：")
+    stem2, answer2 = split_full_case_answer_submission(paste2)
+    assert stem2 and "模板拆除过早" in answer2

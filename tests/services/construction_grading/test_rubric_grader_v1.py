@@ -1910,3 +1910,51 @@ def test_question_titles_cut_answer_markers_before_counting() -> None:
     assert sorted(G._extract_case_question_titles(raw)) == [1, 2, 3, 4]
     raw2 = raw.replace("【我的作答】", "\n我的答案：")
     assert sorted(G._extract_case_question_titles(raw2)) == [1, 2, 3, 4]
+
+
+def test_answer_marker_single_authority_bracket_forms() -> None:
+    """OD-001/002 根治：标记族单一权威——切割侧与标题抽取侧共用
+    CASE_ANSWER_MARKER_PATTERN，括号形【我的作答】两侧同时生效。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_ANSWER_MARKER_PATTERN,
+    )
+    from deeptutor.services.question_lifecycle_skills import (
+        split_full_case_answer_submission,
+        _FREE_TEXT_CASE_ANSWER_MARKER_RE,
+    )
+
+    assert _FREE_TEXT_CASE_ANSWER_MARKER_RE.pattern == CASE_ANSWER_MARKER_PATTERN
+    paste = (
+        "【背景资料】某工程混凝土施工出现质量问题。\n【问题】\n1. 指出错误？\n2. 正确做法？\n"
+        "3. 评定方法？\n4. 构造柱做法？\n【我的作答】\n问1：B：限制。"
+    )
+    stem, answer = split_full_case_answer_submission(paste)
+    assert stem and "问题" in stem and "我的作答" not in stem
+    assert "B：限制" in answer
+    # 标题抽取侧同一模式：作答里的编号不进题面计数
+    titles = G._extract_case_question_titles(paste)
+    assert sorted(titles) == [1, 2, 3, 4]
+
+
+def test_case_submission_stem_candidate_semantic_anchor() -> None:
+    """OD-004 终修：判分基座判据回到语义（提交标记/多小问结构），不再依赖
+    题面括号形状——live 10 轮源码级实证：真实考卷粘贴（#583 原文，无【背景资料】
+    括号、半角「问题:」）三个形状锚全不命中，兜底十轮零触发。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        case_submission_stem_candidate as candidate,
+    )
+
+    real_paper = (
+        "某办公楼工程，地下二层，地上16层，建筑面积3.6万平方米，现浇钢筋混凝土框架剪力墙结构。"
+        + "施工过程描述内容补充。" * 12
+        + "\n问题:\n1. 指出项目部做法中的不妥之处并说明理由。\n2. 写出正确做法。\n"
+        "【我的作答】\n问题1：安全交底不妥。"
+    )
+    assert candidate(real_paper), "真实考卷粘贴形态必须被识别为判分基座"
+    bracket_form = "【背景资料】某工程" + "施工描述内容。" * 30 + "【问题】1. 指出不妥？"
+    assert candidate(bracket_form), "既有括号形态不得回归"
+    assert candidate("这题怎么做？") == ""
+    assert candidate("我想了解建筑工程施工管理的相关知识内容介绍。" * 8) == "", "无判分痕迹的长文本不得制造判分面"
+    # 只有多小问结构（无提交标记）也算判分行为在场
+    multi_q = "某工程概述内容。" * 20 + "\n1. 指出不妥之处？\n2. 说明正确做法？"
+    assert candidate(multi_q)
