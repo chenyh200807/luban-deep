@@ -73,7 +73,7 @@ def _pollution_proof_loop_logger(monkeypatch: pytest.MonkeyPatch) -> None:
 
 class _CapturingProvider(LLMProvider):
     def __init__(self) -> None:
-        super().__init__(api_key="fake")
+        super().__init__(api_key="fake")  # pragma: allowlist secret
         self.called = False
 
     async def chat(
