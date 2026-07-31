@@ -1597,6 +1597,7 @@ class AgentLoop:
         if not user:
             return {
                 "reference": str(reference_context.get("correct_answer") or "").strip(),
+                "matched_count": "",
                 "matched_indexes": "",
                 "question_id": str(reference_context.get("question_id") or "").strip(),
             }
@@ -1624,6 +1625,7 @@ class AgentLoop:
                 # 采纳集必须记 1 个，不能让上层回落到 payload 的行数。
                 return {
                     "reference": str(reference_context.get("correct_answer") or "").strip(),
+                    "matched_count": "1",
                     "matched_indexes": _own_index(),
                     "question_id": str(reference_context.get("question_id") or "").strip(),
                 }
@@ -1631,6 +1633,7 @@ class AgentLoop:
         answers: list[str] = []
         matched_question_ids: list[str] = []
         matched_display_indexes: list[str] = []
+        indexless_adopted = 0
         candidates = list(reference_context.get("covered_subquestions") or []) + list(reference_context.get("items") or [])
         for item in candidates:
             if not isinstance(item, dict):
@@ -1646,9 +1649,18 @@ class AgentLoop:
                 display_index = str(item.get("display_index") or "").strip()
                 if display_index:
                     matched_display_indexes.append(display_index)
+                else:
+                    indexless_adopted += 1
+
+        # 三态修复（codex 异源审 2026-08-01）："没有采纳 / 采纳但索引未知 / 采纳且
+        # 索引已知"不得共用空字符串——索引未知的采纳行若被丢出分子，上层会误回落
+        # 到 payload 的检索行数（4）再度放大覆盖比例。分子权威=采纳数本身：
+        # 去重后的已知索引数 + 无索引的采纳行数。
+        adopted_total = len(dict.fromkeys(matched_display_indexes)) + indexless_adopted
 
         return {
             "reference": "\n".join(answers).strip(),
+            "matched_count": str(adopted_total if answers else 0),
             # P0-b（2026-08-01 验证实证）：覆盖分子必须是"参考答案**实际采纳**了几个
             # 小问"，不是"检索回来几行兄弟行"——本函数按用户题面过滤后的命中集才是
             # 真正进入判分的参考面（live: payload 说 4 行、实际只采纳 1 问 → 旧分子
@@ -1828,10 +1840,12 @@ class AgentLoop:
         # 覆盖比例用确定性信号：eq 的 covered_indexes（supabase 侧已按 display_index
         # 算好、此前全仓零消费者）÷ 学生题面小问数——不靠 n-gram 事后猜（钉三实证
         # 那条链同输入会给出 3/4 与 4/4 两个结果）。
-        _adopted = [
-            x for x in str(eq_current.get("matched_indexes") or "").split(",")
-            if x.strip().isdigit()
-        ] if user_stem and eq else []
+        _adopted_count = 0
+        if user_stem and eq:
+            _mc = str(eq_current.get("matched_count") or "").strip()
+            if _mc.isdigit():
+                _adopted_count = int(_mc)
+        _adopted = [str(_adopted_count)] * _adopted_count if _adopted_count else []
         # 采纳集为空时回落 payload 的 covered_indexes（旧行为），但两者语义不同：
         # 采纳集=真正进判分的小问，payload=检索命中的兄弟行数。优先采纳集。
         _ref_covered = _adopted or [
@@ -1848,7 +1862,9 @@ class AgentLoop:
             # 覆盖对账必须对学生所见题面（live 实证：exact 命中单小问兄弟行时，
             # eq.stem 只含 1 问——拿 bank 行当整个世界，4 问粘贴被判 10/10）。
             "user_stem": user_stem,
-            "case_reference_covered_count": len(set(_ref_covered)),
+            "case_reference_covered_count": (
+                _adopted_count if _adopted_count else len(set(_ref_covered))
+            ),
             "case_stem_subquestion_count": len(_stem_titles),
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
