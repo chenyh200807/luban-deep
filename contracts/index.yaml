@@ -583,6 +583,26 @@ domains:
         falls open to the main LLM. Domain tests live in
         tests/services/rag/test_supabase_strategy.py (identity adjudicator)
         and tests/services/rag/test_rag_pipelines.py (demotion/no-floor state).
+      - retrieval_profile is a retrieval-DEPTH declaration, never a second
+        retrieval entry point, router, or TutorBot mode (contracts/rag.md 44).
+        Naming authority is deeptutor/services/rag/retrieval_profiles.py and the
+        unified pipeline short-circuits INSIDE one pipeline — no parallel search
+        function may be forked for a profile. Absent/empty means the full
+        pipeline, byte-for-byte the previous behavior; model-issued in-loop rag
+        calls never carry the key. case_grading_identity may only drop product
+        ASSEMBLY (source hydration, rerank, doc diversity, content/source_items,
+        and non-questions_bank source groups); it must never drop the identity
+        and denominator spine (exact text probe batch, questions_bank vector +
+        the client-derived question_exact_vector, the case_like forced second
+        pass that supplies covered_subquestions/covered_indexes, and the exact
+        payload trio). exact_question must be field-for-field identical between
+        lean and full. Empty content/sources under this profile is a normal
+        terminal state rather than a degradation — retrieval_degraded and
+        retrieval_status stay derived from retrieval_warnings alone, and no
+        consumer may mark the round degraded merely because sources is empty
+        (that lights the degradation gates and demotes a normal graded answer
+        into "insufficient evidence"). Domain tests live in
+        tests/services/rag/test_case_grading_identity_profile.py.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -631,6 +651,9 @@ domains:
       - tests/services/rag/test_supabase_fanout_dedup.py
       - tests/services/rag/test_supabase_unified_timeout.py
       - tests/services/rag/test_rerank_doc_cap.py
+      # L1 瘦身检索（contracts/rag.md 44）：lean/full 的 exact 身份与分母逐字段
+      # 相同 + 可砍清单确实被砍 + 空 sources 不得被判成 degraded。
+      - tests/services/rag/test_case_grading_identity_profile.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -883,6 +906,9 @@ domains:
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
       # L4 渐进吐字（turn.md「渐进发射不改变终态」）：时序 + 终态等价 + 宣传门断言面守门。
       - tests/tutorbot/test_case_grading_sequenced_emit.py
+      # L1 瘦身检索（rag.md 44）：直通轮 lean 仍必须落 exact 身份、不注入正文、
+      # 不毒化饱和台账、不点亮降级闸；kill switch off 逐字节回旧形状。
+      - tests/tutorbot/test_case_direct_lean_rag.py
       - tests/tutorbot/test_case_grading_generation_falls_through.py
       - tests/services/test_question_followup_case_submission.py
       - tests/tutorbot/test_case_grading_forward_reachability.py
