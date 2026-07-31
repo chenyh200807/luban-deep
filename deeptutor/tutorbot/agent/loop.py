@@ -207,13 +207,21 @@ class _CaseGradingProgressNarrator:
         self,
         emit: Callable[[str], Awaitable[None]] | None,
         *,
-        interval_s: float = _CASE_GRADING_HEARTBEAT_INTERVAL_S,
-        max_heartbeats: int = _CASE_GRADING_MAX_HEARTBEATS,
+        interval_s: float | None = None,
+        max_heartbeats: int | None = None,
         enabled: bool = True,
     ) -> None:
+        # 模块常量在**调用时**解析（不做 default-arg 绑定）：常量是可调的单一权威，
+        # 测试与紧急调参都改同一个地方。
         self._emit = emit
-        self._interval_s = max(float(interval_s), 0.0)
-        self._max_heartbeats = max(int(max_heartbeats), 0)
+        self._interval_s = max(
+            float(_CASE_GRADING_HEARTBEAT_INTERVAL_S if interval_s is None else interval_s),
+            0.0,
+        )
+        self._max_heartbeats = max(
+            int(_CASE_GRADING_MAX_HEARTBEATS if max_heartbeats is None else max_heartbeats),
+            0,
+        )
         self._enabled = bool(enabled and emit is not None)
         self._lock = asyncio.Lock()
         self._heartbeat_task: asyncio.Task[None] | None = None
