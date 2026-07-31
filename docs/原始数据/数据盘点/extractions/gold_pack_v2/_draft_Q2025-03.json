@@ -1,0 +1,184 @@
+{
+  "question_id": "Q2025-03",
+  "answers": [
+    {
+      "answer_id": "Q2025-03::high",
+      "ability_label": "high",
+      "answer_text": "1. 在现场随意留置强度检验试件的做法不正确，试件必须按规定的部位和频次留置。灌注桩的偏差检验项目，除桩位偏差外还有桩长和桩径。桩身缺陷可以用低应变法、高应变法、声波透射法和钻芯法来检验。\n\n2. 浇筑方案里有两处要改：有主梁和次梁的楼板，应当顺着次梁的方向浇筑，而不是顺主梁；单向板应当沿板的长边方向浇筑，题里写的短边不对。混凝土结构实体检验除强度外，还应包括钢筋保护层厚度、结构位置与尺寸偏差，以及合同里约定要检验的那些项目。\n\n3. 叠合板吊装就位后，要校核板底接缝的高差和宽度这两项偏差。高差超出允许范围时，把构件重新吊起来，通过可调支托调整到位。预制梁和叠合板的安装顺序，遵循先主梁后次梁、先低后高的原则。\n\n4. 卷材流淌按程度分成严重流淌、中等流淌、轻微流淌三种。严重的可以考虑拆掉重新铺；轻微的只要没有渗漏，一般不用专门处理；中等的可以用切割法、局部铲掉重做，或者钉钉子法。",
+      "expected_failures": [
+        {
+          "target_point": "2.3",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 3,
+          "expected_items_total": 4,
+          "injected_text": "钢筋保护层厚度、结构位置与尺寸偏差，以及合同里约定要检验的那些项目",
+          "adjudication_rule": "采分点四项为“钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目、必要时可检验其他项目”，答卷漏最后一项。"
+        },
+        {
+          "target_point": "4.4",
+          "type": "imprecise_term",
+          "expected_credit": "partial",
+          "expected_items_hit": 2,
+          "expected_items_total": 3,
+          "injected_text": "切割法、局部铲掉重做，或者钉钉子法",
+          "adjudication_rule": "采分点三项为“切割法、局部切除重铺、钉钉子法”。切割法与钉钉子法命中；“局部切除重铺”被写成“局部铲掉重做”，非规范表述，不计。"
+        }
+      ]
+    },
+    {
+      "answer_id": "Q2025-03::mid",
+      "ability_label": "mid",
+      "answer_text": "1. 不正确，试件不能随意留置。偏差检验项目还有桩径。桩身缺陷的检验方法有低应变法、高应变法和声波透射法。\n\n2. 有主、次梁的楼板顺主梁方向浇筑这一条我认为是对的，可以保留不改；单向板应当沿长边方向浇筑，题里写短边是不对的。结构实体检验项目还有钢筋保护层厚度和结构位置与尺寸偏差。\n\n3. 吊装以后要校核板底接缝的高差和宽度。高差不满足要求时，用撬棍把板撬起来，下面塞垫片找平。安装顺序是先主梁后次梁，先低后高。\n\n4. 流淌分严重、中等、轻微三种。严重流淌的可以用钉钉子法把它钉住；轻微流淌只要不漏水就不用管；中等流淌可以用切割法、局部切除重铺或者钉钉子法。",
+      "expected_failures": [
+        {
+          "target_point": "1.2",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 2,
+          "injected_text": "偏差检验项目还有桩径",
+          "adjudication_rule": "采分点两项为“桩长、桩径”，答卷漏桩长。"
+        },
+        {
+          "target_point": "1.3",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 3,
+          "expected_items_total": 4,
+          "injected_text": "低应变法、高应变法和声波透射法",
+          "adjudication_rule": "采分点四项，答卷漏钻芯法。"
+        },
+        {
+          "target_point": "2.1",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "有主、次梁的楼板顺主梁方向浇筑这一条我认为是对的，可以保留不改",
+          "adjudication_rule": "采分点要求改正为“宜顺次梁方向浇筑”；答卷明确判原方案妥当，与采分点矛盾。"
+        },
+        {
+          "target_point": "2.3",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 2,
+          "expected_items_total": 4,
+          "injected_text": "还有钢筋保护层厚度和结构位置与尺寸偏差",
+          "adjudication_rule": "四项中漏“合同约定的项目”“必要时可检验其他项目”。"
+        },
+        {
+          "target_point": "3.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "用撬棍把板撬起来，下面塞垫片找平",
+          "adjudication_rule": "采分点为“将构件重新起吊，通过可调支托进行调节”。答卷给出的撬棍加垫片做法与采分点矛盾。"
+        },
+        {
+          "target_point": "4.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "严重流淌的可以用钉钉子法把它钉住",
+          "adjudication_rule": "采分点为“严重流淌：可考虑拆除重铺”。钉钉子法是中等流淌的治理方法，答卷张冠李戴。"
+        }
+      ]
+    },
+    {
+      "answer_id": "Q2025-03::low",
+      "ability_label": "low",
+      "answer_text": "1. 现场留置试件按施工方便来定，我认为这样是可以的。桩身缺陷的检验方法有低应变法。\n\n2. 有主、次梁的楼板应该顺次梁方向浇筑。单向板沿短边方向浇筑没有问题。结构实体检验还要检验钢筋保护层厚度。\n\n3. 吊装完看看板缝齐不齐就行。安装顺序是先次梁后主梁，先高后低。\n\n4. 卷材流淌分成大流淌、中等流淌和小流淌。中等流淌可以用切割法处理。",
+      "expected_failures": [
+        {
+          "target_point": "1.1",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "现场留置试件按施工方便来定，我认为这样是可以的",
+          "adjudication_rule": "采分点为“取样不正确”。答卷判为正确，与采分点矛盾。"
+        },
+        {
+          "target_point": "1.2",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "完全未回答偏差检验项目。"
+        },
+        {
+          "target_point": "1.3",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 4,
+          "injected_text": "桩身缺陷的检验方法有低应变法",
+          "adjudication_rule": "四项中只命中低应变法。"
+        },
+        {
+          "target_point": "2.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "单向板沿短边方向浇筑没有问题",
+          "adjudication_rule": "采分点要求改正为“宜沿板的长边方向浇筑”；答卷判原方案妥当，与采分点矛盾。"
+        },
+        {
+          "target_point": "2.3",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 4,
+          "injected_text": "还要检验钢筋保护层厚度",
+          "adjudication_rule": "四项中只命中钢筋保护层厚度。"
+        },
+        {
+          "target_point": "3.1",
+          "type": "imprecise_term",
+          "expected_credit": "none",
+          "injected_text": "吊装完看看板缝齐不齐就行",
+          "adjudication_rule": "采分点要求写出“对板底接缝高差及宽度进行校核”两个偏差项目。答卷只有口语化的“板缝齐不齐”，未指明高差与宽度，不得分。"
+        },
+        {
+          "target_point": "3.2",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未回答高差不满足要求时如何调节。"
+        },
+        {
+          "target_point": "3.3",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "安装顺序是先次梁后主梁，先高后低",
+          "adjudication_rule": "采分点为“先主梁后次梁，先低后高”。答卷两个顺序全反，与采分点矛盾。"
+        },
+        {
+          "target_point": "4.1",
+          "type": "imprecise_term",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 3,
+          "injected_text": "大流淌、中等流淌和小流淌",
+          "adjudication_rule": "采分点三项为“严重流淌、中等流淌、轻微流淌”。中等流淌命中；“严重/轻微”写成“大/小”，非规范分类名称，不计。"
+        },
+        {
+          "target_point": "4.2",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未写严重流淌的治理方法。"
+        },
+        {
+          "target_point": "4.3",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未写轻微流淌的处理原则。"
+        },
+        {
+          "target_point": "4.4",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 3,
+          "injected_text": "中等流淌可以用切割法处理",
+          "adjudication_rule": "三项中只命中切割法。"
+        }
+      ]
+    }
+  ]
+}
