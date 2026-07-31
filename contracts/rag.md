@@ -102,6 +102,16 @@
     - **(e) 组边界的可证伪性**：`case_group_id` 的组边界来自背景正文指纹合并，**它是可错的**，因此不得单独充当 identity 裁决。案例行晋升可见官方答案仍须走 §32b 的 `exact_question_identity_corresponds`；`case_group_id` 只负责「取全同组」，不负责「这是不是学员这道题」。
     - 回填执行与证据：`docs/原始数据/数据盘点/2026-08-01-方案C-C2回填执行.md`；DDL：`supabase/migrations/20260801000100_questions_bank_case_group.sql`。
 
+46. **治理组 bundle 的参考答案必须以 per-问结构进判分核，且每小问独立封顶**（OD-005，2026-08-01 live 实证：整卷 4 问粘贴 + 只答问 1，在 C3 全覆盖参考下三轮两轮 10/10）。
+
+    - **(a) 不得拼接后自由抽取**：`case_bundle_source=group_query` 的 bundle，其 items 自带 `display_index` + `authoritative_answer`。判分 ctx 必须导出 `case_reference_subquestions=[{index, answer}, ...]`（单一产出点 = `AgentLoop._current_case_reference_from_context` 的同一次采纳循环；旧的 `correct_answer` 拼接串保留作非治理路径与向后兼容面，两者同源）。把 N 问答案 `"\n".join` 成一段再做**一次**开放世界抽取，点位分布不受任何约束——抽出的点恰好集中在学生已答的那一问时，命中即满分，而参考全覆盖 ⇒ `scope_ratio=1` ⇒ 整题范围封顶根本不介入。这是**正确性缺陷**，不是效率问题。
+    - **(b) 每问独立抽取**：每问的 `extract_rubric_from_reference_async` 只喂该问的 `authoritative_answer`，题面只喂该问（`case_subquestion_stem`，切不出时 fail-open 回整题题面）。点的 `question_no` 由**结构化事实**（答案来自哪一问）确定性盖章，不采信 LLM 自报。多次抽取各自产出 `P1..Pn`，`point_id` 必须加问号前缀 —— 不加则跨问撞键，verdicts 按 point_id 索引会静默错绑判分。
+    - **(c) 每问独立封顶**：每问名义满分 = 整题名义满分 ÷ 题面小问数（`questions_bank` 行不带 per-问分值，均分是当前唯一确定性依据）；每问得分 = `min(Σ该问命中, 该问名义满分)`，总分 = Σ 各问 capped，对外分母恒为整题名义满分。**写分者仍只有 `rubric_grader_v1.finalize_case_score` 一个**（codex 不变量审计 §2.1）——逐问封顶作为它的入参 `subquestion_caps`，与整题范围封顶串联，调用方不得自行改分。
+    - **(d) 未答的小问自然得零**：没答的问其点位全 miss ⇒ 该问 0 分。**不得**引入「哪几问已答」的第二判定权威（切学生作答、数编号、LLM 判定）——点位分布本身就是判定，多一张名单就多一处会漂的权威。
+    - **(e) 抽取失败 = 该问未覆盖，不是零分连坐**：某问抽取失败/空时，该问不进封顶表也不贡献点位，等价于「参考没覆盖这一问」，分母仍是整题名义满分（学生看到诚实的部分覆盖），不得把整轮判分打成 0 或降级拒答。
+    - **(f) 非治理路径不变**：`case_reference_subquestions` 少于 2 问（单行兄弟行 / 库外 tier-3 / 学生自带参考）一律回落既有整段抽取 + `scope_ratio` 整题封顶路径，逐字节旧行为。
+    - 观测：`case_per_subq_grading`（"有点位的小问数/题面小问数"，空 = 走了旧整段链）、`case_subq_score_caps`（`q1:2.5,...`）、`case_subq_score_capped` / `case_subq_capped_from`（封顶真的咬到时）；判决面 `adjudication_strategy=dynamic_parallel_subquestion_groups`（一组 = 一问，逐组发射即「问 k 判完」）。kill switch `LUBAN_CASE_PER_SUBQ_GRADING`（默认 ON，off 逐字回旧形状）。
+
 ## 当前统一语义
 
 - `exact_question`
@@ -145,6 +155,9 @@
 - `retrieval_profile`
 - `evidence_bundle.performance_policy.retrieval_profile`
 - `case_direct_rag_profile`
+- `case_reference_subquestions`
+- `case_per_subq_grading`
+- `case_subq_score_caps`
 - `learning_fact_capsule`
 - `routing_metadata.personalization_context_available`
 - `PersonalizationContextPack`

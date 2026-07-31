@@ -2307,3 +2307,52 @@ def test_governed_group_bundle_adopts_all_canonical_items() -> None:
     }}
     ctx2 = AgentLoop._build_v1_case_ctx(md2, paste)
     assert ctx2["case_reference_covered_count"] == 3
+
+
+def test_governed_group_bundle_exports_per_subquestion_reference() -> None:
+    """OD-005（2026-08-01）：治理组 bundle 的采纳集必须以 **per-问结构**进 ctx。
+
+    病灶：4 问答案被 ``"\\n".join`` 成一段后自由抽取，点位分布不保证——全落在
+    已答的问 1 时，只答 1/4 的整卷命中即满分（live 三轮两轮 10/10）。判分核要
+    逐问抽取+逐问封顶，前提是 ctx 里保住每问的身份与答案；旧的拼接串同时保留
+    （非治理路径与向后兼容的唯一消费面）。
+    """
+    bg = "【背景资料】某施工企业中标新建一办公楼工程，" + "施工过程描述。" * 30
+    items = [
+        {"prompt": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+         "authoritative_answer": f"官方答案{i}", "display_index": str(i),
+         "question_id": str(17370 + i)}
+        for i in range(1, 5)
+    ]
+    paste = (bg + "\n【问题】1. 第1问的完整提问内容是什么？\n2. 措辞不同字的第二问？\n"
+             "3. 第3问的完整提问内容是什么？\n4. 第4问的完整提问内容是什么？\n"
+             "我的答案：作答内容若干。")
+    md = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": items[0]["prompt"],
+        "correct_answer": "官方答案1", "case_bundle_source": "group_query",
+        "covered_subquestions": items,
+        "covered_indexes": ["1", "2", "3", "4"],
+    }}
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    subqs = ctx["case_reference_subquestions"]
+    assert [s["index"] for s in subqs] == ["1", "2", "3", "4"]
+    assert [s["answer"] for s in subqs] == [f"官方答案{i}" for i in range(1, 5)]
+    # 拼接串与逐问结构同源（同一次采纳循环），向后兼容面不得漂移。
+    assert ctx["correct_answer"] == "\n".join(s["answer"] for s in subqs)
+    assert ctx["case_stem_subquestion_count"] == 4
+
+
+def test_single_row_reference_exports_own_subquestion_index() -> None:
+    """单行兄弟行（顶层直配，非组 bundle）：采纳集就是这一个小问，
+    逐问结构也只有一条 —— 判分核据此不进逐问链（<2 问回落旧整段路径），
+    既有 scope_ratio 整题封顶原样生效。"""
+    stem = "【背景资料】某工程背景。" + "补充描述。" * 20 + "\n问题2：这一问问什么？"
+    md = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": stem, "display_index": "2",
+        "correct_answer": "问题2的官方答案",
+    }}
+    paste = stem + "\n我的答案：作答内容若干。"
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_subquestions"] == [
+        {"index": "2", "answer": "问题2的官方答案"}
+    ]

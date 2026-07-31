@@ -1193,3 +1193,206 @@ async def test_case_rubric_v1_stage_hook_is_observation_only(monkeypatch: pytest
         dict(ctx), student_id="s1", complete=None, key="k", _G=G, on_stage=_boom
     )
     assert resilient == baseline
+
+
+# ---------------------------------------------------------------------------
+# OD-005：每小问独立抽取 + 独立封顶（整卷半答假满分歼灭）
+# ---------------------------------------------------------------------------
+
+_OD005_STEM = (
+    "【背景资料】某施工企业中标新建办公楼工程，施工过程中出现若干问题。\n"
+    "问题1：指出不妥之处并说明理由？\n"
+    "问题2：写出正确做法？\n"
+    "问题3：写出构造名称？\n"
+    "问题4：补充工艺流程？"
+)
+# 治理组 bundle：4 个小问的官方答案各自成行（C3 终修后整组采纳 = 全覆盖）。
+_OD005_SUBQ_REFERENCES = [
+    {"index": str(i), "answer": f"官方答案{i}"} for i in range(1, 5)
+]
+_OD005_JOINED_REFERENCE = "\n".join(s["answer"] for s in _OD005_SUBQ_REFERENCES)
+
+
+def _od005_install_fakes(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """抽取器行为建模（live 实证形态，非臆造）：
+
+    - **整段自由抽取**（旧路径）：拿到 4 问拼接成的一段，点位分布不保证——
+      live 三轮里两轮的点全落在**已答的问 1**上，于是"只答问 1"命中即满分。
+      这里用"点位跟随参考首行身份"确定性复现该形态。
+    - **逐问抽取**（新路径）：每次只拿到那一问的答案，点位天然带该问身份，
+      分布偏斜在结构上不可能发生。
+
+    判分侧用确定性包含判定（学生作答里出现该点表述即命中），不接触 LLM。
+    """
+    calls: list[str] = []
+
+    async def _fake_extract(reference, stem, complete_fn, api_key, *, model="deepseek-chat",
+                            provider_authority=""):
+        text = str(reference or "").strip()
+        calls.append(text)
+        tag = text.splitlines()[0].strip() if text else ""
+        return [
+            {"point_id": f"P{i}", "text": f"{tag}要点{i}", "score": 1.0,
+             "policy": "qualitative", "required_terms": []}
+            for i in range(1, 5)
+        ]
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {
+            str(p.get("point_id")): {
+                "status": G.HIT if str(p.get("text") or "") in str(answer or "") else G.MISS
+            }
+            for p in points
+        }
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+    monkeypatch.setattr(G, "extract_rubric_from_reference_async", _fake_extract)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+    return calls
+
+
+def _od005_answer(*answered_indexes: int) -> str:
+    """学生作答：把这几问的全部采分点表述写全（其余问一个字没写）。"""
+    return "\n".join(
+        f"问题{idx}：" + "、".join(f"官方答案{idx}要点{k}" for k in range(1, 5))
+        for idx in answered_indexes
+    )
+
+
+def _od005_ctx(answered: tuple[int, ...], **overrides: Any) -> dict[str, Any]:
+    ctx: dict[str, Any] = {
+        "question_id": "",
+        "user_answer": _od005_answer(*answered),
+        "question_stem": _OD005_STEM,
+        "user_stem": _OD005_STEM,
+        "correct_answer": _OD005_JOINED_REFERENCE,
+        "case_reference_subquestions": [dict(s) for s in _OD005_SUBQ_REFERENCES],
+        "case_reference_covered_count": 4,
+        "case_stem_subquestion_count": 4,
+        "construction_grading_result": {"type": "case", "max_score": 10},
+    }
+    ctx.update(overrides)
+    return ctx
+
+
+@pytest.mark.asyncio
+async def test_od005_half_answered_full_paste_cannot_reach_full_score(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OD-005 主证伪测（2026-08-01 live 实证：t8 形态 3 轮 2 轮 10/10）。
+
+    整卷 4 问粘贴 + **只答问 1**，参考是治理组的 4 问全覆盖答案。旧路径把 4 问
+    答案 ``"\\n".join`` 成一段做**一次**自由抽取——点位分布不保证，恰好全落在
+    已答的问 1 时，全命中 + scope_ratio=1（全覆盖 → 整题封顶不介入）= 10/10。
+    修法：每小问独立抽取、独立封顶（每问上限 = 名义满分 / 问数），
+    没答的问点位全 miss → 该问 0 分，不需要"哪几问已答"的第二个判定权威。
+    """
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    calls = _od005_install_fakes(monkeypatch)
+    event = await _grade_one_case_v1(
+        _od005_ctx((1,)), student_id="s1", complete=None, key="k", _G=G
+    )
+
+    assert event["event_type"] == "case_grading_completed"
+    assert event["max_score"] == 10.0, "对外分母恒为整题名义满分"
+    assert event["awarded_score"] <= 2.51, (
+        f"只答 1/4 问最多得 2.5，实得 {event['awarded_score']}（整卷半答假满分）"
+    )
+    assert event["awarded_score"] >= 2.49, "答对的那一问必须足额给分，不得连坐"
+    # 逐问抽取的结构证据：抽取被调用 4 次，每次只喂那一问的答案。
+    assert len(calls) == 4, f"每小问应独立抽取一次，实得 {len(calls)} 次"
+    assert sorted(calls) == [s["answer"] for s in _OD005_SUBQ_REFERENCES]
+    # 采分点必须带 question_no（渲染 coverage 对账吃它）。
+    question_nos = {str(p.get("question_no")) for p in event["scoring_points"]}
+    assert question_nos == {"1", "2", "3", "4"}, f"采分点缺 question_no：{question_nos}"
+    # 覆盖对账消费同一个确定性盖章：rubric 确实盖住 4 问（诚实的 4/4），
+    # 分数只反映"只答了问 1"——覆盖面与得分面不再互相冒充。
+    assert event["case_subq_coverage"] == "4/4"
+    assert "case_subq_uncovered" not in event
+    # 每问封顶表随事件出场（live 关闭判据按它分组）。
+    assert event["case_per_subq_grading"] == "4/4"
+    assert event["case_subq_score_caps"] == "q1:2.5,q2:2.5,q3:2.5,q4:2.5"
+    # 归一化已经把每问点池压到该问名义满分，所以封顶闸在正常链路上不咬人
+    # （它是第二道防线：点池构造方式若变、或走 PGO 覆盖计分时才发力，
+    # 咬人的用例在 test_rubric_grader_v1.py 的 finalize 单测里）。
+    assert "case_subq_score_capped" not in event
+    # 一组=一问：逐组发射即"问 k 判完"。
+    assert event["adjudication_strategy"] == "dynamic_parallel_subquestion_groups"
+    assert event["adjudication_group_count"] == 4
+
+
+@pytest.mark.asyncio
+async def test_od005_full_answer_still_scores_full_marks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """不得误伤：四问全答全中仍是满分（每问封顶之和 = 整题名义满分）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _od005_install_fakes(monkeypatch)
+    event = await _grade_one_case_v1(
+        _od005_ctx((1, 2, 3, 4)), student_id="s1", complete=None, key="k", _G=G
+    )
+    assert event["awarded_score"] == 10.0
+    assert event["max_score"] == 10.0
+
+
+@pytest.mark.asyncio
+async def test_od005_three_tier_monotonic(monkeypatch: pytest.MonkeyPatch) -> None:
+    """三档单调：答 1 问 / 2 问 / 4 问 → 2.5 / 5.0 / 10.0（每问等权封顶）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _od005_install_fakes(monkeypatch)
+    scores = []
+    for answered in ((1,), (1, 2), (1, 2, 3, 4)):
+        event = await _grade_one_case_v1(
+            _od005_ctx(answered), student_id="s1", complete=None, key="k", _G=G
+        )
+        scores.append(event["awarded_score"])
+    assert scores == sorted(scores), f"三档必须单调不减，实得 {scores}"
+    assert abs(scores[0] - 2.5) <= 0.02
+    assert abs(scores[1] - 5.0) <= 0.02
+    assert abs(scores[2] - 10.0) <= 0.02
+
+
+@pytest.mark.asyncio
+async def test_od005_kill_switch_off_restores_single_extraction(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """kill switch 关 → 逐字回旧形状：一次整段抽取、无每问封顶。
+
+    这条既是回滚肌肉，也是"红测在旧路径上确实红"的**同进程证据**：
+    同一夹具、同一半答卷，旧路径给出 10/10。
+    """
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    calls = _od005_install_fakes(monkeypatch)
+    monkeypatch.setenv("LUBAN_CASE_PER_SUBQ_GRADING", "off")
+    event = await _grade_one_case_v1(
+        _od005_ctx((1,)), student_id="s1", complete=None, key="k", _G=G
+    )
+    assert len(calls) == 1, "关闸后必须回到整段一次抽取"
+    assert event["awarded_score"] == 10.0, "旧路径的病灶形态（半答假满分）原样保留"
+    assert "case_subq_score_caps" not in event
+
+
+@pytest.mark.asyncio
+async def test_od005_single_subquestion_reference_keeps_legacy_shape(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """非治理 / 单行参考路径行为不变：只有 1 个小问参考时不进逐问链，
+    仍走既有 scope_ratio 整题封顶（P0 修的那条不变量）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    calls = _od005_install_fakes(monkeypatch)
+    ctx = _od005_ctx(
+        (1,),
+        correct_answer="官方答案1",
+        case_reference_subquestions=[{"index": "1", "answer": "官方答案1"}],
+        case_reference_covered_count=1,
+    )
+    event = await _grade_one_case_v1(ctx, student_id="s1", complete=None, key="k", _G=G)
+    assert len(calls) == 1
+    assert event["case_grading_partial_scope"] == "1/4"
+    assert event["awarded_score"] <= 2.51

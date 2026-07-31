@@ -1808,8 +1808,13 @@ class AgentLoop:
     def _current_case_reference_from_context(
         reference_context: dict[str, Any],
         user_stem: str,
-    ) -> dict[str, str]:
-        """Return only reference answers whose question surface matches the freshly pasted case stem."""
+    ) -> dict[str, Any]:
+        """Return only reference answers whose question surface matches the freshly pasted case stem.
+
+        ``subquestions``（OD-005 2026-08-01）：采纳集的 **per-问结构**
+        ``[{"index", "answer"}, ...]``——判分核逐问抽取/逐问封顶消费它。旧的
+        ``reference`` 拼接串原样保留（非治理路径与向后兼容的唯一消费面），
+        两者同源同一次采纳循环，不是第二条搬运链。"""
 
         def _compact(value: Any) -> str:
             return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
@@ -1843,6 +1848,7 @@ class AgentLoop:
                 "matched_count": "",
                 "matched_indexes": "",
                 "question_id": str(reference_context.get("question_id") or "").strip(),
+                "subquestions": [],
             }
 
         def _question_segment(value: Any) -> str:
@@ -1891,14 +1897,21 @@ class AgentLoop:
             if _matches_current(reference_context.get(key)):
                 # 顶层直配=命中的是这一行（兄弟行形态下即"一个小问"），
                 # 采纳集必须记 1 个，不能让上层回落到 payload 的行数。
+                _own_answer = str(reference_context.get("correct_answer") or "").strip()
                 return {
-                    "reference": str(reference_context.get("correct_answer") or "").strip(),
+                    "reference": _own_answer,
                     "matched_count": "1",
                     "matched_indexes": _own_index(),
                     "question_id": str(reference_context.get("question_id") or "").strip(),
+                    "subquestions": (
+                        [{"index": _own_index(), "answer": _own_answer}]
+                        if _own_answer and _own_index()
+                        else []
+                    ),
                 }
 
         answers: list[str] = []
+        subquestions: list[dict[str, str]] = []
         matched_question_ids: list[str] = []
         matched_display_indexes: list[str] = []
         indexless_adopted = 0
@@ -1929,6 +1942,8 @@ class AgentLoop:
                 display_index = str(item.get("display_index") or "").strip()
                 if display_index:
                     matched_display_indexes.append(display_index)
+                    if display_index.isdigit():
+                        subquestions.append({"index": display_index, "answer": answer})
                 else:
                     indexless_adopted += 1
 
@@ -1952,6 +1967,8 @@ class AgentLoop:
             "display_index": (
                 matched_display_indexes[0] if len(matched_display_indexes) == 1 else ""
             ),
+            # OD-005：逐问采纳集（与 reference 拼接串同一次循环产出，同源）。
+            "subquestions": list({s["index"]: s for s in subquestions}.values()),
         }
 
     @classmethod
@@ -2065,7 +2082,7 @@ class AgentLoop:
                 md[_bundle_marker] = _bundle_value
         covered = eq.get("covered_subquestions") or []
         eq_display_index = ""
-        eq_current: dict[str, str] = {}
+        eq_current: dict[str, Any] = {}
         if user_stem and eq:
             eq_current = AgentLoop._current_case_reference_from_context(eq, user_stem)
             ref = str(eq_current.get("reference") or "").strip()
@@ -2166,6 +2183,19 @@ class AgentLoop:
             for x in (eq.get("covered_indexes") or [])
             if str(x or "").strip().isdigit()
         ]
+        # OD-005（2026-08-01）：进判分核的 per-问参考结构。只在**本轮实际使用的**
+        # 那份参考上取（current_reference=学生自带参考时不是逐问结构，留空回落旧
+        # 整段路径），绝不把两份来源的小问混进同一张表。
+        _ref_subqs: list[dict[str, str]] = []
+        if not current_reference:
+            if str(eq_current.get("reference") or "").strip():
+                _ref_subqs = [
+                    dict(s) for s in (eq_current.get("subquestions") or []) if isinstance(s, dict)
+                ]
+            elif str(fc_current.get("reference") or "").strip():
+                _ref_subqs = [
+                    dict(s) for s in (fc_current.get("subquestions") or []) if isinstance(s, dict)
+                ]
         _stem_titles = _extract_case_question_titles_for_scope(user_stem or str(eq.get("stem") or ""))
         _user_stem_hash = hashlib.sha256(
             (user_stem or "").strip().encode("utf-8")
@@ -2186,6 +2216,7 @@ class AgentLoop:
                 _adopted_count if _adopted_count else len(set(_ref_covered))
             ),
             "case_stem_subquestion_count": len(_stem_titles),
+            "case_reference_subquestions": _ref_subqs,
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
@@ -2326,6 +2357,8 @@ class AgentLoop:
                 ("case_rubric_bank_slot", "case_rubric_bank_slot"),
                 ("case_stem_fallback", "case_stem_fallback"),
                 ("case_grading_partial_scope", "case_grading_partial_scope"),
+                ("case_per_subq_grading", "case_per_subq_grading"),
+                ("case_subq_score_caps", "case_subq_score_caps"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)

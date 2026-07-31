@@ -624,6 +624,30 @@ def _extract_case_question_titles(question_stem: str) -> dict[int, str]:
     return titles
 
 
+def case_subquestion_stem(question_stem: str, index: Any) -> str:
+    """Pure: 整题题面 + 小问序号 → **该小问的抽取题面**（案例背景 + 那一问的提问）。
+
+    OD-005 逐问抽取用：每问的抽取只该看自己那一问，否则 LLM 会从整份题面里把
+    兄弟问的点也抽出来，逐问封顶就被"点位串问"绕开。切分复述题面原文、零内容
+    真值断言（结构判据只做结构抽取，不裁决内容——teaching_modes.py:247 抗体）。
+    切不出该问时 fail-open 返回整题题面（不制造第二个切分权威、不假装切成功）。
+    """
+    text = str(question_stem or "").strip()
+    idx = _positive_int_or_none(index, max_value=30)
+    if not text or idx is None:
+        return text
+    titles = _extract_case_question_titles(text)
+    title = str(titles.get(idx) or "").strip()
+    if not title:
+        return text
+    positions = [pos for pos in (text.find(t) for t in titles.values()) if pos > 0]
+    head = text[: min(positions)] if positions else ""
+    # 切点落在标题正文上，行首的 "问题N：" / "【问题】" 标记残留在 head 尾部——去掉。
+    head = re.sub(r"(?:【问题】|问题|第)?\s*[0-9０-９]{0,2}\s*[问：:、.．)）]*\s*$", "", head).strip()
+    subq = f"问题{idx}：{title}"
+    return f"{head}\n{subq}" if head else subq
+
+
 def _question_text_overlap_score(point_text: str, question_title: str) -> int:
     point = re.sub(r"\s+", "", point_text)
     title = re.sub(r"\s+", "", question_title)
@@ -1813,8 +1837,13 @@ def _balanced_question_groups(
     return [bucket for bucket in buckets if bucket]
 
 
+_MAX_SUBQUESTION_ADJUDICATION_GROUPS = 8
+
+
 def _dynamic_adjudication_groups(
     rubric_points: list[dict[str, Any]],
+    *,
+    prefer_subquestion_groups: bool = False,
 ) -> tuple[list[list[dict[str, Any]]], str]:
     points = [point for point in rubric_points if isinstance(point, dict)]
     target = _adjudication_target_group_count(len(points))
@@ -1837,6 +1866,17 @@ def _dynamic_adjudication_groups(
             ordered.append(group)
         group.append(point)
 
+    # OD-005（2026-08-01）：逐问抽取产出的点自带确定性 question_no，此时"一组=一问"
+    # 是首选分组键——L4 的逐组发射（"第 k 组判完"）语义随之变成"问 k 判完"，且每组
+    # 的判定面与该问的封顶面同坐标系。仅在调用方声明逐问链时启用（其它调用方保持
+    # ≤3 组的既有并发/成本纪律，additive 不改旧行为）。
+    if prefer_subquestion_groups and keyed and len(ordered) >= 2:
+        if len(ordered) <= _MAX_SUBQUESTION_ADJUDICATION_GROUPS:
+            return list(ordered), "dynamic_parallel_subquestion_groups"
+        return (
+            _balanced_question_groups(ordered, _MAX_SUBQUESTION_ADJUDICATION_GROUPS),
+            "dynamic_parallel_question_groups",
+        )
     if keyed and len(ordered) >= target:
         return _balanced_question_groups(ordered, target), "dynamic_parallel_question_groups"
     return _split_points_evenly(points, target), "dynamic_parallel_point_chunks"
@@ -1863,8 +1903,11 @@ async def _batch_judge_dynamic_async(
     rubric_points: list[dict[str, Any]], student_answer: str,
     complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
     on_group_done: Callable[..., Any] | None = None,
+    prefer_subquestion_groups: bool = False,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
-    groups, strategy = _dynamic_adjudication_groups(rubric_points)
+    groups, strategy = _dynamic_adjudication_groups(
+        rubric_points, prefer_subquestion_groups=prefer_subquestion_groups
+    )
     if not groups:
         return {}, {
             "adjudication_strategy": "single_batch",
@@ -2235,8 +2278,51 @@ async def derive_rubric_from_stem_async(
     return points
 
 
+def _normalize_subquestion_cap_key(value: Any) -> str:
+    """Pure: "1" / 1 / "q1" -> "q1" （与 ``_question_group_key`` 同一坐标系）。"""
+    raw = str(value or "").strip().lower()
+    if raw.startswith("q"):
+        raw = raw[1:]
+    parsed = _positive_int_or_none(raw)
+    return f"q{parsed}" if parsed is not None else ""
+
+
+def _sum_awarded_with_subquestion_caps(
+    event: dict[str, Any], caps: dict[str, float]
+) -> tuple[float, list[str]]:
+    """Pure: 按小问分桶求和后**逐问封顶**，返回 (总分, 被封顶的小问键)。
+
+    OD-005（2026-08-01 live 实证）：整题级封顶只在「参考只覆盖部分小问」时介入
+    （scope_ratio<1）。治理组把 4 问答案全取回来时 scope_ratio=1，整题封顶失效，
+    而抽取点位分布不保证——点全落在已答的问 1 上时，只答 1/4 的卷子命中即满分。
+    每问独立封顶把「答对一问最多拿一问的分」变成结构性不变量：没答的问点位全
+    miss → 该问 0 分，不需要"哪几问已答"的第二判定权威。
+    """
+    buckets: dict[str, float] = {}
+    for point in event.get("scoring_points") or []:
+        if not isinstance(point, dict):
+            continue
+        key = _question_group_key(point)
+        try:
+            buckets[key] = buckets.get(key, 0.0) + float(point.get("score") or 0)
+        except (TypeError, ValueError):
+            continue
+    total = 0.0
+    capped_keys: list[str] = []
+    for key, bucket_sum in buckets.items():
+        cap = caps.get(key)
+        if cap is None:
+            total += bucket_sum
+            continue
+        if bucket_sum - cap > 0.005:
+            capped_keys.append(key)
+        total += min(bucket_sum, cap)
+    return round(total, 2), sorted(capped_keys)
+
+
 def finalize_case_score(
     event: dict[str, Any], *, nominal_full_score: float = 0.0, scope_ratio: float = 1.0,
+    subquestion_caps: dict[str, float] | None = None,
 ) -> dict[str, Any]:
     """题级分数唯一 finalizer（2026-08-01 codex 不变量审计：多写者收敛 + 踩点封顶）。
 
@@ -2253,6 +2339,11 @@ def finalize_case_score(
       部分覆盖时学生看到 2.5/10 而非 2.5/2.5）。
     验算锚（审计 §2.2）：池 30 / 满分 20 / 命中 25 / 覆盖 2/4 → 8.33/20。
     ``nominal_full_score<=0`` 时不动分数（无名义满分即无封顶依据，保持 grader 原值）。
+
+    ``subquestion_caps``（OD-005 2026-08-01）：``{"q1": 2.5, ...}`` —— 逐小问名义
+    上限。在场时 awarded 先按小问分桶封顶再求和，然后照旧过整题范围封顶（两道
+    闸串联，外闸恒不小于内闸之和，所以内闸只会更严不会更松）。**写分者仍是本
+    函数一个**（codex 不变量审计 §2.1），调用方不得自行改分。
     Mutates event in place and returns it.
     """
     try:
@@ -2267,6 +2358,25 @@ def finalize_case_score(
         awarded = float(event.get("awarded_score") or 0)
     except (TypeError, ValueError):
         awarded = 0.0
+    normalized_caps: dict[str, float] = {}
+    for raw_key, raw_cap in (subquestion_caps or {}).items():
+        key = _normalize_subquestion_cap_key(raw_key)
+        try:
+            cap_value = float(raw_cap)
+        except (TypeError, ValueError):
+            continue
+        if key and cap_value >= 0:
+            normalized_caps[key] = round(cap_value, 4)
+    if normalized_caps:
+        per_subq_awarded, capped_keys = _sum_awarded_with_subquestion_caps(event, normalized_caps)
+        event["case_subq_score_caps"] = ",".join(
+            f"{key}:{round(normalized_caps[key], 2)}" for key in sorted(normalized_caps)
+        )
+        if capped_keys:
+            event["case_subq_score_capped"] = ",".join(capped_keys)
+        if per_subq_awarded < awarded:
+            event["case_subq_capped_from"] = round(awarded, 2)
+        awarded = per_subq_awarded
     capped = round(min(max(awarded, 0.0), cap), 2)
     if capped < awarded:
         event["case_score_capped_from"] = round(awarded, 2)
@@ -2379,6 +2489,7 @@ async def grade_with_batch_judge_async(
     *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
     complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
     on_group_done: Callable[..., Any] | None = None,
+    prefer_subquestion_groups: bool = False,
 ) -> dict[str, Any]:
     """Async V1 scoring path. Small cases stay on one batch call; larger cases are split into at most
     three concurrent sub-batches by subquestion identity when available. The deterministic sum
@@ -2387,10 +2498,13 @@ async def grade_with_batch_judge_async(
     ``on_group_done`` is an optional observation-only progress hook (sequenced emit, L4):
     it is called once per finished sub-batch, in arrival order, with (completed, total,
     size). It receives no verdicts, cannot influence the grade, and its failures are
-    swallowed."""
+    swallowed.
+
+    ``prefer_subquestion_groups`` (OD-005): the caller built the rubric per subquestion, so
+    每个点的 question_no 是确定性事实 —— 一组=一问（≤8 组），逐组发射即"问 k 判完"。"""
     verdicts, metadata = await _batch_judge_dynamic_async(
         rubric_points, student_answer, complete_fn, api_key, model=model,
-        on_group_done=on_group_done,
+        on_group_done=on_group_done, prefer_subquestion_groups=prefer_subquestion_groups,
     )
     return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
                                 verdicts=verdicts, student_id=student_id,
@@ -2431,6 +2545,7 @@ __all__ = ["grade_with_rubric", "grade_artifact_shadow", "rubric_points_from_art
            "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
            "extract_rubric_from_reference_async", "normalize_points_to_nominal",
+           "finalize_case_score", "case_subquestion_stem",
            "derive_outcome_from_event",
            "to_learning_evidence", "render_case_rubric_feedback", "build_case_rubric_presentation",
            "build_case_rubric_score_first_stream", "load_rubric",

@@ -1983,3 +1983,107 @@ def test_finalize_case_score_single_writer_invariants() -> None:
     ev3 = {"awarded_score": 30.0, "max_score": 30.0}
     finalize_case_score(ev3, nominal_full_score=0)
     assert ev3["awarded_score"] == 30.0 and ev3["max_score"] == 30.0
+
+
+def test_finalize_case_score_caps_each_subquestion_independently() -> None:
+    """OD-005（2026-08-01）：逐小问封顶是**结构性**不变量。
+
+    整题封顶只在参考部分覆盖时介入（scope_ratio<1）；治理组把 4 问答案全取回来
+    时 scope_ratio=1，整题闸失效，点位分布偏斜（全落在已答的问 1）即满分。
+    逐问封顶让"答对一问最多拿一问的分"不依赖任何分布假设。
+    """
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    # 点位全部堆在问 1（旧路径的 live 形态），且全命中。
+    event = {
+        "awarded_score": 10.0,
+        "max_score": 10.0,
+        "scoring_points": [
+            {"point_id": f"q1_P{i}", "question_no": 1, "score": 2.5, "max_score": 2.5}
+            for i in range(1, 5)
+        ],
+    }
+    out = finalize_case_score(
+        event, nominal_full_score=10.0, scope_ratio=1.0,
+        subquestion_caps={"q1": 2.5, "q2": 2.5, "q3": 2.5, "q4": 2.5},
+    )
+    assert out["awarded_score"] == 2.5, "问 1 最多拿 2.5，其余问零命中"
+    assert out["max_score"] == 10.0, "对外分母恒为整题名义满分"
+    assert out["case_subq_score_capped"] == "q1"
+    assert out["case_subq_capped_from"] == 10.0
+    assert out["case_subq_score_caps"] == "q1:2.5,q2:2.5,q3:2.5,q4:2.5"
+
+
+def test_finalize_case_score_subquestion_caps_do_not_touch_full_answer() -> None:
+    """不得误伤：四问各自答满 → 逐问封顶之和 = 整题名义满分。
+    键名 "1" 与 "q1" 同坐标系（与 _question_group_key 对齐）。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    event = {
+        "awarded_score": 10.0,
+        "max_score": 10.0,
+        "scoring_points": [
+            {"point_id": f"q{q}_P{i}", "question_no": q, "score": 1.25, "max_score": 1.25}
+            for q in range(1, 5) for i in (1, 2)
+        ],
+    }
+    out = finalize_case_score(
+        event, nominal_full_score=10.0, scope_ratio=1.0,
+        subquestion_caps={"1": 2.5, "2": 2.5, "3": 2.5, "4": 2.5},
+    )
+    assert out["awarded_score"] == 10.0
+    assert "case_subq_score_capped" not in out
+    assert "case_subq_capped_from" not in out
+
+
+def test_finalize_case_score_without_subquestion_caps_is_byte_identical() -> None:
+    """kill switch 关（调用方不传 caps）时逐字回旧形状：无新字段、分数不动。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    event = {
+        "awarded_score": 10.0, "max_score": 10.0,
+        "scoring_points": [{"point_id": "P1", "question_no": 1, "score": 10.0}],
+    }
+    out = finalize_case_score(event, nominal_full_score=10.0, scope_ratio=1.0)
+    assert out["awarded_score"] == 10.0
+    assert "case_subq_score_caps" not in out
+    assert "case_subq_score_capped" not in out
+
+
+def test_case_subquestion_stem_slices_background_plus_that_question() -> None:
+    """逐问抽取的题面切分：背景保留、只带那一问；切不出时 fail-open 回整题题面。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import case_subquestion_stem
+
+    stem = ("【背景资料】某工程发生若干问题。\n"
+            "问题1：指出不妥之处并说明理由？\n"
+            "问题2：写出正确做法？\n"
+            "问题3：写出构造名称？")
+    out = case_subquestion_stem(stem, "2")
+    assert "【背景资料】某工程发生若干问题。" in out
+    assert "写出正确做法" in out
+    assert "指出不妥之处" not in out
+    assert "写出构造名称" not in out
+    # 切不出 → 整题题面（不制造第二个切分权威、不假装切成功）
+    assert case_subquestion_stem(stem, "9") == stem
+    assert case_subquestion_stem("没有小问标记的一段题面", "1") == "没有小问标记的一段题面"
+    assert case_subquestion_stem("", "1") == ""
+
+
+def test_dynamic_groups_prefer_one_group_per_subquestion_when_declared() -> None:
+    """OD-005：逐问链声明后「一组=一问」，逐组发射即"问 k 判完"；
+    未声明的调用方保持 ≤3 组的既有并发/成本纪律（additive）。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        _dynamic_adjudication_groups,
+    )
+
+    points = [
+        {"point_id": f"q{q}_P{i}", "text": f"问题{q}点{i}", "score": 1.0, "question_no": q}
+        for q in range(1, 5) for i in range(1, 4)
+    ]
+    groups, strategy = _dynamic_adjudication_groups(points, prefer_subquestion_groups=True)
+    assert strategy == "dynamic_parallel_subquestion_groups"
+    assert [{p["question_no"] for p in g} for g in groups] == [{1}, {2}, {3}, {4}]
+
+    legacy_groups, legacy_strategy = _dynamic_adjudication_groups(points)
+    assert legacy_strategy == "dynamic_parallel_question_groups"
+    assert len(legacy_groups) == 2

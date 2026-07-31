@@ -91,6 +91,14 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # live 事故=学生答 2/4 问被判整题满分——部分覆盖必须发声且分数只代表已覆盖部分。
     "case_subq_coverage",
     "case_subq_uncovered",
+    # OD-005 逐问抽取+逐问封顶（2026-08-01，contracts/rag.md §46）：
+    # - case_per_subq_grading: "已抽到点位的小问数/题面小问数"——逐问链是否真的
+    #   在服（空 = 走了旧的整段一次抽取）。live 关闭判据（t8 半答稳定 ≈2.5/10）
+    #   按它分组，没有它就分不清"这一轮到底走的哪条链"。
+    # - case_subq_score_caps: "q1:2.5,q2:2.5,..."——每问的名义上限。整卷半答假
+    #   满分的直接反证据面：没答的问命中为 0，答满的问也只能拿到自己那一份。
+    "case_per_subq_grading",
+    "case_subq_score_caps",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
