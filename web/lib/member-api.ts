@@ -1,5 +1,6 @@
 import { apiUrl, withAdminAuthorization } from '@/lib/api'
 import { ApiError } from '@/lib/api-errors'
+import type { NewRegistrationTrend } from '@/lib/member-registration-window'
 
 export interface MemberDashboard {
   total_count: number
@@ -8,12 +9,24 @@ export interface MemberDashboard {
   new_today_count: number
   new_7d_count: number
   new_30d_count: number
+  /**
+   * 近 365 天每日新增（自然日，服务时区）。三个 new_*_count 都是它的后缀和，
+   * 运营自选窗口也走同一个数组 —— 不存在第二套"近 N 天"算法。
+   */
+  new_registration_trend?: NewRegistrationTrend
   churn_risk_count: number
   health_score: number
   auto_renew_coverage: number
   tier_breakdown: Array<{ tier: string; count: number }>
   expiry_breakdown: Array<{ label: string; count: number }>
   recommendations: string[]
+  authority?: {
+    members?: string
+    member_overlay?: string
+    behavior?: string
+    /** BI 运营口径起点；早于此日期的窗口没有数据，不是"业务下滑"。 */
+    operational_start_at?: string
+  }
   behavior_health?: {
     learning_report_open_count_7d: number
     history_open_count_7d: number

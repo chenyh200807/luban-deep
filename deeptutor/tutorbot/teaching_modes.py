@@ -49,14 +49,13 @@ _CONTINUITY_MARKERS = (
     "同一个例子",
     "同一个案例",
 )
+# 指挥官裁决 2026-07-29（权力/证据相称律）：数字必须带词边界——旧版无边界正则会把
+# "4.5m"/"15m"/"2.5m" 的子串当作 5m 命中，给不该触发的题面注入边界事实。
+# 三重边界：阿拉伯分支负向后视 (?<![\d.]) 排数字/小数点前缀；m 分支负向前视排
+# mm/min 等单位后缀；中文分支负向后视排"十五米""四点五米"等中文数字前缀。
 _FOUNDATION_PIT_BOUNDARY_RE = re.compile(
-    r"(?:5(?:\.0)?\s*(?:m|米)|五\s*米)",
-    flags=re.IGNORECASE,
-)
-_FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE = re.compile(
-    r"(?:不需要|不需|无需|不用).{0,8}(?:组织)?专家论证"
-    r"|未达到\s*5(?:\.0)?\s*(?:m|米)?"
-    r"|小于\s*5(?:\.0)?\s*(?:m|米)?",
+    r"(?:(?<![\d.])5(?:\.0)?\s*(?:m(?![a-z])|米)"
+    r"|(?<![点十百千两一二三四五六七八九])五\s*米)",
     flags=re.IGNORECASE,
 )
 
@@ -198,42 +197,22 @@ def get_construction_exam_boundary_fact_instruction(*texts: str | None) -> str:
         return ""
     if not any(marker in joined for marker in ("专家论证", "危大", "专项方案", "深度", "开挖")):
         return ""
+    # 载荷=证据级（供核对的边界事实陈述），不是指令级：真值裁决权在题面与
+    # standard 召回证据，本函数只提示含边界口径，不得命令模型写什么/不写什么。
+    # 权威归位路径：该事实进 KB（危大工程规模标准）后本注入整体退役。
     return (
-        "建筑实务边界事实：基坑工程开挖深度超过5m（含5m），即按 >=5m 判断，"
-        "属于超过一定规模的危大工程范围，专项施工方案需要组织专家论证。"
-        "如果题干写5m、5.0m或五米，不得写成“未达到5m”“小于5m”或“不需要专家论证”。"
+        "建筑实务边界事实（供核对）：基坑工程开挖深度达到 5m（含 5m，即“超过5m”"
+        "按含边界口径理解）时，属于超过一定规模的危大工程，专项施工方案需要组织"
+        "专家论证；判断门槛时注意含边界与不含边界的区别。"
     )
 
 
-def correct_construction_exam_boundary_fact_response(
-    *,
-    user_message: str | None,
-    response: str | None,
-) -> str | None:
-    content = str(response or "")
-    if not content.strip():
-        return response
-    if not get_construction_exam_boundary_fact_instruction(user_message):
-        return response
-    if "专家论证" not in content:
-        return response
-    if not _FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE.search(content):
-        return response
-    return (
-        "## 结论\n\n"
-        "第1问答案不变：基坑深度从8m改为5m后，仍然需要组织专家论证。\n\n"
-        "## 判断依据\n\n"
-        "- 基坑工程开挖深度达到5m时，按“超过5m（含5m）/ >=5m”处理。\n"
-        "- 5m不是“未达到5m”，也不是“小于5m”。\n"
-        "- 因此本题仍属于超过一定规模的危大工程，专项施工方案需要组织专家论证。\n\n"
-        "## 采分点\n\n"
-        "1. 写出“需要专家论证”。\n"
-        "2. 理由写“开挖深度5m，含5m，达到专家论证门槛”。\n"
-        "3. 不要把专家论证门槛误写成“>5m”。\n\n"
-        "## 易错点\n\n"
-        "真正不需要专家论证的是低于5m且没有其他特别复杂风险触发条件的情形；"
-        "本题5m刚好踩线，不能判成不需要。"
-    )
+# 指挥官裁决 2026-07-29 删除 correct_construction_exam_boundary_fact_response（出口罐头）：
+# 碎片判据（无边界 5m 正则 + "不需要…专家论证" substring）携带整篇替换权力，是权力/证据
+# 相称律的最重违例。实害：①对 4.5m 等合法"不需要论证"的正确回答整篇替换成写死的别题
+# 罐头（含"从8m改为5m"的别题背景）；②罐头自己的"易错点"段落含"不需要专家论证"，会再次
+# 命中自己的触发正则——机制在原理上不可审计。原始病例（8m→5m 变体误判）的保护移交：
+# 入口证据级 hedge（上方函数）+ 5m 边界事实入 KB + live eval 断言，不再靠运行时替换。
 
 
 # ── ② content-truth 核验闸 (reachability/consumption — verification 半边) ──────────
@@ -412,8 +391,8 @@ def content_truth_guard_response(
     """L1 永远输出 + 诚实 hedge：bot 写出的规范编号若核不到本轮 standard 召回，**不抑制**，
     保留全文并 append 大方诚实声明(AI 生成 / 以教材或官方规范为准 / 不保证 100%)。
 
-    返回值与 ``correct_construction_exam_boundary_fact_response`` 同约定：无需改动时返回
-    原 ``response``；有核不到编号时返回追加 hedge 的新文本(正文逐字保留，绝不 nuke)。
+    返回值约定（finalize 修正器通用）：无需改动时返回原 ``response``；有核不到编号时
+    返回追加 hedge 的新文本(正文逐字保留，绝不 nuke)。
 
     owner 设计：准确性靠后台 review loop(L3)收敛，**不在输出端抑制**；核不到=诚实声明，
     不回落 V0([[v1-grading-must-be-open-world-nexus-not-lookup]])。"""

@@ -12,6 +12,29 @@ from deeptutor.services.observability import reset_product_behavior_store
 bi = pytest.importorskip("deeptutor.api.routers.bi")
 
 
+def _bi_service_with_internal_ids(
+    user_ids: set[str] | frozenset[str],
+    *,
+    available: bool = True,
+) -> SimpleNamespace:
+    async def get_internal_accounts_snapshot(*, limit: int = 200):
+        del limit
+        return {
+            "available": available,
+            "states": {
+                user_id: {"user_id": user_id, "is_internal": True}
+                for user_id in user_ids
+            },
+            "internal_accounts": [],
+            "audit": [],
+            "total_internal": len(user_ids) if available else None,
+        }
+
+    return SimpleNamespace(
+        get_internal_accounts_snapshot=get_internal_accounts_snapshot
+    )
+
+
 def _seed(store, *, event_id, user_id, object_type, object_id, event_name="learning_action_started",
           module="learning", action="open_detail", result="", visit_id="v1"):
     now_ms = int(time.time() * 1000)
@@ -42,6 +65,7 @@ def _seed_playback(
     active_ms: int,
     progress_pct: int,
     section_progress_pct: int,
+    user_id: str = "u-real",
 ) -> None:
     now_ms = int(time.time() * 1000)
     session_id = "bi-playback-session"
@@ -56,7 +80,7 @@ def _seed_playback(
             "event_version": 1,
             "occurred_at_ms": now_ms + sequence,
             "received_at_ms": now_ms + sequence,
-            "user_id": "u-real",
+            "user_id": user_id,
             "visit_id": session_id,
             "session_id": session_id,
             "surface": "wechat_yousenwebview",
@@ -88,8 +112,13 @@ def _seed_playback(
     )
 
 
-def test_learning_preference_endpoint_shapes_and_excludes_demo(tmp_path: Path) -> None:
+def test_learning_preference_endpoint_shapes_and_excludes_demo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     store = reset_product_behavior_store(tmp_path / "behavior.db")
+    monkeypatch.setattr(
+        bi, "get_bi_service", lambda: _bi_service_with_internal_ids(set())
+    )
     # 真实用户：微课 + 练习答题
     _seed(store, event_id="m1", user_id="u-real", object_type="microlesson", object_id="F16:tp1:1")
     _seed(store, event_id="m2", user_id="u-real", object_type="microlesson", object_id="F16:tp1:1", visit_id="v2")
@@ -226,7 +255,7 @@ def test_learning_preference_excludes_exact_uuid_machine_identity(
     monkeypatch.setattr(
         bi,
         "get_bi_service",
-        lambda: SimpleNamespace(get_non_business_identity_ids=lambda: frozenset({machine_uuid})),
+        lambda: _bi_service_with_internal_ids({machine_uuid}),
     )
 
     result = asyncio.run(
@@ -234,6 +263,80 @@ def test_learning_preference_excludes_exact_uuid_machine_identity(
     )
 
     assert {row["key"] for row in result["content_top"]} == {"real-card"}
+
+
+def test_learning_preference_distinguishes_excluded_internal_playback_from_missing_telemetry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    store = reset_product_behavior_store(tmp_path / "behavior.db")
+    internal_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    _seed_playback(
+        store,
+        event_id="internal-playback",
+        sequence=1,
+        section_index=1,
+        action="checkpoint",
+        active_ms=10_000,
+        progress_pct=100,
+        section_progress_pct=100,
+        user_id=internal_user_id,
+    )
+    monkeypatch.setattr(
+        bi,
+        "get_bi_service",
+        lambda: _bi_service_with_internal_ids({internal_user_id}),
+    )
+
+    business_view = asyncio.run(
+        bi.bi_learning_preference(
+            days=7, include_demo=False, limit=12, _auth=None
+        )
+    )
+    assert business_view["playback"]["available"] is False
+    assert business_view["playback"]["event_count"] == 0
+    assert business_view["scope"] == {
+        "diagnostic_available": True,
+        "account_scope": "business_accounts",
+        "identity_authority": (
+            "bi_internal_accounts_and_eval_runner_prefixes"
+        ),
+        "excluded_non_business_playback": {
+            "available": True,
+            "event_count": 1,
+            "playback_session_count": 1,
+        },
+    }
+
+    all_accounts_view = asyncio.run(
+        bi.bi_learning_preference(
+            days=7, include_demo=True, limit=12, _auth=None
+        )
+    )
+    assert all_accounts_view["scope"]["account_scope"] == "all_accounts"
+    assert all_accounts_view["playback"]["event_count"] == 1
+
+
+def test_learning_preference_fails_closed_when_internal_identity_authority_is_unavailable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    reset_product_behavior_store(tmp_path / "behavior.db")
+    monkeypatch.setattr(
+        bi,
+        "get_bi_service",
+        lambda: _bi_service_with_internal_ids(set(), available=False),
+    )
+
+    with pytest.raises(bi.HTTPException) as exc_info:
+        asyncio.run(
+            bi.bi_learning_preference(
+                days=7, include_demo=False, limit=12, _auth=None
+            )
+        )
+
+    assert exc_info.value.status_code == 503
+    assert exc_info.value.detail == (
+        "internal account scope authority unavailable"
+    )
 
 
 def test_submodule_interest_excludes_non_learning_object_types(tmp_path: Path) -> None:

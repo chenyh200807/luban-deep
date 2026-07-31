@@ -31,6 +31,9 @@ from deeptutor.contracts.bot_runtime_defaults import (
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.logging.context import bind_log_context, reset_log_context
+from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+)
 from deeptutor.services.exam_track import (
     exam_track_label,
     has_multiple_exam_track_mentions,
@@ -121,7 +124,9 @@ _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _PUBLIC_CANCELLED_MESSAGE = "本轮生成已取消，请重新发送或换个题目继续。"
 _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后重试。"
 # 律4 terminal mapper copy (single learner-visible text authority for failures).
-_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这道题内容较多，这次没批完，请把题目拆小一点再发一次。"
+# 收束修复后 tool_budget_exhausted 仅剩安全网角色；文案不再让用户"拆小题目"——
+# 生产 trace 已证伪该归因（拆小后仍触发），重发即可。
+_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这次没有完成解答，已记录问题。请再发一次。"
 _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
 _PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
 _PUBLIC_MODEL_TRUNCATED_MESSAGE = "这次答案没有生成完整，已停止保存。请重新发送一次。"
@@ -417,6 +422,22 @@ def _replace_public_result_response_with_stream(
     if not response:
         return
     metadata = dict(event.metadata or {})
+    # turn.md:144 protects against HETEROGENEOUS stale/fallback text replacing
+    # what the learner actually watched stream. A finalized response that is a
+    # SUFFIX of the streamed text is the same source deliberately trimmed by
+    # the finalize chain (leading meta-narration stripped, PR#583) — keep the
+    # finalize authority's version instead of resurrecting the leaked prefix.
+    # Only the EXPLICIT top-level "response" key (the finalize chain's write
+    # slot) qualifies: assistant_content/content fallbacks could be a mere
+    # tail chunk that happens to be a stream suffix, and exempting those would
+    # collapse the persisted answer to a fragment.
+    existing_response = str(metadata.get("response") or "").strip()
+    if (
+        existing_response
+        and existing_response != response
+        and response.endswith(existing_response)
+    ):
+        return
     metadata["response"] = response
     nested = metadata.get("metadata")
     if isinstance(nested, dict):
@@ -1250,6 +1271,10 @@ def _build_terminal_turn_observation_event(
         # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
         "content_truth_guard_applied",
         "content_truth_low_confidence_claims",
+        # 观测对称律（1b 2026-07-30）：案例判分成功侧权威标记，键清单单一权威
+        # =CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：本表曾是第三张
+        # 互不同步的白名单，live 实证漏名单=jsonl sink 永久 0 命中）。
+        *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
         "raw_user_id",
         "member_user_id",
         "identity_resolution_status",
@@ -1824,6 +1849,12 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 # observation event (and the offline review agent) can see them.
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
+                # 观测对称律（1b 2026-07-30）：判分成功侧权威标记必须到达 trace 顶层
+                # （根 span=turn.runtime，顶层 metadata 由本 summary 构成）。键清单
+                # 单一权威=CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：曾散落
+                # 三张互不同步的白名单，漏一张=该 sink 永久 0 命中）。marker 在
+                # result event 里已被 case 场景闸过滤，此处只做无条件提升。
+                *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
             ):
                 if metadata_key in candidate and metadata_key not in retrieval_metadata:
                     retrieval_metadata[metadata_key] = candidate[metadata_key]

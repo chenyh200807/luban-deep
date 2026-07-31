@@ -262,6 +262,63 @@ def test_playback_store_dedupes_same_user_session_sequence_even_with_new_event_i
     assert result["event_count"] == 1
 
 
+def test_playback_excluded_counts_query_only_the_excluded_identity_partition(
+    tmp_path: Path,
+) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    for sequence in (1, 2):
+        _record_playback(
+            store,
+            event_id=f"internal-{sequence}",
+            object_id="F16:lesson:2",
+            section_id="section-1",
+            section_index=1,
+            action="checkpoint",
+            sequence=sequence,
+            playback_session_id="session-internal",
+            user_id="internal-uuid",
+        )
+    _record_playback(
+        store,
+        event_id="eval-prefix",
+        object_id="F16:lesson:2",
+        section_id="section-1",
+        section_index=1,
+        action="checkpoint",
+        sequence=1,
+        playback_session_id="session-eval",
+        user_id="qa_eval_runner",
+    )
+    _record_playback(
+        store,
+        event_id="business",
+        object_id="F16:lesson:2",
+        section_id="section-1",
+        section_index=1,
+        action="checkpoint",
+        sequence=1,
+        playback_session_id="session-business",
+        user_id="business-user",
+    )
+
+    result = store.get_microlesson_playback_excluded_counts(
+        days=7,
+        exclude_user_ids=["internal-uuid"],
+        exclude_user_id_prefixes=["qa_eval_"],
+    )
+
+    assert result == {
+        "available": True,
+        "event_count": 3,
+        "playback_session_count": 2,
+    }
+    assert store.get_microlesson_playback_excluded_counts(days=7) == {
+        "available": False,
+        "event_count": 0,
+        "playback_session_count": 0,
+    }
+
+
 def test_playback_breakdown_uses_unique_section_coverage_not_replayed_time(
     tmp_path: Path,
 ) -> None:

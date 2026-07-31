@@ -141,9 +141,27 @@
 - `stage_start` / `stage_end` / `thinking` / `observation` / `tool_call` / `tool_result` / `progress` 默认应视为 `internal`，除非调用方显式提升。
 - 客户端可以把 `internal` 事件投影成用户可见的安全处理摘要，但普通用户 UI 禁止渲染 raw `content`、raw `metadata`、tool args、tool result 或内部 stage 原文。
 - `turn_runtime` 可以在统一 `/api/v1/ws` 内发送 `progress` + `metadata.status_kind=turn_status` 的 public-safe 进度投影（如 `understanding` / `writing`），用于降低首屏空等感。该事件只能表达“服务端正在处理到哪一段”，不得携带 hidden grading authority、不得成为 capability route / scoring / learner-state / billing authority，也不得替代 terminal `result.metadata.response`。
-- `result.metadata.response` 是 public `result` 事件里的 canonical final answer 投影；当本轮已经向学生发送 public final-answer `content` stream 时，`turn_runtime` 必须在持久化 / 发布 `result` 前把 `result.metadata.response` 对齐到已捕获的同源 public content stream，禁止后到的 stale / fallback `result.response` 覆盖学生实际看到的答案、历史 assistant message 或 replay read model。只有没有 public content stream 时，capability 发出的 `result.metadata.response` 才作为终局答案来源。对 `subscribe_turn` / `resume_from` 回放的历史 public `result` 事件，若缺少 `metadata.response` 但已有同源 `assistant_content`，`turn_runtime` 必须在统一 WS 出口清洗后投影出同一份 `result.metadata.response`，用于旧客户端兼容。mobile surface 上不得让空 `done` 抢先成为终态；当 capability 尚未发出 public `result.metadata.response`、但 runtime 已捕获同源 authoritative final content 时，`done` 前必须合成 public `result.metadata.response`。非 mobile 的普通 `content` + `done` 流不得仅因 capability route（如 auto-selected `deep_question`）被强行升级为 `result`。该字段仍只是 canonical final answer 的公开投影，不得反向解析成评分、路由、learner-state 或 hidden authority。
+- `result.metadata.response` 是 public `result` 事件里的 canonical final answer 投影；当本轮已经向学生发送 public final-answer `content` stream 时，`turn_runtime` 必须在持久化 / 发布 `result` 前把 `result.metadata.response` 对齐到已捕获的同源 public content stream，禁止后到的 stale / fallback `result.response` 覆盖学生实际看到的答案、历史 assistant message 或 replay read model。**同源后缀豁免**：capability 终态若是流文本的严格后缀（finalize 链剥掉了开头过程独白，同一来源的裁剪而非异源替换），保留 finalize 终态，不得用流文本把已剥离的独白前缀复活。只有没有 public content stream 时，capability 发出的 `result.metadata.response` 才作为终局答案来源。对 `subscribe_turn` / `resume_from` 回放的历史 public `result` 事件，若缺少 `metadata.response` 但已有同源 `assistant_content`，`turn_runtime` 必须在统一 WS 出口清洗后投影出同一份 `result.metadata.response`，用于旧客户端兼容。mobile surface 上不得让空 `done` 抢先成为终态；当 capability 尚未发出 public `result.metadata.response`、但 runtime 已捕获同源 authoritative final content 时，`done` 前必须合成 public `result.metadata.response`。非 mobile 的普通 `content` + `done` 流不得仅因 capability route（如 auto-selected `deep_question`）被强行升级为 `result`。该字段仍只是 canonical final answer 的公开投影，不得反向解析成评分、路由、learner-state 或 hidden authority。
 - Public final-answer `content` deltas、`result.metadata.response` 与持久化 assistant message 必须复用同一个 user-visible output sink：剥离未被合法 citation footer / bundle 支撑的 `〔N〕` marker、内部 prompt envelope / 参考证据 / 局部工作记忆 / 长期画像提示等非学生正文；`learner_summary`、`working_memory`、`active_object`、`question_followup_context`、`turn_semantic_decision` 等内部 source title / trace key 也不得作为学生可见正文或 citation 标题泄漏。`content` delta 清洗必须保留原始首尾 whitespace，不能破坏 markdown heading/list 渲染；有合法 footer 支撑的 citation marker 仍可保留。
 - `result.metadata.citation_bundle` 是 final answer 的公开引用投影，只允许包含 public-safe `citation_state / refs / claims / footer_text`，不得携带 hidden grading authority。
+- turn 终态 observer metadata（根 span=`turn.runtime` 的 trace 顶层）必须携带案例判分
+  成功侧权威标记（观测对称律，1b 2026-07-30）：`_summarize_assistant_events` 从 result
+  event 提升 `score_authority` / `grading_rubric_provenance` / `grading_official_score_allowed` /
+  `v1_case_graded` / `case_grading_prefetch_gate` / `case_grading_direct_fell_through` /
+  `case_grading_direct_attempt_qid` / `case_grading_composite_qid_candidate` /
+  `case_grading_outer_seam_reentry` / `case_rubric_score_total_mismatch`（content_truth
+  同款 lift 通道）。这些键是观测投影，非任何业务 authority；非 case 轮 result event
+  不携带即不提升（场景闸在 manager 侧 `copy_current_case_grading_turn_metadata`，
+  lift 不重判场景）。禁止再走「trace 顶层属性 start 时刻定格」之外的假接线
+  （langfuse 4.7.1 无 `update_current_trace`——getattr 防御会把断线吞成静默 no-op）。
+  同一键清单还必须出现在 `_build_terminal_turn_observation_event` 的透传白名单
+  （耐久 jsonl sink=observer/BI 消费面；live 实证 lift 产出曾在这第二张名单被
+  二次过滤成 0 命中）。**键清单单一权威 = `case_output_policy.CASE_GRADING_AUTHORITY_EXPORT_KEYS`**
+  （2026-07-30 收权完成）：summarizer lift、终态白名单、per-turn 元组三个消费面
+  全部从该常量派生，禁止任何消费面再内联复制键名清单——增键只改常量一处。
+  域测试 `test_authority_export_keys_single_source_across_all_sinks` 钉三面一致。已知系统性缺口（另立战役，不许当作
+  本契约已覆盖）：Langfuse 终点 update 黑洞——全部 turn 的终点键从未落
+  Langfuse span/trace，root span 仅存 start 指纹；合成复现全过、真实 turn 全灭。
 - `turn_runtime` 的 terminal observer metadata 可以携带 `latency_stages_ms`，用于把单轮耗时拆成 `context_route_preview`、`observability_start`、`context_build`、`capability_selection`、`user_message_persist`、`capability_stream` 等内部阶段，并由 runtime metrics / observer snapshot 聚合。该字段是运维观测投影，不是公开 stream contract、capability route、评分、计费或 learner-state authority；客户端不得依赖它做业务状态判断。
 - `context_pack_trace.build_stage_timings_ms` 与 terminal observer metadata 的 `context_build_stage_timings_ms` 可以携带 context build 内部子阶段耗时（如 `route_resolver`、`session_history`、`learner_state`、`source_loader_*`、`context_pack`、`pack_render`），用于定位首屏与上下文构建性能瓶颈。它们只属于 trace/observability projection，不得改变 context route、候选选择、token budget、learner-state truth、评分或计费 authority。
 - terminal observer metadata 可以携带 `start_turn_setup_stage_timings_ms`，用于拆解首个 `session` 事件前的准备阶段，如 `payload_normalize`、`active_object_lookup`、`followup_resolution`、`public_config_validation`、`bot_runtime_defaults`、`ensure_session`、`update_session_preferences`、`recover_orphaned_turns`、`cancel_active_turn`、`create_turn`、`register_execution`、`publish_session_event`。该字段只用于定位 first-visible 前置耗时，不得改变 turn 创建、session 偏好、active object、billing 或 follow-up authority。
@@ -178,6 +196,11 @@
      读取正文或执行工具；`error|length|max_tokens` 及未知 finish reason 都是 non-final。
      Agent loop、fast/repair、failover、memory/subagent/team/heartbeat 等 consumer 不得各自
      根据“已有正文”或 `has_tool_calls` 猜 completed，完成性检查必须早于正文读取和工具执行。
+   - **预算耗尽先收束再失败（fall-through-to-understanding）**：`max_tool_rounds>1` 的
+     agent loop 在检索轮打满仍无最终答案时，追加一个收束轮（tools 原样下发保 prompt cache
+     前缀 + `tool_choice="none"` + 收束 system 指令，`runtime_metadata["forced_closure_round"]`
+     为判别位）；收束轮的 tool_calls 不执行、不作答案，走可见答案 repair。收束仍失败才落
+     typed failure。单轮策略（fast 形状）不追加收束轮。
    - Agent loop 对预算耗尽 / provider error / 空答案 / provider token 上限截断只记录
      `runtime_metadata["turn_failure"]={kind, detail, ...}`（`tool_budget_exhausted` /
      `provider_error` / `provider_timeout` / `model_empty_answer` /
@@ -189,7 +212,8 @@
      不进持久化 merged_metadata）→ capability result event → turn runtime。
    - **唯一 terminal mapper** = `turn_runtime.map_turn_failure_to_public_text` /
      `_safe_terminal_assistant_content`：所有终态学员可见文本（assistant message、
-     `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"拆小再发"、
+     `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"没有完成
+     解答，请再发一次"（收束轮修复后该 kind 仅剩安全网角色，不得恢复"拆小题目"类错误归因）、
      provider 类→"服务暂时繁忙"、截断→"答案没有生成完整，请重新发送"、取消→取消文案、
      未知→通用兜底。失败文案一律不可计费。
    - Capability 收到 typed failure 后不得把已流出的 chunk 重新提升为 final response，

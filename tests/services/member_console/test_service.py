@@ -17,9 +17,10 @@ import httpx
 import pytest
 
 import deeptutor.services.member_console.service as member_service_module
-from deeptutor.services.member_console import rbac
-from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.member_console import external_auth as external_auth_module
+from deeptutor.services.member_console import rbac
+from deeptutor.services.member_console.directory import MemberDirectoryUnavailable
+from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
@@ -6375,6 +6376,120 @@ def test_dashboard_counts_recent_registered_member_windows(
     assert dashboard["new_30d_count"] == 4
 
 
+def test_new_registration_trend_buckets_by_calendar_day_and_isolates_unusable_dates() -> None:
+    """The trend is the single authority behind every "new in last N days" number.
+
+    Buckets are calendar days in the service timezone (UTC+8), matching the
+    member list's registered_from/registered_to filter. Members whose
+    created_at cannot be placed on the axis are counted separately instead of
+    being folded into a bucket, so missing data never reads as a real zero.
+    """
+    now = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)  # 2026-06-30 20:00 +08:00
+
+    def _member(created_at: str | None) -> dict[str, object]:
+        return {"created_at": created_at}
+
+    trend = MemberConsoleService._build_new_registration_trend(
+        [
+            _member("2026-06-30T12:00:00+00:00"),  # today (local 06-30 20:00)
+            _member("2026-06-30T16:10:00+08:00"),  # today, local clock
+            _member("2026-06-29T21:00:00+08:00"),  # yesterday local, <24h ago
+            _member("2026-06-24T01:00:00+08:00"),  # 7th calendar day back (inclusive edge)
+            _member("2026-06-23T23:00:00+08:00"),  # 8th day back — outside a 7-day window
+            _member("not-a-time"),
+            _member(None),
+            _member("2026-07-01T09:00:00+08:00"),  # future-dated
+            _member("2020-01-01T00:00:00+08:00"),  # older than the 365-day window
+        ],
+        now=now,
+        window_days=365,
+    )
+
+    assert trend["end_date"] == "2026-06-30"
+    assert trend["start_date"] == "2025-07-01"
+    assert trend["window_days"] == 365
+    assert len(trend["daily_counts"]) == 365
+    assert trend["daily_counts"][-1] == 2  # today
+    assert trend["daily_counts"][-2] == 1  # yesterday
+    assert sum(trend["daily_counts"]) == 5
+    assert trend["undated_member_count"] == 2  # malformed + missing, not silently zero
+    assert trend["future_dated_member_count"] == 1
+    assert trend["before_window_member_count"] == 1
+    assert trend["timezone_offset_minutes"] == 480
+
+    # Any operator-selected window is a suffix sum of the same array.
+    assert member_service_module._sum_registration_window(trend, days=1) == 2
+    assert member_service_module._sum_registration_window(trend, days=2) == 3
+    assert member_service_module._sum_registration_window(trend, days=7) == 4
+    assert member_service_module._sum_registration_window(trend, days=8) == 5
+    assert member_service_module._sum_registration_window(trend, days=60) == 5
+    # Requesting more than the axis holds clamps to the axis instead of throwing.
+    assert member_service_module._sum_registration_window(trend, days=10_000) == 5
+
+
+def test_dashboard_new_counts_agree_with_member_list_registered_date_filter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """KPI window sums must equal what the member table shows for the same dates.
+
+    This is the property that lets an operator click through from "近 N 天新增"
+    to the filtered list without the two numbers disagreeing.
+    """
+    now = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(user_id: str, *, phone: str, created_at: str) -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id],
+            "display_name": user_id,
+            "phone": phone,
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": created_at,
+            "last_active_at": now.isoformat(),
+            "expire_at": "9999-12-31T00:00:00+00:00",
+            "points_balance": 0,
+            "review_due": 0,
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member("m_today", phone="15558866501", created_at="2026-06-30T10:00:00+08:00"),
+            _member("m_yesterday", phone="15558866502", created_at="2026-06-29T21:00:00+08:00"),
+            _member("m_d6", phone="15558866503", created_at="2026-06-25T08:00:00+08:00"),
+            _member("m_d7_edge", phone="15558866504", created_at="2026-06-24T00:30:00+08:00"),
+            _member("m_d8", phone="15558866505", created_at="2026-06-23T23:30:00+08:00"),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    overview = service.get_member_ops_overview(page_size=200)
+    trend = overview["dashboard"]["new_registration_trend"]
+
+    for window in (1, 2, 7, 8, 30):
+        listed = service.list_members(
+            page=1,
+            page_size=200,
+            registered_from=date(2026, 6, 30) - timedelta(days=window - 1),
+            registered_to=date(2026, 6, 30),
+        )
+        assert member_service_module._sum_registration_window(trend, days=window) == listed["total"], (
+            f"KPI window {window}d disagrees with the member list for the same date range"
+        )
+
+    assert overview["dashboard"]["new_today_count"] == 1
+    assert overview["dashboard"]["new_7d_count"] == 4
+    assert overview["dashboard"]["new_30d_count"] == 5
+
+
 def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:
     directory = _FakeMemberDirectory(
         [
@@ -6683,7 +6798,9 @@ def test_member_directory_prefers_canonical_overlay_over_auth_wrapper(tmp_path: 
     assert by_quick_login_phone["items"][0]["user_id"] == target_user_id
 
 
-def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:
+def test_configured_member_directory_error_fails_closed_without_zero_projection(
+    tmp_path: Path,
+) -> None:
     class ErrorDirectory:
         is_configured = True
 
@@ -6700,10 +6817,11 @@ def test_configured_member_directory_error_does_not_fallback_to_member_console_p
 
     service._mutate(_seed_local_member)
 
-    payload = service.list_members(page=1, page_size=20)
-
-    assert payload["total"] == 0
-    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    with pytest.raises(
+        MemberDirectoryUnavailable,
+        match="Member directory authority is temporarily unavailable",
+    ):
+        service.list_members(page=1, page_size=20)
 
 
 def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:
@@ -8575,3 +8693,91 @@ def test_teaching_video_entitlement_survives_persisted_round_trip() -> None:
     """持久化目录回读后权益字段必须还在(否则等价于每次读都判定目录变了)。"""
     for package in MemberConsoleService._normalize_package_catalog(None):
         assert "teaching_video_limit" in package, package["id"]
+
+
+# ---------------------------------------------------------------------------
+# 语料瘦身:不为"零"预留物理空间
+#
+# 生产实测:1308 名会员的 chapter_practice_stats **distinct=1、合计 1.1 MB**
+# (约占语料 20%),chapter_mastery 同样 distinct=1;613 个墓碑(46.9%)占 members
+# 字节的 47.5%,而墓碑的学习数据在合并时早已并入 canonical。
+# ---------------------------------------------------------------------------
+
+
+def test_new_member_carries_no_zero_chapter_skeleton(tmp_path: Path) -> None:
+    """新会员不得预填全零章节条目 —— "没练过"不需要物理存储。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "skeleton.json"
+
+    service._load_member_snapshot("u1")
+
+    member = service._find_member(service._load(), "u1")
+    assert member.get("chapter_practice_stats") == {}
+
+
+def test_real_practice_data_is_never_pruned(tmp_path: Path) -> None:
+    """反例:有真实练习数据的章节条目必须保留 —— 清理只针对全零条目。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "keep.json"
+
+    def seed(data: dict[str, Any]) -> bool:
+        member = service._build_default_member("u_real")
+        member["chapter_practice_stats"] = {
+            "地基基础": {"done": 5, "correct": 3, "last_activity_at": "2026-07-01T10:00:00+08:00"},
+            "防水工程": {"done": 0, "correct": 0, "last_activity_at": ""},
+        }
+        data["members"] = [member]
+        data.setdefault("migrations", {}).pop("zero_chapter_practice_stats_pruned_v1", None)
+        return True
+
+    service._mutate(seed)
+    stats = service._find_member(service._load(), "u_real")["chapter_practice_stats"]
+
+    assert stats["地基基础"]["done"] == 5, "有练习数据的章节不得被清理"
+    assert "防水工程" not in stats, "全零章节应被回收"
+
+
+def test_merged_tombstone_drops_learning_payload(tmp_path: Path) -> None:
+    """墓碑只保留身份与溯源,学习数据残留必须清掉(合并时已并入 canonical)。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "tomb.json"
+    service._admin_user_ids = lambda: {"admin"}  # type: ignore[method-assign]
+    wallet = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet  # type: ignore[method-assign]
+
+    def seed(data: dict[str, Any]) -> bool:
+        target = service._build_default_member("canonical_u")
+        source = service._build_default_member("legacy_u")
+        source["chapter_mastery"] = {"地基基础": {"name": "地基基础", "mastery": 40}}
+        source["chapter_practice_stats"] = {"地基基础": {"done": 3, "correct": 2, "last_activity_at": "x"}}
+        source["daily_practice_counts"] = {"2026-07-01": 3}
+        data["members"] = [target, source]
+        return True
+
+    service._mutate(seed)
+    service.merge_member_accounts(
+        target_user_id="canonical_u", source_user_ids=["legacy_u"],
+        operator="admin", reason="test", idempotency_key="merge-tomb",
+    )
+
+    tombstone = service._find_member(service._load(), "legacy_u")
+    assert str(tombstone.get("merged_into")) == "canonical_u", "溯源信息必须保留"
+    for key in ("chapter_mastery", "chapter_practice_stats", "daily_practice_counts"):
+        assert not tombstone.get(key), f"墓碑仍背着 {key}"
+
+
+def test_corpus_pruning_migrations_are_idempotent(tmp_path: Path) -> None:
+    """两个回收 migration 必须幂等,否则每次读都会重写整个语料。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "idem.json"
+    service._load_member_snapshot("u1")
+    service._load()
+
+    mtime_before = service._data_path.stat().st_mtime_ns
+    for _ in range(3):
+        service._load()
+
+    assert service._data_path.stat().st_mtime_ns == mtime_before
+    migrations = service._load().get("migrations") or {}
+    assert migrations.get("zero_chapter_practice_stats_pruned_v1") is True
+    assert migrations.get("merged_member_payload_pruned_v1") is True

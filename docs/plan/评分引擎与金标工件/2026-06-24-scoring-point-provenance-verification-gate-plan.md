@@ -87,7 +87,7 @@
 **真根因（专家 C 真码确诊）**：不是没内容源——规范源 `standard` doc_type 已接进检索（`retrieval_plan.py` standard_clause / `supabase.py` search_standard_chunks / `kbv5.py`）。病在**消费侧无结构闸**：唯一反编造是 `core/grounding.py` 注入的 system-prompt 软约束（docstring 自认"必要不充分"），没有结构强制把 bot 写出的 GB/JGJ 条文号去本轮 KB `standard` 召回核一遍（`grep verify.*clause` = 0）。
 
 **治本（接通 + 扩 fail-closed，非加门，PR #302 合 main = `ccd5731eb`）**：
-- 纯验证器 `content_truth_guard_response`（`deeptutor/tutorbot/teaching_modes.py`，post-gen 矫正器既定家，镜像 `correct_construction_exam_boundary_fact_response`）：regex **只抽取** GB/JGJ 编号+版本年，真值由本轮 `standard` 召回证据裁决（单一汇点 fail-closed，regex 不承担理解）。
+- 纯验证器 `content_truth_guard_response`（`deeptutor/tutorbot/teaching_modes.py`，post-gen 矫正器既定家，镜像 `correct_construction_exam_boundary_fact_response`（该函数已于 2026-07-29 按指挥官裁决删除——碎片判据不得携带整篇替换权力；此处仅存历史设计参照））：regex **只抽取** GB/JGJ 编号+版本年，真值由本轮 `standard` 召回证据裁决（单一汇点 fail-closed，regex 不承担理解）。
 - 接入 `tutorbot/agent/loop.py`：现有 degraded guard 同层（4 个 finalization 站）接 `_content_truth_guard`，证据取自 `runtime_metadata['rag_rounds'][*]['sources'][*]['content']`（单一真值源，已接检索，不新建第二 authority）。
 - 判定：无规范编号→不动（防过矫正，普通教学/闲聊零影响）；编号在本轮召回→放行；核不到（RAG miss）或 `rag_retrieval_degraded`→诚实降级 caveat（从"规范依据"降为"通用判断方向，以教材为准"），**不 nuke 正文**，不回落 V0，G2 闸保留。
 

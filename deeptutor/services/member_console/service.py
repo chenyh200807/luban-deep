@@ -110,7 +110,10 @@ from deeptutor.services.member_console.admin_store import (
     set_role_permissions,
     set_user_overrides,
 )
-from deeptutor.services.member_console.directory import get_member_directory_read_model
+from deeptutor.services.member_console.directory import (
+    MemberDirectoryUnavailable,
+    get_member_directory_read_model,
+)
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
@@ -407,35 +410,6 @@ def _parse_time(value: str | None) -> datetime:
         return _now()
 
 
-def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> bool:
-    if not value:
-        return False
-    try:
-        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return False
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=_TZ)
-    age = now - created_at.astimezone(_TZ)
-    return timedelta(0) <= age <= timedelta(days=days)
-
-
-def _is_created_on_local_date(value: str | None, *, now: datetime) -> bool:
-    if not value:
-        return False
-    try:
-        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return False
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=_TZ)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=_TZ)
-    created_local = created_at.astimezone(_TZ)
-    now_local = now.astimezone(_TZ)
-    return created_local <= now_local and created_local.date() == now_local.date()
-
-
 def _registered_on_local_date(value: str | None) -> date | None:
     """Return the canonical registration date without treating malformed data as now."""
     raw = str(value or "").strip()
@@ -448,6 +422,25 @@ def _registered_on_local_date(value: str | None) -> date | None:
     if registered_at.tzinfo is None:
         registered_at = registered_at.replace(tzinfo=_TZ)
     return registered_at.astimezone(_TZ).date()
+
+
+NEW_REGISTRATION_TREND_WINDOW_DAYS = 365
+
+
+def _sum_registration_window(trend: dict[str, Any], *, days: int) -> int:
+    """Sum the most recent `days` calendar-day buckets of a registration trend.
+
+    Single authority for every "new registrations in the last N days" number:
+    the KPI cards and the operator-selected window both read this, so they can
+    never disagree. Buckets are calendar days in `_TZ`, matching the member
+    list's `registered_from` / `registered_to` filter, so a KPI can be drilled
+    into by date range and produce the same row count.
+    """
+    daily_counts = trend.get("daily_counts") or []
+    if not daily_counts:
+        return 0
+    span = max(1, min(int(days), len(daily_counts)))
+    return sum(int(value or 0) for value in daily_counts[-span:])
 
 
 def is_bi_operational_at(value: Any) -> bool:
@@ -1993,7 +1986,9 @@ class MemberConsoleService:
         # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
         data.setdefault("audit_idempotency_keys", {})
         ledger_backfilled = self._backfill_membership_purchase_ledger(data)
-        if self._apply_legacy_chat_learning_migration(data) or packages_changed or ledger_backfilled:
+        stats_pruned = self._prune_zero_chapter_practice_stats(data)
+        tombstones_pruned = self._prune_merged_member_payload(data)
+        if self._apply_legacy_chat_learning_migration(data) or packages_changed or ledger_backfilled or stats_pruned or tombstones_pruned:
             self._save_unlocked(data)
         return data
 
@@ -2527,9 +2522,11 @@ class MemberConsoleService:
             return members
         try:
             members = list(directory.list_members(limit=5000))
-        except Exception:
+        except Exception as exc:
             logger.warning("Failed to load Supabase member directory read model", exc_info=True)
-            return []
+            raise MemberDirectoryUnavailable(
+                "Member directory authority is temporarily unavailable"
+            ) from exc
         overlay_index = self._member_console_overlay_index(data)
         merged_aliases = self._member_console_merged_aliases(data, overlay_index)
         merged_members: list[dict[str, Any]] = []
@@ -3179,23 +3176,90 @@ class MemberConsoleService:
     def _ensure_learning_profile(self, member: dict[str, Any]) -> dict[str, Any]:
         daily_counts = member.setdefault("daily_practice_counts", {})
         chapter_stats = member.setdefault("chapter_practice_stats", {})
-        chapter_mastery = member.get("chapter_mastery") or {}
-        for key, meta in chapter_mastery.items():
-            name = meta.get("name") or key
-            chapter_stats.setdefault(
-                name,
-                {
-                    "done": 0,
-                    "correct": 0,
-                    "last_activity_at": "",
-                },
-            )
+        # 刻意**不再**为每个章节预填 {done:0, correct:0, last_activity_at:""} 骨架。
+        #
+        # 那让每个会员都背一份字节完全相同的全零结构:生产实测 1308 名会员的
+        # chapter_practice_stats **distinct=1、合计 1.1 MB**(约占整个语料 20%),
+        # 承载的信息量为零 —— "该章节没练过"与"该章节键不存在"是同一件事。
+        #
+        # 安全性:真实写入点都是 `chapter_stats.setdefault(章节, {...})` 后再累加,
+        # 有练习自然建条目;读取点都用 `.get(...) or {}` / `.get(章节)` 容错。
+        # 预填只是把"缺省"提前物化成"零",是纯存储浪费。
         member.setdefault("last_study_date", "")
         member.setdefault("last_practice_at", "")
         return {
             "daily_counts": daily_counts,
             "chapter_stats": chapter_stats,
         }
+
+    @staticmethod
+    def _is_zero_chapter_stat(value: Any) -> bool:
+        """该章节条目是否等价于"从没练过"(可安全丢弃)。"""
+        if not isinstance(value, dict):
+            return True
+        return (
+            not int(value.get("done") or 0)
+            and not int(value.get("correct") or 0)
+            and not str(value.get("last_activity_at") or "").strip()
+        )
+
+    def _prune_zero_chapter_practice_stats(self, data: dict[str, Any]) -> bool:
+        """回收历史预填的全零章节条目。幂等,打旗标只跑一次。
+
+        写入侧已不再预填(见 `_ensure_learning_profile`),但存量语料里每个会员都还
+        背着一份。只删 done/correct 全 0 且无 last_activity_at 的条目 —— 那与
+        "该章节键不存在"语义完全相同;有真实练习数据的条目一律保留。
+        """
+        migrations = data.setdefault("migrations", {})
+        if migrations.get("zero_chapter_practice_stats_pruned_v1"):
+            return False
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            stats = member.get("chapter_practice_stats")
+            if not isinstance(stats, dict) or not stats:
+                continue
+            for name in [k for k, v in stats.items() if self._is_zero_chapter_stat(v)]:
+                del stats[name]
+        migrations["zero_chapter_practice_stats_pruned_v1"] = True
+        return True
+
+    # 合并后的墓碑只需保留身份与溯源信息:学习数据在合并时已经并入 target,
+    # 留在墓碑上的是纯残留副本。生产实测 613 个墓碑占 members 字节的 47.5%,
+    # 而读取墓碑的路径只有"沿 merged_into 跳到 canonical"这一条。
+    _MERGED_MEMBER_DROPPABLE_FIELDS = (
+        "chapter_mastery",
+        "chapter_practice_stats",
+        "daily_practice_counts",
+        "badges",
+        "notes",
+        "ledger",
+    )
+
+    @classmethod
+    def _strip_merged_member_payload(cls, source: dict[str, Any]) -> bool:
+        """清掉墓碑上的学习数据残留。返回是否真的删掉了东西。"""
+        changed = False
+        for key in cls._MERGED_MEMBER_DROPPABLE_FIELDS:
+            value = source.get(key)
+            if value:
+                source[key] = type(value)()
+                changed = True
+        return changed
+
+    def _prune_merged_member_payload(self, data: dict[str, Any]) -> bool:
+        """回收存量墓碑上的学习数据残留。幂等,打旗标只跑一次。"""
+        migrations = data.setdefault("migrations", {})
+        if migrations.get("merged_member_payload_pruned_v1"):
+            return False
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            if not str(member.get("merged_into") or "").strip():
+                continue
+            self._strip_merged_member_payload(member)
+        migrations["merged_member_payload_pruned_v1"] = True
+        return True
 
     def _backfill_membership_purchase_ledger(self, data: dict[str, Any]) -> bool:
         """把存量支付审计回填成台账条目。幂等,打旗标只跑一次。
@@ -4535,6 +4599,56 @@ class MemberConsoleService:
             "high": 0.85,
         }.get(str(member.get("risk_level") or "").lower(), 0.0)
 
+    @staticmethod
+    def _build_new_registration_trend(
+        members: list[dict[str, Any]],
+        *,
+        now: datetime,
+        window_days: int = NEW_REGISTRATION_TREND_WINDOW_DAYS,
+    ) -> dict[str, Any]:
+        """Bucket member registrations into calendar days ending today.
+
+        Returned once per dashboard so the operator can re-slice any window
+        (7 / 30 / 60 / custom) client-side without re-fetching the whole member
+        overview. `daily_counts` is a plain int array in ascending date order —
+        `daily_counts[-1]` is today, `daily_counts[0]` is `start_date`.
+
+        Members whose `created_at` is missing, unparseable, older than the
+        window, or in the future are NOT silently dropped into a bucket; each
+        gets its own excluded counter so a hole in the data reads as a hole
+        rather than as a real zero.
+        """
+        span = max(1, int(window_days))
+        today_local = now.astimezone(_TZ).date()
+        start_date = today_local - timedelta(days=span - 1)
+        daily_counts = [0] * span
+        undated_member_count = 0
+        before_window_member_count = 0
+        future_dated_member_count = 0
+        for item in members:
+            registered_on = _registered_on_local_date(item.get("created_at"))
+            if registered_on is None:
+                undated_member_count += 1
+                continue
+            if registered_on > today_local:
+                future_dated_member_count += 1
+                continue
+            offset = (registered_on - start_date).days
+            if offset < 0:
+                before_window_member_count += 1
+                continue
+            daily_counts[offset] += 1
+        return {
+            "start_date": start_date.isoformat(),
+            "end_date": today_local.isoformat(),
+            "window_days": span,
+            "daily_counts": daily_counts,
+            "undated_member_count": undated_member_count,
+            "before_window_member_count": before_window_member_count,
+            "future_dated_member_count": future_dated_member_count,
+            "timezone_offset_minutes": int(_TZ.utcoffset(None).total_seconds() // 60),
+        }
+
     def _build_member_dashboard(
         self,
         data: dict[str, Any],
@@ -4640,21 +4754,10 @@ class MemberConsoleService:
             for item in members
             if 0 <= (_parse_time(item["expire_at"]) - now).days <= 7
         )
-        new_today_count = sum(
-            1
-            for item in members
-            if _is_created_on_local_date(item.get("created_at"), now=now)
-        )
-        new_7d_count = sum(
-            1
-            for item in members
-            if _is_created_within_days(item.get("created_at"), now=now, days=7)
-        )
-        new_30d_count = sum(
-            1
-            for item in members
-            if _is_created_within_days(item.get("created_at"), now=now, days=30)
-        )
+        registration_trend = self._build_new_registration_trend(members, now=now)
+        new_today_count = _sum_registration_window(registration_trend, days=1)
+        new_7d_count = _sum_registration_window(registration_trend, days=7)
+        new_30d_count = _sum_registration_window(registration_trend, days=30)
         churn_risk_count = sum(1 for item in members if item["risk_level"] == "high")
         tiers: dict[str, int] = {}
         expiry_buckets: dict[str, int] = {}
@@ -4679,6 +4782,7 @@ class MemberConsoleService:
             "new_today_count": new_today_count,
             "new_7d_count": new_7d_count,
             "new_30d_count": new_30d_count,
+            "new_registration_trend": registration_trend,
             "churn_risk_count": churn_risk_count,
             "health_score": round((active_count / max(len(members), 1)) * 100),
             "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),
@@ -7146,6 +7250,7 @@ class MemberConsoleService:
             source["merged_at"] = now
             source["status"] = "merged"
             source["last_active_at"] = now
+            self._strip_merged_member_payload(source)
             merged_source_ids.append(source_id)
 
         after = deepcopy(target)

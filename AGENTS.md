@@ -15,6 +15,16 @@
 - **唯一流式入口 `/api/v1/ws`**;禁止新增专用聊天 WebSocket 路由(如 `/api/v1/mobile/tutorbot/ws/...`)。
 - **Aliyun SSH Write Boundary(原 §3.7)**:阿里云 SSH 上唯一可写根是 `/root/deeptutor`;其他路径(含 `/root/luban`、`/etc`、nginx、系统服务)一律只读观察面。越界需求必须停下向用户说明。细则与只读命令白名单:[deeptutor-release-launch-gate](./agent-skills/deeptutor-release-launch-gate/SKILL.md)。(Claude Code 本机另有 PreToolUse hook 拦明显违规;Codex 及其他 agent 无此 hook,同样受本条约束——hook 只是止血带,本条散文才是权威。)
 - **Eval Runner Identity**:所有会创建/登录/绑定手机号/产生会员活跃的 eval/smoke/QA,必须用 `qa_eval_`/`eval_`/`qa_` 前缀账号,写 `account_kind="eval_runner"`、`actor_type="machine"`、`created_by="eval_runner"`、`is_internal_test=true` 四字段,复用 `external_auth.ensure_external_auth_user()` 路径;跑前先导出 `DEEPTUTOR_EVAL_RUNNER_AGENT` 与 `DEEPTUTOR_EVAL_RUN_ID`(命令见 skill);测试账号不得计入会员/活跃指标。细则:[deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)。
+- **灰度旗标毕业纪律(2026-07-30 指挥官裁决,owner 授权)**:每个灰度/shadow/rollout 类
+  feature flag 登记进 `contracts/env_registry.yaml` 时必须带 `graduation` 字段(YYYY-MM-DD,
+  建议 ≤30 天);到期必须 promote(转 killswitch 或删 flag 直连)或 delete,禁止永久影子。
+  依据:KnowQL/PGO 全套高级件在 default-off flag 后沉睡六周无人问(`killed_by_switch`),
+  影子评测 MAE 0.013 的引擎从未服务过一个真实学生——能力活在 flag 里,死亡不可见。
+- **降级路径必须发声(同批裁决)**:任何降级/兜底/fail-open 分支必须写一个可导出的
+  authority marker(如 `score_authority="v1_unavailable:<status>:<reason>"` 样板)并进导出
+  白名单;静默 `return {}`/`return None`/warning-then-degrade 一律违规。依据:open-world
+  判分死链四周不可见(V1 失败静默返 None 不落 score_authority),tier1 bank 六条
+  fail-open 路径只 warning。新代码违反即 review blocker;存量逐步清偿。
 - **contract-guard**:改 `deeptutor/contracts/index.yaml` 登记的 protected 文件必须同步登记 `test_files`;合并/push 前 `python scripts/check_contract_guard.py <files>` 必须 passed。
 - **双拷贝同步**:`contracts/index.yaml` 与 `deeptutor/contracts/index.yaml` 必须同步修改(后者是 packaged runtime copy)。
 - **计划纪律**:计划/PRD/runbook/gate checklist 统一放 `docs/plan/`,新增或修改后必须同步更新 [docs/plan/INDEX.md](./docs/plan/INDEX.md);新计划优先挂既有主线,不造平行规划;禁止 `doc/plan/` 路径。

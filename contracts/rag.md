@@ -92,6 +92,23 @@
 - `exact_question.answer_kind`
 - `exact_question.case_bundle`
 - `exact_question.coverage_state`
+- `exact_question.question_id`（tier1/2 可达性 2026-07-30：payload 顶层显式身份键；
+  连同 `source_chunk_id`/`exam_year` 构成 pgo 复合 qid
+  `{exam_year}::{source_chunk_id}::E{n}` 的原料——消费方是判分 ctx 组装，
+  不得作为路由/relevance 信号）
+
+32c. case 粘贴的 exact 可达性两不变量（1b 2026-07-30，live 实证在库案例恒 miss 的两处根因）：
+  ① `classify_query_shape` 中结构性 case 证据（`_looks_like_case_study`：≥80字+背景资料+问题N）
+  必须先于弱 MCQ 题干启发（`_MCQ_STEM_RE` 的「不得/应当/可以/不属于」法规语言）裁决——
+  案例题干几乎必含这些词；真 MCQ 仍由选项形状与强关键词优先拿走。
+  ② exact text-first 探测任务不得被 `exact_probe.query ≤ max_text_len`（MCQ 时代校准的短查询门）
+  整体闷死：case 短查询（`case_exact_queries` 小问切片）在场即须放行 text-first 批次，
+  长 probe query 交给 `build_exact_question_text_candidates` 的 case_like 切片。
+  两处都只放宽**候选供给**；采信权威仍是单一 identity adjudicator
+  `exact_question_identity_corresponds`（32b），不新增放行权。
+  另：pipeline 未命中时 trace 元数据的 `exact_question: {}` 空壳不得被下游写成
+  `_prefetched_exact_question` 冒充命中（非空才写；TutorBot 直批 marker 须落
+  `allowed_no_exact_hit`）。直批身份检索只喂题干（作答文本不参与「这是哪道题」的裁决）。
 - `authoritative_answer`
 - `corrected_from`
 - `bot_id`

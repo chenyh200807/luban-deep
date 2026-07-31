@@ -354,3 +354,60 @@ def test_build_cross_capability_context_instruction_clips_overlong_text():
 
     instruction = build_cross_capability_context_instruction("章" * 9000)
     assert len(instruction) < 9000
+
+
+# ---------------------------------------------------------------------------
+# 基坑 5m 边界事实（2026-07-29 指挥官裁决：权力/证据相称律）
+# ---------------------------------------------------------------------------
+def test_boundary_fact_instruction_requires_word_boundary_on_5m() -> None:
+    """无边界正则曾把 4.5m/15m/2.5m 的子串当 5m 命中，向不该触发的题面注入
+    边界事实。三重边界修复后：真 5m/5.0m/五米（含汉字前缀"深5m"/"改为5m"）激活；
+    阿拉伯/中文数字前缀与 mm/min 类单位后缀一律不激活。"""
+    from deeptutor.tutorbot.teaching_modes import (
+        get_construction_exam_boundary_fact_instruction,
+    )
+
+    for text in (
+        "某基坑开挖深度5m，专项方案是否需要专家论证？",
+        "基坑深度 5.0m，需要组织专家论证吗",
+        "基坑开挖五米深，危大工程怎么判",
+        "基坑深5m，开挖专项方案要专家论证吗",
+        "基坑深度从8m改为5m，专家论证结论变吗",
+    ):
+        assert get_construction_exam_boundary_fact_instruction(text), text
+
+    for text in (
+        "某基坑开挖深度4.5m，是否需要专家论证？",
+        "基坑深度15m 的边坡开挖，专项方案专家论证怎么办",
+        "基坑开挖2.5m，需要专家论证吗",
+        "基坑开挖深度十五米，需要专家论证吗",
+        "基坑开挖深度四点五米，需要专家论证吗",
+        "基坑支护壁厚5mm钢板桩，专项方案要专家论证吗",
+    ):
+        assert get_construction_exam_boundary_fact_instruction(text) == "", text
+
+
+def test_boundary_fact_instruction_is_evidence_not_command() -> None:
+    """载荷降级为证据级：只陈述含边界口径，不得携带"不得写成…"类命令句
+    ——碎片判据不配指令级载荷（admission 相称律）。"""
+    from deeptutor.tutorbot.teaching_modes import (
+        get_construction_exam_boundary_fact_instruction,
+    )
+
+    instruction = get_construction_exam_boundary_fact_instruction(
+        "某基坑开挖深度5m，是否需要专家论证？"
+    )
+    assert instruction
+    assert "含 5m" in instruction
+    for banned in ("不得写成", "不要写", "必须写"):
+        assert banned not in instruction
+
+
+def test_boundary_fact_exit_replacer_is_deleted() -> None:
+    """出口罐头已删除：碎片判据 + 整篇替换权力是相称律最重违例，且其罐头文案
+    自含"不需要专家论证"会命中自己的触发正则（机制不可审计的实锤）。
+    4.5m 题的正确回答（"不需要专家论证"）不得再被任何运行时替换。"""
+    import deeptutor.tutorbot.teaching_modes as tm
+
+    assert not hasattr(tm, "correct_construction_exam_boundary_fact_response")
+    assert not hasattr(tm, "_FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE")

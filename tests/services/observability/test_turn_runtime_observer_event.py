@@ -664,3 +664,71 @@ def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_p
     assert persisted_observer_payload["turn_events"]["error_ratio"] == 0.0
     assert oa_payload["raw_evidence_bundle"]["observer_snapshot_run_id"] == observer_payload["run_id"]
     assert any(item["kind"] == "observer_snapshot" for item in oa_payload["signals"])
+
+
+def test_terminal_turn_observation_event_keeps_case_grading_authority_markers() -> None:
+    """观测对称律（1b 2026-07-30）：summarizer 已从 result event 提升判分权威标记，
+    但终态事件另有一张白名单——live 实证 lift 产出在此被二次过滤，jsonl sink
+    （observer/BI 消费面）永远看不到。本测试钉住第三张名单的透传。"""
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=100.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "bot_id": "bot-1",
+            "context_route": "",
+            "source": "authenticated_ws",
+            "user_id": "user-1",
+            "trace_id": "trace-1",
+            "question_lifecycle_scene": "case_grading",
+            "score_authority": "rubric_scored_v1",
+            "grading_rubric_provenance": "on_the_fly_reference",
+            "v1_case_graded": True,
+            "case_grading_prefetch_gate": "allowed",
+            "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+        },
+        usage_summary={"total_tokens": 1},
+    )
+    md = event["metadata"]
+    assert md["grading_rubric_provenance"] == "on_the_fly_reference"
+    assert md["score_authority"] == "rubric_scored_v1"
+    assert md["case_grading_prefetch_gate"] == "allowed"
+    assert md["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+    assert md["v1_case_graded"] is True
+
+
+def test_authority_export_keys_single_source_across_all_sinks() -> None:
+    """倾向四根治（2026-07-30 owner 拍板）：判分权威导出键收敛为单一契约常量
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS，三个消费面（summarizer lift/终态白名单/
+    per-turn 元组）全部从它派生——增键改一处即全链生效，杜绝第 N 张名单漂移。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+    )
+    from deeptutor.services.session.turn_runtime import _summarize_assistant_events
+
+    assert len(CASE_GRADING_AUTHORITY_EXPORT_KEYS) >= 10
+    # ① per-turn 元组包含全部权威键
+    for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
+        assert key in CASE_GRADING_TURN_METADATA_KEYS, key
+
+    sentinel = {key: f"v::{key}" for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS}
+    # ② summarizer lift 提升每一个权威键
+    summary = _summarize_assistant_events([{"type": "result", "metadata": dict(sentinel)}])
+    for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
+        assert summary.get(key) == sentinel[key], key
+
+    # ③ 终态事件白名单透传每一个权威键
+    event = _build_terminal_turn_observation_event(
+        session_id="s", turn_id="t", status="completed", capability_name="tutorbot",
+        duration_ms=1.0,
+        trace_metadata={"execution_engine": "tutorbot_runtime", "bot_id": "b",
+                        "context_route": "", "source": "ws", "user_id": "u",
+                        "trace_id": "tr", **sentinel},
+        usage_summary={"total_tokens": 1},
+    )
+    for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
+        assert event["metadata"].get(key) == sentinel[key], key

@@ -2711,19 +2711,40 @@
 /* ── 思考/流程面板 ────────────────────────────────────── */
 .page.paper .thinking-panel {
   background: var(--pk-card);
-  border: 1rpx solid var(--pk-bd);
-  box-shadow: none;
+  border: 1rpx solid rgba(71, 118, 255, 0.22);
+  box-shadow: 0 8rpx 28rpx rgba(47, 84, 170, 0.1);
 }
-.page.paper .thinking-rail { background: var(--pk-t3); }
-.page.paper .thinking-rail::after { background: var(--pkx-ink-soft-strong); }
 .page.paper .thinking-label { color: var(--pk-t2); }
 .page.paper .thinking-sub { color: var(--pk-t3); }
-.page.paper .thinking-badge {
-  background: var(--pkx-ink-soft);
-  border: 1rpx solid var(--pk-bd);
+.page.paper .dots-bounce .dot {
+  width: 10rpx;
+  height: 10rpx;
 }
-.page.paper .thinking-badge-text { color: var(--pk-t2); }
-.page.paper .dots-bounce .dot { background: var(--pk-t3); }
+.page.paper .thinking-scan {
+  height: 4rpx;
+  max-width: 150rpx;
+}
+.page.paper.light .thinking-rail::after {
+  background: linear-gradient(
+    180deg,
+    rgba(47, 95, 218, 0) 0%,
+    rgba(47, 95, 218, 0.92) 50%,
+    rgba(47, 95, 218, 0) 100%
+  );
+}
+.page.paper.light .dots-bounce .dot { background: #2f5fda; }
+.page.paper.light .thinking-scan {
+  background: linear-gradient(90deg, rgba(47,95,218,0) 0%, #2f5fda 45%, #7c3aed 100%);
+}
+.page.paper.light .thinking-scan-calc {
+  background: linear-gradient(90deg, rgba(164,90,0,0) 0%, #a45a00 45%, #c2410c 100%);
+}
+.page.paper.light .thinking-scan-compose {
+  background: linear-gradient(90deg, rgba(24,121,78,0) 0%, #18794e 45%, #0369a1 100%);
+}
+.page.paper.light .thinking-scan-retry {
+  background: linear-gradient(90deg, rgba(180,35,24,0) 0%, #b42318 45%, #a45a00 100%);
+}
 .page.paper .workflow-card {
   background: var(--pkx-ink-soft);
   border: 1rpx solid var(--pk-bd);

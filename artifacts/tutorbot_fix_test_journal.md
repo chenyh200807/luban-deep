@@ -9,6 +9,78 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-30 - tier1/2 可达性 1b：门死锁+exact 恒 miss 全链根因（四层剥洋葱）
+
+- 问题：批1a 前置了 prefetch 管道后，live 探针（在库案例粘贴）判分仍恒 tier3（derived_from_stem）、零检索观测。业务事实=「粘贴题库内案例题必须拿到题库判分权威」在四个不同层各断一刀。
+- 根因链（每修一层 live 再探才暴露下一层——单点归因会全部漏）：
+  1. **门死锁（duplicate decision + 权威假设未核验）**：生命周期为粘贴题建的 active_object 是权威空壳（question_id=''、correct_answer=None），`_should_disable_rag_for_active_question_flow` 只看 state_snapshot 键形状就禁检索——「没权威→禁取权威」。修法=收权：直批 admission 脱离通用聊天门（只看权威缺位+kb 在场，force_authority_fetch 旁路内层同门）。
+  2. **shape 误判（弱启发压过强结构）**：`_MCQ_STEM_RE` 的「不得/应当/可以」法规语言排在 `_looks_like_case_study` 前——案例题干必含这些词，"多答不得分"两字就让整段判成 mcq_like，case 切片/case_exact_queries/case_like 采用链全部失去运行资格。修法=结构证据（≥80字+背景资料+问题N）前移。
+  3. **text-first 门闷死 case 候选（unconsumed island）**：`probe.query≤100字`（MCQ 时代校准）把整个 text-first 任务连同 case 小问切片一起跳过。修法=case 候选在场即放行；只放宽候选供给，采信仍归单一 identity adjudicator。
+  4. **空壳冒充命中（观测撒谎）**：pipeline 未命中时 trace 元数据带 `exact_question: {}`，isinstance(dict) 检查让空壳写进 `_prefetched_exact_question`——marker 报 allowed、幂等闸误判已取回。修法=非空才写；直批检索只喂题干（作答①②③污染 shape 与匹配）。
+- 失败的尝试/被否决的方案：①复合 qid `E{display_index}` 直接武装——唯一性审计证伪：运行时 display_index(1基"第N问"解析) vs 编译期 En(0基数组下标) 无共享权威，模拟命中 23/354 全部错绑相邻小问 rubric→转观测不武装（marker 导出、不进 ctx.question_id）；②给通用门加 case 豁免（调参思路）——被收权方案取代：豁免是第 N+1 个 decider。
+- 成功修法：PR #595（门收权+数字变体闸+A2 撤销闸补漏 surface/prompt+单发闸窄豁免+update_current_trace_metadata 成功侧 trace 顶层导出+C2 marker）+ PR #596（shape 优先级+text-first 门+空壳诚实+题干 override）。
+- 验证（数字）：#595 tests/tutorbot+construction_grading 失败集合与 main 基线完全一致（全既往病）、新增 12 测试绿、CI 3 轮到绿；#596 端到端实证——修前真 pipeline 对同题干恒 miss，修后 EXACT HIT（id=17357，2023 同题带逐问官方答案、covered 5 项）；live 探针 SHA 84946ac2 gate 从 denied:decision→allowed。
+- 并行重大发现（两枚鱼雷，改写 tier1 路线）：①生产 LUBAN_CASE_RUBRIC_BANK_SLOT=pgo 是未获授权覆写（07-11 红线「=pgo 禁止拨」在案、canary 是两个全仓零引用孤儿 env、pgo 实吃 100% 案例判分流量六周、装载面只验 content_hash 不验授权）；②45/179 pgo 键永久不可达（2015/16 命名族无 DB 行）、兄弟小问 source_chunk_id 全 NULL。两报告在 scratchpad/{canonical_pointer_investigation,qid_uniqueness_audit}.md。
+- 教训：①「值与门与导出三者同批」之外第四件——权威假设必须被核验（键形状≠权威在场）；②弱启发（两字正则）绝不许排在强结构证据前裁决；③fail-open/空壳 dict 会把 miss 伪装成 hit，观测 marker 必须用非空判定；④分层断链的病要一层层 live 探针剥，静态推断会漏后三层。
+
+## 2026-07-30 - KB 溯源 open-world 判分升级（owner 拍板）
+
+- 问题：owner 拍板升级——tier-3 题干推导采分点纯靠 LLM 专业知识、零教材溯源，与"采分点必须教材溯源"硬原则有差距；题库外题（用户粘贴主动线）的判分可信度需要证据支撑。
+- 设计要点（设计 agent 产出，主线程实施）：①检索复用 `rag_search`（判分讲解侧同款管道，不建第二检索）；②**`rubric_provenance="derived_from_stem"` 字符串不动**——全链 6 处精确匹配，改字符串会让 G2 豁免失配把刚复活的通道再弄死；语义分层用加性字段（点级 `evidence_tier`/`textbook_ref`、事件级 `kb_grounding`）；③**机械核验防自证陷阱**：evidence_idx 落在证据集内 AND quote 归一化后是 chunk 正文子串，二者同时成立才算 kb_grounded，绝不信 LLM 自报；④降权=归一化前 ×0.6（总分不变，分值向有据点倾斜）；⑤fail-open 三层：检索异常/超时/零命中→[]→prompt 与 v2 字节等价；⑥LLM 引用短序号 E1..En 非 chunk_id（长 id 截断误配教训）；⑦textbook/standard 源优先过滤（讲义碎片让"有据"虚胖）。
+- 实施：`rubric_grader_v1.py`（prompt v3+kb_digest 缓存键+attach_textbook_refs+summarize_kb_grounding+shadow 透传白名单加两键+render 出处行+两档免责）；`deep_question.py`（_fetch_stem_kb_evidence+flag+签名/调用点五处接线+langfuse kb_grounding_ratio）；`loop.py` tutorbot 侧 kb_name 解析传入。踩坑一个：deep_question 无模块级 `import asyncio`，helper 内 NameError 被 fail-open 吞掉——**fail-open 会把实现 bug 也吞成静默降级，测试必须打到 fail-open 的对侧**（本例靠 textbook 优先过滤用例抓出）。
+- 验证：新增 6 用例（四象限机械核验/空证据降权+归一化总分不变/透传+截断兼容/derive 双形态/fail-open/textbook 优先）；927 passed；contract guard+gate authority guard 双绿。**live 未回归**（部署后按近三年案例题抽样验证溯源率与判分质量）。
+- 灰度：直接上+env 急停 `LUBAN_STEM_RUBRIC_KB_GROUNDING`（默认 ON）——检索风险被 fail-open 全覆盖，最坏退化为现状。
+- 教训：升级刚复活的通道时，"provenance 字符串"这类看似元数据的东西可能是 6 处豁免判定的 key——加性字段永远优先于改既有标识符。
+
+## 2026-07-29 - 案例评分审题失效：open-world 判分死链四周无人知（非当日回归）
+
+- 问题：owner 报案例评分审题失效（trace 64aba5/51df5，两题拍照粘贴带图注，输出零诊断的静态模板"未命中评分真相层"）。侦查 agent 生产考古+容器日志逐层证实：**非当日六 PR 回归**——判分链三处 LLM 调用（extract/derive/batch_judge）不传 `max_tokens` 吃 `cloud_provider` 4096 默认，dashscope deepseek-v4-flash 默认开思考占输出 70-80%，大题干（1042/1361字5小问）思考+采分点 JSON 越过 4096 → 截断 → `_parse_extracted_points` fail-closed 0 点 → 塌到模板。**最后一次成功判分=06-30**；07-01→07-28 case_grading scene 零流量，死链无人踩。讽刺证据：#585 commit message 已诊断"4096 死配置"但只接线了答案面。深挖三连锁：①`loop.py` V1 失败静默返 None 不落 score_authority（四周不可见的观测洞）；②模板越权（出生使命=不硬估官方分，已越权成不给任何反馈——与 #586 基坑罐头同病：替换级载荷配运营性失败）；③"以前引以为傲"含幸存者偏差——编译资产（295 次 compiled_rubric）只服务题库内题，拍照粘贴题从来靠 open-world 层活着，其容量是题干大小依赖的隐性悬崖。
+- 失败尝试 / 被否决方案：否决只调大轮次/只修模板文案（治标）；否决为拍照题新建判分器（第二权威）；否决保留 fall-through 但不修 #587 路由残留（fall-through 后 fast 单发接不住案例题，残留会从无害变有害——连锁盲区扫描抓到）。
+- 成功修法（五件全在既有权威内）：①`rubric_grader_v1.py` 三处调用接线 `max_tokens=8192, reasoning_effort="disabled"`（走 executors dashscope enable_thinking=False 现成分支；判分 JSON 抽取不需长思考，followup 判定器同款先例）；②`_parse_extracted_points` 截断抢救（截到最后完整对象闭合数组，部分采分点>0点，同一解析权威）；③终态 fall-through：`_run_case_grading_direct` V1 失败返 None 落回正常生成路径（案例 skill 产实质诊断），`_case_grading_no_authority_score_fallback` 重塑——实质诊断保留，硬分口径追加 `build_case_grading_score_disclaimer` 免责声明，模板只在零产出时兜底（收回整篇替换权，与 #586 同律）；④V1 失败落 `score_authority="v1_unavailable:<status>"` 观测；⑤`response_mode.py` 案例形状先于 structured_submission 判定 + `【问题】`括号形入正则（51df 实证修复），短提交仍 fast。
+- 验证：51df 原文路由 deep 实证；判分链+路由+finalize 全量 1019 passed；旧契约测试 5 处按新契约重写（模板出生使命保留、越权收回均有正反用例钉住）。**live 未回归——thinking 关闭后 tier-3 判分质量需 live eval 校验（显式不确定性）**。
+- 教训：通道级 liveness 必须有监控——一条引以为傲的链路死了四周，靠 owner 手测才发现；fail-closed 链条（截断→0点→模板）每一环单看都"安全"，连起来就是把运营性故障翻译成产品性拒绝服务。
+
+
+## 2026-07-29 - 指挥官架构裁决 + 基坑5m对处置（权力/证据相称律第一刀）
+
+- 问题：owner 升级指令"不要头痛医头，要体系架构层面解决，指挥官把控全场"。指挥官 agent 对五故障家族裁决（全文另存 memory `commander-verdict-power-evidence-mismatch`）：主线程"碎片信号+无admission权威"假设被部分证伪——那只是主病一个切面。**主病=对「学生所见终局」与「模型所知世界」的改写/代言权力，授予不要求相称证据、不经单一裁决、不留可审痕迹**（家族一/二/三/五）+独立小病=声明-运行时断链（家族四）。收口=类型化两个既有汇点（入口 runtime_instruction_parts 列表 / 出口 finalize 链）：裸 str→声明对象(判据类型×载荷等级)，汇点跑"载荷≤判据上限"纯函数断言——类型检查非第N+1 decider；仓库已有两条散文抗体（"regex只抽取不裁决真值"/"门必须用结构化事实"）从未被机器强制。七步实施序见 memory。
+- 本条落地第2步=基坑5m对（偏离指挥官序先做②后做①，理由：生产正在流血、边界清晰、不与契约类型化冲突）。考古：生于 6642b5a24（05-16，663行大commit夹带热修），治真病（8m→5m变体被模型误判"小于5m不需论证"）；但今日实害＞收益：①入口无边界正则 `5(?:\.0)?\s*m` 把 4.5m/15m/2.5m 子串当 5m，对 4.5m 题注入事实错误指令；②出口罐头对任何含"不需要…专家论证"的回答（含正确讲解互补情形）整篇替换成写死的别题罐头（含"从8m改为5m"背景），**且罐头自己的易错点段落含"不需要专家论证"会命中自己的触发正则**——机制原理上不可审计。
+- 失败尝试 / 被否决方案：否决直接撕止血带（原病例保护必须移交后才能撤）；否决只修正则保留罐头（替换级权力配碎片判据是相称律最重违例，修判据治不了权力越级）。
+- 成功修法：`teaching_modes.py`①删出口罐头 `correct_construction_exam_boundary_fact_response`+`_FOUNDATION_PIT_BAD_EXPERT_REVIEW_RE`（loop.py finalize 链挂载点与 import 同拆，9步→8步）；②入口正则加负向后视 `(?<![\d.])5` 排数字/小数点前缀；③入口载荷指令级→证据级（去"不得写成…"命令句，改陈述含边界口径）。原病例保护移交：证据级 hedge 仍对真 5m 激活 + 5m 危大边界事实入 KB（内容真相病，登记）+ 8m→5m 病例转 live eval 断言（部署时）。
+- 验证：新增 3 测试（词边界正负例/证据级无命令句/出口替换器已删）25 passed；finalize 链 8 步 golden 21 passed；受影响套件 129 passed（1 deselect 既有）；残留引用仅注释与历史 plan 文档。**live 未回归**。
+- 教训：止血带的寿命必须有移交计划——没有"权威归位路径"的热修会活到开始批量生产它当年要防止的错误；一个连自己产出都过不了自己审查的机制，是碎片判据配替换权力必然的终点。
+
+## 2026-07-29 - 案例题链路四路举一反三：预取抑制收权+饱和告知+max_tokens接线+流式覆写后缀豁免
+
+- 问题：owner 要求对"案例题作答=核心亮点"做系统性举一反三。四路专家并行（注入源测绘/检索层设计/生产量化/收口层扫描）确认四个新病灶：①7/6 引入的预取成功首轮暗藏 rag——模型不知情仍调用，白烧 1/4 轮预算吃 "Tool 'rag' is not available"（生产 6/125 trace 命中、单 turn 最多 9 次回灌、4 轮打满的 turn 75% 拒答），且轮间工具列表变化打断 provider prompt cache——**恰恰违反 PR#583 收束轮自己立的"工具列表不变保 cache 前缀"不变量**；②饱和/抑制摘工具从不告知模型=重试跑步机根源；③deep 路真实 max_tokens=4096 而非 8192——config/schema.py AgentDefaults.max_tokens=8192 是从未接线的死配置，5 小问收束长答案（~4000 token）几乎贴顶，"预算病向截断病转移"的风险比 journal 预估高一倍；④turn_runtime 非失败 RESULT 用累计流文本覆写 response（turn.md:144 防异源 stale 覆盖，立法正当）且发生在权威内容提取之前——**PR#583 的独白剥离器在公共投影上被整个回冲抵消**（D 路 agent 标注"未核实"，主线程亲核坐实）。
+- 根因（shared shape）：①②同属"无声藏工具"（dormant tool ≠ removed tool：从 schema 摘除但不告知，模型的正确判断被变成惩罚）；防冗余检索存在两个权威（7/6 首轮硬藏=粗粒度结构层 vs rag_saturation=细粒度信号层判别器）→ 收权到后者。③是 dead-config 假象（写了 8192 无 runtime reader）。④是两条契约相撞：终态=学生所见流 vs 终态不得含独白——真不变量是"终态不得与学生所见**异源**"，剥离产物是同源流的**后缀**。
+- 失败尝试 / 被否决方案：①否决"抑制时加告知消息"（保留两套防冗余权威+第三个补丁消息，cache 照断）；②否决"整轮 budget refund"（新增 loop 计数决策点，与收束轮 loop_limit 纠缠）；③否决"流式覆写处复用剥离正则二次剥离"（剥离逻辑出现第二消费者=权威分裂）。
+- 成功修法：`loop.py`①删预取首轮抑制分支+`_prefetched_rag_satisfied`（无消费者退役），预取轮从 `_latest_rag_trace_metadata.rag_round` 播种进 saturation 账本——复读预取 query 的首轮 in-loop rag 即 round_index=2 立即饱和；②饱和首次触发时显式 system 告知"rag 已停用请收口作答"；unadvertised 工具错误文案改为可执行指令（"不要再调用该工具；基于已有证据作答"）；③新增 `_DEEP_ANSWER_MAX_TOKENS=8192` 接线到主循环+repair 两个调用点（激活死配置本意）；预取消息补"补充检索换新词、多小问可同轮并行多条检索"。`turn_runtime.py`④`_replace_public_result_response_with_stream` 加同源后缀豁免：既有 response 是流文本严格后缀时保留 finalize 权威产物；异源替换保护原样。`contracts/turn.md` 同步后缀豁免条款。
+- 验证：播种回归测试（首轮 rag 保持在列+复读即饱和+饱和告知消息存在）、max_tokens=8192 断言、后缀豁免正反两用例；受影响套件 104 passed（1 deselect 既有失败）；capabilities_runtime -k 选集 5 failed 经基线单跑对照=既有 SimpleNamespace-await fixture 家族（07-15 journal 已记录），零新增。**live 未回归**。
+- 生产量化基线（14d n=125，7d n=46，样本掺 07-15/16 走查流量）：拒答 3/125（deep 模式 3/18=16.7%，案例大题 3/6，4 轮打满 3/4）；讲义硬误注入 22.6%（7d 33.3%）、含"注入目录/分值页"的无用注入 46.8%——**误注入与拒答是同一条因果链**（3 条拒答同时是误注入）；`actual_tool_rounds` 埋点 125/125 恒 0（坏埋点，轮数故障在指标面不可见）；拒答 turn 均价 $0.126=fast 的 6.5 倍。
+- 同病登记（待修，按爆炸半径排序）：①**基坑 5m 对**（teaching_modes.py `5(?:\.0)?\s*m` 无边界正则匹配"4.5m"+出口侧整篇替换为写死的别题罐头"从8m改为5m"——比讲义 overlay 更狠，A 路实锤，下一 PR）；②general_knowledge overlay n-gram 碎片打分无锚门（cohort 旗标压着，放量前必须补 PR#584 同款收权）；③`actual_tool_rounds` 坏埋点；④讲义检索召回"目录/分值页"（WEAK 注入 24%，供给侧）；⑤连续性锚点"继续"碎片触发+陈旧 state_snapshot 强塞；⑥case fallback 数字成员判定整篇替换；⑦subagent/team/solver 三处耗尽模板（D 路已核消费链：subagent 模板会被主 agent 转述成假绿；solver 静默标 completed 直接进 Writer）。
+- 教训：**摘工具必须告知模型**——对模型不可见的结构性限制，会把模型的正确判断（证据不足需检索）变成对用户的惩罚（烧预算+拒答）；dead config 是双重危险（读代码的人以为保护存在）；两条契约相撞时先找各自的真不变量，交集处往往有无损解。
+
+## 2026-07-29 - 讲义答法误路由：数字碎片 token 把无关讲义以 high 档注入案例题（同事故第一层病因）
+
+- 问题：同 session `unified_1785314628533_23c29374` 深挖：四轮 trace 的 prompt 从 round 1 起全部注入「第三章/变形监测点设置要求」讲义答法块（high/high 激活），且带强排他指令"只使用下列讲义出处组织采分点"——对一道临时用水案例题注入完全无关讲义，是模型 4 轮不敢收口、持续检索的重要推手（收束轮修复治了终态，此为上游病因）。
+- 根因：两层。①路由层：`_unit_score` 关键词打分中，题面流速"2.0m/s""1.5 m/s"经 `_norm` 吃掉小数点后变 `20ms`/`15ms`，包含变形监测 unit 的阈值碎片 token `20m`/`15m`，两次命中+formula intent 加分冲到 0.855=high。**数字/单位碎片没有语义身份，却拥有路由权**。②供给层（producer/consumer 病again）：编译器把 must_mentions 的答案碎片（`20m`/`3个`/`15m`/`闭合环`）泄进了 `question_patterns`（题型模式字段），污染了本应纯净的锚字段。前 5 名候选全部靠 `23`/`12`/`15m`/`设计` 这类碎片命中——此病系统性伤害所有含数值的题面。
+- 失败尝试 / 被否决方案：①黑名单拦"20m"式 token=打地鼠（下一个 0.6m/120m…）；②只按字段来源分锚/详（首版实现）被数据现实证伪——锚字段本身已被编译器污染，字段来源不可信，需 token 自身语义判据。
+- 成功修法：`lecture_answer_methods.py` 收权两条：①token 分级——锚 token（lecture/topic/taxonomy/question_patterns）与详 token（must_mentions/formula）分列，**详 token 与 capability 加分只在 ≥1 锚命中后参与**（内容字段只能细化匹配，不能建立匹配）；②语义身份判据——除结构性代码字段（node_code/lecture_slug）外，一切 token 必须 ≥2 汉字才可参与路由，数字/单位碎片一律出局。
+- 验证：事故题面 selected_units 从「变形监测 0.855 high + 排他指令」修正为**恰好两个真实考点**「民用建筑室内环境污染控制 / 临时用水管理与计算」；三条合法查询（变形监测点设置/模板起拱/无节奏流水）激活不变；lecture 测试 5 既有 + 5 新增回归（数字碎片不激活/内容 token 不建锚/detail 加分严格递增/2 字通用锚不入选/对照激活）全绿；compiled_knowledge+pack 脚本共 26 passed；对抗 review 抓出两个 blocking 均修复：B1=入选门槛是 0.34 非 0.50，「设计」泄漏锚曾把 2 个无关 unit（0.485）掺进 payload，修法=短 token refine 加分需 ≥3 汉字或覆盖率 ≥12%（覆盖率轴区分"起拱"作为短问句主题头 vs"设计"在长题面偶然共现——长度轴与 df 轴均切不开）；B2=detail 加分契约补严格递增断言。**live 未回归**。
+- 遗留：①编译器把 must_mentions/参与方枚举泄进 question_patterns 的生产端 bug 未修（下次 pack 编译时修，消费端判据已兜住）；②离线 routing eval 脚本自带旧评分器 fork，数字会高估激活率并复现事故前行为，已在脚本头注记 drift，下次 eval 前须折叠到运行时评分器；③模块与测试已登记进 contracts/index.yaml rag 域 protected_patterns/test_files（双拷贝）。
+- 教训：路由 token 的资格判据必须是"语义身份"而非"字段来源"——编译产物的字段纯净度不可假设；归一化函数（吃小数点）与打分器组合会制造出人眼看不出的碰撞面，路由类修复必须拿真实事故题面做回归。
+
+## 2026-07-29 - 案例大题连环拒答"拆小再发" + 答案泄露内心独白/编号不镜像
+
+- 问题：生产 session `unified_1785314628533_23c29374`（construction-exam-coach，deep 模式）。用户发 5 小问案例大题被拒答"这道题内容较多，这次没批完，请把题目拆小一点再发一次"；**按提示拆成 1 个小问后仍被同样拒答**（罐头归因被现场证伪）；再删一段背景后终于作答，但终态以"现在我有足够的知识库证据来回答第3题。让我来组织完整回答。"开头（内心独白泄露），且标题按 session 历史称"第3题"而用户当前消息编号是 1，owner 误读为答非所问。
+- 根因：`_run_agent_loop` deep 模式 `max_tool_rounds=4`，模型 4 轮全是 RAG 工具调用（turn1 耗 142k input tokens / 20 次调用）未产最终答案，loop 直接 `tool_budget_exhausted` 放弃，把全部已检索证据丢进罐头拒答——shared failure shape = **fail-closed-to-template（而非 fall-through-to-understanding）**。搜索胃口与题目大小无关（拆小后每轮仅 ~89 output tokens 仍连发 4 轮检索），"拆小"文案是错误归因。独白泄露与编号漂移是终态收权（律4）之外的 presentation 层缺口。
+- 失败尝试 / 被否决方案：①否决"末轮没收工具（tools=None/空）"首版实现——对抗审查指出 tools 块参与 prompt cache 前缀，恰好在上下文最大的那次调用上打掉 cache，且末轮幻觉 tool_calls 仍会漏回 `tool_budget_exhausted`；②否决调大 `max_tool_rounds`——只移动悬崖；③否决放松 rag_saturation 阈值——多小问案例题的检索主题合法互异，放松会误杀正常探索；④否决宽版独白剥离正则——按项目原则 regex 只做高置信保底，窄模式 7 例边界全过。
+- 成功修法：`deeptutor/tutorbot/agent/loop.py`①预算耗尽后追加**收束轮**：tools 原样下发保 cache 前缀 + `tool_choice="none"`（服务端强制）+ 收束 system 指令（`_FINAL_ROUND_SYNTHESIS_PROMPT`），判别位 `runtime_metadata["forced_closure_round"]`；收束轮/repair 轮的 tool_calls 一律不执行、不作答案，走既有 repair 路径；仅 `max_tool_rounds>1` 启用（fast 单发路径不进此循环，行为不变）。②finalize 链头部加第 9 步 `_strip_leading_meta_narration`（窄正则、最多剥 2 句、剩余正文必须可见，遥测 `leading_meta_narration_stripped`）。③`turn_runtime.py` 罐头文案去"拆小"错误归因（frozenset 按变量引用自动同步免计费集）。④`construction-exam-tutor/SKILL.md` 增编号镜像（含无编号/点名原卷/错题复盘三分支豁免）与禁过程叙述开场两规。⑤`contracts/turn.md` 同步收束轮契约。
+- 验证：新增 3 个收束轮用例 + 3 个剥离器用例；聚焦回归 `test_agent_loop_case_rubric_v1.py` + `test_terminal_error_semantics.py` 81 passed（1 deselect 为基线既有失败 `test_turn_runtime_exception_after_partial_never_commits_partial_as_assistant`，已 stash 对照证实与本 diff 无关）；`test_finalize_visible_answer_pipeline.py` 20 passed；capabilities_runtime 相关 2 passed；response_mode/teaching_modes 32 passed；contract guard 全绿；skill validator ok；compileall ok；`tests/tutorbot/` 目录级 39 fail 与基线 37 fail 逐条 diff 确认全部为既有隔离污染（fake loguru SimpleNamespace 缺 `info`），零新增真实失败。**live 生产回归尚未做**（需部署后按事故 4 轮消息序列重放 + Langfuse 核 `forced_closure_round`）。
+- 同病登记（本次不修，2-sightings 已满）：`agent/subagent.py:174`（15 轮耗尽→英文模板）、`agent/team/__init__.py:1100`（worker 25 轮耗尽→模板）、`agents/solve/main_solver.py:568`（ReAct 5 轮耗尽→静默标 completed 假绿）。收束修复后预算病可能向 `model_output_truncated` 转移（强制长答案撞 8192 max_tokens），上线后监控该 kind。
+- 教训：预算类闸门的失败分支必须先问"手里已有的证据能不能答"再问"怎么礼貌拒绝"——检索预算限制的是搜索深度，永远不该决定答不答；罐头文案里的归因（"题目太大"）若未被 trace 证实，就是在教用户做无效操作。
+
 ## 2026-07-22 - BI 新版上线判断被四套口径污染：渠道、行为、Turn 与财务 authority 收权
 
 - 问题：获客渠道全为 unknown；overview 永久声称行为数据 pending，但学习偏好已读到真实事件；overview 30 天 168 turns，而 capabilities/cost 使用 4,563 raw turns；收入永久 pending，成本又把 CNY/USD、自然月/滚动 30 天和低覆盖旧校准混在一起。

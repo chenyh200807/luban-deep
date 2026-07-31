@@ -8,6 +8,7 @@ Wraps the existing ``AgentCoordinator``.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import functools
 import re
@@ -2294,6 +2295,56 @@ def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
         "false", "0", "off", "no")
 
 
+def _stem_rubric_kb_grounding_enabled() -> bool:
+    """KB 溯源 tier-3 推导（2026-07-29 升级）。默认 OFF（opt-in）。
+
+    默认值裁决依据 6 月五臂 A/B 硬数据（KNOWQL_BUILDOUT_BLUEPRINT.md:198-207）：
+    RAG grounding 在判分场景实测反而抬分（检索教材成 distractor，RAG+ref 臂
+    over-credit 0.20）。本升级虽只把证据用于 rubric 推导且有机械核验+降权护栏，
+    但"推导向检索内容漂移"与该发现同族——fail-open 罩不住质量风险。待学生军团
+    资产上 grounded vs ungrounded 判分质量 A/B 非劣后再翻 ON。"""
+    import os
+
+    return os.environ.get("LUBAN_STEM_RUBRIC_KB_GROUNDING", "").strip().lower() in (
+        "true", "1", "on", "yes")
+
+
+async def _fetch_stem_kb_evidence(
+    stem: str, kb_name: str | None, *, limit: int = 5
+) -> list[dict[str, Any]]:
+    """tier-3 推导前按题干检索教材/规范证据。三层 fail-open：异常/超时/零命中
+    一律返 []，推导退回纯 LLM 形态——检索绝不拖死刚复活的判分通道。
+    优先 textbook/standard 类源（讲义碎片会让"有据"虚胖）。"""
+    if not kb_name or not str(stem or "").strip():
+        return []
+    try:
+        result = await asyncio.wait_for(
+            rag_search(
+                _clip_text(stem, limit=900),
+                kb_name=kb_name,
+                intent="case_rubric_derivation",
+                question_type="case",
+                routing_metadata={
+                    "capability": "deep_question",
+                    "grading_kernel": "case_rubric_v1_tier3",
+                },
+            ),
+            timeout=8.0,
+        )
+        bundle = result.get("evidence_bundle") if isinstance(result, dict) else {}
+        raw_sources = (
+            (bundle or {}).get("sources")
+            or (result.get("sources") if isinstance(result, dict) else None)
+            or []
+        )
+        sources = [dict(x) for x in raw_sources if isinstance(x, dict) and str(x.get("content") or "").strip()]
+        preferred = [x for x in sources if str(x.get("source_type") or "").strip().lower() in ("textbook", "standard")]
+        return (preferred or sources)[:limit]
+    except Exception:  # noqa: BLE001 — fail-open：检索绝不拖死判分
+        logger.warning("LUBAN_V1 tier3 KB retrieval failed; deriving ungrounded", exc_info=True)
+        return []
+
+
 def _record_v1_langfuse(
     *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
 ) -> None:
@@ -2317,6 +2368,8 @@ def _record_v1_langfuse(
                     "high_risk_review": event.get("high_risk_review"),
                     "official_score_allowed": False,
                     "student_id": student_id, "question_id": qid, "cg_type": cg_type,
+                    "kb_grounding_ratio": (event.get("kb_grounding") or {}).get("ratio"),
+                    "kb_grounding_status": (event.get("kb_grounding") or {}).get("status"),
                 },
                 score_value=ratio,
                 score_comment=f"V1 {event.get('rubric_provenance')} {aw}/{mx}",
@@ -2383,6 +2436,7 @@ async def _grade_case_rubric_v1(
                 key=key,
                 _G=_G,
                 provider_authority="deepseek:https://api.deepseek.com",
+                kb_name=(context.knowledge_bases[0] if context.knowledge_bases else None),
             )
         else:
             event = await _grade_one_case_v1(
@@ -2392,6 +2446,7 @@ async def _grade_case_rubric_v1(
                 key=key,
                 _G=_G,
                 provider_authority="deepseek:https://api.deepseek.com",
+                kb_name=(context.knowledge_bases[0] if context.knowledge_bases else None),
             )
         # Gray-rollout observability: did V1 actually grade, with what provenance/score?
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
@@ -2418,6 +2473,7 @@ async def _grade_case_rubric_v1(
 async def _grade_one_case_v1(
     ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
+    kb_name: str | None = None,
 ) -> dict[str, Any] | None:
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
@@ -2436,6 +2492,26 @@ async def _grade_one_case_v1(
     # 1) governed compiled rubric (best ammunition) if in the bank
     points = _G.load_rubric(qid) if qid else []
     provenance = "compiled_rubric"
+    # C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
+    # 题面名义分显著分歧 = 复合 qid 可能错配到别的小问，先发声观测一个窗口再定 blocking。
+    score_total_mismatch = False
+    point_pool_excess = 0.0
+    stem_fallback_used = ""
+    if points:
+        try:
+            _nominal = float((cg or {}).get("max_score") or 0)
+            _rubric_total = sum(float(p.get("score") or 0) for p in points if isinstance(p, dict))
+            score_total_mismatch = _nominal > 0 and abs(_rubric_total - _nominal) > 0.01
+            # 踩点封顶观测（指挥官裁决② 2026-07-30，observe-only 先于改分）：
+            # 真题判分=踩点池封顶 min(Σ命中点分, 小题满分)，且池≥满分是常态
+            # （431 采分点实证，2025案例4 Σ=30/满分20）。V1 主路径无封顶——
+            # 池>满分的题会系统性打高分。先量化在服发生率与超额量，
+            # 确定性封顶是 canonical bank 上服的硬前置，不许盲改在服判分。
+            if _nominal > 0 and _rubric_total - _nominal > 0.01:
+                point_pool_excess = round(_rubric_total - _nominal, 2)
+        except (TypeError, ValueError):
+            score_total_mismatch = False
+            point_pool_excess = 0.0
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
         qid or "(none)", len(points),
@@ -2473,19 +2549,64 @@ async def _grade_one_case_v1(
             # Tier 3: no official answer-key authority, but this is still a gradable learner need.
             # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
             # scoring channel. It must never be promoted to official correctness authority.
+            kb_evidence = (
+                await _fetch_stem_kb_evidence(stem, kb_name)
+                if _stem_rubric_kb_grounding_enabled()
+                else []
+            )
             points = await _G.derive_rubric_from_stem_async(
                 stem,
                 complete,
                 key,
                 model=_v1_model,
                 provider_authority=provider_authority,
+                kb_evidence=kb_evidence,
             )
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
         else:
-            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
-            return {"status": "no_reference", "question_id": qid}
+            # OD-004 根治（2026-08-01，取证订正：病灶不在 admission 而在此处 bail-out）：
+            # live 5 轮 3/5——同一半答卷，某轮判分入口不是 tutorbot 直批而是
+            # agent-loop 侧调用，其 graded_context 没有 question_stem（自由粘贴无
+            # active question）→ 与 reference 双空 → 整条 no_reference 降级 →
+            # 落回通用 agent 现编判分（权威双空）。上一刀把兜底打在 tutorbot ctx
+            # 构建器，此入口根本不经过它（五轮零触发实证）。
+            # 判分行为在场必须有判分基座：兜底上移到**共享判分核**，一处覆盖所有
+            # 入口——学生提交的文本本身就是案例题面时用它推导（tier3 只从学生自己
+            # 贴的内容推，不涉他题钥匙，与 OD-002 fail-closed 正交）。
+            # 判据回到语义（终修）：形状正则（括号锚）在真实考卷粘贴上十轮零命中；
+            # 「判分行为在场」的痕迹是提交标记/多小问结构，不是题面用不用括号。
+            from deeptutor.services.construction_grading.case_output_policy import (
+                case_submission_stem_candidate,
+            )
+
+            _fallback_stem = case_submission_stem_candidate(str(answer or ""))
+            if _fallback_stem:
+                logger.warning(
+                    "LUBAN_DIAG _grade_one_case_v1: stem fallback from submission qid={} len={}",
+                    qid or "(none)", len(_fallback_stem),
+                )
+                kb_evidence = (
+                    await _fetch_stem_kb_evidence(_fallback_stem, kb_name)
+                    if _stem_rubric_kb_grounding_enabled()
+                    else []
+                )
+                points = await _G.derive_rubric_from_stem_async(
+                    _fallback_stem,
+                    complete,
+                    key,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                    kb_evidence=kb_evidence,
+                )
+                points = _G.normalize_points_to_nominal(
+                    points, nominal_total=float((cg or {}).get("max_score") or 0))
+                provenance = "derived_from_stem"
+                stem_fallback_used = "submission_text"
+            if not points:
+                logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
+                return {"status": "no_reference", "question_id": qid}
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: post-tier points={} provenance={} qid={}",
         len(points), provenance, qid or "(none)",
@@ -2520,18 +2641,50 @@ async def _grade_one_case_v1(
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
+    # 覆盖对账（2026-07-30 live 事故：半张卷被当整张宣判满分）：题面多问而 rubric
+    # 只归属到部分小问时，事件携带覆盖事实+学生可见声明；渲染两个面同源消费。
+    try:
+        # 对账基准=学生所见题面优先（bank 单小问行的 stem 只含 1 问，会让
+        # 保守闸静默；user_stem 才是"学生以为在判的整题"）。
+        _stem_for_cov = str(ctx.get("user_stem") or ctx.get("question_stem") or ctx.get("stem") or "")
+        _cov = _G.case_subquestion_coverage(event, question_stem=_stem_for_cov)
+        if isinstance(_cov, dict):
+            event["case_subq_coverage"] = f"{len(_cov.get('covered') or [])}/{len(_cov.get('total') or [])}"
+            if _cov.get("uncovered"):
+                event["case_subq_uncovered"] = ",".join(str(i) for i in _cov["uncovered"])
+                event["case_subq_coverage_note"] = _G.build_case_subq_coverage_note(_cov)
+    except Exception:  # noqa: BLE001 — 观测/声明层永不破坏判分
+        pass
+    # slot 身份逐轮导出（护栏③）：slot 漂移六周无人知的洞，用导出封死。
+    try:
+        _bank_id = _G.active_bank_identity()
+        event["case_rubric_bank_slot"] = (
+            f"{_bank_id.get('slot') or '?'}:{_bank_id.get('governance') or '?'}:"
+            f"{_bank_id.get('qid_count') or 0}"
+        )
+    except Exception:  # noqa: BLE001 — 观测导出永不破坏判分
+        pass
+    if score_total_mismatch:
+        event["case_rubric_score_total_mismatch"] = True
+    if point_pool_excess > 0:
+        event["point_pool_exceeds_max"] = point_pool_excess
+    if stem_fallback_used:
+        event["case_stem_fallback"] = stem_fallback_used
     if is_diagnostic_rubric:
         event["grading_source"] = "rubric_scored_v1_diagnostic"
         event["answer_key_authority"] = "derived_from_stem_pending_calibration"
         event["official_score_allowed"] = False
         event["high_risk_review"] = True
         event["diagnostic_score"] = True
+        if provenance == "derived_from_stem" and hasattr(_G, "summarize_kb_grounding"):
+            event["kb_grounding"] = _G.summarize_kb_grounding(event.get("scoring_points") or [])
     return event
 
 
 async def _grade_case_batch_v1(
     graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
+    kb_name: str | None = None,
 ) -> dict[str, Any] | None:
     """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
     into one case_grading_completed event (deterministic sums), so render + same-source outcome work
@@ -2556,6 +2709,7 @@ async def _grade_case_batch_v1(
             key=key,
             _G=_G,
             provider_authority=provider_authority,
+            kb_name=kb_name,
         )
         if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
             sub_events.append(ev)
@@ -5075,10 +5229,23 @@ class DeepQuestionCapability(BaseCapability):
                     if isinstance(_g2b_meta.get("personalization_context"), dict)
                     else None
                 )
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    resolve_case_answer_method_for_render,
+                )
+
+                # A1 真口诀（拍A）：high 置信命中才挂编译口诀，否则回落现模板+发声。
+                _am_ctx = resolve_case_answer_method_for_render(_stem)
+                v1_event["case_mnemonic_source"] = (
+                    "lecture_pack:" + ",".join(
+                        str(u.get("unit_id") or "?") for u in (_am_ctx or {}).get("units") or []
+                    )
+                    if _am_ctx else "fallback_template"
+                )
                 v1_render = render_case_rubric_feedback(
                     v1_event,
                     question_stem=_stem,
                     personalization_context_pack=_g2b_pcp,
+                    answer_method_context=_am_ctx,
                 )
             if v1_render is not None:
                 answer = v1_render

@@ -1104,10 +1104,15 @@ def classify_query_shape(query: str) -> str:
         return "mcq_like"
     if any(keyword in text for keyword in _EXAM_STRONG_KEYWORDS):
         return "mcq_like"
-    if _MCQ_STEM_RE.search(text):
-        return "mcq_like"
+    # 结构性 case 证据（背景资料+问题N，≥80字）必须先于弱 MCQ 题干启发裁决：
+    # _MCQ_STEM_RE 里的「不得/应当/可以/不属于」是法规语言，案例题干几乎必含——
+    # live 实证一道在库案例粘贴因问题1的"多答不得分"两字被判 mcq_like，导致
+    # case 切片/case_exact_queries/case_like 采用链全部失去运行资格、恒不可达。
+    # 真 MCQ 仍由更强的选项形状（_EXAM_OPTION_RE）与强关键词优先拿走。
     if _looks_like_case_study(text):
         return "case_like"
+    if _MCQ_STEM_RE.search(text):
+        return "mcq_like"
     if is_standard_like_query(text):
         return "standard_like"
     if _CALC_REQUEST_RE.search(text):

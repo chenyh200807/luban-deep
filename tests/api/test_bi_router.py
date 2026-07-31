@@ -22,6 +22,7 @@ from deeptutor.services.bi_service import BIService
 from deeptutor.services.config import env_store as env_store_module
 from deeptutor.services.feedback_service import build_mobile_feedback_row
 from deeptutor.services.member_console import rbac
+from deeptutor.services.member_console.directory import MemberDirectoryUnavailable
 from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 
@@ -958,6 +959,50 @@ def test_member_ops_overview_fails_closed_when_internal_account_authority_is_una
 
     assert response.status_code == 503
     assert "scope cannot be confirmed" in response.json()["detail"]
+
+
+@pytest.mark.parametrize(
+    "path",
+    (
+        "/api/v1/bi/member/dashboard",
+        "/api/v1/bi/member/list",
+        "/api/v1/bi/member/overview",
+    ),
+)
+def test_member_bi_reads_return_503_when_member_directory_is_unavailable(
+    path: str,
+    bi_service: BIService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _MemberOpsService:
+        def can_access(self, *_args, **_kwargs) -> bool:
+            return True
+
+        def get_dashboard(self, **_kwargs: object) -> dict[str, object]:
+            raise MemberDirectoryUnavailable("member directory unavailable")
+
+        def list_members(self, **_kwargs: object) -> dict[str, object]:
+            raise MemberDirectoryUnavailable("member directory unavailable")
+
+        def get_member_ops_overview(self, **_kwargs: object) -> dict[str, object]:
+            raise MemberDirectoryUnavailable("member directory unavailable")
+
+    async def _snapshot(*, limit: int = 1) -> dict[str, object]:
+        del limit
+        return {"available": True, "states": {}, "total_internal": 0}
+
+    monkeypatch.setattr(bi_router_module, "get_member_console_service", lambda: _MemberOpsService())
+    monkeypatch.setattr(bi_service, "get_internal_accounts_snapshot", _snapshot)
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+
+    with TestClient(app) as client:
+        response = client.get(path)
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "member directory unavailable"
 
 
 def test_member_list_pagination_reuses_internal_account_scope(

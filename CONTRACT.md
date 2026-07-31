@@ -139,6 +139,7 @@ DeepTutor 必须优先保证：
 - `dashboard` 始终是全量、已排除内部/eval 账号的运营会员口径；`list` 只代表当前筛选结果，二者不得混用。
 - 内部账号排除集只能来自 `bi_internal_accounts` 当前状态投影；读取不可用时响应必须显式暴露 availability，前端不得把未知排除状态解释为内部账号数 0 或口径已确认。
 - 首屏必须从一次 canonical member-directory projection 构建 `dashboard` 和分页 `list`，不得由前端分别请求后再本地全量筛选。
+- canonical member-directory 读取失败时，BI `dashboard` / `list` / `overview` 必须 fail closed 并返回 `503`；不得把 authority 异常投影成合法的会员数 `0`。
 - 注册日期以会员 canonical `created_at` 的 UTC+8 自然日解释；列表筛选、分页、排序和导出必须在服务端执行，并复用同一会员 authority。
 - 筛选只能缩小列表，不得改变 dashboard 的真实会员口径或把筛选结果写回会员身份事实。
 
@@ -218,6 +219,7 @@ CI 不会对全仓库一刀切，只会盯 contract 边界。
 - First Run 正式完成事实只由 `FirstRunWritebackService` 写入的 `learner_state.learning_preferences.first_run` marker 决定。
 - `module=first_run,event_name=learning_action_completed,object_type=script,result=synced,event_version>=2` 只表示客户端已收到服务端成功写回结果，可用于漏斗与数据质量核对；CTA、本地 done 或题目事件不得判定正式完成。
 - 会员经营聚合必须以 canonical member identity group 去重并排除 eval/test 账号；前端不得扫描 raw ledger 自行重算同名指标。
+- 学习偏好默认业务口径继续排除内部/eval/test 账号，但必须区分“账本无播放器事件”和“播放器事件因账号口径被排除”；诊断计数仍只读 `product_behavior_events`，不得另造前端或旁路统计 authority。
 
 ## 禁止事项
 

@@ -21,6 +21,7 @@
     "audit:ui": "playwright test --ui --project=ui-audit",
     "audit:report": "playwright show-report",
     "test:wechat-harness:data": "node --test tests/wechat-harness-data.test.ts",
+    "test:bi-learning-pref": "node --test tests/bi-learning-pref-scope.test.ts",
     "ensure:playwright": "node ./scripts/ensure_playwright.mjs",
     "test:wechat-harness:e2e": "playwright test --project=wechat-harness --reporter=list,html --trace=retain-on-failure",
     "test:wechat-harness:e2e:self-hosted": "npm run build && PW_WEB_PORT=${PW_WEB_PORT:-3107} PW_WEB_SERVER_MODE=standalone PW_START_WEB_SERVER=1 playwright test --project=wechat-harness --reporter=list,html --trace=retain-on-failure",

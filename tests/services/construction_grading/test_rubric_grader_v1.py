@@ -1000,6 +1000,8 @@ def _write_test_rubric_bank(
             {
                 "status": "release_candidate",
                 "published": False,
+                # 测试替身默认已授权（本 helper 测 slot 机制非治理；治理闸有专测）
+                "production_authorized": True,
                 "expected_content_hash": pointer_hash or content_hash,
             },
             ensure_ascii=False,
@@ -1584,3 +1586,375 @@ def test_to_canonical_non_official_point_does_not_mint_official_score() -> None:
     sp = obj["scoring_points"][0]
     assert sp["authority_source"] == "textbook_cited"
     assert sp["max_score"] is None  # never minted a per-point official score
+
+
+# ---------------------------------------------------------------------------
+# P0 2026-07-29：open-world 判分死链复活的契约钉（review N-10）
+# ---------------------------------------------------------------------------
+def test_openworld_llm_calls_wire_token_budget_and_disable_thinking():
+    """四周死链根因=判分调用不传 max_tokens 吃 4096 默认+默认思考。三处调用
+    必须显式携带 max_tokens=8192 与 reasoning_effort=disabled——stub 的 **kwargs
+    会静默吞掉，此测试防将来重构删参不红。"""
+    import asyncio
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    captured: list[dict] = []
+
+    async def _capture_fn(**kwargs):
+        captured.append(kwargs)
+        return '[{"text":"占位采分点","score":2}]'
+
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案文本", "题干", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.derive_rubric_from_stem_async(
+        "题干文本", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.batch_judge_async(
+        [{"point_id": "P1", "text": "点", "score": 2, "policy": "qualitative", "required_terms": []}],
+        "学员作答", _capture_fn, "k"))
+
+    assert len(captured) == 3
+    for kwargs in captured:
+        assert kwargs.get("max_tokens") == 8192
+        assert kwargs.get("reasoning_effort") == "disabled"
+
+
+def test_parse_extracted_points_salvages_truncated_array():
+    """截断抢救：completion-cap 截断的数组抢救出完整对象（部分>0），
+    非截断畸形输出（有闭合]或纯文本）保持 fail-closed。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    truncated = '[{"text":"排水坡度不小于0.2%","score":2},{"text":"消火栓间距不大于120m","score":2},{"text":"被截断的'
+    points = _parse_extracted_points(truncated)
+    assert len(points) == 2
+    assert points[0]["text"].startswith("排水坡度")
+
+    # 非截断形状不抢救
+    assert _parse_extracted_points("对不起，我无法评分。") == []
+    assert _parse_extracted_points('说明 [ {"text":"垃圾","score":0} 后续文字 ] 完') == []
+
+
+# ---------------------------------------------------------------------------
+# KB 溯源 open-world 判分（2026-07-29 升级）
+# ---------------------------------------------------------------------------
+_KB_EVIDENCE = [
+    {"chunk_id": "TB_1", "title": "施工现场临时用水", "source_type": "textbook",
+     "content": "管线穿路处均应套以铁管保护，并埋入地下0.6m处。室外消火栓间距不应大于120m。"},
+    {"chunk_id": "TB_2", "title": "排水规范", "source_type": "standard",
+     "content": "排水纵沟坡度不应小于0.2%，保证排水通畅。"},
+]
+
+
+def test_attach_textbook_refs_four_quadrants():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import attach_textbook_refs
+
+    points = [
+        {"point_id": "P1", "text": "穿路套管", "score": 2.0,
+         "evidence_idx": 1, "quote": "管线穿路处均应套以铁管保护"},          # 真子串→grounded
+        {"point_id": "P2", "text": "越界引用", "score": 2.0,
+         "evidence_idx": 9, "quote": "任何话"},                            # idx 越界→unverified
+        {"point_id": "P3", "text": "编造引用", "score": 2.0,
+         "evidence_idx": 2, "quote": "坡度不应小于百分之五"},               # quote 不在 chunk→unverified（自证陷阱防线）
+        {"point_id": "P4", "text": "无引用", "score": 2.0},               # 无字段→unverified
+    ]
+    out = attach_textbook_refs(points, _KB_EVIDENCE)
+    assert out[0]["evidence_tier"] == "kb_grounded"
+    assert out[0]["textbook_ref"]["chunk_id"] == "TB_1"
+    assert out[0]["score"] == 2.0  # 有据点不降权
+    for p in out[1:]:
+        assert p["evidence_tier"] == "llm_unverified"
+        assert p["textbook_ref"] is None
+        assert p["score"] == 1.2  # ×0.6 相对降权
+    # evidence_idx/quote 已被 pop，不泄进下游
+    assert "evidence_idx" not in out[0] and "quote" not in out[0]
+
+
+def test_attach_textbook_refs_empty_evidence_all_unverified():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        attach_textbook_refs,
+        normalize_points_to_nominal,
+        summarize_kb_grounding,
+    )
+
+    points = [{"point_id": "P1", "text": "点", "score": 4.0},
+              {"point_id": "P2", "text": "点2", "score": 6.0}]
+    out = attach_textbook_refs(points, [])
+    assert all(p["evidence_tier"] == "llm_unverified" for p in out)
+    # 归一化后总分不变（相对降权不改分数量纲）
+    normalized = normalize_points_to_nominal(out, nominal_total=10.0)
+    assert abs(sum(p["score"] for p in normalized) - 10.0) < 0.01
+    g = summarize_kb_grounding(out)
+    assert g["status"] == "no_evidence" and g["ratio"] == 0.0
+
+
+def test_parse_extracted_points_passthrough_and_truncation_compat():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    raw = '[{"text":"套管保护","score":2,"evidence_idx":1,"quote":"套以铁管保护"},{"text":"无据点","score":2}]'
+    pts = _parse_extracted_points(raw)
+    assert pts[0]["evidence_idx"] == 1 and pts[0]["quote"] == "套以铁管保护"
+    assert "evidence_idx" not in pts[1]
+    # 截断抢救兼容：带新字段的截断数组照常 salvage 完整对象
+    truncated = '[{"text":"套管","score":2,"evidence_idx":1,"quote":"套以铁管"},{"text":"被截'
+    salvaged = _parse_extracted_points(truncated)
+    assert len(salvaged) == 1 and salvaged[0]["evidence_idx"] == 1
+
+
+import asyncio as _asyncio
+
+
+def test_derive_kb_block_and_grounded_flow():
+    """kb_evidence 在场：prompt 带 E 编号块；机械核验落 textbook_ref。
+    kb_evidence 为空：prompt 与 v2 语义等价（无溯源块）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    seen_prompts: list[str] = []
+
+    async def _fn(**kwargs):
+        seen_prompts.append(kwargs["prompt"])
+        return '[{"text":"穿路套管保护","score":2,"policy":"qualitative","required_terms":[],"evidence_idx":1,"quote":"套以铁管保护"}]'
+
+    pts = _asyncio.run(G.derive_rubric_from_stem_async(
+        "临时用水管理案例题干A" , _fn, "k", kb_evidence=_KB_EVIDENCE))
+    assert "[E1]" in seen_prompts[0] and "溯源要求" in seen_prompts[0]
+    assert pts[0]["evidence_tier"] == "kb_grounded"
+
+    pts2 = _asyncio.run(G.derive_rubric_from_stem_async(
+        "临时用水管理案例题干B（无证据）", _fn, "k", kb_evidence=[]))
+    assert "[E1]" not in seen_prompts[1] and "溯源要求" not in seen_prompts[1]
+    assert pts2[0]["evidence_tier"] == "llm_unverified"
+
+
+def test_rubric_bank_governance_gate_refuses_unauthorized_slot_and_falls_back(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """护栏③（2026-07-30 owner 拍板）：content_hash 只证完整性不证授权——pgo 未授权
+    覆写服役六周的教训。pointer 缺 production_authorized=true → 拒装发声并回落授权
+    默认 slot（legacy）；身份随 active_bank_identity 导出。"""
+    import json as _json
+
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored", "case_rubric_scored.json",
+        [{"qid": "Q-L", "point_id": "L1", "text": "legacy", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json",
+        [{"qid": "Q-P", "point_id": "P1", "text": "pgo", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    # 撤销 pgo 的授权位（重建默认态）
+    pgo_pointer = tmp_path / "runtime_supply" / "v_case_rubric_scored_pgo" / "canonical_pointer.json"
+    d = _json.loads(pgo_pointer.read_text("utf-8"))
+    d["production_authorized"] = False
+    pgo_pointer.write_text(_json.dumps(d), encoding="utf-8")
+
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    G._rubric_bank.cache_clear()
+    try:
+        assert G.load_rubric("Q-P") == []          # 未授权 slot 的键绝不可达
+        assert [p["point_id"] for p in G.load_rubric("Q-L")] == ["L1"]  # 回落 legacy
+        ident = G.active_bank_identity()
+        assert ident["slot"] == "legacy"
+        assert ident["governance"] == "fallback_from:pgo"
+        assert ident["qid_count"] == 1
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_governance_gate_refuses_when_default_also_unauthorized(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import json as _json
+
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored", "case_rubric_scored.json",
+        [{"qid": "Q-L", "point_id": "L1", "text": "legacy", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    lp = tmp_path / "runtime_supply" / "v_case_rubric_scored" / "canonical_pointer.json"
+    d = _json.loads(lp.read_text("utf-8"))
+    d.pop("production_authorized", None)   # 缺位=未授权（fail-closed）
+    lp.write_text(_json.dumps(d), encoding="utf-8")
+
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
+    G._rubric_bank.cache_clear()
+    try:
+        assert G.load_rubric("Q-L") == []
+        assert G.active_bank_identity()["governance"] == "refused:unauthorized"
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_resolve_case_answer_method_high_band_only(monkeypatch) -> None:
+    """A1 真口诀（宁缺勿错挂）：只接受 high 置信带；medium/None/异常一律回落。"""
+    import deeptutor.services.compiled_knowledge.lecture_answer_methods as LAM
+
+    unit = {
+        "unit_id": "U1", "lecture": "1A43", "topic": "质量验收",
+        "source_ref": {"chunk_id": "CH1"},
+        "answer_method": {"mnemonics": ["先判后改，条条对点"], "trap_alerts": ["别漏见证人"],
+                          "red_lines": [], "must_mentions": [], "formula_or_thresholds": []},
+    }
+
+    def _fake(text, **_k):
+        return {"activation": {"band": "high"}, "selected_units": [dict(unit)]}
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context", _fake)
+    out = G.resolve_case_answer_method_for_render("某案例题干…")
+    assert out and out["units"][0]["unit_id"] == "U1"
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
+                        lambda text, **_k: {"activation": {"band": "medium"}, "selected_units": [dict(unit)]})
+    assert G.resolve_case_answer_method_for_render("某案例题干…") is None
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
+                        lambda text, **_k: (_ for _ in ()).throw(RuntimeError("boom")))
+    assert G.resolve_case_answer_method_for_render("某案例题干…") is None
+    assert G.resolve_case_answer_method_for_render("") is None
+
+
+def test_render_case_feedback_uses_real_mnemonics_with_citation() -> None:
+    event = {
+        "event_type": "case_grading_completed", "awarded_score": 2.0, "max_score": 3.0,
+        "scoring_points": [
+            {"point_id": "P1", "text": "共用开关箱不妥", "score": 1.0, "awarded": 0.0,
+             "status": "miss", "policy": "list"},
+        ],
+        "official_score_allowed": False,
+    }
+    am = {"units": [{
+        "unit_id": "U1", "lecture": "1A43", "topic": "临时用电",
+        "source_ref": {"chunk_id": "CH9"},
+        "answer_method": {"mnemonics": ["一机一闸一漏一箱"], "trap_alerts": ["共用开关箱必扣"],
+                          "red_lines": ["严禁带电作业"]},
+    }]}
+    rendered = G.render_case_rubric_feedback(event, question_stem="临时用电案例", answer_method_context=am)
+    assert "一机一闸一漏一箱" in rendered
+    assert "⚠️ 陷阱：共用开关箱必扣" in rendered
+    assert "⛔ 红线：严禁带电作业" in rendered
+    assert "出处：1A43·临时用电，CH9" in rendered
+    # 无编译上下文 → 回落现模板（不渲染引用行）
+    fallback = G.render_case_rubric_feedback(event, question_stem="临时用电案例")
+    assert "出处：" not in fallback
+    assert "## 记忆口诀" in fallback
+
+
+_COV_STEM = (
+    "【背景资料】某住宅工程质量检测管理。\n1. 建设单位委托检测机构。\n2. 监理见证取样。\n"
+    "【问题】\n问题1：指出不妥之处并写出正确做法？\n问题2：写出质量缺陷名称？\n"
+    "问题3：写出防水构造层名称？\n问题4：补充治理工艺流程？"
+)
+
+
+def test_case_subquestion_coverage_partial_and_note() -> None:
+    """覆盖对账（live 事故：答 2/4 问被判整题满分零漏点）：rubric 只归属到部分
+    小问 → 覆盖事实+点名未覆盖小问；全覆盖/无法归属 → 沉默不猜。"""
+    event = {
+        "event_type": "case_grading_completed",
+        "scoring_points": [
+            {"point_id": "P1", "question_no": 1, "hit": G.HIT, "score": 1.0},
+            {"point_id": "P2", "question_no": 1, "hit": G.HIT, "score": 1.0},
+            {"point_id": "P3", "question_no": 4, "hit": G.HIT, "score": 1.0},
+        ],
+    }
+    cov = G.case_subquestion_coverage(event, question_stem=_COV_STEM)
+    assert cov["covered"] == [1, 4] and cov["uncovered"] == [2, 3]
+    note = G.build_case_subq_coverage_note(cov)
+    assert "问题2、问题3" in note and "未纳入本次判分" in note and "已覆盖部分" in note
+
+    # 全覆盖 → 无声明
+    event_full = {
+        "event_type": "case_grading_completed",
+        "scoring_points": [{"point_id": f"P{i}", "question_no": i, "hit": G.HIT} for i in (1, 2, 3, 4)],
+    }
+    assert G.build_case_subq_coverage_note(
+        G.case_subquestion_coverage(event_full, question_stem=_COV_STEM)
+    ) == ""
+    # 全部无法归属 → None（宁沉默不猜）
+    event_blind = {"event_type": "case_grading_completed",
+                   "scoring_points": [{"point_id": "X", "hit": G.HIT}]}
+    assert G.case_subquestion_coverage(event_blind, question_stem=_COV_STEM) is None
+
+
+def test_render_and_stream_declare_partial_coverage() -> None:
+    event = {
+        "event_type": "case_grading_completed", "awarded_score": 3.0, "max_score": 3.0,
+        "scoring_points": [
+            {"point_id": "P1", "question_no": 1, "text": "见证记录", "hit": G.HIT,
+             "score": 1.0, "awarded": 1.0, "policy": "list"},
+            {"point_id": "P3", "question_no": 4, "text": "工艺流程", "hit": G.HIT,
+             "score": 2.0, "awarded": 2.0, "policy": "list"},
+        ],
+        "official_score_allowed": False,
+    }
+    rendered = G.render_case_rubric_feedback(event, question_stem=_COV_STEM)
+    assert "判分覆盖范围" in rendered and "问题2、问题3" in rendered
+    # stream 面同源消费 event 上的声明
+    event["case_subq_coverage_note"] = G.build_case_subq_coverage_note(
+        G.case_subquestion_coverage(event, question_stem=_COV_STEM)
+    )
+    plan = G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+    assert plan and "判分覆盖范围" in plan["score_first"]
+    assert "仅已覆盖小问" in plan["score_first"]
+
+
+def test_question_titles_cut_answer_markers_before_counting() -> None:
+    """live 实证（owner 输入重放）：作答切割认不出【我的作答】时，作答里的
+    (1)-(6) 编号被数成"题面共 6 问"并点名幽灵问题5/6。标记族必须齐备。"""
+    raw = (
+        "【背景资料】某工程。\n【问题】\n1. 指出不妥？\n2. 名称？\n3. 构造？\n4. 流程？\n"
+        "【我的作答】\n问题4：(1) 清理；(2) 支模；(3) 洒水；(4) 界面剂；(5) 浇筑；(6) 养护。"
+    )
+    assert sorted(G._extract_case_question_titles(raw)) == [1, 2, 3, 4]
+    raw2 = raw.replace("【我的作答】", "\n我的答案：")
+    assert sorted(G._extract_case_question_titles(raw2)) == [1, 2, 3, 4]
+
+
+def test_answer_marker_single_authority_bracket_forms() -> None:
+    """OD-001/002 根治：标记族单一权威——切割侧与标题抽取侧共用
+    CASE_ANSWER_MARKER_PATTERN，括号形【我的作答】两侧同时生效。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_ANSWER_MARKER_PATTERN,
+    )
+    from deeptutor.services.question_lifecycle_skills import (
+        split_full_case_answer_submission,
+        _FREE_TEXT_CASE_ANSWER_MARKER_RE,
+    )
+
+    assert _FREE_TEXT_CASE_ANSWER_MARKER_RE.pattern == CASE_ANSWER_MARKER_PATTERN
+    paste = (
+        "【背景资料】某工程混凝土施工出现质量问题。\n【问题】\n1. 指出错误？\n2. 正确做法？\n"
+        "3. 评定方法？\n4. 构造柱做法？\n【我的作答】\n问1：B：限制。"
+    )
+    stem, answer = split_full_case_answer_submission(paste)
+    assert stem and "问题" in stem and "我的作答" not in stem
+    assert "B：限制" in answer
+    # 标题抽取侧同一模式：作答里的编号不进题面计数
+    titles = G._extract_case_question_titles(paste)
+    assert sorted(titles) == [1, 2, 3, 4]
+
+
+def test_case_submission_stem_candidate_semantic_anchor() -> None:
+    """OD-004 终修：判分基座判据回到语义（提交标记/多小问结构），不再依赖
+    题面括号形状——live 10 轮源码级实证：真实考卷粘贴（#583 原文，无【背景资料】
+    括号、半角「问题:」）三个形状锚全不命中，兜底十轮零触发。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        case_submission_stem_candidate as candidate,
+    )
+
+    real_paper = (
+        "某办公楼工程，地下二层，地上16层，建筑面积3.6万平方米，现浇钢筋混凝土框架剪力墙结构。"
+        + "施工过程描述内容补充。" * 12
+        + "\n问题:\n1. 指出项目部做法中的不妥之处并说明理由。\n2. 写出正确做法。\n"
+        "【我的作答】\n问题1：安全交底不妥。"
+    )
+    assert candidate(real_paper), "真实考卷粘贴形态必须被识别为判分基座"
+    bracket_form = "【背景资料】某工程" + "施工描述内容。" * 30 + "【问题】1. 指出不妥？"
+    assert candidate(bracket_form), "既有括号形态不得回归"
+    assert candidate("这题怎么做？") == ""
+    assert candidate("我想了解建筑工程施工管理的相关知识内容介绍。" * 8) == "", "无判分痕迹的长文本不得制造判分面"
+    # 只有多小问结构（无提交标记）也算判分行为在场
+    multi_q = "某工程概述内容。" * 20 + "\n1. 指出不妥之处？\n2. 说明正确做法？"
+    assert candidate(multi_q)

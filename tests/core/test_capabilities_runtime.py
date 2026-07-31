@@ -4958,15 +4958,19 @@ async def test_tutorbot_agent_loop_honors_mode_policy_max_tool_rounds(
         runtime_metadata=metadata,
     )
 
-    assert provider.calls == 2
+    # 2 budgeted search rounds + closure round (tool_choice="none") + repair
+    # retry (fall-through-to-understanding). This stubborn fake ignores the
+    # closure contract; its closure/repair tool calls are never recorded or
+    # executed, and its narration content is never promoted to an answer.
+    assert provider.calls == 4
     assert tools_used == ["rag", "rag"]
     assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
     assert metadata["effective_max_tool_rounds"] == 2
+    assert metadata["forced_closure_round"] == 3
     # 律4: an exhausted tool budget is a TYPED failure, not an improvised
     # English "final answer" (the old surrogate reached real learners twice).
     assert final_content is None
-    assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
-    assert metadata["turn_failure"]["budget"] == 2
+    assert metadata["turn_failure"]["kind"] == "model_empty_answer"
 
 
 @pytest.mark.asyncio
@@ -5310,7 +5314,7 @@ async def test_tutorbot_agent_loop_disables_further_rag_after_high_overlap_satur
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_agent_loop_only_suppresses_rag_after_successful_prefetch(
+async def test_tutorbot_agent_loop_keeps_rag_armed_after_successful_prefetch(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -5420,8 +5424,11 @@ async def test_tutorbot_agent_loop_only_suppresses_rag_after_successful_prefetch
 
     assert final_content == "基于已召回证据回答。"
     assert tools_used == []
-    assert captured["tool_name_sets"] == [["web_search"]]
-    assert metadata["prefetched_rag_suppressed_first_loop"] is True
+    # 收权（2026-07-29）：预取成功不再暗藏 rag——防冗余的唯一权威是 rag_saturation
+    # （预取轮播种进账本）。旧的首轮抑制曾让模型白烧一轮吃 "Tool 'rag' is not
+    # available"（生产事故实证），且轮间工具列表变化打断 provider prompt cache。
+    assert captured["tool_name_sets"] == [["rag", "web_search"]]
+    assert "prefetched_rag_suppressed_first_loop" not in metadata
 
 
 @pytest.mark.asyncio

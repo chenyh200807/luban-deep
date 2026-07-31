@@ -38,6 +38,11 @@ class _PagedClient:
         table = url.rstrip("/").rsplit("/", 1)[-1]
         self.calls.append({"table": table, **dict(params)})
         rows = list(self.rows_by_table[table])
+        id_column = "user_id" if table == "v_members" else "id" if table == "users" else ""
+        id_filter = str(params.get(id_column) or "")
+        if id_column and id_filter.startswith("in.(") and id_filter.endswith(")"):
+            requested_ids = set(id_filter[4:-1].split(","))
+            rows = [row for row in rows if str(row.get(id_column) or "") in requested_ids]
         order = str(params.get("order") or "")
         if table == "user_identity_aliases" and any("created_at" in row for row in rows):
             rows = sorted(rows, key=lambda row: str(row.get("user_id") or ""))
@@ -117,6 +122,31 @@ def test_member_directory_paginates_trusted_phone_aliases_past_single_postgrest_
     alias_calls = [call for call in client.calls if call["table"] == "user_identity_aliases"]
     assert [call["offset"] for call in alias_calls] == [0, 1000, 2000]
     assert [call["limit"] for call in alias_calls] == [1000, 1000, 1000]
+
+
+def test_member_directory_batches_member_queries_before_postgrest_url_limit() -> None:
+    client = _PagedClient(
+        member_rows=[_member_row(index) for index in range(635)],
+        alias_rows=[_phone_alias(index) for index in range(635)],
+        user_rows=[
+            {
+                "id": f"user-{index:04d}",
+                "identifier": f"user-{index:04d}",
+                "createdAt": "",
+                "metadata": {},
+                "phone": "",
+            }
+            for index in range(635)
+        ],
+    )
+
+    members = _directory(client).list_members(limit=635)
+
+    assert len(members) == 635
+    for table, id_column in (("v_members", "user_id"), ("users", "id")):
+        calls = [call for call in client.calls if call["table"] == table]
+        assert len(calls) > 1
+        assert max(len(str(call[id_column])[4:-1].split(",")) for call in calls) <= 100
 
 
 def test_member_directory_stops_on_short_phone_alias_page() -> None:

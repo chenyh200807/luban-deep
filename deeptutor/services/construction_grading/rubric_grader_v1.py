@@ -51,7 +51,7 @@ _RUBRIC_BANK_SLOTS = {
 
 _PGO_COVERAGE_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
 _PGO_POINT_DISPLAY_SCORE_AUTHORITY = "display_allocated_from_official_total_coverage"
-_RUBRIC_EXTRACTION_PROMPT_VERSION = "rubric_extraction_prompt.v2"
+_RUBRIC_EXTRACTION_PROMPT_VERSION = "rubric_extraction_prompt.v3"
 _RUBRIC_EXTRACTION_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 
 
@@ -82,11 +82,12 @@ def _rubric_cache_key(
     question_stem: str = "",
     model: str = "",
     provider_authority: str = "",
+    kb_digest: str = "",
 ) -> str:
     payload = (
         f"{_RUBRIC_EXTRACTION_PROMPT_VERSION}\n{kind}\nmodel={model.strip()}\n"
         f"provider={provider_authority.strip()}\n"
-        f"{reference_answer.strip()}\n---stem---\n{question_stem.strip()}"
+        f"{reference_answer.strip()}\n---stem---\n{question_stem.strip()}\nkb={kb_digest}"
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
@@ -367,6 +368,10 @@ def _attach_shadow_point_provenance(
         "list_rule",
         "calculation_spec",
         "penalty_rule",
+        # KB 溯源升级（2026-07-29）：不进此透传白名单，grade_with_rubric 的
+        # point_out 会把溯源字段丢掉——设计书点名"最容易漏的一针"。
+        "textbook_ref",
+        "evidence_tier",
     ):
         value = rubric_point.get(key)
         if value:
@@ -587,7 +592,14 @@ def _extract_case_question_titles(question_stem: str) -> dict[int, str]:
         return {}
     if "【问题】" in text:
         text = text.split("【问题】", 1)[1]
-    text = re.split(r"\n\s*(?:回答|作答)\s*[:：]", text, maxsplit=1)[0]
+    # 作答切割必须先于计数（live 实证：切不掉时作答里的 (1)-(6) 编号被数成
+    # "题面共 6 问"并点名幽灵问题5/6）。标记族单一权威=CASE_ANSWER_MARKER_PATTERN
+    # （OD-001/002 取证裁决：两侧各持名单=第 N 张名单病，收敛）。
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_ANSWER_MARKER_PATTERN,
+    )
+
+    text = re.split(CASE_ANSWER_MARKER_PATTERN, text, maxsplit=1, flags=re.IGNORECASE)[0]
 
     titles: dict[int, str] = {}
     patterns = (
@@ -634,6 +646,81 @@ def _question_text_overlap_score(point_text: str, question_title: str) -> int:
     return score
 
 
+def _point_question_label(point: dict[str, Any]) -> str:
+    """单一小问归属权威（render 分组与覆盖对账共用，不许各判各的）。"""
+    for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
+        idx = _positive_int_or_none(point.get(key), max_value=100)
+        if idx is not None:
+            return f"问题{idx}"
+    for key in ("source_qid", "qid", "point_id"):
+        text = str(point.get(key) or "").strip()
+        match = re.search(r"(?:^|[^A-Za-z])Q(?:uestion)?[-_ ]?(\d+)(?:$|[^0-9])", text, re.I)
+        if match:
+            idx = _positive_int_or_none(match.group(1), max_value=100)
+            if idx is not None:
+                return f"问题{idx}"
+        match = re.search(r"::E(\d+)(?:$|::|[^0-9])", text, re.I)
+        if not match:
+            continue
+        idx = _positive_int_or_none(match.group(1), max_value=100)
+        if idx is not None:
+            return f"问题{idx}"
+    return "整题"
+
+
+def case_subquestion_coverage(
+    event: dict[str, Any],
+    *,
+    question_stem: str,
+) -> dict[str, Any] | None:
+    """覆盖对账（2026-07-30 live 事故：学生只答 2/4 问、tier2 参考只盖住已答小问，
+    渲染却宣判整题 10/10 漏 0——半张卷被当整张）。返回 None=无法判定（题面无
+    小问结构、或 rubric 点全部无法归属小问）；判定不出宁可沉默，不许猜。"""
+    titles = _extract_case_question_titles(question_stem)
+    if not titles or len(titles) < 2:
+        return None
+    sp = [p for p in (event.get("scoring_points") or []) if isinstance(p, dict)]
+    if not sp:
+        return None
+    covered: set[int] = set()
+    attributed = 0
+    for point in sp:
+        label = _point_question_label(point)
+        if label == "整题":
+            label = _infer_question_label_from_title(point, titles)
+        match = re.fullmatch(r"问题(\d+)", label)
+        if not match:
+            continue
+        idx = int(match.group(1))
+        attributed += 1
+        if idx in titles:
+            covered.add(idx)
+    if not attributed:
+        return None
+    total = sorted(titles)
+    uncovered = [idx for idx in total if idx not in covered]
+    return {
+        "total": total,
+        "covered": sorted(covered),
+        "uncovered": uncovered,
+        "ratio": round(len(covered) / len(total), 3) if total else 0.0,
+    }
+
+
+def build_case_subq_coverage_note(coverage: dict[str, Any] | None) -> str:
+    """部分覆盖时的学生可见声明；全覆盖/无法判定返回空串（渲染零变化）。"""
+    if not isinstance(coverage, dict) or not coverage.get("uncovered"):
+        return ""
+    covered = "、".join(f"问题{i}" for i in coverage.get("covered") or [])
+    uncovered = "、".join(f"问题{i}" for i in coverage.get("uncovered") or [])
+    total_n = len(coverage.get("total") or [])
+    return (
+        f"⚠️ **判分覆盖范围**：本次仅对 {covered} 命中了采分点参考（题面共 {total_n} 问）；"
+        f"{uncovered} 未匹配到采分点参考、**未纳入本次判分**——以上得分只代表已覆盖部分，"
+        "不是整题成绩。未覆盖小问请补答后再判，或提供该问的标准答案。"
+    )
+
+
 def _infer_question_label_from_title(point: dict[str, Any], question_titles: dict[int, str]) -> str:
     if not question_titles:
         return "整题"
@@ -651,11 +738,45 @@ def _infer_question_label_from_title(point: dict[str, Any], question_titles: dic
     return f"问题{scored[0][0]}"
 
 
+def resolve_case_answer_method_for_render(question_stem: str) -> dict[str, Any] | None:
+    """A1 真口诀（拍A 2026-07-30，宁缺勿错挂）：判分回复的「记忆口诀」段此前是漏点
+    标题顿号拼接的假口诀；424 条真编译口诀（含陷阱/红线）在 lecture answer 包里
+    零消费。本 helper 是判分侧唯一采纳权威：只接受解析器 **high** 置信带（medium
+    也不挂——错挂口诀比不挂伤害大），且 unit 必须真带 mnemonics/trap/red_line
+    内容。返回 None → 渲染回落现模板，调用方必须打 case_mnemonic_source marker。"""
+    stem = str(question_stem or "").strip()
+    if not stem:
+        return None
+    try:
+        from deeptutor.services.compiled_knowledge.lecture_answer_methods import (
+            resolve_lecture_answer_method_context,
+        )
+
+        ctx = resolve_lecture_answer_method_context(stem)
+    except Exception:  # noqa: BLE001 — 诊断增强层永不破坏判分
+        return None
+    if not isinstance(ctx, dict):
+        return None
+    if str((ctx.get("activation") or {}).get("band") or "") != "high":
+        return None
+    units: list[dict[str, Any]] = []
+    for unit in ctx.get("selected_units") or []:
+        if not isinstance(unit, dict):
+            continue
+        method = unit.get("answer_method") if isinstance(unit.get("answer_method"), dict) else {}
+        if method.get("mnemonics") or method.get("trap_alerts") or method.get("red_lines"):
+            units.append(unit)
+    if not units:
+        return None
+    return {"units": units[:2], "activation": ctx.get("activation")}
+
+
 def render_case_rubric_feedback(
     event: dict[str, Any],
     *,
     question_stem: str = "",
     personalization_context_pack: dict[str, Any] | None = None,
+    answer_method_context: dict[str, Any] | None = None,
 ) -> str:
     """Render a GradingEvent into the student-facing case feedback (the text shown in chat).
 
@@ -700,24 +821,7 @@ def render_case_rubric_feedback(
         return "❌ 漏写", span, "未作答 / 漏写本采分点"
 
     def _question_label(point: dict[str, Any]) -> str:
-        for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
-            idx = _positive_int_or_none(point.get(key), max_value=100)
-            if idx is not None:
-                return f"问题{idx}"
-        for key in ("source_qid", "qid", "point_id"):
-            text = str(point.get(key) or "").strip()
-            match = re.search(r"(?:^|[^A-Za-z])Q(?:uestion)?[-_ ]?(\d+)(?:$|[^0-9])", text, re.I)
-            if match:
-                idx = _positive_int_or_none(match.group(1), max_value=100)
-                if idx is not None:
-                    return f"问题{idx}"
-            match = re.search(r"::E(\d+)(?:$|::|[^0-9])", text, re.I)
-            if not match:
-                continue
-            idx = _positive_int_or_none(match.group(1), max_value=100)
-            if idx is not None:
-                return f"问题{idx}"
-        return "整题"
+        return _point_question_label(point)
 
     weak = [str(p.get("knowledge_point") or "") for p in sp if p.get("hit") != HIT]
     weak = [w for w in weak if w]
@@ -725,6 +829,8 @@ def render_case_rubric_feedback(
     partial_count = sum(1 for p in sp if p.get("hit") == PARTIAL)
     miss_count = sum(1 for p in sp if p.get("hit") == MISS)
     question_titles = _extract_case_question_titles(question_stem)
+    coverage = case_subquestion_coverage(event, question_stem=question_stem)
+    coverage_note = build_case_subq_coverage_note(coverage)
     if total:
         ratio = float(awarded or 0) / float(total or 1)
     else:
@@ -735,6 +841,8 @@ def render_case_rubric_feedback(
         verdict = "有部分采分点命中，但漏点和表述不完整会明显扣分。"
     else:
         verdict = "核心采分点缺失较多，需要先按标准采分点重建答案。"
+    if coverage_note:
+        verdict = coverage_note + "\n\n" + verdict
 
     def _fmt_score(value: Any) -> str:
         try:
@@ -901,10 +1009,18 @@ def render_case_rubric_feedback(
             point = p if isinstance(p, dict) else {}
             status, evidence, why = _point_status_label(point)
             item = _cell(kp) or f"采分点{i}"
-            if evidence:
-                lines.append(f"- {status}：{item}（你写了：{_cell(evidence)}；{_cell(why)}）")
+            # KB 溯源升级：有据点行尾亮出教材出处；未核到的点在诊断模式下如实标注。
+            ref = point.get("textbook_ref") if isinstance(point.get("textbook_ref"), dict) else None
+            if ref and (ref.get("title") or ref.get("quote")):
+                suffix = f"（出处：{_cell(str(ref.get('title') or '教材'))}·“{_cell(str(ref.get('quote') or ''))[:40]}”）"
+            elif point.get("evidence_tier") == "llm_unverified":
+                suffix = "（未核到教材出处）"
             else:
-                lines.append(f"- {status}：{item}（{_cell(why)}）")
+                suffix = ""
+            if evidence:
+                lines.append(f"- {status}：{item}（你写了：{_cell(evidence)}；{_cell(why)}）{suffix}")
+            else:
+                lines.append(f"- {status}：{item}（{_cell(why)}）{suffix}")
         lines.append("")
         lines.append(f"**易错点：** {_group_mistake_hint(points)}")
         lines.append("")
@@ -921,18 +1037,46 @@ def render_case_rubric_feedback(
     lines.append("## 判分")
     lines.append(f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。")
     if is_diagnostic_score:
-        note = "本评分为 Nexus 诊断阅卷草稿，未使用官方标准答案，需教师/题库校准后方可作为正式成绩。"
+        grounding = summarize_kb_grounding(list(event.get("scoring_points") or []))
+        if grounding.get("grounded_points"):
+            note = (
+                f"本评分为 Nexus 诊断阅卷草稿：{grounding['grounded_points']}/{grounding['total_points']} "
+                "个采分点已核到教材/规范出处（见各点），其余为 AI 推导未核出处；仍非官方评分，"
+                "需教师/题库校准后方可作为正式成绩。"
+            )
+        else:
+            note = (
+                "本评分为 Nexus 诊断阅卷草稿，未使用官方标准答案，本轮未核到教材出处，"
+                "需教师/题库校准后方可作为正式成绩。"
+            )
     else:
         note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
             else "本评分为 AI 阅卷草稿，非正式成绩。"
     lines.append(f"- {note}")
     lines.append("")
     lines.append("## 记忆口诀")
-    mnemonic = _mnemonic_from_weak(weak)
-    if mnemonic:
-        lines.append(mnemonic)
+    _am_units = (answer_method_context or {}).get("units") or []
+    if _am_units:
+        # A1 真口诀：编译资产（口诀/陷阱/红线）+ 出处引用；仅 high 置信带到达此处。
+        for _unit in _am_units:
+            _method = _unit.get("answer_method") if isinstance(_unit.get("answer_method"), dict) else {}
+            for _m in (_method.get("mnemonics") or [])[:2]:
+                lines.append(f"- {_m}")
+            for _t in (_method.get("trap_alerts") or [])[:2]:
+                lines.append(f"- ⚠️ 陷阱：{_t}")
+            for _r in (_method.get("red_lines") or [])[:1]:
+                lines.append(f"- ⛔ 红线：{_r}")
+            _src = _unit.get("source_ref") if isinstance(_unit.get("source_ref"), dict) else {}
+            _origin = "·".join(x for x in (str(_unit.get("lecture") or ""), str(_unit.get("topic") or "")) if x)
+            if _origin or _src.get("chunk_id"):
+                _cite = f"（出处：{_origin}" + (f"，{_src.get('chunk_id')}" if _src.get("chunk_id") else "") + "）"
+                lines.append(f"  {_cite}")
     else:
-        lines.append("按问法分条作答，关键词前置，少写空话。")
+        mnemonic = _mnemonic_from_weak(weak)
+        if mnemonic:
+            lines.append(mnemonic)
+        else:
+            lines.append("按问法分条作答，关键词前置，少写空话。")
     lines.append("")
     lines.append("## 下一步建议")
     profile_note = _personalized_feedback_note(personalization_context_pack)
@@ -1100,6 +1244,8 @@ def build_case_rubric_score_first_stream(
     score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
     weak_summaries = _case_first_screen_weak_summaries(scoring_points)
 
+    coverage_note = str(event.get("case_subq_coverage_note") or "").strip()
+    score_scope = "（仅已覆盖小问）" if coverage_note else ""
     score_lines = [
         "## 批改结论",
         (
@@ -1107,8 +1253,9 @@ def build_case_rubric_score_first_stream(
             f"命中 {hit_count} 个采分点，部分命中 {partial_count} 个，"
             f"还有 {miss_count} 个需要补。后面我按小问逐一拆。"
         ),
+        *( ["", coverage_note] if coverage_note else [] ),
         "",
-        f"**{score_label}：** {awarded} / {maximum} 分。",
+        f"**{score_label}{score_scope}：** {awarded} / {maximum} 分。",
         f"**采分情况：** 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。",
     ]
     if weak_summaries:
@@ -1194,34 +1341,38 @@ def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | N
     return f"【长期画像提示】你之前也出现过同类问题：{label}。这个提示只用于调整讲评侧重点，不会改变本次采分点得分。"
 
 
-@lru_cache(maxsize=1)
-def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
-    """Load + verify-gate the active scoring-point bank ONCE per process.
+# 活动 bank 身份（护栏③）：slot 漂移六周无人知的洞，用导出封死。装载时写入，
+# 判分事件逐轮携带（case_rubric_bank_slot → CASE_GRADING_AUTHORITY_EXPORT_KEYS 全 sink）。
+_ACTIVE_BANK_IDENTITY: dict[str, Any] = {"slot": "", "qid_count": 0, "governance": "not_loaded"}
 
-    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the bank slot (default ``legacy``). The cache is deliberately
-    process-wide: flipping the slot requires a worker restart, which keeps rollback explicit and avoids
-    mid-process mixed authority.
-    """
+
+def active_bank_identity() -> dict[str, Any]:
+    return dict(_ACTIVE_BANK_IDENTITY)
+
+
+def _load_bank_slot(slot: str) -> tuple[dict[str, list[dict[str, Any]]] | None, str]:
+    """Load ONE slot through the full verify chain.
+
+    返回 (bundle, reason)。reason="unauthorized"（治理拒绝）是唯一允许上层回落授权
+    默认 slot 的情形；完整性类失败（unknown/missing/hash 不符）维持既有法条：
+    fail-closed 不回落——打错 slot 名静默换权威比空 bank 更危险。"""
     import json
-    import os
     from pathlib import Path
 
-    raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
-    slot = str(raw_slot or "legacy").strip().lower() or "legacy"
     slot_spec = _RUBRIC_BANK_SLOTS.get(slot)
     if slot_spec is None:
         logger.warning("rubric_grader_v1: unknown rubric bank slot %r; refusing bank", slot)
-        return {}
+        return None, "unknown_slot"
     slot_dir, bank_name = slot_spec
     p = Path(__file__).parent / "runtime_supply" / slot_dir / bank_name
     if not p.exists():
         logger.warning("rubric_grader_v1: rubric bank slot %s missing at %s; refusing bank", slot, p)
-        return {}
+        return None, "missing"
     try:
         b = json.loads(p.read_text("utf-8"))
-    except Exception:  # noqa: BLE001 — unreadable/corrupt bank -> empty -> open-world (fail-safe)
+    except Exception:  # noqa: BLE001 — unreadable/corrupt bank -> refused (fail-safe)
         logger.warning("rubric_grader_v1: rubric bank slot %s unreadable; refusing bank", slot, exc_info=True)
-        return {}
+        return None, "unreadable"
     from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
     m = b.get("manifest") or {}
     records = b.get("records") or []
@@ -1229,19 +1380,63 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
     manifest_hash = str(m.get("content_hash") or "")
     if actual_hash != manifest_hash:
         logger.warning("rubric_grader_v1: rubric bank slot %s content_hash mismatch; refusing bank", slot)
-        return {}
+        return None, "hash_mismatch"
     pointer_path = p.parent / "canonical_pointer.json"
     try:
         pointer = json.loads(pointer_path.read_text("utf-8"))
-    except Exception:  # noqa: BLE001 — missing/corrupt pointer -> empty -> open-world (fail-safe)
+    except Exception:  # noqa: BLE001 — missing/corrupt pointer -> refused (fail-safe)
         logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer unreadable; refusing bank",
                        slot, exc_info=True)
-        return {}
+        return None, "pointer_unreadable"
     expected_hash = str(pointer.get("expected_content_hash") or pointer.get("content_hash") or "")
     if expected_hash != actual_hash:
         logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer hash mismatch; refusing bank",
                        slot)
+        return None, "pointer_hash_mismatch"
+    # 治理闸（护栏③ 2026-07-30）：content_hash 只证完整性、不证授权——完整的赝品
+    # 仍是赝品。pgo 未授权覆写服役 100% 流量六周（07-11 红线在案、装载面不读治理
+    # 态所以没拦住）的教训：pointer 必须显式携带 production_authorized=true 才许
+    # 装载，否则拒装发声（绝不静默）。
+    if pointer.get("production_authorized") is not True:
+        logger.error(
+            "rubric_grader_v1: rubric bank slot %s POINTER NOT PRODUCTION-AUTHORIZED "
+            "(governance gate); refusing bank. note=%s",
+            slot, str(pointer.get("authorization_note") or "")[:120],
+        )
+        return None, "unauthorized"
+    return b, "ok"
+
+
+@lru_cache(maxsize=1)
+def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
+    """Load + verify-gate the active scoring-point bank ONCE per process.
+
+    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the bank slot (default ``legacy``). The cache is deliberately
+    process-wide: flipping the slot requires a worker restart, which keeps rollback explicit and avoids
+    mid-process mixed authority. 治理闸（护栏③）：请求 slot 未获生产授权时拒装并
+    回落授权默认 slot（legacy），全程发声，绝不静默用赝品。
+    """
+    import os
+
+    raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
+    slot = str(raw_slot or "legacy").strip().lower() or "legacy"
+    governance = "authorized"
+    b, reason = _load_bank_slot(slot)
+    # 仅治理拒绝（unauthorized）允许回落授权默认 slot；完整性类失败维持既有
+    # fail-closed 法条（unknown/missing/hash 不回落——打错 slot 名静默换权威更危险）。
+    if b is None and reason == "unauthorized" and slot != "legacy":
+        logger.error(
+            "rubric_grader_v1: slot %s refused by governance gate; falling back to "
+            "authorized default slot legacy",
+            slot,
+        )
+        governance = f"fallback_from:{slot}"
+        slot = "legacy"
+        b, reason = _load_bank_slot(slot)
+    if b is None:
+        _ACTIVE_BANK_IDENTITY.update({"slot": slot, "qid_count": 0, "governance": f"refused:{reason}"})
         return {}
+    records = b.get("records") or []
     by_q: dict[str, list[dict[str, Any]]] = {}
     for r in records:
         point = {
@@ -1272,6 +1467,7 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
         if "source_qid" not in point and r.get("qid") is not None:
             point["source_qid"] = r.get("qid")
         by_q.setdefault(str(r.get("qid")), []).append(point)
+    _ACTIVE_BANK_IDENTITY.update({"slot": slot, "qid_count": len(by_q), "governance": governance})
     return by_q
 
 
@@ -1561,7 +1757,8 @@ async def batch_judge_async(
     prompt = _batch_prompt(rubric_points, student_answer)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1, temperature=0)
+                                model=model, api_key=api_key, max_retries=1, temperature=0,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
         logger.warning("rubric_grader_v1: batch_judge_async LLM call failed; degrading to all-miss",
                        exc_info=True)
@@ -1728,9 +1925,33 @@ def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
     try:
         s = str(raw)
         arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
-    except Exception:  # noqa: BLE001 — malformed extract JSON -> [] (caller falls back to legacy)
-        logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
-        return []
+    except Exception:  # noqa: BLE001 — malformed extract JSON -> salvage, then [] (caller falls back)
+        # Truncation salvage (2026-07-29 生产事故 P0): a completion-cap-truncated JSON
+        # array used to fail-closed into 0 points and collapse the whole open-world
+        # grading channel to the static template. Partial points are strictly better
+        # than none — cut at the last COMPLETE object and close the array. Same
+        # parser authority; no second parser.
+        try:
+            s = str(raw)
+            start = s.find("[")
+            tail = s.rfind("}")
+            # Salvage is gated on the TRUNCATION signature — no closing "]"
+            # after the last complete object. A merely-malformed reply (prose
+            # apology with a stray brace, properly closed but invalid array)
+            # must keep failing closed, not have points invented from it.
+            if tail >= 0 and "]" in s[tail:]:
+                raise ValueError("not truncation-shaped")
+            if start >= 0 and tail > start:
+                arr = _json.loads(s[start:tail + 1] + "]")
+                logger.warning(
+                    "rubric_grader_v1: extracted-rubric JSON truncated; salvaged %d complete objects",
+                    len(arr) if isinstance(arr, list) else 0,
+                )
+            else:
+                raise ValueError("no salvageable array")
+        except Exception:  # noqa: BLE001
+            logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
+            return []
     points: list[dict[str, Any]] = []
     for i, v in enumerate(arr, 1):
         if not isinstance(v, dict):
@@ -1753,8 +1974,83 @@ def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
         question_no = _positive_int_or_none(v.get("question_no") or v.get("题号"))
         if question_no is not None:
             point["question_no"] = question_no
+        # KB 溯源升级（2026-07-29）：加性透传，无这两字段时输出与 v2 逐字节一致。
+        evidence_idx = _positive_int_or_none(v.get("evidence_idx"))
+        if evidence_idx is not None:
+            point["evidence_idx"] = evidence_idx
+        quote = str(v.get("quote") or "").strip()
+        if quote:
+            point["quote"] = quote[:120]
         points.append(point)
     return points
+
+
+def _norm_for_quote_match(text: Any) -> str:
+    """引文核验归一化：去空白+全角转半角——OCR/标点差异不应把真引用误判 unverified。"""
+    s = re.sub(r"\s+", "", str(text or ""))
+    return s.translate(str.maketrans("：；，。（）“”‘’", ":;,.()\"\"''")).lower()
+
+
+def attach_textbook_refs(
+    points: list[dict[str, Any]],
+    kb_evidence: list[dict[str, Any]],
+    *,
+    unverified_weight: float = 0.6,
+) -> list[dict[str, Any]]:
+    """机械核验 KB 溯源——绝不信 LLM 自报（自证陷阱防线）。
+
+    evidence_idx 必须落在证据集内 AND quote（规范化后）必须是该 chunk 正文的
+    子串，二者同时成立才算 ``kb_grounded`` 并挂 ``textbook_ref``；否则
+    ``llm_unverified`` 且原始分 ×unverified_weight（归一化前相对降权——caller
+    随后 normalize_points_to_nominal，总分不变，分值向有据点倾斜）。
+    kb_evidence 为空时全部 unverified 降权（诚实：零证据=零溯源）。
+    """
+    for p in points:
+        idx = p.pop("evidence_idx", None)
+        quote = str(p.pop("quote", "") or "")
+        chunk = None
+        if isinstance(idx, int) and 1 <= idx <= len(kb_evidence):
+            chunk = kb_evidence[idx - 1]
+        normalized_quote = _norm_for_quote_match(quote)
+        if (
+            chunk
+            and normalized_quote
+            and normalized_quote in _norm_for_quote_match(chunk.get("content"))
+        ):
+            p["evidence_tier"] = "kb_grounded"
+            p["textbook_ref"] = {
+                "chunk_id": str(chunk.get("chunk_id") or "").strip(),
+                "title": str(chunk.get("title") or "").strip(),
+                "source_type": str(chunk.get("source_type") or "").strip(),
+                "quote": quote[:120],
+            }
+        else:
+            p["evidence_tier"] = "llm_unverified"
+            p["textbook_ref"] = None
+            try:
+                p["score"] = round(float(p.get("score") or 0) * unverified_weight, 2)
+            except (TypeError, ValueError):
+                pass
+    return points
+
+
+def summarize_kb_grounding(scoring_points: list[dict[str, Any]] | None) -> dict[str, Any]:
+    """纯函数：数 evidence_tier，产出事件级 kb_grounding 观测摘要。"""
+    pts = [p for p in (scoring_points or []) if isinstance(p, dict)]
+    total = len(pts)
+    grounded = sum(1 for p in pts if p.get("evidence_tier") == "kb_grounded")
+    if not total:
+        status = "no_points"
+    elif grounded:
+        status = "grounded"
+    else:
+        status = "no_evidence"
+    return {
+        "status": status,
+        "grounded_points": grounded,
+        "total_points": total,
+        "ratio": round(grounded / total, 3) if total else 0.0,
+    }
 
 
 def _positive_int_or_none(value: Any, *, max_value: int | None = None) -> int | None:
@@ -1795,7 +2091,8 @@ async def extract_rubric_from_reference_async(
     prompt = _extract_prompt(reference_answer, question_stem)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_EXTRACT_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — extraction failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: open-world rubric extraction LLM call failed", exc_info=True)
         return []
@@ -1824,8 +2121,19 @@ _DERIVE_PROMPT_TMPL = (
     "- exact_required: 仅当必须一字不差的规范术语/法条号/标准号/精确数值时才用，且 required_terms 必填；\n"
     "  普通专业表述不要用 exact_required。\n"
     "- required_terms 只填'体现该点即可命中'的关键词(无则空数组)，不要把整句塞进去。\n"
+    "{kb_block}"
     '只输出JSON数组: [{{"question_no":题号或null,"text":"采分点表述","score":数值,'
-    '"policy":"...","required_terms":[".."]}}]'
+    '"policy":"...","required_terms":[".."],"evidence_idx":编号或null,"quote":"支撑原文摘录或空串"}}]'
+)
+
+# KB 溯源块模板（kb_evidence 为空时整块为空串——prompt 与 v2 语义等价=fail-open 字节级保证）。
+# LLM 引用用短序号 E1..En 而非 chunk_id（长 id 回显必截断误配，llm-batch-keys 教训）。
+_DERIVE_KB_BLOCK_TMPL = (
+    "\n从教材/规范知识库检索到以下证据片段（E编号）:\n"
+    "{evidence_lines}\n"
+    "溯源要求: 每个采分点若能在上述证据中找到依据，evidence_idx 填对应 E 编号的数字并给 quote\n"
+    "（从该片段原样摘录的一句支撑原文，不超过60字）；找不到依据就 evidence_idx 填 null、quote 填空串，\n"
+    "不得编造出处。\n\n"
 )
 
 
@@ -1833,22 +2141,43 @@ async def derive_rubric_from_stem_async(
     question_stem: str,
     complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
     provider_authority: str = "",
+    kb_evidence: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """OPEN-WORLD rubric derivation from question stem alone (no reference answer available).
     Uses LLM domain knowledge about construction supervision / 一建 exam content to derive
     scoring points when neither a compiled rubric nor a reference answer exists. This is the
     third-tier path: compiled_rubric > on_the_fly_reference > derived_from_stem.
+    ``kb_evidence``（KB 溯源升级 2026-07-29）: retrieved textbook/standard chunks; when
+    present the model is asked to cite them per point and citations are MECHANICALLY
+    verified (attach_textbook_refs) — never trusted on self-report. Empty/None keeps the
+    prompt byte-equivalent to the ungrounded shape (fail-open).
     Fail-closed -> [] (caller falls back to V0)."""
     import json as _json
 
     stem = str(question_stem or "").strip()
     if not stem:
         return []
+    evidence = [e for e in (kb_evidence or []) if isinstance(e, dict) and str(e.get("content") or "").strip()]
+    kb_digest = ""
+    kb_block = ""
+    if evidence:
+        kb_digest = hashlib.sha256(
+            "\n".join(
+                f"{e.get('chunk_id')}|{str(e.get('content') or '')[:120]}" for e in evidence
+            ).encode("utf-8")
+        ).hexdigest()[:16]
+        evidence_lines = "\n".join(
+            f"[E{i}] ({str(e.get('source_type') or '教材')}·{str(e.get('title') or '')[:40]}) "
+            + _json.dumps(str(e.get("content") or "")[:600], ensure_ascii=False)
+            for i, e in enumerate(evidence, 1)
+        )
+        kb_block = _DERIVE_KB_BLOCK_TMPL.format(evidence_lines=evidence_lines)
     cache_key = _rubric_cache_key(
         "stem",
         question_stem=stem,
         model=model,
         provider_authority=provider_authority,
+        kb_digest=kb_digest,
     )
     cached = _get_cached_rubric_points(cache_key)
     if cached is not None:
@@ -1857,14 +2186,17 @@ async def derive_rubric_from_stem_async(
     # injection-resistance as _batch_prompt / _extract_prompt — a tampered question-bank
     # stem can't break out of the data boundary. (.format only substitutes {stem}; the
     # substituted JSON value is not re-scanned for braces.)
-    prompt = _DERIVE_PROMPT_TMPL.format(stem=_json.dumps(stem[:2000], ensure_ascii=False))
+    prompt = _DERIVE_PROMPT_TMPL.format(
+        stem=_json.dumps(stem[:2000], ensure_ascii=False), kb_block=kb_block
+    )
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_DERIVE_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1,
+                                max_tokens=8192, reasoning_effort="disabled")
     except Exception:  # noqa: BLE001 — derivation failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: stem-based rubric derivation LLM call failed", exc_info=True)
         return []
-    points = _parse_extracted_points(raw)
+    points = attach_textbook_refs(_parse_extracted_points(raw), evidence)
     _set_cached_rubric_points(cache_key, points)
     return points
 

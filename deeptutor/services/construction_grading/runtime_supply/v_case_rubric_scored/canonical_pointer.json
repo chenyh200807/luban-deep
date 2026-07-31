@@ -2,5 +2,7 @@
   "namespace": "case_rubric_scored",
   "status": "release_candidate",
   "published": false,
-  "expected_content_hash": "59ddec248fc7958f6d8fd13442f4f180e7c86b3ca300367e8258fe060abef764"
+  "expected_content_hash": "59ddec248fc7958f6d8fd13442f4f180e7c86b3ca300367e8258fe060abef764",
+  "production_authorized": true,
+  "authorization_note": "2026-07-30 owner 拍板回滚 pgo 后确立 legacy 为生产授权 lane（六月生产脊柱）"
 }

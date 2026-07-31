@@ -14,12 +14,60 @@ _OFFICIAL_GRADING_RE = re.compile(
     r"判错|阅卷|给分|扣分|满分)"
 )
 _DIAGNOSTIC_ONLY_MARKER = "本次不硬估标准分"
+
+# 案例作答标记族的单一权威（OD-001/002 取证裁决 2026-07-31）：此前切割侧
+# （question_lifecycle_skills）与标题抽取侧（rubric_grader_v1）各持一张标记
+# 名单——切割侧缺【我的作答】括号形，一个缺口让整套倒诬防线（身份闸+数字
+# 变体闸+覆盖对账）同时解除武装（假命中 17315 的答案钥匙判学生正确作答为零）。
+# 两侧现共用本模式；增标记只改这里。
+CASE_ANSWER_MARKER_PATTERN: str = (
+    r"(?:(?:^|[\r\n]|[ \t。；;!！?？])(?:回答[ \t]*)?"
+    r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*"
+    r"|【我的作答】[ \t]*|【作答】[ \t]*|【我的答案】[ \t]*"
+    r"|(?:^|[\r\n])[ \t]*我的(?:答案|作答)[ \t]*(?:[:：][ \t]*)?(?=[\r\n]|$))"
+)
 _CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "subjective"}
-CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
-    "grading_engine_version",
-    "v1_case_graded",
+
+# 判分权威导出键的单一权威（倾向四收权，2026-07-30 owner 拍板根治）。
+# 此前同一组键散落三张互不同步的白名单（turn_runtime summarizer lift /
+# 本文件 TURN_METADATA_KEYS / turn_runtime 终态事件白名单），live 实证漏一张
+# 名单=该 sink 永久 0 命中。三处现全部消费本常量：增键改这里一处即全链生效。
+# 注意：exact_question_blocked_reason / case_reference_blocked_reason 是跨场景
+# 通用 marker（mcq/澄清路径也写），不得收进任何 case 专属清单——strip 语义会在
+# 非 case 轮把它们剥掉（CI 实证 low_information_exam_query 断言被破坏）。
+CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     "score_authority",
     "grading_rubric_provenance",
+    "grading_official_score_allowed",
+    "v1_case_graded",
+    "case_grading_prefetch_gate",
+    "case_grading_direct_fell_through",
+    "case_grading_direct_attempt_qid",
+    "case_grading_composite_qid_candidate",
+    "case_grading_outer_seam_reentry",
+    "case_rubric_score_total_mismatch",
+    # 护栏③（2026-07-30）：活动 bank slot 身份逐轮上全 sink——slot 未授权漂移
+    # 六周无人知的洞，用导出封死。形如 "legacy:authorized:174"。
+    "case_rubric_bank_slot",
+    # A1 真口诀（拍A 2026-07-30）：口诀来源发声——lecture_pack:<unit_ids> 或
+    # fallback_template。挂载率/回落率的观测基础。
+    "case_mnemonic_source",
+    # OD-004（2026-08-01）：判分基座兜底发声——scene 抖动导致题面缺位时，
+    # 以学生原文为 tier3 推导基座（"判分行为在场必须有判分基座"）。
+    "case_stem_fallback",
+    # 踩点封顶观测（裁决② 2026-07-30，observe-only）：Σ点分池超小题满分的超额量。
+    # 真题判分=min(Σ命中,满分)且池≥满分是常态；V1 无封顶→先量化在服发生率，
+    # 确定性封顶=canonical bank 上服硬前置。
+    "point_pool_exceeds_max",
+    # 覆盖对账（2026-07-30）：判分实际覆盖的小问数/题面小问数 + 未覆盖清单。
+    # live 事故=学生答 2/4 问被判整题满分——部分覆盖必须发声且分数只代表已覆盖部分。
+    "case_subq_coverage",
+    "case_subq_uncovered",
+)
+
+CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
+    "grading_engine_version",
+    *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
     "grading_to_brain_loop",
     "learning_evidence_event_id",
     "learning_training_intent",
@@ -177,6 +225,24 @@ def should_demote_case_grading_hard_score(
     return False
 
 
+def build_case_grading_score_disclaimer() -> str:
+    """Score-scope disclaimer appended to a SUBSTANTIVE no-authority diagnosis.
+
+    P0 2026-07-29（权力/证据相称律）: the static template below keeps its birth
+    mission — refusing to fabricate an OFFICIAL score — but loses the whole-text
+    replacement power it had usurped. When the generation path produced real
+    per-subquestion diagnosis, only the score CLAIM gets demoted, via this
+    appended disclaimer; the diagnosis itself must reach the learner.
+    """
+
+    return (
+        "\n\n---\n"
+        "**评分口径说明**：本轮未命中题库原题/标准采分点，以上是教学诊断反馈，"
+        "不构成官方阅卷得分；官方分数以真题标准答案与采分点为准。"
+        "如需按标准采分点逐条批改，可以把题卡或标准答案一起发来。"
+    )
+
+
 def build_case_grading_diagnostic_only_response(user_message: str) -> str:
     """Student-facing fail-open answer when case score authority is missing."""
 
@@ -207,3 +273,27 @@ def _extract_user_answer(user_message: str) -> str:
     answer = match.group(1).strip()
     answer = re.split(r"(?:请|帮我|麻烦)?(?:按|帮|给|批改|估分|打分|判分)", answer, maxsplit=1)[0]
     return answer.strip(" \n\t，。；;")[:160]
+
+def case_submission_stem_candidate(text: str, *, min_len: int = 120) -> str:
+    """判分基座候选（OD-004 终修 2026-08-01）：「判分行为在场」的语义判据。
+
+    live 10 轮源码级取证：上一版兜底锚写成形状正则（【背景资料】/【问题】），
+    而真实考卷粘贴（#583 原文「某办公楼工程…」+ 半角「问题:」）三锚全不命中
+    → 兜底十轮零触发 → 与未修时同一条路。判据必须回到语义：**学生提交了
+    可判分的案例作答**——痕迹是提交标记（CASE_ANSWER_MARKER_PATTERN，与切割
+    侧同一权威）或多小问结构，而不是题面用不用括号。
+
+    返回可作 tier3 推导基座的文本（空串=判据不成立，不得制造假判分面）。
+    """
+    raw = str(text or "").strip()
+    if len(raw) < min_len:
+        return ""
+    has_submission_marker = re.search(CASE_ANSWER_MARKER_PATTERN, raw, flags=re.IGNORECASE) is not None
+    # 多小问结构：全/半角「问题N」「第N问」或行首编号问句 ≥2 处
+    subquestion_hits = len(
+        re.findall(r"(?:问题\s*[:：]?\s*\d|第\s*\d+\s*问|(?:^|\n)\s*\d+\s*[.．、)）]\s*\S)", raw)
+    )
+    case_shape = bool(re.search(r"【背景资料】|背景资料|【问题】|工程概况", raw))
+    if has_submission_marker or subquestion_hits >= 2 or case_shape:
+        return raw[:4000]
+    return ""

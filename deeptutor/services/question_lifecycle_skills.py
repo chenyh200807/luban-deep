@@ -1107,9 +1107,15 @@ _FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE = re.compile(
     r"问题\s*[：:]",
     re.IGNORECASE,
 )
+# 标记族单一权威=case_output_policy.CASE_ANSWER_MARKER_PATTERN（OD-001/002
+# 取证裁决：本地名单曾缺【我的作答】括号形，user_stem 切成空串→身份闸/数字
+# 变体闸/覆盖对账整线解除武装→假命中行的答案钥匙倒诬学生正确作答）。
+from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_ANSWER_MARKER_PATTERN as _CASE_ANSWER_MARKER_PATTERN,
+)
+
 _FREE_TEXT_CASE_ANSWER_MARKER_RE = re.compile(
-    r"(?:^|[\r\n]|[ \t。；;!！?？])(?:回答[ \t]*)?"
-    r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*",
+    _CASE_ANSWER_MARKER_PATTERN,
     re.IGNORECASE,
 )
 _FREE_TEXT_CASE_REFERENCE_MARKER_RE = re.compile(

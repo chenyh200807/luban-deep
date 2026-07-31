@@ -778,3 +778,252 @@ def test_summarize_pgo_query_result_all_scorable_flags_no_unscorable():
     assert summary["scoring_point_count"] == 2
     assert summary["scorable_point_count"] == 2
     assert summary["has_unscorable_points"] is False
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_score_total_mismatch_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
+    题面名义分显著分歧 = qid 可能错绑到别的小问 → event 落
+    ``case_rubric_score_total_mismatch`` marker 发声；一致时无 marker（观测对称）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+
+    # rubric 总分 3.0 vs 名义 10 分 → 发声
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "共用开关箱不妥",
+         "construction_grading_result": {"type": "case", "max_score": 10}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_rubric_score_total_mismatch"] is True
+
+    # rubric 总分 3.0 vs 名义 3 分 → 无 marker
+    event_ok = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "共用开关箱不妥",
+         "construction_grading_result": {"type": "case", "max_score": 3}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event_ok["event_type"] == "case_grading_completed"
+    assert "case_rubric_score_total_mismatch" not in event_ok
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_event_carries_bank_slot_identity(monkeypatch: pytest.MonkeyPatch) -> None:
+    """护栏③：判分事件逐轮携带活动 bank 身份（slot:governance:qid_count）——slot
+    未授权漂移六周无人知的洞，用导出封死。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+    monkeypatch.setattr(
+        G, "active_bank_identity",
+        lambda: {"slot": "legacy", "qid_count": 174, "governance": "authorized"},
+    )
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "共用开关箱不妥",
+         "construction_grading_result": {"type": "case", "max_score": 3}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_rubric_bank_slot"] == "legacy:authorized:174"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_point_pool_exceeds_max_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    """踩点封顶观测（裁决②）：Σ点分池>小题满分（真题常态，2025案例4 Σ30/满20）时
+    落 point_pool_exceeds_max=超额量；池≤满分不落。observe-only，分数行为不变。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    # 池 Σ=3.0 > 满分 2 → 超额 1.0
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "作答",
+         "construction_grading_result": {"type": "case", "max_score": 2}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["point_pool_exceeds_max"] == 1.0
+    # 池=满分 → 无 marker
+    event_ok = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "作答",
+         "construction_grading_result": {"type": "case", "max_score": 3}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert "point_pool_exceeds_max" not in event_ok
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_mnemonic_source_marker_on_render_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A1 真口诀（拍A）：deep_question 渲染路径必须给 grading_event 落
+    case_mnemonic_source 发声——解析不中=fallback_template（宁缺勿错挂的回落面）。"""
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
+    event = result["luban_case_rubric_v1"]["grading_event"]
+    assert event["case_mnemonic_source"] == "fallback_template"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_event_carries_subq_coverage(monkeypatch: pytest.MonkeyPatch) -> None:
+    """覆盖对账（live 事故：答 2/4 问被判整题满分）：judging 事件必须携带
+    case_subq_coverage/uncovered/声明，供渲染双面与全 sink 同源消费。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    rubric = [
+        {"point_id": "P1", "question_no": 1, "text": "见证记录", "score": 1.0,
+         "policy": "list", "required_terms": []},
+        {"point_id": "P2", "question_no": 4, "text": "工艺流程", "score": 1.0,
+         "policy": "list", "required_terms": []},
+    ]
+    monkeypatch.setattr(G, "load_rubric", lambda qid: rubric if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    stem = (
+        "【背景资料】某工程。\n【问题】\n问题1：指出不妥？\n问题2：缺陷名称？\n"
+        "问题3：构造名称？\n问题4：工艺流程？"
+    )
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "见证记录相关作答",
+         "question_stem": stem,
+         "construction_grading_result": {"type": "case", "max_score": 2}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["case_subq_coverage"] == "2/4"
+    assert event["case_subq_uncovered"] == "2,3"
+    assert "未纳入本次判分" in event["case_subq_coverage_note"]
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_coverage_uses_user_stem_over_bank_stem(monkeypatch: pytest.MonkeyPatch) -> None:
+    """覆盖对账基准（live 盲区）：ctx 带 user_stem（学生所见 4 问整题面）而
+    question_stem 是单小问 bank 行时，覆盖必须按 user_stem 对账并落声明。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    rubric = [{"point_id": "P1", "question_no": 1, "text": "见证记录", "score": 1.0,
+               "policy": "list", "required_terms": []}]
+    monkeypatch.setattr(G, "load_rubric", lambda qid: rubric if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    event = await _grade_one_case_v1(
+        {"question_id": "case-9006", "user_answer": "作答",
+         "question_stem": "【背景】某工程。\n问题1：指出不妥？",  # 单小问 bank 行
+         "user_stem": ("【背景】某工程。\n问题1：指出不妥？\n问题2：名称？\n"
+                        "问题3：构造？\n问题4：流程？"),
+         "construction_grading_result": {"type": "case", "max_score": 1}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["case_subq_coverage"] == "1/4"
+    assert event["case_subq_uncovered"] == "2,3,4"
+    assert "未纳入本次判分" in event["case_subq_coverage_note"]
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_core_stem_fallback_from_submission(monkeypatch: pytest.MonkeyPatch) -> None:
+    """OD-004 根治（共享判分核兜底）：ctx 无 reference 也无 question_stem（agent-loop
+    侧入口的 graded_context 形态）时，若学生提交文本本身是案例题面，必须用它
+    推导 tier3 而非整条 no_reference 降级——判分行为在场必须有判分基座。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+    derived = [{"point_id": "D1", "text": "专家论证", "score": 1.0, "policy": "list", "required_terms": []}]
+    seen = {}
+
+    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat",
+                           provider_authority="", kb_evidence=None):
+        seen["stem"] = stem
+        return list(derived)
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"D1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "derive_rubric_from_stem_async", _fake_derive)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+    paste = ("【背景资料】某工程基坑开挖深度8米，施工单位编制方案。" + "补充描述" * 25 +
+             "\n【问题】1. 指出不妥之处？2. 正确做法？\n我认为需要专家论证。")
+    event = await _grade_one_case_v1(
+        {"question_id": "", "user_answer": paste, "question_stem": "", "correct_answer": "",
+         "construction_grading_result": {"type": "case", "max_score": 10}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event.get("event_type") == "case_grading_completed"
+    assert event.get("case_stem_fallback") == "submission_text"
+    assert event.get("rubric_provenance") == "derived_from_stem"
+    assert "【问题】" in seen["stem"]
+
+    # 非案例形状短文本 → 仍 no_reference（不制造假判分面）
+    ev2 = await _grade_one_case_v1(
+        {"question_id": "", "user_answer": "这题怎么做？", "question_stem": "", "correct_answer": "",
+         "construction_grading_result": {"type": "case", "max_score": 10}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert ev2.get("status") == "no_reference"
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_stem_fallback_on_real_paper_form(monkeypatch: pytest.MonkeyPatch) -> None:
+    """OD-004 终修 domain test：真实考卷粘贴形态（无括号锚、半角「问题:」+提交
+    标记）必须触发共享判分核的基座兜底，而非 no_reference 整条降级。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [])
+    seen = {}
+
+    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat",
+                           provider_authority="", kb_evidence=None):
+        seen["stem"] = stem
+        return [{"point_id": "D1", "text": "安全交底", "score": 1.0, "policy": "list", "required_terms": []}]
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"D1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "derive_rubric_from_stem_async", _fake_derive)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+    real_paper = (
+        "某办公楼工程，地下二层，地上16层，建筑面积3.6万平方米，现浇钢筋混凝土框架剪力墙结构。"
+        + "施工过程描述内容补充。" * 12
+        + "\n问题:\n1. 指出项目部做法中的不妥之处并说明理由。\n2. 写出正确做法。\n"
+        "【我的作答】\n问题1：安全交底不妥。"
+    )
+    event = await _grade_one_case_v1(
+        {"question_id": "", "user_answer": real_paper, "question_stem": "", "correct_answer": "",
+         "construction_grading_result": {"type": "case", "max_score": 10}},
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event.get("event_type") == "case_grading_completed"
+    assert event.get("case_stem_fallback") == "submission_text"
+    assert "问题:" in seen["stem"]
