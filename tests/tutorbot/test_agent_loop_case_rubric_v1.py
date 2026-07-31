@@ -2135,3 +2135,33 @@ def test_coverage_numerator_uses_adopted_subquestions_not_row_count() -> None:
         f"分子应为实际采纳的 1 个小问，实得 {ctx['case_reference_covered_count']}"
     )
     assert ctx["case_stem_subquestion_count"] == 4
+
+
+def test_adoption_count_survives_missing_display_index() -> None:
+    """三态修复（codex 异源审 2026-08-01）：采纳了答案但 item 缺 display_index 时，
+    分子必须仍是采纳数（1），不得因索引未知回落到 payload 检索行数（4）再放大。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "另一个不匹配的题面内容，避免顶层直配路径。",
+            "covered_indexes": ["1", "2", "3", "4"],
+            "covered_subquestions": [
+                # 命中项：有答案但**没有 display_index**
+                {"prompt": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+                 "authoritative_answer": "官方答案1"},
+                {"prompt": "问题2：写出完全不同主题的另一个小问内容？",
+                 "authoritative_answer": "官方答案2", "display_index": "2"},
+            ],
+        },
+    }
+    paste = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+             "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+             "问题2：写出质量缺陷名称有哪些内容？\n"
+             "问题3：写出防水构造层的名称？\n"
+             "问题4：补充完整治理工艺流程？\n"
+             "我的答案：我认为试验员记录不妥。")
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 1, (
+        f"索引未知的采纳行必须计入分子（=1），不得回落检索行数，实得 "
+        f"{ctx['case_reference_covered_count']}"
+    )
