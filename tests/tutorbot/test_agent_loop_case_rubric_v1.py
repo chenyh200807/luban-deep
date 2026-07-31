@@ -1022,7 +1022,7 @@ async def test_case_grading_direct_path_streams_preview_and_returns_v1(monkeypat
     saved: list[Session] = []
     loop.sessions = type("NoopSessions", (), {"save": lambda self, session: saved.append(session)})()
 
-    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message):
+    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message, **_kwargs):
         runtime_metadata["_v1_case_graded"] = True
         runtime_metadata["v1_case_graded"] = True
         runtime_metadata["score_authority"] = "rubric_scored_v1"
@@ -1090,7 +1090,7 @@ async def test_case_grading_direct_path_streams_score_first_then_sealed_blocks(m
     saved: list[Session] = []
     loop.sessions = type("NoopSessions", (), {"save": lambda self, session: saved.append(session)})()
 
-    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message):
+    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message, **_kwargs):
         runtime_metadata["_v1_case_graded"] = True
         runtime_metadata["v1_case_graded"] = True
         runtime_metadata["score_authority"] = "rubric_scored_v1"
@@ -1627,7 +1627,7 @@ async def test_case_grading_direct_prefetches_exact_before_v1(tmp_path, monkeypa
         }
         return initial_messages
 
-    async def _fake_plan(*, runtime_metadata, user_message):
+    async def _fake_plan(*, runtime_metadata, user_message, **_kwargs):
         calls["plan_saw_eq"] = isinstance(
             runtime_metadata.get("_prefetched_exact_question"), dict
         )
@@ -1727,7 +1727,7 @@ async def _run_direct(loop, md_ref, monkeypatch, *, plan=None):
         calls["prefetch"] += 1
         return initial_messages
 
-    async def _fake_plan(*, runtime_metadata, user_message):
+    async def _fake_plan(*, runtime_metadata, user_message, **_kwargs):
         return plan
 
     monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _fake_prefetch)
