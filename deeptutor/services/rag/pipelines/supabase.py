@@ -69,6 +69,18 @@ _SUPABASE_AVAILABILITY_REFRESH: dict[str, asyncio.Task] = {}
 _CHUNK_ID_EXISTS_BATCH_SIZE = 50
 
 
+def _question_identity_surface(row: dict[str, Any]) -> str:
+    """Canonical bank surface used by every exact-question candidate path."""
+    return " ".join(
+        value
+        for value in [
+            str(row.get("background_context") or "").strip(),
+            str(row.get("stem") or row.get("question_stem") or "").strip(),
+        ]
+        if value
+    )
+
+
 def _safe_response_text(response: httpx.Response | None) -> str:
     if response is None:
         return ""
@@ -2111,7 +2123,7 @@ class SupabasePipeline:
                 continue
             if not exact_question_identity_corresponds(
                 original_query=original_query,
-                matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                matched_stem=_question_identity_surface(row),
                 question_type=row.get("question_type"),
             ):
                 _demote(row)
@@ -2152,7 +2164,7 @@ class SupabasePipeline:
                         continue
                     if not exact_question_identity_corresponds(
                         original_query=original_query,
-                        matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                        matched_stem=_question_identity_surface(row),
                         question_type=row.get("question_type"),
                     ):
                         _demote(row)
@@ -2320,7 +2332,7 @@ class SupabasePipeline:
                 continue
             if not exact_question_identity_corresponds(
                 original_query=original_query,
-                matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                matched_stem=_question_identity_surface(row),
                 question_type=row.get("question_type"),
             ):
                 continue
@@ -3016,7 +3028,7 @@ class SupabasePipeline:
                 # honestly inside the same adjudicator.
                 if not exact_question_identity_corresponds(
                     original_query=original_query,
-                    matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                    matched_stem=_question_identity_surface(row),
                     question_type=row.get("question_type"),
                     matched_options=_option_values(options),
                 ):

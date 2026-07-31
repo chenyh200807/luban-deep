@@ -152,9 +152,7 @@
 - `tests/agents/chat/test_agentic_parallel_tools.py`
 - `tests/services/citations/test_normalizer.py`
 
-## Case exact identity（2026-07-31）
-
-`question_exact_*` 对 case/case_study 不得按 query shape、相似度或题型名称无条件放行。
-所有候选必须经过唯一的 `exact_question_identity_corresponds` 表面身份裁决；未能证明为同一题时，
-保留为普通 `questions_bank` 召回，不得铸成 exact authority。case bundle 只投影已经确认的
-子问覆盖，不承担题目身份裁决。
+> **32b 规范更正（2026-07-31）**：32b 中“case 家族 identity 收权推迟、走
+> `case_bundle` 覆盖判定”的历史例外已废止，不再具有规范效力。case/case_study 与其他题型
+> 一样必须经过唯一的 `exact_question_identity_corresponds`；`case_bundle` 只投影已确认
+> exact 后的子问覆盖，不承担题目身份裁决。

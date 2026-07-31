@@ -1839,6 +1839,17 @@ async def test_supabase_search_does_not_promote_case_similarity_without_exact_id
     assert not result.get("exact_question")
 
 
+def test_case_identity_surface_includes_background_and_stem() -> None:
+    from deeptutor.services.rag.pipelines.supabase import _question_identity_surface
+
+    assert _question_identity_surface(
+        {
+            "background_context": "背景甲",
+            "stem": "问题一：计算造价",
+        }
+    ) == "背景甲 问题一：计算造价"
+
+
 @pytest.mark.asyncio
 async def test_supabase_search_does_not_promote_case_match_from_keyword_only_query(
     monkeypatch: pytest.MonkeyPatch,
