@@ -2928,17 +2928,9 @@ class SupabasePipeline:
                 score = float(row.get("similarity") or row.get("score") or 0.0)
                 if score < 0.70:
                     continue
-                identity_surface = " ".join(
-                    value
-                    for value in [
-                        str(row.get("background_context") or "").strip(),
-                        str(row.get("stem") or row.get("question_stem") or "").strip(),
-                    ]
-                    if value
-                )
                 if not exact_question_identity_corresponds(
                     original_query=match_query,
-                    matched_stem=identity_surface,
+                    matched_stem=_question_identity_surface(row),
                     question_type=str(row.get("question_type") or ""),
                 ):
                     continue
