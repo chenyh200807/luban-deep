@@ -1,0 +1,147 @@
+{
+  "run_id": "promo_gate_20260801_r5_calib",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=c53a5d8a5ba3d6f74efa11e7732447ab514db5e3\nDEEPTUTOR_RELEASE_ID=1.0.0+c53a5d8a5ba3d6f74efa11e7732447ab514db5e3+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-08-01T07:02:43",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0
+  },
+  "scenarios": [
+    {
+      "id": "t8_group_bundle_half",
+      "title": "治理组整卷案例题(2023办公楼·题库按小问拆存)·整题4问粘贴+只答问1·半答必须封顶",
+      "form": "group_bundle_half_answer",
+      "question_group": "T8",
+      "qid": 9559,
+      "verdict": "PASS",
+      "turn_id": "turn_1785538967747_40ec01b722",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 28752.3,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3322(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(2.5, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "T8_BUNDLE",
+          "status": "PASS",
+          "evidence": "case_bundle_source='group_query' 全等期望值"
+        },
+        {
+          "id": "T8_PERSUBQ",
+          "status": "PASS",
+          "evidence": "case_per_subq_grading='4/4' 全等期望值"
+        },
+        {
+          "id": "T8_CAP",
+          "status": "PASS",
+          "evidence": "最高得分 2.5 <= 封顶 3.0(分母=10.0 得分对 [(2.5, 10.0)])"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot",
+        "case_grading_partial_scope": null,
+        "grading_official_score_allowed": false,
+        "case_grading_direct_attempt_qid": "17371",
+        "case_bundle_source": "group_query",
+        "case_bundle_hydration": "group_query:4",
+        "case_per_subq_grading": "4/4",
+        "case_subq_score_caps": "q1:2.5,q2:2.5,q3:2.5,q4:2.5",
+        "case_grading_adjudication_strategy": "dynamic_parallel_subquestion_groups",
+        "case_stem_fallback": null
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 2 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n先去题库里比对这道题的原题和已编译的采分点。\n\n题库里定位到了这道题的原题，按它的编译采分点批改。\n\n已拿到这道题的参考答案，正在把它拆成可以独立判定的采分点。\n\n采分点拆好了，共 26 个，现在逐点比对你的作答。\n\n第 1 组采分点判完了（本组 5 个点，共 4 组）。\n\n第 2 组采分点判完了（本组 6 个点，共 4 组）。\n\n第 3 组采分点判完了（本组 8 个点，共 4 组）。\n\n第 4 组采分点判完了（本组 7 个点，共 4 组）。\n\n逐点比对完成，正在汇总结论和讲评。\n\n## 批改结论\n这道题我先给你一个总判断：命中 7 个采分点，部分命中 0 个，还有 19 个需要补。后面我按小问逐一拆。\n\n**得分预估：** 2.5 / 10 分。\n**采分"
+    },
+    {
+      "id": "t9_full_paper_full_answer",
+      "title": "金标v2·Q2023-03高能力档整卷全答(金标 expected_score_ratio=0.84)·全答不得被封顶误伤",
+      "form": "gold_v2_high_full_paper",
+      "question_group": "T9",
+      "qid": "Q2023-03",
+      "verdict": "PASS",
+      "turn_id": "turn_1785539000011_ac639188c9",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 24844.0,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=1516(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(9.0, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1; grading_rubric_provenance=on_the_fly_reference"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "T9_PERSUBQ",
+          "status": "PASS",
+          "evidence": "case_per_subq_grading='4/4' 在场且非空"
+        },
+        {
+          "id": "T9_FLOOR",
+          "status": "PASS",
+          "evidence": "最高得分 9.0 >= 下限 6.0(分母=10.0 得分对 [(9.0, 10.0)])"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1",
+        "grading_rubric_provenance": "on_the_fly_reference",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_exact_fast_path",
+        "turn_capability": "tutorbot",
+        "case_grading_partial_scope": null,
+        "grading_official_score_allowed": false,
+        "case_grading_direct_attempt_qid": "17371",
+        "case_bundle_source": "group_query",
+        "case_bundle_hydration": "group_query:4",
+        "case_per_subq_grading": "4/4",
+        "case_subq_score_caps": "q1:2.5,q2:2.5,q3:2.5,q4:2.5",
+        "case_grading_adjudication_strategy": "dynamic_parallel_subquestion_groups",
+        "case_stem_fallback": null
+      },
+      "response_excerpt": "这道题你之前已经答过一次，得了9分，这次是重新作答。我直接按你这次的答案重新批改。\n\n## 批改结论\n\n**得分预估：** 9 / 10 分\n**采分情况：** 命中23个，部分命中1个，漏/错2个\n\n**最该补的2个点：**\n1. 第2问：抽检数量不应少于总桩数的 **20%**，不是10%\n2. 第2问：抽检数量不应少于 **10根**，不是5根\n\n---\n\n## 第1问：工程质量计划编制和管理 + 质量控制点\n\n**判定：** 全部命中，7/7 采分点\n\n**采分点明细：**\n- ✅ 指出\"开工后编制\"不妥\n- ✅ 正确做法：应在项目策划过程中编制\n- ✅ 指出\"静态管理\"不妥\n- ✅ 正确做法：应实施动态管理\n- ✅ 质量控制点：影响结构安全的关键部位和环节\n- ✅ 质量控制点：采用新技术、新工艺的部位和环节\n- ✅ 质量控制点：隐蔽工程验收\n\n**易错点：** 本问你答得很稳，没"
+    }
+  ],
+  "finished_at": "2026-08-01T07:03:47"
+}
