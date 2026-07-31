@@ -1,0 +1,225 @@
+{
+  "question_id": "Q2023-03",
+  "answers": [
+    {
+      "answer_id": "Q2023-03::high",
+      "ability_label": "high",
+      "answer_text": "问题1：\n质量计划的编制和管理有两处站不住脚。第一，这份计划是等到工程都开工了才动手写的，时间点错了；按照要求，它属于项目前期策划阶段的产物，必须在策划过程中就形成。第二，写的是随着工程推进做静态管理，这个也不对，质量计划落地以后要跟着工程实际情况不断修订调整，属于动态管理。\n除背景里已经列出的以外，还应当把三类地方纳入质量控制点：一是关系到结构是否安全的关键部位和关键环节；二是首次使用新技术、新工艺的部位和环节；三是隐蔽工程的验收。\n\n问题2：\n桩身完整性除了高应变法，还可以用钻芯法、低应变法、声波透射法。\n抽检数量上，我记得规范要求不得低于总桩数的10%，并且总数不少于5根；另外每一根柱子下面承台里的桩，至少要抽到1根。\n\n问题3：\n接头面积百分率这几条里有两条不对。第一条，“受压接头不宜大于75%”——受压区的接头百分率其实不作限制，多少都可以。第二条，“直接承受动力荷载的构件用机械连接不宜超过50%”——这里的措辞太软，规范用的是强制口径，应当写成不应超过50%。\n直螺纹接头加工和安装现场用到的专用检具有：卡尺、通规、止规、活动扳手、扭力扳手。\n\n问题4：\n原因分析里有三条立不住：找平层分格缝设置不当、屋面板随温度胀缩、卷材搭接长度不够，这三条与卷材流淌之间没有因果关系。\n钉钉子法的规范做法是：如果铺完没多久卷材刚出现下滑苗头，可以在离屋脊三百到四百五十毫米这一带钉三排圆钉，钉子长五十毫米，钉完后往钉眼里灌胶结料；如果卷材已经淌下去、横向搭接错位了，就要把翘边处的旧胶结料清干净，重新浇灌胶结料，再压实刮平。",
+      "expected_failures": [
+        {
+          "target_point": "2.2",
+          "type": "numeric",
+          "expected_credit": "none",
+          "injected_text": "不得低于总桩数的10%，并且总数不少于5根",
+          "adjudication_rule": "采分点要求“不应少于总桩数的20%且不应少于10根”。答卷两个数值全部写错（20%→10%、10根→5根），该点不得分；后半句“每根柱子承台下不少于1根”虽对，但该采分点整体以数值为准，判不给分。"
+        },
+        {
+          "target_point": "3.5",
+          "type": "imprecise_term",
+          "expected_credit": "partial",
+          "expected_items_hit": 3,
+          "expected_items_total": 5,
+          "injected_text": "卡尺、通规、止规、活动扳手、扭力扳手",
+          "adjudication_rule": "采分点五项为“量尺、通规、止规、管钳扳手、扭力扳手”。答卷把“量尺”写成“卡尺”、把“管钳扳手”写成“活动扳手”，两项名称不规范不计；通规、止规、扭力扳手三项命中。"
+        }
+      ]
+    },
+    {
+      "answer_id": "Q2023-03::mid",
+      "ability_label": "mid",
+      "answer_text": "问题1：\n不妥的地方是项目质量计划开工之后才编，编制时间不对。正确做法应该是等开工报告获批、第一个分部工程开工之前把它补齐。另外“实施静态管理”也不对，工程一直在变，质量计划得跟着变，应该是动态管理。\n质量控制点还应该包括影响结构安全的关键部位和关键环节。\n\n问题2：\n桩身完整性检测还可以用低应变法和声波透射法。\n抽检数量按规范是不少于总桩数的20%，而且不少于10根；每根柱子承台下面的桩不少于3根。\n\n问题3：\n不妥的是“受压接头不宜大于75%”，受压接头的百分率规范上是不限制的。第4条关于机械连接不宜超过50%的说法我认为没有问题，可以照做。\n现场用的专用工具有量尺、通规、止规、管钳扳手、扭力扳手。\n\n问题4：\n原因分析里不成立的有：胶结料耐热度偏低、找平层分格缝设置不当、卷材搭接长度太小。\n钉钉子法应该这样做：卷材刚铺完不久出现下滑趋势的，在离屋脊三百到四百五十毫米范围内钉三排五十毫米长的圆钉，钉眼上灌胶结料。",
+      "expected_failures": [
+        {
+          "target_point": "1.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "正确做法应该是等开工报告获批、第一个分部工程开工之前把它补齐",
+          "adjudication_rule": "采分点要求“项目质量计划应在项目策划过程中编制”。答卷给出的时点仍在开工之后，与采分点直接矛盾，不得分。"
+        },
+        {
+          "target_point": "1.6",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "答卷未提“采用新技术、新工艺的部位和环节”。"
+        },
+        {
+          "target_point": "1.7",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "答卷未提“隐蔽工程验收”。"
+        },
+        {
+          "target_point": "2.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 2,
+          "expected_items_total": 3,
+          "injected_text": "还可以用低应变法和声波透射法",
+          "adjudication_rule": "采分点三项为“钻芯法、低应变法、声波透射法”，答卷漏“钻芯法”。"
+        },
+        {
+          "target_point": "2.2",
+          "type": "numeric",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 2,
+          "injected_text": "每根柱子承台下面的桩不少于3根",
+          "adjudication_rule": "采分点含两个数值子事实：①总桩数20%且不少于10根（答对）；②每根柱子承台下不少于1根（答成3根，错）。"
+        },
+        {
+          "target_point": "3.3",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "第4条关于机械连接不宜超过50%的说法我认为没有问题，可以照做",
+          "adjudication_rule": "采分点要求判出“直接承受动力荷载的结构构件采用机械连接时不宜超过50%”为不妥；答卷明确判其为妥当，与采分点矛盾。"
+        },
+        {
+          "target_point": "3.4",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "既未判出不妥，也就未给出“不应超过50%”的正确做法。"
+        },
+        {
+          "target_point": "4.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "原因分析里不成立的有：胶结料耐热度偏低……",
+          "adjudication_rule": "采分点要求判出“屋面板因温度变化产生胀缩”为不妥；答卷未判出，反把成立原因“胶结料耐热度偏低”当作不妥（题干限定 3 项、多答不得分），属张冠李戴。"
+        },
+        {
+          "target_point": "4.5",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "答卷未写“卷材流淌后横向搭接错动的清除旧胶结料、重新浇灌、压实刮平”这一情形。"
+        }
+      ]
+    },
+    {
+      "answer_id": "Q2023-03::low",
+      "ability_label": "low",
+      "answer_text": "问题1：\n不妥的是搞静态管理，工程情况天天变，质量计划应该动态管理，随时调整。\n质量控制点还应该包括影响工期的关键环节，以及造价比较高的那些部位。\n\n问题2：\n桩身完整性还可以用低应变法检测。\n抽检数量大概是总桩数的5%，最少3根。\n\n问题3：\n不妥的是“受拉接头不宜大于50%”，受拉接头的百分率不应该大于25%。\n现场检测工具有通规和止规。\n\n问题4：\n原因分析里不对的是胶结料粘结层过厚，还有卷材搭接长度太小。\n钉钉子法就是在卷材上部离屋脊二百到三百毫米的地方钉一排二十毫米长的圆钉，钉眼刷上防锈漆。",
+      "expected_failures": [
+        {
+          "target_point": "1.1",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "答卷未判出“开工后才编制质量计划”这一不妥。"
+        },
+        {
+          "target_point": "1.2",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未判出即无对应正确做法。"
+        },
+        {
+          "target_point": "1.5",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "影响工期的关键环节，以及造价比较高的那些部位",
+          "adjudication_rule": "采分点为“影响结构安全的关键部位、关键环节”；答卷答成工期与造价维度，与采分点不符。"
+        },
+        {
+          "target_point": "1.6",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未提新技术、新工艺。"
+        },
+        {
+          "target_point": "1.7",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未提隐蔽工程验收。"
+        },
+        {
+          "target_point": "2.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 3,
+          "injected_text": "还可以用低应变法检测",
+          "adjudication_rule": "三项中只命中低应变法，漏钻芯法与声波透射法。"
+        },
+        {
+          "target_point": "2.2",
+          "type": "numeric",
+          "expected_credit": "none",
+          "injected_text": "总桩数的5%，最少3根",
+          "adjudication_rule": "20%→5%、10根→3根，两个数值均错，且未提承台下抽检要求。"
+        },
+        {
+          "target_point": "3.1",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "不妥的是“受拉接头不宜大于50%”",
+          "adjudication_rule": "采分点要求判出“受压接头不宜大于75%”不妥；答卷判的是受拉接头那一条（该条本身正确），属张冠李戴。"
+        },
+        {
+          "target_point": "3.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "受拉接头的百分率不应该大于25%",
+          "adjudication_rule": "采分点正确做法是“受压接头可不受限制”；答卷给出受拉接头 25% 的新限制，与采分点矛盾。"
+        },
+        {
+          "target_point": "3.3",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未判出第二处不妥。"
+        },
+        {
+          "target_point": "3.4",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未给出“不应超过50%”的正确做法。"
+        },
+        {
+          "target_point": "3.5",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 2,
+          "expected_items_total": 5,
+          "injected_text": "现场检测工具有通规和止规",
+          "adjudication_rule": "五项中只命中通规、止规。"
+        },
+        {
+          "target_point": "4.1",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "原因分析里不对的是胶结料粘结层过厚",
+          "adjudication_rule": "采分点要求判出“找平层的分格缝设置不当”；答卷把成立原因“胶结料粘结层过厚”判为不妥，属张冠李戴。"
+        },
+        {
+          "target_point": "4.2",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未判出“屋面板因温度变化产生胀缩”。"
+        },
+        {
+          "target_point": "4.4",
+          "type": "numeric",
+          "expected_credit": "none",
+          "injected_text": "离屋脊二百到三百毫米的地方钉一排二十毫米长的圆钉，钉眼刷上防锈漆",
+          "adjudication_rule": "采分点为“离屋脊300~450mm、三排、50mm长圆钉、钉眼灌胶结料”。答卷四个要素全错（照抄了题干中被否定的做法），不得分。"
+        },
+        {
+          "target_point": "4.5",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未写横向搭接错动的处理办法。"
+        }
+      ]
+    }
+  ]
+}

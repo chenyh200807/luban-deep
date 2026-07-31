@@ -1,0 +1,168 @@
+{
+  "question_id": "Q2024-03",
+  "answers": [
+    {
+      "answer_id": "Q2024-03::high",
+      "ability_label": "high",
+      "answer_text": "1. 三检指的是自检、互检、专检这三道。现场用试验法查质量，通常走两条路：一条是理化试验，另一条是无损检测。\n\n2. 叠合板预制构件进场以后，除了背景里已经查过的主要受力钢筋规格，实体检验还要覆盖受力钢筋的数量、钢筋的间距、保护层厚度，以及构件本身的混凝土强度。\n\n3. 这类裂缝多半出现在框架梁的底面和框架柱的侧边这两个位置。防治措施除了背景中已列的，还可以：填充墙顶部最后三皮砖，等下面墙体砌完7天以后再砌；外窗下方如果是空心砖砌的，把窗台板换成细石混凝土并配上钢筋；柱子与填充墙相接触的那个面上挂加强网片。\n\n4. 装饰抹灰区别于一般抹灰的问题还有颜色深浅不一、掉角、表皮起壳。幕墙的安全和功能检验，除背景中已有的报告外，还应包含后置埋件和槽式预埋件的现场拉拔力，以及幕墙的耐风压性能和层间变形性能。\n\n5. 围护结构节能这个子分部里，除墙体节能外，还有幕墙节能工程、门窗节能工程、屋面节能工程和地面节能工程这四个分项。",
+      "expected_failures": [
+        {
+          "target_point": "3.2",
+          "type": "numeric",
+          "expected_credit": "none",
+          "injected_text": "等下面墙体砌完7天以后再砌",
+          "adjudication_rule": "采分点为“下部墙砌完14d后砌筑”。答卷写 7 天，天数错，不得分。"
+        },
+        {
+          "target_point": "4.1",
+          "type": "imprecise_term",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 3,
+          "injected_text": "颜色深浅不一、掉角、表皮起壳",
+          "adjudication_rule": "采分点三项为“色差、掉角、脱皮”。答卷把“色差”写成“颜色深浅不一”、“脱皮”写成“表皮起壳”，两项术语不规范不计；仅“掉角”命中。"
+        }
+      ]
+    },
+    {
+      "answer_id": "Q2024-03::mid",
+      "ability_label": "mid",
+      "answer_text": "1. 三检制度就是自检、互检、专检。现场试验法有两种，一种是理化试验，另一种是不把构件弄坏、直接拿仪器测出来的那种检测。\n\n2. 叠合板进场后还要检验受力钢筋的数量和间距。\n\n3. 这种裂缝一般出现在墙体中部和窗台下面。防治措施还有：填充墙顶部最后三皮砖要等下部墙体砌完十四天以后再砌；外窗下面是空心砖墙的，窗台板改用细石混凝土并加配钢筋。\n\n4. 装饰抹灰还会有色差、掉角、脱皮这些问题。幕墙检验项目还有后置埋件和槽式预埋件的现场拉拔力。\n\n5. 围护结构节能的分项工程还有幕墙节能工程、门窗节能工程、屋面节能工程。",
+      "expected_failures": [
+        {
+          "target_point": "1.2",
+          "type": "imprecise_term",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 2,
+          "injected_text": "不把构件弄坏、直接拿仪器测出来的那种检测",
+          "adjudication_rule": "采分点两项为“理化试验、无损检测”。理化试验命中；“无损检测”被口语化描述替代，未写出规范名称，不计。"
+        },
+        {
+          "target_point": "2.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 2,
+          "expected_items_total": 4,
+          "injected_text": "还要检验受力钢筋的数量和间距",
+          "adjudication_rule": "采分点四项为“数量、间距、保护层厚度、混凝土强度”，答卷漏后两项。"
+        },
+        {
+          "target_point": "3.1",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "一般出现在墙体中部和窗台下面",
+          "adjudication_rule": "采分点为“框架梁底、柱边”。答卷给出的两个部位与采分点均不符。"
+        },
+        {
+          "target_point": "3.4",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未提“柱与填充墙接触面应设加强网片”。"
+        },
+        {
+          "target_point": "4.3",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未提“幕墙的耐风压性能及层间变形性能”。"
+        },
+        {
+          "target_point": "5.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 3,
+          "expected_items_total": 4,
+          "injected_text": "幕墙节能工程、门窗节能工程、屋面节能工程",
+          "adjudication_rule": "四项中漏“地面节能工程”。"
+        }
+      ]
+    },
+    {
+      "answer_id": "Q2024-03::low",
+      "ability_label": "low",
+      "answer_text": "1. 三检就是自检、交叉检查、公司检查。现场试验法的两种方法是目测法和实测法。\n\n2. 叠合板进场以后还要检验混凝土强度。\n\n3. 防治措施还有：柱子和填充墙接触面上挂加强网片；填充墙上面最后三皮砖等下部墙砌完3天后再砌；外窗下面是空心砖墙的，可以在窗台位置加设木砖来固定。\n\n4. 装饰抹灰常见问题还有掉角。\n\n5. 围护结构节能的分项工程还有幕墙节能工程和门窗节能工程。",
+      "expected_failures": [
+        {
+          "target_point": "1.1",
+          "type": "imprecise_term",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 3,
+          "injected_text": "自检、交叉检查、公司检查",
+          "adjudication_rule": "采分点三项为“自检、互检、专检”。自检命中；“互检”写成“交叉检查”属非规范表述，“专检”写成“公司检查”属错解（专检指专职质检人员检查，非公司层级检查），两项不计。"
+        },
+        {
+          "target_point": "1.2",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "现场试验法的两种方法是目测法和实测法",
+          "adjudication_rule": "采分点为“理化试验、无损检测”。答卷把并列的三种检查手段（目测法/实测法/试验法）中的两个当成试验法的两种方法，属张冠李戴。"
+        },
+        {
+          "target_point": "2.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 4,
+          "injected_text": "还要检验混凝土强度",
+          "adjudication_rule": "四项中只命中混凝土强度。"
+        },
+        {
+          "target_point": "3.1",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "完全未回答裂缝出现部位。"
+        },
+        {
+          "target_point": "3.2",
+          "type": "numeric",
+          "expected_credit": "none",
+          "injected_text": "等下部墙砌完3天后再砌",
+          "adjudication_rule": "采分点为 14d，答卷写 3 天。"
+        },
+        {
+          "target_point": "3.3",
+          "type": "wrong",
+          "expected_credit": "none",
+          "injected_text": "可以在窗台位置加设木砖来固定",
+          "adjudication_rule": "采分点为“将窗台板改为细石混凝土并加配钢筋”。答卷给出的加设木砖做法与采分点矛盾。"
+        },
+        {
+          "target_point": "4.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 1,
+          "expected_items_total": 3,
+          "injected_text": "还有掉角",
+          "adjudication_rule": "三项中只命中掉角，漏色差与脱皮。"
+        },
+        {
+          "target_point": "4.2",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未提现场拉拔力检验。"
+        },
+        {
+          "target_point": "4.3",
+          "type": "omission",
+          "expected_credit": "none",
+          "injected_text": "",
+          "adjudication_rule": "未提耐风压性能及层间变形性能。"
+        },
+        {
+          "target_point": "5.1",
+          "type": "omission",
+          "expected_credit": "partial",
+          "expected_items_hit": 2,
+          "expected_items_total": 4,
+          "injected_text": "幕墙节能工程和门窗节能工程",
+          "adjudication_rule": "四项中漏屋面节能工程、地面节能工程。"
+        }
+      ]
+    }
+  ]
+}
