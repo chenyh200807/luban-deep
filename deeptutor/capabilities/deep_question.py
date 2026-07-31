@@ -13,7 +13,7 @@ import base64
 import functools
 import re
 import tempfile
-from typing import Any
+from typing import Any, Callable
 
 from loguru import logger
 
@@ -2470,14 +2470,36 @@ async def _grade_case_rubric_v1(
         return {"status": "unavailable", "reason": "exception"}
 
 
+async def _emit_case_grading_stage(
+    on_stage: Callable[..., Any] | None, kind: str, **facts: Any
+) -> None:
+    """Best-effort progress projection out of the grading core (sequenced emit, L4).
+
+    Observation-only by construction: the core hands out *facts it has already
+    computed* (which rubric tier was selected, how many points exist, which judge
+    group landed). The observer can never write back — it returns None and its
+    exceptions are swallowed. Terminal grading truth (GradingEvent /
+    finalize_case_score / result payload) is untouched by this hook."""
+    if on_stage is None:
+        return
+    try:
+        await on_stage(kind, **facts)
+    except Exception:  # noqa: BLE001 — progress narration never breaks grading
+        logger.warning("case_rubric_v1: grading stage progress hook failed", exc_info=True)
+
+
 async def _grade_one_case_v1(
     ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
     kb_name: str | None = None,
+    on_stage: Callable[..., Any] | None = None,
 ) -> dict[str, Any] | None:
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
-    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer).
+
+    ``on_stage`` is an optional observation-only progress hook used by the chat entry to
+    narrate the otherwise-silent 20s rubric/judge window; see ``_emit_case_grading_stage``."""
     import os as _os
     _v1_model = _os.environ.get("LLM_MODEL", "").strip() or "deepseek-chat"
     cg = ctx.get("construction_grading_result")
@@ -2518,6 +2540,10 @@ async def _grade_one_case_v1(
         "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
         qid or "(none)", len(points),
     )
+    if points:
+        await _emit_case_grading_stage(
+            on_stage, "rubric_source", tier="compiled", point_count=len(points)
+        )
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
     #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
     if not points:
@@ -2536,6 +2562,7 @@ async def _grade_one_case_v1(
             bool(reference), len(reference), bool(stem), len(stem),
         )
         if reference:
+            await _emit_case_grading_stage(on_stage, "rubric_source", tier="reference")
             points = await _G.extract_rubric_from_reference_async(
                 reference,
                 stem,
@@ -2562,6 +2589,7 @@ async def _grade_one_case_v1(
             # Tier 3: no official answer-key authority, but this is still a gradable learner need.
             # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
             # scoring channel. It must never be promoted to official correctness authority.
+            await _emit_case_grading_stage(on_stage, "rubric_source", tier="stem")
             kb_evidence = (
                 await _fetch_stem_kb_evidence(stem, kb_name)
                 if _stem_rubric_kb_grounding_enabled()
@@ -2600,6 +2628,7 @@ async def _grade_one_case_v1(
                     "LUBAN_DIAG _grade_one_case_v1: stem fallback from submission qid={} len={}",
                     qid or "(none)", len(_fallback_stem),
                 )
+                await _emit_case_grading_stage(on_stage, "rubric_source", tier="submission_stem")
                 kb_evidence = (
                     await _fetch_stem_kb_evidence(_fallback_stem, kb_name)
                     if _stem_rubric_kb_grounding_enabled()
@@ -2644,9 +2673,23 @@ async def _grade_one_case_v1(
     )
     if not points:
         return {"status": "unavailable", "reason": "no_official_scoring_points"}
+
+    async def _on_judge_group_done(*, completed: int, total: int, size: int) -> None:
+        await _emit_case_grading_stage(
+            on_stage, "judge_group_done", completed=completed, total=total, size=size
+        )
+
+    await _emit_case_grading_stage(on_stage, "rubric_ready", point_count=len(points))
+    # The progress kwarg is only threaded when an observer exists, so third-party /
+    # test doubles for ``_G`` keep their current signature (additive, not breaking).
+    _judge_progress_kwargs = (
+        {"on_group_done": _on_judge_group_done} if on_stage is not None else {}
+    )
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
-        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model)
+        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model,
+        **_judge_progress_kwargs)
+    await _emit_case_grading_stage(on_stage, "judge_done")
     # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
     # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
     # diagnostic path (same as "no rubric"), exactly like an exception would.

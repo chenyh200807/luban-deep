@@ -1842,9 +1842,27 @@ def _dynamic_adjudication_groups(
     return _split_points_evenly(points, target), "dynamic_parallel_point_chunks"
 
 
+async def _notify_group_done(
+    on_group_done: Callable[..., Any] | None,
+    *,
+    completed: int,
+    total: int,
+    size: int,
+) -> None:
+    """Best-effort progress notification. Observation-only: it never feeds a verdict,
+    never mutates a point, and a raising/slow observer must not change the grade."""
+    if on_group_done is None:
+        return
+    try:
+        await on_group_done(completed=completed, total=total, size=size)
+    except Exception:  # noqa: BLE001 — progress narration never breaks grading
+        logger.warning("rubric_grader_v1: judge group progress callback failed", exc_info=True)
+
+
 async def _batch_judge_dynamic_async(
     rubric_points: list[dict[str, Any]], student_answer: str,
     complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+    on_group_done: Callable[..., Any] | None = None,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     groups, strategy = _dynamic_adjudication_groups(rubric_points)
     if not groups:
@@ -1855,6 +1873,7 @@ async def _batch_judge_dynamic_async(
         }
     if len(groups) == 1:
         verdicts = await batch_judge_async(groups[0], student_answer, complete_fn, api_key, model=model)
+        await _notify_group_done(on_group_done, completed=1, total=1, size=len(groups[0]))
         return verdicts, {
             "adjudication_strategy": "single_batch",
             "adjudication_group_count": 1,
@@ -1863,8 +1882,23 @@ async def _batch_judge_dynamic_async(
 
     import asyncio as _asyncio
 
+    completed = 0
+    completion_lock = _asyncio.Lock()
+
     async def _run(group: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
-        return await batch_judge_async(group, student_answer, complete_fn, api_key, model=model)
+        result = await batch_judge_async(group, student_answer, complete_fn, api_key, model=model)
+        # Arrival-order progress notification (sequenced emit, L4): the grading
+        # result set is still assembled from ``gather``'s argument-order results
+        # below, so verdict truth is untouched — only the *observer* learns that
+        # one more group landed, in completion order.
+        nonlocal completed
+        async with completion_lock:
+            completed += 1
+            done_index = completed
+        await _notify_group_done(
+            on_group_done, completed=done_index, total=len(groups), size=len(group)
+        )
+        return result
 
     verdicts: dict[str, dict[str, Any]] = {}
     results = await _asyncio.gather(*(_run(group) for group in groups), return_exceptions=True)
@@ -2344,12 +2378,19 @@ def grade_with_batch_judge(
 async def grade_with_batch_judge_async(
     *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
     complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
+    on_group_done: Callable[..., Any] | None = None,
 ) -> dict[str, Any]:
     """Async V1 scoring path. Small cases stay on one batch call; larger cases are split into at most
     three concurrent sub-batches by subquestion identity when available. The deterministic sum
-    (``grade_with_rubric``) and fail-closed coverage check stay unchanged."""
+    (``grade_with_rubric``) and fail-closed coverage check stay unchanged.
+
+    ``on_group_done`` is an optional observation-only progress hook (sequenced emit, L4):
+    it is called once per finished sub-batch, in arrival order, with (completed, total,
+    size). It receives no verdicts, cannot influence the grade, and its failures are
+    swallowed."""
     verdicts, metadata = await _batch_judge_dynamic_async(
-        rubric_points, student_answer, complete_fn, api_key, model=model
+        rubric_points, student_answer, complete_fn, api_key, model=model,
+        on_group_done=on_group_done,
     )
     return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
                                 verdicts=verdicts, student_id=student_id,
