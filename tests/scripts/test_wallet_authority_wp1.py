@@ -21,13 +21,62 @@ def test_resolve_wallet_env_prefers_service_role_and_db_url_from_dotenv(tmp_path
         ),
         encoding="utf-8",
     )
-    env = resolve_wallet_env(repo_root=tmp_path, environ={})
+    env = resolve_wallet_env(
+        repo_root=tmp_path,
+        environ={},
+        db_url_keys=("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL"),
+    )
     assert env.supabase_url == "https://example.supabase.co"
     assert env.api_key == "service-key"
     assert env.service_role_key == "service-key"
     assert env.db_url.startswith("postgresql://")
     assert env.rest_enabled is True
     assert env.postgres_enabled is True
+
+
+def test_resolve_wallet_env_uses_registered_db_url_when_database_url_is_placeholder(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".env").write_text(
+        "\n".join(
+            [
+                "DB_URL=postgresql://postgres:postgres@localhost:5432/postgres",
+                "DATABASE_URL=${DB_URL}",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    env = resolve_wallet_env(
+        repo_root=tmp_path,
+        environ={},
+        db_url_keys=("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL"),
+    )
+
+    assert env.db_url == "postgresql://postgres:postgres@localhost:5432/postgres"
+    assert env.postgres_enabled is True
+
+
+def test_resolve_wallet_env_rejects_unexpanded_database_url_placeholder(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".env").write_text("DATABASE_URL=${DB_URL}\n", encoding="utf-8")
+
+    env = resolve_wallet_env(repo_root=tmp_path, environ={})
+
+    assert env.db_url == ""
+    assert env.postgres_enabled is False
+
+
+def test_resolve_wallet_env_does_not_expand_default_writer_authority_to_db_url(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".env").write_text(
+        "DB_URL=postgresql://postgres:postgres@localhost:5432/postgres\n",
+        encoding="utf-8",
+    )
+
+    env = resolve_wallet_env(repo_root=tmp_path, environ={})
+
+    assert env.db_url == ""
+    assert env.postgres_enabled is False
 
 
 def test_generate_preflight_snapshot_writes_blocked_artifacts_without_env(tmp_path: Path) -> None:
