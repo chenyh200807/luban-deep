@@ -4387,12 +4387,17 @@ async def test_rag_adapter_tool_coerces_none_answer_to_empty_string(
     result = await tool.execute(query="防水等级")
 
     assert result == ""
+    # L1 瘦身检索（contracts/rag.md 44）新增 `retrieval_profile`：调用方没声明
+    # profile（模型自发的 in-loop rag 调用永远是这一支），trace 必须落 "full"。
+    # 保持全等比较而不是放松成子集——trace 面逐字段可回放才守得住「某个 sink
+    # 悄悄多写/少写一个键」。
     assert tool.consume_trace_metadata() == {
         "kb_name": "construction-exam",
         "sources": [{"chunk_id": "c1", "source_type": "standard"}],
         "tool_source_count": 1,
         "exact_question": {},
         "authority_applied": False,
+        "retrieval_profile": "full",
     }
 
 

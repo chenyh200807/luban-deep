@@ -25,6 +25,9 @@ from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
 from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
+from deeptutor.services.rag.retrieval_profiles import (
+    RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
+)
 
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
@@ -850,6 +853,9 @@ class SupabasePipeline:
         compiled_learning_truth = kwargs.get("compiled_learning_truth")
         personalization_context = kwargs.get("personalization_context")
         personalization_context = personalization_context if isinstance(personalization_context, dict) else None
+        retrieval_profile = str(kwargs.get("retrieval_profile") or "").strip()
+        # L1 瘦身检索：同一条管线内按 profile 短路（不分叉出第二条检索函数）。
+        identity_only = retrieval_profile == RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY
         self._last_query_embedding_dim: int | None = None
         with observability.start_observation(
             name="rag.supabase.search",
@@ -872,6 +878,22 @@ class SupabasePipeline:
                 question_type=question_type,
                 routing_metadata=routing_metadata,
             )
+            if identity_only:
+                # 身份 profile 只保留 questions_bank 一族（exact text / bank 向量 /
+                # 由 bank 行客户端派生的 exact 向量 / case_like 强制 second pass）。
+                # textbook/standard/exam 三族只喂正文与 sources —— 这一轮零消费者。
+                # 连带自动关掉 standard_code_exact / standard_precision 两组
+                # （它们由 source_plan.search_standard_chunks 把门）。
+                source_plan.search_textbook_chunks = False
+                source_plan.search_standard_chunks = False
+                source_plan.search_exam_chunks = False
+                source_plan.search_questions_bank = True
+                source_plan.selection_reasons.append(
+                    f"retrieval_profile={RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY}"
+                )
+                # bank fanout 的调度判据是 `config.include_questions or question_like`；
+                # 身份检索必须无条件跑 bank，否则 exact 命脉断在调度层。
+                config.include_questions = True
             retrieval_plan = build_retrieval_plan(
                 query,
                 include_questions_default=config.include_questions,
@@ -912,7 +934,12 @@ class SupabasePipeline:
             if intent_fast_path:
                 primary_queries = primary_queries[:1]
             effective_second_pass_enabled = bool(config.second_pass_enabled and not intent_fast_path)
-            effective_rerank_enabled = bool(config.rerank_enabled and not intent_fast_path)
+            # rerank 只作用于 enriched→final_results→正文/sources；`exact_question`
+            # 在它之前由 all_plans 原始行算出（因果方向相反）。身份 profile 砍它
+            # 不改判分身份，只省 ~12k rerank token + 一次 DashScope 往返。
+            effective_rerank_enabled = bool(
+                config.rerank_enabled and not intent_fast_path and not identity_only
+            )
             exact_text_plans: list[dict[str, Any]] = []
             retrieval_warnings: list[dict[str, str]] = []
             stage_started = time.perf_counter()
@@ -1164,31 +1191,40 @@ class SupabasePipeline:
         )
         fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
         record_stage("dedupe_and_exact", stage_started)
-        stage_started = time.perf_counter()
-        enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
-        record_stage("hydrate_sources", stage_started)
-        stage_started = time.perf_counter()
-        enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
-        enriched = _project_teaching_metadata(enriched)
-        enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
-        record_stage("post_hydrate_projection", stage_started)
-        if effective_rerank_enabled:
-            stage_started = time.perf_counter()
-            reranked = await self._rerank_results(
-                query=query,
-                results=enriched,
-                config=config,
-            )
-            record_stage("rerank", stage_started)
+        if identity_only:
+            # 身份 profile 到此为止：`exact_question` 已经产出（身份 + 分母），
+            # 后面整段全是「把候选行加工成正文/sources」——全文水合、doc 多样性、
+            # rerank、ranking trace、content 拼装、source_items —— 直通轮零消费者。
+            # 只清空产物，不动 exact_question：分母逐字段与 full 模式相同。
+            stage_timings_ms["hydrate_sources"] = 0.0
+            stage_timings_ms["post_hydrate_projection"] = 0.0
+            final_results: list[dict[str, Any]] = []
         else:
-            reranked = list(enriched)
-        reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
-        final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
-        final_results = self._ensure_final_compiled_truth_presence(
-            final_results,
-            plans=final_compiled_truth_plan,
-            max_items=config.top_k,
-        )
+            stage_started = time.perf_counter()
+            enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
+            record_stage("hydrate_sources", stage_started)
+            stage_started = time.perf_counter()
+            enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
+            enriched = _project_teaching_metadata(enriched)
+            enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
+            record_stage("post_hydrate_projection", stage_started)
+            if effective_rerank_enabled:
+                stage_started = time.perf_counter()
+                reranked = await self._rerank_results(
+                    query=query,
+                    results=enriched,
+                    config=config,
+                )
+                record_stage("rerank", stage_started)
+            else:
+                reranked = list(enriched)
+            reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
+            final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
+            final_results = self._ensure_final_compiled_truth_presence(
+                final_results,
+                plans=final_compiled_truth_plan,
+                max_items=config.top_k,
+            )
         ranking_trace = build_ranking_trace(
             final_results,
             authority_order=list(getattr(retrieval_plan, "authority_order", []) or []),
@@ -1260,6 +1296,7 @@ class SupabasePipeline:
             "rerank_enabled": bool(effective_rerank_enabled),
             "second_pass_enabled": bool(effective_second_pass_enabled),
             "primary_query_count": len(primary_queries),
+            "retrieval_profile": retrieval_profile or "full",
         }
         # post-build diagnostics (total timing is only knowable after the bundle) → trace bucket
         evidence_bundle["trace"]["stage_timings_ms"] = dict(stage_timings_ms)
@@ -1275,6 +1312,9 @@ class SupabasePipeline:
             "evidence_bundle": evidence_bundle,
             "retrieval_degraded": bool(retrieval_warnings),
             "retrieval_status": "partial" if retrieval_warnings else "ok",
+            # 观测：本轮实际生效的检索深度。lean 轮的空 content/sources 必须能与
+            # 「检索失败」区分开——降级只由 retrieval_warnings 判定，profile 不参与。
+            "retrieval_profile": retrieval_profile or "full",
         }
         if retrieval_warnings:
             payload["warnings"] = list(retrieval_warnings)
@@ -1330,6 +1370,7 @@ class SupabasePipeline:
                 ],
             },
             "exact_question": exact_question or {},
+            "retrieval_profile": retrieval_profile or "full",
             "stage_timings_ms": dict(stage_timings_ms),
             "performance_policy": dict(performance_policy),
             "retrieval_degraded": bool(retrieval_warnings),

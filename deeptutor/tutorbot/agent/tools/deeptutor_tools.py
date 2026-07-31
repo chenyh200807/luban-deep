@@ -150,6 +150,11 @@ class RAGAdapterTool(Tool):
             routing_metadata["personalization_context_available"] = True
         if any(routing_metadata.values()):
             search_kwargs["routing_metadata"] = routing_metadata
+        # L1 瘦身检索（2026-08-01）：调用方声明的检索深度 profile 直通 pipeline。
+        # 模型自发的 in-loop rag 调用永远不带这个键 → 恒走全量（旧行为）。
+        retrieval_profile = str(kwargs.get("retrieval_profile") or "").strip()
+        if retrieval_profile:
+            search_kwargs["retrieval_profile"] = retrieval_profile
         try:
             result = await rag_search(**search_kwargs)
         except Exception as exc:
@@ -183,7 +188,9 @@ class RAGAdapterTool(Tool):
         exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else None
         sources = result.get("sources") if isinstance(result.get("sources"), list) else []
         answer = str(result.get("answer") or result.get("content") or "").strip()
-        if not sources and self._looks_like_empty_retrieval_answer(answer):
+        # 空 sources + 空正文是身份 profile 的**正常终态**，不是空索引降级。
+        # 误判成降级会点亮三个降级闸，把正常判分回答降成「证据不足」。
+        if not retrieval_profile and not sources and self._looks_like_empty_retrieval_answer(answer):
             self._last_trace_metadata = {
                 "kb_name": kb_name or "",
                 "sources": [],
@@ -204,6 +211,7 @@ class RAGAdapterTool(Tool):
             "tool_source_count": len(sources),
             "exact_question": exact_question or {},
             "authority_applied": False,
+            "retrieval_profile": str(result.get("retrieval_profile") or retrieval_profile or "full"),
         }
         if result.get("retrieval_degraded"):
             self._last_trace_metadata["retrieval_degraded"] = True
