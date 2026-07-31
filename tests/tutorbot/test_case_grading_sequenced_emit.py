@@ -27,12 +27,11 @@ from deeptutor.services.construction_grading import rubric_grader_v1 as G
 from deeptutor.tutorbot.agent import loop as loop_module
 from deeptutor.tutorbot.agent.loop import (
     AgentLoop,
-    _CaseGradingProgressNarrator,
     _case_grading_progress_line,
+    _CaseGradingProgressNarrator,
 )
 from deeptutor.tutorbot.bus.events import InboundMessage
 from deeptutor.tutorbot.session.manager import Session
-
 
 SCORE_FIRST = "## 批改结论\n**得分预估：** 1 / 2 分。\n- 命中 1 个，部分命中 0 个，漏/错 1 个。"
 BLOCKS = [
