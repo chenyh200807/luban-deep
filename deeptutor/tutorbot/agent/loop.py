@@ -8,6 +8,7 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import hashlib
 import re
 import sys
 from types import SimpleNamespace
@@ -16,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_ANSWER_MARKER_PATTERN,
     build_case_grading_diagnostic_only_response,
     build_case_grading_score_disclaimer,
     case_grading_score_authority_available,
@@ -1854,6 +1856,11 @@ class AgentLoop:
             if str(x or "").strip().isdigit()
         ]
         _stem_titles = _extract_case_question_titles_for_scope(user_stem or str(eq.get("stem") or ""))
+        _user_stem_hash = hashlib.sha256(
+            (user_stem or "").strip().encode("utf-8")
+        ).hexdigest()[:12]
+        md["case_user_stem_hash"] = _user_stem_hash
+        md["case_user_stem_len"] = len((user_stem or "").strip())
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
             "question_id": str(
@@ -1862,6 +1869,8 @@ class AgentLoop:
             # 覆盖对账必须对学生所见题面（live 实证：exact 命中单小问兄弟行时，
             # eq.stem 只含 1 问——拿 bank 行当整个世界，4 问粘贴被判 10/10）。
             "user_stem": user_stem,
+            "case_user_stem_hash": _user_stem_hash,
+            "case_user_stem_len": len((user_stem or "").strip()),
             "case_reference_covered_count": (
                 _adopted_count if _adopted_count else len(set(_ref_covered))
             ),
@@ -2320,6 +2329,22 @@ class AgentLoop:
                 # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
                 # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
                 _probe_stem, _probe_answer = self._split_case_grading_submission(current_message)
+                # 逐跳 surface 插桩（2026-08-01，codex 兄弟行方案 §5.4 最小先手）：
+                # 定位「同题面不同作答走不同判分通道」与「幽灵小问」两条未解病。
+                # 只导出 hash/长度/marker 数，不落全文。判据：同题面多份作答，
+                # probe_stem_hash 必须逐轮相同——第一次分叉的那跳就是根因层。
+                runtime_metadata["case_probe_stem_hash"] = hashlib.sha256(
+                    (_probe_stem or "").strip().encode("utf-8")
+                ).hexdigest()[:12]
+                runtime_metadata["case_probe_stem_len"] = len((_probe_stem or "").strip())
+                runtime_metadata["case_probe_answer_len"] = len((_probe_answer or "").strip())
+                runtime_metadata["case_probe_marker_count"] = len(
+                    re.findall(
+                        CASE_ANSWER_MARKER_PATTERN,
+                        str(current_message or ""),
+                        flags=re.IGNORECASE,
+                    )
+                )
                 initial_messages = await self._maybe_prefetch_grounded_rag(
                     initial_messages=initial_messages,
                     current_message=current_message,
