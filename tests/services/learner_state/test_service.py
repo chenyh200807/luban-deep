@@ -169,6 +169,33 @@ def _make_service(tmp_path, *, core_store=None):
     )
 
 
+def test_strict_merges_never_fall_back_to_stale_local_projection(tmp_path) -> None:
+    class FailingReaderStore(_CoreStoreStub):
+        def read_profile(self, _user_id: str):
+            raise RuntimeError("profile read failed")
+
+        def read_progress(self, _user_id: str):
+            raise RuntimeError("progress read failed")
+
+    core_store = FailingReaderStore()
+    service = _make_service(tmp_path, core_store=core_store)
+    service._write_profile_local("student_demo", {"focus_topic": "stale"})
+    service._write_progress_local("student_demo", {"knowledge_map": {"weak_points": ["stale"]}})
+    profile_before = dict(core_store.profile)
+    progress_before = dict(core_store.progress)
+
+    with pytest.raises(RuntimeError, match="profile read failed"):
+        service.merge_profile_strict("student_demo", {"focus_topic": "new"})
+    with pytest.raises(RuntimeError, match="progress read failed"):
+        service.merge_progress_strict(
+            "student_demo",
+            {"knowledge_map": {"weak_points": ["new"]}},
+        )
+
+    assert core_store.profile == profile_before
+    assert core_store.progress == progress_before
+
+
 @pytest.mark.parametrize(
     "raw",
     [

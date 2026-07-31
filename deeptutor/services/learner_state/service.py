@@ -446,7 +446,12 @@ class LearnerStateService:
     def merge_profile_strict(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         """Strict durable profile patch authority for authenticated write paths."""
         normalized = _normalize_user_id(user_id)
-        current = self.read_profile(normalized)
+        if not bool(getattr(self._core_store, "is_configured", False)):
+            raise RuntimeError("user_profiles sync requires configured Supabase core store")
+        reader = getattr(self._core_store, "read_profile", None)
+        if not callable(reader):
+            raise RuntimeError("canonical user_profiles reader is unavailable")
+        current = dict(reader(normalized) or {})
         merged = _deep_merge(current, dict(patch or {}))
         return self.write_profile_strict(normalized, merged)
 
@@ -551,9 +556,15 @@ class LearnerStateService:
         return self.write_progress(user_id, merged)
 
     def merge_progress_strict(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        progress = self.read_progress(user_id)
+        normalized = _normalize_user_id(user_id)
+        if not bool(getattr(self._core_store, "is_configured", False)):
+            raise RuntimeError("user_stats sync requires configured Supabase core store")
+        reader = getattr(self._core_store, "read_progress", None)
+        if not callable(reader):
+            raise RuntimeError("canonical user_stats reader is unavailable")
+        progress = dict(reader(normalized) or {})
         merged = _deep_merge(progress, patch)
-        return self.write_progress_strict(user_id, merged)
+        return self.write_progress_strict(normalized, merged)
 
     def read_goals(self, user_id: str) -> list[dict[str, Any]]:
         normalized = _normalize_user_id(user_id)
