@@ -1143,3 +1143,53 @@ async def test_case_rubric_v1_tier1_pool_capped_at_nominal(monkeypatch: pytest.M
     assert event["max_score"] == 30.0
     assert "case_score_capped_from" not in event
     assert event["point_pool_exceeds_max"] > 0
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_stage_hook_is_observation_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """渐进吐字（L4 2026-08-01，contracts/turn.md「渐进发射不改变终态」）：判分核
+    把已经算完的阶段事实报给观察者（走了哪一档 rubric、拆出几个点、第几组判完），
+    但观察者**零判分权力**——挂上它与不挂它，GradingEvent 逐字段相同；观察者抛错
+    也不得改变判分。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+
+    ctx = {
+        "question_id": "case-9006",
+        "user_answer": "共用开关箱不妥",
+        "construction_grading_result": {"type": "case", "max_score": 3},
+    }
+    baseline = await _grade_one_case_v1(dict(ctx), student_id="s1", complete=None, key="k", _G=G)
+
+    seen: list[tuple[str, dict]] = []
+
+    async def _on_stage(kind: str, **facts):
+        seen.append((kind, facts))
+
+    observed = await _grade_one_case_v1(
+        dict(ctx), student_id="s1", complete=None, key="k", _G=G, on_stage=_on_stage
+    )
+
+    kinds = [kind for kind, _facts in seen]
+    assert kinds[0] == "rubric_source"
+    assert seen[0][1] == {"tier": "compiled", "point_count": 3}
+    assert "rubric_ready" in kinds
+    assert "judge_group_done" in kinds
+    assert kinds[-1] == "judge_done"
+    # 终态即真值：唯一允许的差异是 event_id / 时间戳类字段（此 fixture 不含）。
+    assert observed == baseline
+
+    async def _boom(_kind: str, **_facts):
+        raise RuntimeError("observer down")
+
+    resilient = await _grade_one_case_v1(
+        dict(ctx), student_id="s1", complete=None, key="k", _G=G, on_stage=_boom
+    )
+    assert resilient == baseline
