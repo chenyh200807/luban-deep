@@ -71,6 +71,26 @@ function normalizeStructuredChartTable(table) {
   };
 }
 
+// 单一权威：小程序端**真的**有渲染分支的 canonical block 类型。
+// mcq 走 mcqCards 单独渲染，其余见 buildStructuredRenderableBlocks() 的分支。
+// canonical schema 还允许 paragraph/heading/callout/quote/code/list/image，
+// 它们在小程序端没有结构化渲染分支，只能靠 fallbackText（正文）承载——
+// 所以判断"能否吞掉正文"时必须以本表为准，不能另起一份名单（见下方事故说明）。
+var STRUCTURED_RENDERED_BLOCK_TYPES = {};
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.mcq] = true;
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.table] = true;
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.steps] = true;
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.recap] = true;
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.chart] = true;
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.formula_inline] = true;
+STRUCTURED_RENDERED_BLOCK_TYPES[renderSchema.BLOCK_TYPES.formula_block] = true;
+
+// 这些块渲染出来就是正文本身（题干/步骤/总结），再渲染一遍 fallbackText 会重复。
+var PROSE_SUBSUMING_BLOCK_TYPES = {};
+PROSE_SUBSUMING_BLOCK_TYPES[renderSchema.BLOCK_TYPES.mcq] = true;
+PROSE_SUBSUMING_BLOCK_TYPES[renderSchema.BLOCK_TYPES.steps] = true;
+PROSE_SUBSUMING_BLOCK_TYPES[renderSchema.BLOCK_TYPES.recap] = true;
+
 function buildStructuredRenderableBlocks(canonical) {
   var blocks = canonical && Array.isArray(canonical.blocks) ? canonical.blocks : [];
   var out = [];
@@ -249,6 +269,16 @@ function hasMeaningfulFallbackOutsideMcq(fallbackText, cards) {
   return /结论|判断依据|核心考点|考试场景|采分点|易错点|解析|自查问题/.test(fallback);
 }
 
+// 只有当「每个块都真的渲染得出来」且「其中至少有一个块就是正文本身」时，
+// 才允许吞掉 fallbackText。任何一个没有渲染分支的类型都必须保留正文——
+// 宁可重复也绝不丢答案（fail-open），未来新增的未知类型同样按保留处理。
+//
+// 事故记忆（2026-07-31 线上「答案不显示」）：这里原先是一份独立维护的「豁免名单」
+// {table, formula_block, chart, image}，遇到名单外的类型就 return false 吞掉正文；
+// 而 buildStructuredRenderableBlocks 只渲染 {table,steps,recap,chart,formula_*}。
+// 两份名单的差集 {paragraph,heading,callout,quote,code,list} 于是既被吞掉正文、
+// 又渲染不出块，导致服务端发了 3000+ 字的答案而客户端一个字都不显示。
+// 现在两处共用 STRUCTURED_RENDERED_BLOCK_TYPES，名单无法再各自漂移。
 function shouldRenderStructuredFallback(presentationState, fallbackText) {
   if (!presentationState || !presentationState.canonical) return true;
   var blocks = Array.isArray(presentationState.canonical.blocks)
@@ -257,20 +287,16 @@ function shouldRenderStructuredFallback(presentationState, fallbackText) {
   if (!blocks.length) return true;
   if (presentationState.hasOnlyMcqContent) return false;
 
+  var sawProseSubsumingBlock = false;
   for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
     var type = block && block.type;
-    if (
-      type === renderSchema.BLOCK_TYPES.table ||
-      type === renderSchema.BLOCK_TYPES.formula_block ||
-      type === renderSchema.BLOCK_TYPES.chart ||
-      type === renderSchema.BLOCK_TYPES.image
-    ) {
-      continue;
-    }
-    return false;
+    // 没有渲染分支的类型（含未知的新类型）：正文是它唯一的载体，必须保留。
+    if (!STRUCTURED_RENDERED_BLOCK_TYPES[type]) return true;
+    if (PROSE_SUBSUMING_BLOCK_TYPES[type]) sawProseSubsumingBlock = true;
   }
-  return true;
+  // 全是 table/chart/formula 这类图示型块时，它们不承载正文，正文必须并存。
+  return !sawProseSubsumingBlock;
 }
 
 function hasTeachingSemanticFallback(text) {
