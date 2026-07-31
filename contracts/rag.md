@@ -85,6 +85,13 @@
 41. `general_knowledge_context` 是 TutorBot / Chat agent runtime 的只读 compiled teaching overlay，只能显式 opt-in 或受控 cohort 启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.general_knowledge` 生成 pack/grounding，不得新建第二套 RAG、KB registry、taxonomy、learner memory 或 context schema。该 overlay 只能作为 LLM 教学上下文和 compact result metadata，不得写 canonical learner truth、不得成为 official grading key、不得覆盖 `RAGService` citations / exact-question / 标准条文 authority；低置信、域外或 active question 场景必须 fail-open 回原 RAG / grading 链路。
 42. `lecture_answer_method_context` / `luban_lecture_answer_method_context` 是 TutorBot runtime 的只读讲义答题方法 overlay，默认可对一建建筑实务高命中考试问答启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.lecture_answer_methods` 从 tracked all8 `runtime_supply` manifest 生成 pack/grounding，不得扫散乱 artifacts、不得新建第二套 RAG/KB/taxonomy/learner-memory authority。该 overlay 只能提供采分关键词、陷阱/红线、口诀、公式/适用条件和 source-bounded 联想；不得成为 official answer key、不得给标准分、不得写 canonical learner truth；域外、低置信或 active question / exact-question / grading 场景必须 fail-open 回原 authority。
 43. `SupabasePipeline` 的延迟杠杆（Battle2 S1-C）只允许在保持 §4 语义契约不变的前提下裁剪耗时，不得改变检索真相或成为新的路由 authority：(a) `search_unified` 超时预算按实测成功 p95 校准（默认 6.0s，registry 可配），超时必须走既有 typed `RAGSearchError` fail-closed 语义，不得静默空成功；(b) 批量 embedding 与 q0 检索的双 RPC 允许合并为单次 fanout，但逐字段输出必须与拆分路径一致（oracle 一致性门保证）；(c) `rerank` document cap 默认 0（关闭 doc 级 rerank），开启时只做 bounded 截断，不得改变 exact-question / 标准 / 教材的 authority order；(d) source 可用性探测（availability probe）走 SWR memo 出热路径，stale 值只用于避让不可用 source group，绝不据此把项目级不可用（§16 的 402/quota）降级成普通 warning。以上杠杆全部 fail-open / fail-closed 语义保持不变，仅减少每轮检索的时钟耗时。
+44. `retrieval_profile` 是**检索深度声明**（L1 瘦身检索，2026-08-01），不是第二条检索入口、不是路由 authority、不是 TutorBot mode：调用方声明「这一轮我消费什么」，统一 pipeline 在**同一条管线内**按 profile 短路，不得为某个 profile 分叉出平行检索函数。命名单一权威 = `deeptutor/services/rag/retrieval_profiles.py`。
+    - 缺省（空）= 全量管线，逐字节旧行为。模型自发的 in-loop `rag` 调用永远不带该键。
+    - `case_grading_identity`：案例判分直通轮的身份检索。**只允许裁剪产物加工**——全文水合（`_hydrate_sources`）、`_rerank_results`、`_enforce_doc_diversity`、`build_ranking_trace` 的候选面、`content` 拼装、`source_items` 构造、以及 `questions_bank` 以外的 source 检索（textbook/standard/exam 及其派生的 `standard_code_exact` / `standard_precision`）。
+    - **不得裁剪身份与分母命脉**：exact 文本探针批（`_search_exact_question_text_batch`）、`questions_bank` 向量检索及由其客户端派生的 `question_exact_vector`、`case_like` 强制 second pass（`covered_subquestions` / `covered_indexes` 的主要来源 = 判分分母，砍它即 P0 兜底满分病复发）、以及 `_extract_exact_question_payload` / `_augment_case_exact_question_with_query` / `_project_mcq_exact_question_to_query_surface` 三件套。同一道题在 lean 与 full 下的 `exact_question` 必须逐字段相同。
+    - **空 `content`/`sources` 是该 profile 的正常终态，不是降级**：`retrieval_degraded` / `retrieval_status` 仍只由 `retrieval_warnings` 判定；任何消费方不得因为 sources 为空把该轮标成降级（会点亮降级闸把正常判分回答降成「证据不足」）。
+    - 该 profile 的轮次不进 `rag_saturation` 台账（空 sources 会让 `_source_overlap` 恒 `None`，播种它反而毒化下一轮的比较基线）；fell-through 轮的饱和判据回到「首个 in-loop 轮 = round 1」。
+    - 观测：`evidence_bundle.performance_policy.retrieval_profile` + 结果顶层 `retrieval_profile`；TutorBot 侧逐轮导出 `case_direct_rag_profile ∈ {lean, full}`。kill switch `LUBAN_CASE_DIRECT_LEAN_RAG`（默认 ON，off 回全量）。
 
 ## 当前统一语义
 
@@ -126,6 +133,9 @@
 - `routing_metadata.compiled_learning_truth_available`
 - `evidence_bundle.stage_timings_ms`
 - `evidence_bundle.performance_policy`
+- `retrieval_profile`
+- `evidence_bundle.performance_policy.retrieval_profile`
+- `case_direct_rag_profile`
 - `learning_fact_capsule`
 - `routing_metadata.personalization_context_available`
 - `PersonalizationContextPack`

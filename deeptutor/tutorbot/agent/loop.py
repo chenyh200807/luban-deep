@@ -47,6 +47,9 @@ from deeptutor.services.rag.historical_questions import (
     project_grounding_text_to_query_surface,
 )
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
+from deeptutor.services.rag.retrieval_profiles import (
+    RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
+)
 from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.services.security.tutorbot_guardrails import (
     classify_tutorbot_user_input,
@@ -313,6 +316,18 @@ def _case_grading_sequenced_emit_enabled() -> bool:
     """紧急 kill switch（与 LUBAN_CASE_RUBRIC_V1_ENABLED 同款纪律：默认 ON，
     出事一个 env 变量回滚，零数据迁移面）。"""
     raw = str(os.environ.get("LUBAN_CASE_GRADING_SEQUENCED_EMIT", "") or "").strip().lower()
+    return raw not in ("false", "0", "off", "no")
+
+
+def _case_direct_lean_rag_enabled() -> bool:
+    """L1 瘦身检索 kill switch（默认 ON；off 逐字节回旧行为）。
+
+    直通判分轮的 RAG prefetch 只消费 `exact_question`（题目身份 + 分母）；
+    检索正文/sources 在该轮已被穷举证实零消费者。lean 关掉的是产物加工
+    （全文水合 / rerank / doc 多样性 / ranking trace / 正文拼装 / source_items
+    / questions_bank 以外的 source 检索），保留的是身份与分母命脉。
+    """
+    raw = str(os.environ.get("LUBAN_CASE_DIRECT_LEAN_RAG", "") or "").strip().lower()
     return raw not in ("false", "0", "off", "no")
 
 
@@ -2615,12 +2630,21 @@ class AgentLoop:
                             flags=re.IGNORECASE,
                         )
                     )
+                    # L1 瘦身检索（2026-08-01）：直通轮只要身份与分母，不要正文。
+                    # marker 逐轮发声（进 CASE_GRADING_AUTHORITY_EXPORT_KEYS）——
+                    # live 验收判据「同题重放：exact 命中与分母与 full 轮一致、
+                    # RAG 跳 <2s、rerank 调用数 0」全靠它分组。
+                    _lean_rag = _case_direct_lean_rag_enabled()
+                    runtime_metadata["case_direct_rag_profile"] = "lean" if _lean_rag else "full"
                     initial_messages = await self._maybe_prefetch_grounded_rag(
                         initial_messages=initial_messages,
                         current_message=current_message,
                         runtime_metadata=runtime_metadata,
                         force_authority_fetch=True,
                         tool_query_override=(_probe_stem or "").strip() or None,
+                        retrieval_profile=(
+                            RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY if _lean_rag else None
+                        ),
                     )
                     _prefetched_eq = runtime_metadata.get("_prefetched_exact_question")
                     if not (isinstance(_prefetched_eq, dict) and _prefetched_eq):
@@ -3633,6 +3657,7 @@ class AgentLoop:
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         force_authority_fetch: bool = False,
         tool_query_override: str | None = None,
+        retrieval_profile: str | None = None,
     ) -> list[dict[str, Any]]:
         # Idempotency (tier1/2 可达性 2026-07-30): the case-grading direct path
         # now prefetches BEFORE V1; when it falls through to the normal flow,
@@ -3658,6 +3683,12 @@ class AgentLoop:
         # 直批身份检索的查询覆写（1b）：作答文本不参与「这是哪道题」的裁决。
         if str(tool_query_override or "").strip():
             preview_args["query"] = str(tool_query_override).strip()
+        # L1 瘦身检索（2026-08-01）：检索深度 profile 透传给统一 pipeline。
+        identity_only = (
+            str(retrieval_profile or "").strip() == RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY
+        )
+        if identity_only:
+            preview_args["retrieval_profile"] = RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
@@ -3665,18 +3696,25 @@ class AgentLoop:
 
         result = await self.tools.execute("rag", preview_args)
         result_text = str(result or "").strip()
-        if not result_text:
-            return initial_messages
-        guarded_context = sanitize_untrusted_context(result_text, source="rag")
-        result_text = normalize_exact_authority_display_text(guarded_context.content)
-        if not result_text:
-            return initial_messages
-        # Project question-bank grounding onto the learner's pasted option surface so
-        # the grading LLM never reads a bank answer LETTER that conflicts with what the
-        # learner sees (value 5% is bank-D but learner-A; the model otherwise anchors on
-        # the bank letter and marks a correct answer wrong). Deterministic + fail-safe:
-        # unchanged when the learner pasted no options or values don't correspond.
-        result_text = project_grounding_text_to_query_surface(result_text, current_message)
+        # 身份 profile 下 pipeline 不再拼装正文，`result_text` 恒空是**正常终态**。
+        # 旧的「空正文 → 直接 return」短路会在 consume_trace_metadata 之前退出，
+        # 把 exact_question 一起丢掉 —— 身份链断在这里就等于 tier3 复发。
+        if not identity_only:
+            if not result_text:
+                return initial_messages
+            guarded_context = sanitize_untrusted_context(result_text, source="rag")
+            result_text = normalize_exact_authority_display_text(guarded_context.content)
+            if not result_text:
+                return initial_messages
+            # Project question-bank grounding onto the learner's pasted option surface so
+            # the grading LLM never reads a bank answer LETTER that conflicts with what the
+            # learner sees (value 5% is bank-D but learner-A; the model otherwise anchors on
+            # the bank letter and marks a correct answer wrong). Deterministic + fail-safe:
+            # unchanged when the learner pasted no options or values don't correspond.
+            result_text = project_grounding_text_to_query_surface(result_text, current_message)
+        else:
+            guarded_context = None
+            result_text = ""
 
         tool_trace_metadata: dict[str, Any] | None = None
         try:
@@ -3688,9 +3726,18 @@ class AgentLoop:
             tool_trace_metadata=tool_trace_metadata if isinstance(tool_trace_metadata, dict) else None,
             rag_rounds=[],
         )
-        if guarded_context.signals:
+        if guarded_context is not None and guarded_context.signals:
             merged_metadata["guardrail_sanitized"] = True
             merged_metadata["guardrail_signals"] = list(guarded_context.signals)
+        if identity_only:
+            # 饱和台账不得被空 sources 轮毒化（L1 陷阱①）。`_source_overlap` 对空
+            # 集合恒返回 None，播种一个空 sources 的 prefetch 轮会让紧随其后的
+            # in-loop 轮拿到不可比的基线（round_index=2 但 overlap=None）→ 该轮
+            # 的重复 query 永远判不出饱和。身份轮本就没检索通用知识，不该占台账
+            # 一格：不播种 = fell-through 轮回到「首个 in-loop 轮 = round 1」的
+            # 原语义，第二轮起 overlap 照常可比。
+            for _ledger_key in ("rag_round", "rag_rounds", "rag_round_count"):
+                merged_metadata.pop(_ledger_key, None)
         self._record_rag_trace_status(runtime_metadata, merged_metadata)
         exact_candidate = (
             merged_metadata.get("exact_question")
@@ -3736,6 +3783,13 @@ class AgentLoop:
                 # suppression collapse): kept for observability parity.
                 runtime_metadata["prefetched_rag_satisfied"] = True
                 merged_metadata["prefetched_rag_satisfied"] = True
+        if identity_only:
+            # 身份 profile 到此收工：exact_question 已落进 runtime_metadata（判分
+            # 唯一消费者），下面整段是把检索正文注入 messages —— 直通轮无
+            # on_tool_call/on_tool_result 回调，正文只会落进 role:tool 消息，而
+            # session/manager.stable_messages() 丢弃一切非 user/assistant 角色、
+            # 永不回放；fell-through 时外层重建 messages，同样弃置。不注入。
+            return initial_messages
         if on_tool_call:
             await on_tool_call("rag", preview_args)
         if on_tool_result:
