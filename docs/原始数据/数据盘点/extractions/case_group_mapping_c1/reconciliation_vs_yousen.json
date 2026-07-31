@@ -1,0 +1,1770 @@
+[
+ {
+  "case_group_id": "2015-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   13881,
+   13882,
+   13883,
+   13884
+  ]
+ },
+ {
+  "case_group_id": "2015-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   13885,
+   13886,
+   13887,
+   13888
+  ]
+ },
+ {
+  "case_group_id": "2015-case3",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   13889,
+   13890,
+   13891,
+   13892
+  ]
+ },
+ {
+  "case_group_id": "2015-case4",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 5,
+  "row_ids": [
+   13893,
+   13894,
+   13895,
+   13896,
+   13897
+  ]
+ },
+ {
+  "case_group_id": "2016-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   13828,
+   13829,
+   13830,
+   13831
+  ]
+ },
+ {
+  "case_group_id": "2016-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   13832,
+   13833,
+   13834,
+   13835
+  ]
+ },
+ {
+  "case_group_id": "2016-case3",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   13836,
+   13837,
+   13838,
+   13839
+  ]
+ },
+ {
+  "case_group_id": "2016-case4",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 6,
+  "row_ids": [
+   13840,
+   13841,
+   13842,
+   13843,
+   13844,
+   13845
+  ]
+ },
+ {
+  "case_group_id": "2016-case5",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 5,
+  "row_ids": [
+   13846,
+   13847,
+   13848,
+   13849,
+   13850
+  ]
+ },
+ {
+  "case_group_id": "2017-case1",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    3
+   ],
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   9096,
+   9097,
+   17079,
+   17080
+  ]
+ },
+ {
+  "case_group_id": "2017-case2",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   9098,
+   9099,
+   17082,
+   17083
+  ]
+ },
+ {
+  "case_group_id": "2017-case3",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 2,
+  "row_ids": [
+   9100,
+   17085
+  ]
+ },
+ {
+  "case_group_id": "2017-case4",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 2,
+  "row_ids": [
+   9101,
+   17086
+  ]
+ },
+ {
+  "case_group_id": "2017-case5",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 3,
+  "row_ids": [
+   9102,
+   9103,
+   17087
+  ]
+ },
+ {
+  "case_group_id": "2017-case6",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 10,
+  "row_ids": [
+   8744,
+   8745,
+   8746,
+   8747,
+   9104,
+   17088,
+   17089,
+   17090,
+   17091,
+   17092
+  ]
+ },
+ {
+  "case_group_id": "2018-case1",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    3
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 5,
+  "row_ids": [
+   8770,
+   9149,
+   9150,
+   17118,
+   17119
+  ]
+ },
+ {
+  "case_group_id": "2018-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 11,
+  "row_ids": [
+   8771,
+   8773,
+   8774,
+   8775,
+   9151,
+   9152,
+   17121,
+   17123,
+   17124,
+   17125,
+   17126
+  ]
+ },
+ {
+  "case_group_id": "2018-case3",
+  "db_subquestion_indexes": [
+   2,
+   3
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   2,
+   3
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   9168,
+   9169,
+   17127,
+   17128
+  ]
+ },
+ {
+  "case_group_id": "2018-case4",
+  "db_subquestion_indexes": [
+   3
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    3
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 5,
+  "row_ids": [
+   8779,
+   9171,
+   9174,
+   17130,
+   17134
+  ]
+ },
+ {
+  "case_group_id": "2018-case5",
+  "db_subquestion_indexes": [
+   1
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 6,
+  "row_ids": [
+   8784,
+   9173,
+   9175,
+   17133,
+   17135,
+   17136
+  ]
+ },
+ {
+  "case_group_id": "2018-case6",
+  "db_subquestion_indexes": [
+   1,
+   2
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   9179,
+   9180,
+   17137,
+   17138
+  ]
+ },
+ {
+  "case_group_id": "2019-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 10,
+  "row_ids": [
+   8808,
+   8809,
+   8810,
+   9199,
+   9200,
+   17164,
+   17167,
+   17168,
+   17169,
+   17170
+  ]
+ },
+ {
+  "case_group_id": "2019-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 8,
+  "row_ids": [
+   8812,
+   8813,
+   8814,
+   9216,
+   17171,
+   17172,
+   17173,
+   17174
+  ]
+ },
+ {
+  "case_group_id": "2019-case3",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 3,
+  "row_ids": [
+   8815,
+   9232,
+   17175
+  ]
+ },
+ {
+  "case_group_id": "2019-case4",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ],
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 7,
+  "row_ids": [
+   8816,
+   8817,
+   8825,
+   9233,
+   9234,
+   17176,
+   17177
+  ]
+ },
+ {
+  "case_group_id": "2019-case5",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 13,
+  "row_ids": [
+   8820,
+   8821,
+   8822,
+   8823,
+   9235,
+   9236,
+   9261,
+   17178,
+   17179,
+   17180,
+   17181,
+   17182,
+   17183
+  ]
+ },
+ {
+  "case_group_id": "2020-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 16,
+  "row_ids": [
+   8850,
+   8851,
+   8852,
+   9280,
+   9297,
+   9298,
+   9300,
+   9303,
+   17206,
+   17207,
+   17208,
+   17209,
+   17214,
+   17215,
+   17217,
+   17220
+  ]
+ },
+ {
+  "case_group_id": "2020-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 12,
+  "row_ids": [
+   9299,
+   9301,
+   9302,
+   9305,
+   9306,
+   9308,
+   17216,
+   17218,
+   17219,
+   17222,
+   17223,
+   17225
+  ]
+ },
+ {
+  "case_group_id": "2020-case3",
+  "db_subquestion_indexes": [
+   1
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 4,
+  "row_ids": [
+   9304,
+   9325,
+   17221,
+   17230
+  ]
+ },
+ {
+  "case_group_id": "2020-case4",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 2,
+  "row_ids": [
+   9307,
+   17224
+  ]
+ },
+ {
+  "case_group_id": "2020-case5",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "无金标(佑森未覆盖)",
+  "total_rows": 18,
+  "row_ids": [
+   8867,
+   8868,
+   8869,
+   8872,
+   8873,
+   8874,
+   9309,
+   9326,
+   9342,
+   17226,
+   17227,
+   17228,
+   17229,
+   17231,
+   17232,
+   17233,
+   17234,
+   17235
+  ]
+ },
+ {
+  "case_group_id": "2021-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 20,
+  "row_ids": [
+   8900,
+   8901,
+   8902,
+   8903,
+   8905,
+   8906,
+   8907,
+   8908,
+   9366,
+   9391,
+   17271,
+   17272,
+   17273,
+   17274,
+   17275,
+   17276,
+   17277,
+   17278,
+   17279,
+   17280
+  ]
+ },
+ {
+  "case_group_id": "2021-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 14,
+  "row_ids": [
+   8910,
+   8911,
+   8912,
+   8921,
+   8922,
+   9416,
+   9441,
+   9442,
+   17281,
+   17282,
+   17283,
+   17284,
+   17285,
+   17286
+  ]
+ },
+ {
+  "case_group_id": "2021-case3",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9443,
+   17287
+  ]
+ },
+ {
+  "case_group_id": "2021-case4",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    6
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9445,
+   17290
+  ]
+ },
+ {
+  "case_group_id": "2021-case5",
+  "db_subquestion_indexes": [
+   5
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 6,
+  "row_ids": [
+   8919,
+   8920,
+   9446,
+   9447,
+   17291,
+   17292
+  ]
+ },
+ {
+  "case_group_id": "2022-case1",
+  "db_subquestion_indexes": [
+   1,
+   2
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3
+  ],
+  "covered": [
+   1,
+   2
+  ],
+  "verdict": "❌缺[3]",
+  "total_rows": 5,
+  "row_ids": [
+   8948,
+   9466,
+   17315,
+   17316,
+   17317
+  ]
+ },
+ {
+  "case_group_id": "2022-case2",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9475,
+   17319
+  ]
+ },
+ {
+  "case_group_id": "2022-case3",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9476,
+   17320
+  ]
+ },
+ {
+  "case_group_id": "2022-case4",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 4,
+  "row_ids": [
+   9477,
+   9478,
+   17321,
+   17322
+  ]
+ },
+ {
+  "case_group_id": "2022-case5",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    6
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 10,
+  "row_ids": [
+   9479,
+   9480,
+   9481,
+   9482,
+   9483,
+   17323,
+   17324,
+   17325,
+   17326,
+   17327
+  ]
+ },
+ {
+  "case_group_id": "2023-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 16,
+  "row_ids": [
+   8978,
+   8979,
+   8980,
+   8982,
+   8983,
+   8984,
+   9502,
+   9518,
+   17352,
+   17353,
+   17354,
+   17355,
+   17357,
+   17358,
+   17359,
+   17360
+  ]
+ },
+ {
+  "case_group_id": "2023-case2",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 13,
+  "row_ids": [
+   8986,
+   8987,
+   8988,
+   8990,
+   9534,
+   9550,
+   17363,
+   17364,
+   17365,
+   17366,
+   17368,
+   17369,
+   17370
+  ]
+ },
+ {
+  "case_group_id": "2023-case3",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 8,
+  "row_ids": [
+   8993,
+   8994,
+   8995,
+   9559,
+   17371,
+   17372,
+   17373,
+   17374
+  ]
+ },
+ {
+  "case_group_id": "2023-case4",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "❌缺[6]",
+  "total_rows": 11,
+  "row_ids": [
+   8998,
+   8999,
+   9000,
+   9001,
+   9576,
+   17376,
+   17377,
+   17378,
+   17379,
+   17380,
+   17381
+  ]
+ },
+ {
+  "case_group_id": "2023-case5",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 10,
+  "row_ids": [
+   9004,
+   9005,
+   9006,
+   9007,
+   9612,
+   17382,
+   17383,
+   17384,
+   17385,
+   17386
+  ]
+ },
+ {
+  "case_group_id": "2024-case1",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 4,
+  "row_ids": [
+   9657,
+   9659,
+   17415,
+   17419
+  ]
+ },
+ {
+  "case_group_id": "2024-case2",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 4,
+  "row_ids": [
+   9658,
+   9660,
+   17418,
+   17420
+  ]
+ },
+ {
+  "case_group_id": "2024-case3",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9662,
+   17422
+  ]
+ },
+ {
+  "case_group_id": "2024-case4",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9663,
+   17423
+  ]
+ },
+ {
+  "case_group_id": "2024-case5",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 2,
+  "row_ids": [
+   9664,
+   17424
+  ]
+ },
+ {
+  "case_group_id": "2025-case1",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 11,
+  "row_ids": [
+   9053,
+   9056,
+   9057,
+   9058,
+   9680,
+   9682,
+   17445,
+   17448,
+   17449,
+   17450,
+   17451
+  ]
+ },
+ {
+  "case_group_id": "2025-case2",
+  "db_subquestion_indexes": [],
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 5,
+  "row_ids": [
+   9059,
+   9698,
+   9699,
+   17452,
+   17453
+  ]
+ },
+ {
+  "case_group_id": "2025-case3",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 10,
+  "row_ids": [
+   9063,
+   9064,
+   9065,
+   9700,
+   9701,
+   17455,
+   17457,
+   17458,
+   17459,
+   17460
+  ]
+ },
+ {
+  "case_group_id": "2025-case4",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 15,
+  "row_ids": [
+   9067,
+   9070,
+   9071,
+   9072,
+   9073,
+   9717,
+   9726,
+   17461,
+   17462,
+   17463,
+   17464,
+   17465,
+   17466,
+   17467,
+   17468
+  ]
+ },
+ {
+  "case_group_id": "2025-case5",
+  "db_subquestion_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "whole_case_spans": [],
+  "yousen_expected": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "covered": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "verdict": "✅覆盖齐",
+  "total_rows": 12,
+  "row_ids": [
+   9077,
+   9078,
+   9079,
+   9080,
+   9751,
+   9753,
+   17469,
+   17470,
+   17471,
+   17472,
+   17473,
+   17474
+  ]
+ }
+]

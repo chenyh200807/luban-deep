@@ -1,0 +1,1977 @@
+{
+ "2017-case6": {
+  "total_rows": 10,
+  "subquestion_rows": 10,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "48e67311a62c5e57",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8744,
+   8745,
+   8746,
+   8747,
+   9104,
+   17088,
+   17089,
+   17090,
+   17091,
+   17092
+  ]
+ },
+ "2018-case2": {
+  "total_rows": 11,
+  "subquestion_rows": 8,
+  "whole_case_rows": 3,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "6b0975a526a1e819",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8771,
+   8773,
+   8774,
+   8775,
+   9151,
+   9152,
+   17121,
+   17123,
+   17124,
+   17125,
+   17126
+  ]
+ },
+ "2019-case1": {
+  "total_rows": 10,
+  "subquestion_rows": 10,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 1,
+    "ids": [
+     9199,
+     9200,
+     17164,
+     17167
+    ]
+   }
+  ],
+  "fingerprint": "39c25d221ac08c61",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8808,
+   8809,
+   8810,
+   9199,
+   9200,
+   17164,
+   17167,
+   17168,
+   17169,
+   17170
+  ]
+ },
+ "2019-case2": {
+  "total_rows": 8,
+  "subquestion_rows": 8,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "92dd12a483f980cf",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8812,
+   8813,
+   8814,
+   9216,
+   17171,
+   17172,
+   17173,
+   17174
+  ]
+ },
+ "2019-case5": {
+  "total_rows": 13,
+  "subquestion_rows": 11,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 2,
+    "ids": [
+     8820,
+     9261,
+     17180
+    ]
+   }
+  ],
+  "fingerprint": "bed30fb7196b1313",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8820,
+   8821,
+   8822,
+   8823,
+   9235,
+   9236,
+   9261,
+   17178,
+   17179,
+   17180,
+   17181,
+   17182,
+   17183
+  ]
+ },
+ "2020-case1": {
+  "total_rows": 16,
+  "subquestion_rows": 15,
+  "whole_case_rows": 0,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 2,
+    "ids": [
+     8850,
+     9298,
+     17207,
+     17215
+    ]
+   },
+   {
+    "index": 3,
+    "ids": [
+     8851,
+     9300,
+     17208,
+     17217
+    ]
+   },
+   {
+    "index": 4,
+    "ids": [
+     8852,
+     9303,
+     17209
+    ]
+   },
+   {
+    "index": 1,
+    "ids": [
+     9280,
+     9297,
+     17206,
+     17214
+    ]
+   }
+  ],
+  "fingerprint": "88d40886c16fdbf2",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8850,
+   8851,
+   8852,
+   9280,
+   9297,
+   9298,
+   9300,
+   9303,
+   17206,
+   17207,
+   17208,
+   17209,
+   17214,
+   17215,
+   17217,
+   17220
+  ]
+ },
+ "2020-case5": {
+  "total_rows": 18,
+  "subquestion_rows": 17,
+  "whole_case_rows": 0,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 2,
+    "ids": [
+     8867,
+     8872,
+     17227,
+     17232
+    ]
+   },
+   {
+    "index": 3,
+    "ids": [
+     8868,
+     8873,
+     17228,
+     17233
+    ]
+   },
+   {
+    "index": 4,
+    "ids": [
+     8869,
+     8874,
+     9342,
+     17229,
+     17234
+    ]
+   },
+   {
+    "index": 1,
+    "ids": [
+     9309,
+     9326,
+     17226,
+     17231
+    ]
+   }
+  ],
+  "fingerprint": "889bc5cfd7ffb0e2",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8867,
+   8868,
+   8869,
+   8872,
+   8873,
+   8874,
+   9309,
+   9326,
+   9342,
+   17226,
+   17227,
+   17228,
+   17229,
+   17231,
+   17232,
+   17233,
+   17234,
+   17235
+  ]
+ },
+ "2021-case1": {
+  "total_rows": 20,
+  "subquestion_rows": 20,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "371b2bcd75e90227",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8900,
+   8901,
+   8902,
+   8903,
+   8905,
+   8906,
+   8907,
+   8908,
+   9366,
+   9391,
+   17271,
+   17272,
+   17273,
+   17274,
+   17275,
+   17276,
+   17277,
+   17278,
+   17279,
+   17280
+  ]
+ },
+ "2021-case2": {
+  "total_rows": 14,
+  "subquestion_rows": 8,
+  "whole_case_rows": 5,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "3e0ed69d351645b4",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8910,
+   8911,
+   8912,
+   8921,
+   8922,
+   9416,
+   9441,
+   9442,
+   17281,
+   17282,
+   17283,
+   17284,
+   17285,
+   17286
+  ]
+ },
+ "2021-case5": {
+  "total_rows": 6,
+  "subquestion_rows": 3,
+  "whole_case_rows": 3,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   5
+  ],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 5,
+    "ids": [
+     8920,
+     9447,
+     17292
+    ]
+   }
+  ],
+  "fingerprint": "c083f6f84e60657d",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8919,
+   8920,
+   9446,
+   9447,
+   17291,
+   17292
+  ]
+ },
+ "2022-case1": {
+  "total_rows": 5,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 2,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "5141ff4501764d54",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8948,
+   9466,
+   17315,
+   17316,
+   17317
+  ]
+ },
+ "2023-case1": {
+  "total_rows": 16,
+  "subquestion_rows": 8,
+  "whole_case_rows": 8,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "2d44437d8bcc82ba",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8978,
+   8979,
+   8980,
+   8982,
+   8983,
+   8984,
+   9502,
+   9518,
+   17352,
+   17353,
+   17354,
+   17355,
+   17357,
+   17358,
+   17359,
+   17360
+  ]
+ },
+ "2023-case2": {
+  "total_rows": 13,
+  "subquestion_rows": 12,
+  "whole_case_rows": 0,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 2,
+    "ids": [
+     8986,
+     8990,
+     17364,
+     17369
+    ]
+   },
+   {
+    "index": 1,
+    "ids": [
+     9534,
+     9550,
+     17363,
+     17368
+    ]
+   }
+  ],
+  "fingerprint": "9176edd5d917a4c8",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8986,
+   8987,
+   8988,
+   8990,
+   9534,
+   9550,
+   17363,
+   17364,
+   17365,
+   17366,
+   17368,
+   17369,
+   17370
+  ]
+ },
+ "2023-case3": {
+  "total_rows": 8,
+  "subquestion_rows": 8,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "53744e961e672050",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8993,
+   8994,
+   8995,
+   9559,
+   17371,
+   17372,
+   17373,
+   17374
+  ]
+ },
+ "2023-case4": {
+  "total_rows": 11,
+  "subquestion_rows": 10,
+  "whole_case_rows": 0,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 5,
+    "ids": [
+     9001,
+     17380
+    ]
+   }
+  ],
+  "fingerprint": "839eba9b33abea0f",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8998,
+   8999,
+   9000,
+   9001,
+   9576,
+   17376,
+   17377,
+   17378,
+   17379,
+   17380,
+   17381
+  ]
+ },
+ "2023-case5": {
+  "total_rows": 10,
+  "subquestion_rows": 10,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "e42d533c047658ad",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9004,
+   9005,
+   9006,
+   9007,
+   9612,
+   17382,
+   17383,
+   17384,
+   17385,
+   17386
+  ]
+ },
+ "2025-case1": {
+  "total_rows": 11,
+  "subquestion_rows": 8,
+  "whole_case_rows": 3,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "fbd26c9c5d0d9276",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9053,
+   9056,
+   9057,
+   9058,
+   9680,
+   9682,
+   17445,
+   17448,
+   17449,
+   17450,
+   17451
+  ]
+ },
+ "2025-case3": {
+  "total_rows": 10,
+  "subquestion_rows": 8,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "1cf3b196060f1105",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9063,
+   9064,
+   9065,
+   9700,
+   9701,
+   17455,
+   17457,
+   17458,
+   17459,
+   17460
+  ]
+ },
+ "2025-case4": {
+  "total_rows": 15,
+  "subquestion_rows": 14,
+  "whole_case_rows": 0,
+  "background_only_rows": 1,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 2,
+    "ids": [
+     9067,
+     9070,
+     17462,
+     17465
+    ]
+   }
+  ],
+  "fingerprint": "53b957b8cae43fbc",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9067,
+   9070,
+   9071,
+   9072,
+   9073,
+   9717,
+   9726,
+   17461,
+   17462,
+   17463,
+   17464,
+   17465,
+   17466,
+   17467,
+   17468
+  ]
+ },
+ "2025-case5": {
+  "total_rows": 12,
+  "subquestion_rows": 12,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 1,
+    "ids": [
+     9751,
+     9753,
+     17469,
+     17470
+    ]
+   }
+  ],
+  "fingerprint": "547f18a9905ee392",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9077,
+   9078,
+   9079,
+   9080,
+   9751,
+   9753,
+   17469,
+   17470,
+   17471,
+   17472,
+   17473,
+   17474
+  ]
+ },
+ "2018-case3": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   2,
+   3
+  ],
+  "contiguous": false,
+  "whole_case_spans": [],
+  "max_observed_subq": 3,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "8762c23edc95d4e0",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9168,
+   9169,
+   17127,
+   17128
+  ]
+ },
+ "2018-case5": {
+  "total_rows": 6,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 2,
+  "distinct_indexes": [
+   1
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 1,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 1,
+    "ids": [
+     9173,
+     9175,
+     17133,
+     17135
+    ]
+   }
+  ],
+  "fingerprint": "b5d60f714d800caf",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8784,
+   9173,
+   9175,
+   17133,
+   17135,
+   17136
+  ]
+ },
+ "2018-case4": {
+  "total_rows": 5,
+  "subquestion_rows": 2,
+  "whole_case_rows": 3,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   3
+  ],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    3
+   ]
+  ],
+  "max_observed_subq": 3,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "a895fb098a8b8288",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8779,
+   9171,
+   9174,
+   17130,
+   17134
+  ]
+ },
+ "2018-case6": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 2,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "f7d08a888bf26a01",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9179,
+   9180,
+   17137,
+   17138
+  ]
+ },
+ "2020-case2": {
+  "total_rows": 12,
+  "subquestion_rows": 12,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [
+   {
+    "index": 1,
+    "ids": [
+     9299,
+     9301,
+     17216,
+     17218
+    ]
+   },
+   {
+    "index": 2,
+    "ids": [
+     9302,
+     9305,
+     17219,
+     17222
+    ]
+   }
+  ],
+  "fingerprint": "bfda5ff4d23c3019",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9299,
+   9301,
+   9302,
+   9305,
+   9306,
+   9308,
+   17216,
+   17218,
+   17219,
+   17222,
+   17223,
+   17225
+  ]
+ },
+ "2020-case3": {
+  "total_rows": 4,
+  "subquestion_rows": 2,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 1,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "d281598483fc8510",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9304,
+   9325,
+   17221,
+   17230
+  ]
+ },
+ "2022-case5": {
+  "total_rows": 10,
+  "subquestion_rows": 8,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [
+   [
+    1,
+    6
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "6f6c773691ad448a",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9479,
+   9480,
+   9481,
+   9482,
+   9483,
+   17323,
+   17324,
+   17325,
+   17326,
+   17327
+  ]
+ },
+ "2016-case1": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "9f29c88c27ee9c5e",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13828,
+   13829,
+   13830,
+   13831
+  ]
+ },
+ "2016-case2": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "162868ae2c39c1f7",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13832,
+   13833,
+   13834,
+   13835
+  ]
+ },
+ "2016-case3": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "962c7d8cc426ab82",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13836,
+   13837,
+   13838,
+   13839
+  ]
+ },
+ "2016-case4": {
+  "total_rows": 6,
+  "subquestion_rows": 6,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 6,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "f215b0be1a7618dd",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13840,
+   13841,
+   13842,
+   13843,
+   13844,
+   13845
+  ]
+ },
+ "2016-case5": {
+  "total_rows": 5,
+  "subquestion_rows": 5,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "3bc42dc5f293f1d4",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13846,
+   13847,
+   13848,
+   13849,
+   13850
+  ]
+ },
+ "2015-case1": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "95a01714a59a8506",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13881,
+   13882,
+   13883,
+   13884
+  ]
+ },
+ "2015-case2": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "fc2b1b8e8d446620",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13885,
+   13886,
+   13887,
+   13888
+  ]
+ },
+ "2015-case3": {
+  "total_rows": 4,
+  "subquestion_rows": 4,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 4,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "b7e184bdaea98eaa",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13889,
+   13890,
+   13891,
+   13892
+  ]
+ },
+ "2015-case4": {
+  "total_rows": 5,
+  "subquestion_rows": 5,
+  "whole_case_rows": 0,
+  "background_only_rows": 0,
+  "distinct_indexes": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "contiguous": true,
+  "whole_case_spans": [],
+  "max_observed_subq": 5,
+  "gens": [
+   "g0_xw"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "20e0da5737feaf8c",
+  "case_no_src": "oid_xw_CASE",
+  "row_ids": [
+   13893,
+   13894,
+   13895,
+   13896,
+   13897
+  ]
+ },
+ "2018-case1": {
+  "total_rows": 5,
+  "subquestion_rows": 0,
+  "whole_case_rows": 5,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    3
+   ]
+  ],
+  "max_observed_subq": 3,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "2f834eafd3f85b59",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8770,
+   9149,
+   9150,
+   17118,
+   17119
+  ]
+ },
+ "2019-case3": {
+  "total_rows": 3,
+  "subquestion_rows": 0,
+  "whole_case_rows": 3,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "4891ddc1e58f455d",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8815,
+   9232,
+   17175
+  ]
+ },
+ "2019-case4": {
+  "total_rows": 7,
+  "subquestion_rows": 0,
+  "whole_case_rows": 7,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ],
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "4a87cee292c0469e",
+  "case_no_src": "page_order",
+  "row_ids": [
+   8816,
+   8817,
+   8825,
+   9233,
+   9234,
+   17176,
+   17177
+  ]
+ },
+ "2025-case2": {
+  "total_rows": 5,
+  "subquestion_rows": 0,
+  "whole_case_rows": 5,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g1_auto",
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "ed5b9622dc614e19",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9059,
+   9698,
+   9699,
+   17452,
+   17453
+  ]
+ },
+ "2017-case1": {
+  "total_rows": 4,
+  "subquestion_rows": 0,
+  "whole_case_rows": 4,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    3
+   ],
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "8fe18ad738ec5b33",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9096,
+   9097,
+   17079,
+   17080
+  ]
+ },
+ "2017-case2": {
+  "total_rows": 4,
+  "subquestion_rows": 0,
+  "whole_case_rows": 4,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "dc8849cd9a7ec5b4",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9098,
+   9099,
+   17082,
+   17083
+  ]
+ },
+ "2017-case3": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "10608251df840419",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9100,
+   17085
+  ]
+ },
+ "2017-case4": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "b242d87dfa59cd3a",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9101,
+   17086
+  ]
+ },
+ "2017-case5": {
+  "total_rows": 3,
+  "subquestion_rows": 0,
+  "whole_case_rows": 3,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "25e04dff49f605ad",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9102,
+   9103,
+   17087
+  ]
+ },
+ "2020-case4": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "ff231f696dbb485e",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9307,
+   17224
+  ]
+ },
+ "2021-case3": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "2a5aa5959cbcd2dd",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9443,
+   17287
+  ]
+ },
+ "2021-case4": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    6
+   ]
+  ],
+  "max_observed_subq": 6,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "bc8dc7f713602cb3",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9445,
+   17290
+  ]
+ },
+ "2022-case2": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "2d4785ced1108b90",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9475,
+   17319
+  ]
+ },
+ "2022-case3": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    4
+   ]
+  ],
+  "max_observed_subq": 4,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "c8019c9bd6f41ab3",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9476,
+   17320
+  ]
+ },
+ "2022-case4": {
+  "total_rows": 4,
+  "subquestion_rows": 0,
+  "whole_case_rows": 4,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "19c805fe059ae991",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9477,
+   9478,
+   17321,
+   17322
+  ]
+ },
+ "2024-case1": {
+  "total_rows": 4,
+  "subquestion_rows": 0,
+  "whole_case_rows": 4,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "7166c1775093de93",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9657,
+   9659,
+   17415,
+   17419
+  ]
+ },
+ "2024-case2": {
+  "total_rows": 4,
+  "subquestion_rows": 0,
+  "whole_case_rows": 4,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "72c93a800a1f0647",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9658,
+   9660,
+   17418,
+   17420
+  ]
+ },
+ "2024-case3": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "13752a3198cea478",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9662,
+   17422
+  ]
+ },
+ "2024-case4": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "ebaeba4cb4159573",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9663,
+   17423
+  ]
+ },
+ "2024-case5": {
+  "total_rows": 2,
+  "subquestion_rows": 0,
+  "whole_case_rows": 2,
+  "background_only_rows": 0,
+  "distinct_indexes": [],
+  "contiguous": false,
+  "whole_case_spans": [
+   [
+    1,
+    5
+   ]
+  ],
+  "max_observed_subq": 5,
+  "gens": [
+   "g2_exam_chunk",
+   "g3_exam_year"
+  ],
+  "answer_conflicts": [],
+  "fingerprint": "9fe9a0bd1552de39",
+  "case_no_src": "page_order",
+  "row_ids": [
+   9664,
+   17424
+  ]
+ }
+}
