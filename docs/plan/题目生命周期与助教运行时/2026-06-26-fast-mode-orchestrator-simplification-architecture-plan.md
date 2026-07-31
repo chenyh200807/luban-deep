@@ -1627,7 +1627,7 @@ Pass criteria：
 
 - 残留：#6「bot 主动重排」需换 prompt 或人眼核（倒诬核心已 #4 验证）；#3 精确 ordinal「上一题=q1 还是 q2」程序难断，连续性（无失忆）已证，精确序需人眼复核一次。
 
-**裁决（2026-06-28 更新）：Phase 0 离线 closure GREEN（A+B+C，authority_count 真下降）+ 生产真窗实测干净（D，exit 0/0 命中/薄样本）+ 微信真机 true-entry 核心 3 SEV 全 PASS（E，5/6，billing-orthogonal eval-bypass）。**全 GO 唯一剩余 gate = (D) 7 天 live 窗日历+流量成熟（~07-03，目前仅 ~2 天 18 turns），到期 hits 持续 0 才解锁 Task 2-5 deletion 并盖 GO。状态：`Phase 0 WEAK-GO 离线收口完成 + 真机 true-entry 核心 SEV 验证 / Phase 1-3 deletion 仅剩 7 天 live 窗时间门`。不翻全 GO（红线：窗未成熟不得据此删除）。**
+**裁决（2026-07-31 审计更正）：Phase 0 离线 closure 与当时的真机 SEV 证据保留，但它们不等于 Task 2-5 的 control-plane writer 收权完成。** 原定 7 天窗口的日历截止已经过去，却没有同一部署 lineage、足量流量和 writer 零命中的刷新证据；因此 Task 2-5 继续保持 gated，`authority_count`/production writer 没有按验收口径下降前不得宣称 authority closure。到期不是证据，行为故障修复也不能替代控制面收权。
 
 ## 15. 测试与质量门
 
