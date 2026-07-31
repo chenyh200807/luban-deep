@@ -1581,10 +1581,23 @@ class AgentLoop:
                 or "?" in text
             )
 
+        def _own_index() -> str:
+            """本行自身的小问序号（顶层直配时，采纳集就是这一个小问）。"""
+            own = str(reference_context.get("display_index") or "").strip()
+            if own.isdigit():
+                return own
+            rows = reference_context.get("covered_subquestions")
+            if isinstance(rows, list) and len(rows) == 1 and isinstance(rows[0], dict):
+                one = str(rows[0].get("display_index") or "").strip()
+                if one.isdigit():
+                    return one
+            return "1" if reference_context.get("correct_answer") else ""
+
         user = _compact(user_stem)
         if not user:
             return {
                 "reference": str(reference_context.get("correct_answer") or "").strip(),
+                "matched_indexes": "",
                 "question_id": str(reference_context.get("question_id") or "").strip(),
             }
 
@@ -1607,8 +1620,11 @@ class AgentLoop:
         # prompt/surface，旧键集永远打不着——拓宽为两族键并存。
         for key in ("question", "question_stem", "stem", "surface", "prompt"):
             if _matches_current(reference_context.get(key)):
+                # 顶层直配=命中的是这一行（兄弟行形态下即"一个小问"），
+                # 采纳集必须记 1 个，不能让上层回落到 payload 的行数。
                 return {
                     "reference": str(reference_context.get("correct_answer") or "").strip(),
+                    "matched_indexes": _own_index(),
                     "question_id": str(reference_context.get("question_id") or "").strip(),
                 }
 
@@ -1633,6 +1649,11 @@ class AgentLoop:
 
         return {
             "reference": "\n".join(answers).strip(),
+            # P0-b（2026-08-01 验证实证）：覆盖分子必须是"参考答案**实际采纳**了几个
+            # 小问"，不是"检索回来几行兄弟行"——本函数按用户题面过滤后的命中集才是
+            # 真正进入判分的参考面（live: payload 说 4 行、实际只采纳 1 问 → 旧分子
+            # 算成 4/5 让 1/4 的作答拿到 8/10）。
+            "matched_indexes": ",".join(dict.fromkeys(matched_display_indexes)),
             "question_id": matched_question_ids[0] if len(matched_question_ids) == 1 else "",
             # 唯一命中一个小问时导出其 display_index，供复合 qid（tier1 pgo bank 键
             # ``{exam_year}::{source_chunk_id}::E{n}``）确定性合成；多问或零命中留空。
@@ -1719,6 +1740,7 @@ class AgentLoop:
             md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
         covered = eq.get("covered_subquestions") or []
         eq_display_index = ""
+        eq_current: dict[str, str] = {}
         if user_stem and eq:
             eq_current = AgentLoop._current_case_reference_from_context(eq, user_stem)
             ref = str(eq_current.get("reference") or "").strip()
@@ -1806,7 +1828,13 @@ class AgentLoop:
         # 覆盖比例用确定性信号：eq 的 covered_indexes（supabase 侧已按 display_index
         # 算好、此前全仓零消费者）÷ 学生题面小问数——不靠 n-gram 事后猜（钉三实证
         # 那条链同输入会给出 3/4 与 4/4 两个结果）。
-        _ref_covered = [
+        _adopted = [
+            x for x in str(eq_current.get("matched_indexes") or "").split(",")
+            if x.strip().isdigit()
+        ] if user_stem and eq else []
+        # 采纳集为空时回落 payload 的 covered_indexes（旧行为），但两者语义不同：
+        # 采纳集=真正进判分的小问，payload=检索命中的兄弟行数。优先采纳集。
+        _ref_covered = _adopted or [
             str(x).strip()
             for x in (eq.get("covered_indexes") or [])
             if str(x or "").strip().isdigit()
