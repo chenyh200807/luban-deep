@@ -2008,3 +2008,68 @@ def test_build_ctx_fail_closed_when_stem_unsplittable() -> None:
     ctx = AgentLoop._build_v1_case_ctx(md, weird)
     assert md.get("exact_question_blocked_reason") == "unverifiable_submission_shape"
     assert ctx["correct_answer"] == ""  # 钥匙没入判
+
+
+def test_toolless_repair_messages_strip_tool_shape() -> None:
+    """OD-003 根治：修复轮消息必须剥掉工具形态（tool_calls 壳+tool 角色），
+    证据展平为文本——模型没有可模仿的工具语法，才不会继续吐 tool_calls。"""
+    messages = [
+        {"role": "system", "content": "你是助教"},
+        {"role": "user", "content": "【背景资料】某工程…\n【问题】1. 指出不妥？"},
+        {"role": "assistant", "content": "", "tool_calls": [{"id": "c1", "function": {"name": "rag"}}]},
+        {"role": "tool", "tool_call_id": "c1", "name": "rag", "content": "检索证据A"},
+        {"role": "assistant", "content": "草稿片段", "tool_calls": [{"id": "c2", "function": {"name": "rag"}}]},
+        {"role": "tool", "tool_call_id": "c2", "name": "rag", "content": "检索证据B"},
+    ]
+    out = AgentLoop._toolless_repair_messages(messages, repair_prompt="请直接作答")
+    assert all("tool_calls" not in m for m in out)
+    assert all(m.get("role") != "tool" for m in out)
+    joined = "\n".join(str(m.get("content") or "") for m in out)
+    assert "检索证据A" in joined and "检索证据B" in joined   # 证据不丢
+    assert "【问题】1. 指出不妥？" in joined                  # 题面在
+    assert out[-1]["content"] == "请直接作答"                 # 修复指令末位
+    assert "草稿片段" in joined                               # 草稿保留供参考
+
+
+def test_toolless_repair_truncates_huge_evidence() -> None:
+    messages = [{"role": "system", "content": "s"}, {"role": "user", "content": "q"}]
+    messages += [{"role": "tool", "tool_call_id": f"c{i}", "name": "rag", "content": "证" * 3000}
+                 for i in range(5)]
+    out = AgentLoop._toolless_repair_messages(messages, repair_prompt="p", max_evidence_chars=1000)
+    ev = next(m for m in out if "已检索到的全部证据" in str(m.get("content") or ""))
+    assert len(ev["content"]) < 1400 and "证据已截断" in ev["content"]
+
+
+def test_build_ctx_stem_fallback_when_scene_jitter_drops_case_context() -> None:
+    """OD-004 补刀：scene 抖动（LLM 参与）导致 eq/fc/split 全空时，判分不得因
+    题面缺位整条降级——学生已交案例作答=判分行为在场，题面兜底取其原文
+    （tier3 从学生自己贴的题面推导，不涉他题钥匙，无倒诬风险）。"""
+    md = {}
+    raw = ("【背景资料】某工程施工中出现质量问题需要整改" + "详细描述" * 30 +
+           "\n【问题】1. 指出不妥？2. 正确做法？\n以上是我的理解，请批改。")
+    ctx = AgentLoop._build_v1_case_ctx(md, raw)
+    assert ctx["question_stem"], "题面不得为空（否则 no_reference 整条降级）"
+    assert md.get("case_stem_fallback") == "raw_submission"
+    # 短文本/非案例形状不兜底（不制造假判分面）
+    md2 = {}
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, "这题怎么做？")
+    assert "case_stem_fallback" not in md2
+
+
+def test_case_stem_fallback_marker_projected_from_event() -> None:
+    """OD-004 根治配套（[luban_grading_engine] domain test）：共享判分核落的
+    case_stem_fallback 必须经 tutorbot 事件→md 映射上全 sink（兜底生效可观测）。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    assert "case_stem_fallback" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    source = {
+        "question_lifecycle_scene": "case_grading",
+        "case_stem_fallback": "submission_text",
+        "score_authority": "rubric_scored_v1_diagnostic",
+    }
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(source, target)
+    assert target["case_stem_fallback"] == "submission_text"
