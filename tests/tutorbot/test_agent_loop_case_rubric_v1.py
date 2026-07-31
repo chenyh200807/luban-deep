@@ -2186,3 +2186,30 @@ def test_surface_tracing_hashes_deterministic_and_answer_independent() -> None:
     )
     for key in ("case_probe_stem_hash", "case_user_stem_hash", "case_probe_marker_count"):
         assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+
+
+def test_case_surface_strips_cross_turn_context_wrapper() -> None:
+    """跨轮包装剥离（2026-08-01 插桩实战确诊）：存库消息 1548 字符干净、运行时
+    判分面 14150——上下文包装混进题面导致 ①检索命中随机（通道漂移）②旧轮编号
+    被数成幽灵小问。判分面必须只看本轮真实提交：优先 raw_user_message。"""
+    raw = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+           "问题1：指出不妥之处并说明理由？\n问题2：写出正确做法？\n"
+           "问题3：写出构造名称？\n问题4：补充工艺流程？\n"
+           "我的答案：我认为试验员记录不妥。")
+    wrapper = ("[History Context]\n此前轮次讨论了其他题目。\n"
+               "问题5：上一轮的旧编号噪声？\n问题6：更多旧编号？\n\n"
+               "[User Question]\n" + raw)
+    # ① raw_user_message 在场：直接用原文
+    md1 = {"raw_user_message": raw}
+    ctx1 = AgentLoop._build_v1_case_ctx(md1, wrapper)
+    assert ctx1["case_stem_subquestion_count"] == 4, (
+        f"包装里的问题5/6不得被计入，实得 {ctx1['case_stem_subquestion_count']}"
+    )
+    # ② raw 缺席：走 [User Question] 剥离器，结果一致
+    ctx2 = AgentLoop._build_v1_case_ctx({}, wrapper)
+    assert ctx2["case_stem_subquestion_count"] == 4
+    assert ctx1["case_user_stem_hash"] == ctx2["case_user_stem_hash"], "两条路径必须同源"
+    # ③ hash 只依赖本轮提交，与包装内容无关
+    wrapper_b = wrapper.replace("其他题目", "完全不同的历史内容与更多噪声文字")
+    ctx3 = AgentLoop._build_v1_case_ctx({}, wrapper_b)
+    assert ctx3["case_user_stem_hash"] == ctx1["case_user_stem_hash"], "包装变化不得影响判分面 hash"

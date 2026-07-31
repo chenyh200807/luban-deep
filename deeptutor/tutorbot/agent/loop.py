@@ -1676,6 +1676,24 @@ class AgentLoop:
             ),
         }
 
+    @classmethod
+    def _case_submission_surface(cls, md: dict[str, Any] | None, current_message: str) -> str:
+        """案例判分面的学生提交单一来源（2026-08-01 插桩实战确诊）。
+
+        live 实证：存库消息 1548 字符干净，运行时判分面却是 14150——unified 入口把
+        跨轮会话上下文包装（[History Context] 等，随账号历史增长逐轮不同）注入
+        current_message。后果一因两病：①包装噪声混进检索题干 → exact 命中随机
+        → 同题不同轮走不同判分通道；②包装里旧轮编号被小问计数器数进去 → 4 问
+        数成 5（离线用干净存档复现不出的原因）。判分的身份/切割/计数面只许看
+        **本轮学生真实提交**：优先 metadata.raw_user_message（持久化的原文），
+        次选既有 [User Question] 剥离器，最后才退回 current_message。
+        """
+        raw = str(((md or {}).get("raw_user_message")) or "").strip()
+        if raw:
+            return raw
+        extracted = cls._extract_current_user_question_section(str(current_message or ""))
+        return extracted or str(current_message or "")
+
     @staticmethod
     def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
         """Pure mapping: TutorBot runtime_metadata -> the ctx dict that rubric_grader_v1 core grades.
@@ -1684,6 +1702,8 @@ class AgentLoop:
         current turn is not a fresh full-case submission, or when that followup context matches the current
         pasted stem."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # 判分面单一来源收口（2026-08-01）：剥掉跨轮上下文包装，只看本轮真实提交。
+        user_message = AgentLoop._case_submission_surface(md, user_message)
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
         current_case_context = case_grading_context_from_full_submission(user_message) or {}
@@ -2328,7 +2348,9 @@ class AgentLoop:
                 # 身份检索只喂题干：live 实证整段粘贴（题干+作答）会让 shape 分类
                 # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
                 # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
-                _probe_stem, _probe_answer = self._split_case_grading_submission(current_message)
+                _probe_stem, _probe_answer = self._split_case_grading_submission(
+                    self._case_submission_surface(runtime_metadata, current_message)
+                )
                 # 逐跳 surface 插桩（2026-08-01，codex 兄弟行方案 §5.4 最小先手）：
                 # 定位「同题面不同作答走不同判分通道」与「幽灵小问」两条未解病。
                 # 只导出 hash/长度/marker 数，不落全文。判据：同题面多份作答，
