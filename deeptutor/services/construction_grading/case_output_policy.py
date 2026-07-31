@@ -74,6 +74,19 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     # 真题判分=min(Σ命中,满分)且池≥满分是常态；V1 无封顶→先量化在服发生率，
     # 确定性封顶=canonical bank 上服硬前置。
     "point_pool_exceeds_max",
+    # 方案 C / C3 题级组取全（2026-08-01，contracts/rag.md §45）：
+    # - case_bundle_source: "group_query" | "whole_row" | "single_row_fallback"
+    #   —— 参考答案覆盖面到底是「按题级组取全」拿到的，还是回落到单行。live
+    #   验收判据（2023 家族整卷 covered_indexes=[1,2,3,4]、2024 整题行走
+    #   whole_row、库外题照旧 single_row_fallback）全靠它分组。
+    # - case_bundle_hydration: 降级/跳过原因（skipped:null_group_key /
+    #   degraded:group_query_failed:* …）。降级必须发声。
+    # - case_answer_conflict_unresolved: 形如 "2023-case2:1,2"——该组这些小问的
+    #   多个入库世代答案冲突、C2 未裁决（canonical=NULL），已 fail-closed 不入
+    #   参考。没有这个 marker，「有争议」会被静默读成「没这一问」。
+    "case_bundle_source",
+    "case_bundle_hydration",
+    "case_answer_conflict_unresolved",
     # 覆盖对账（2026-07-30）：判分实际覆盖的小问数/题面小问数 + 未覆盖清单。
     # live 事故=学生答 2/4 问被判整题满分——部分覆盖必须发声且分数只代表已覆盖部分。
     "case_subq_coverage",

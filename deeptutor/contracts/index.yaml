@@ -583,6 +583,26 @@ domains:
         falls open to the main LLM. Domain tests live in
         tests/services/rag/test_supabase_strategy.py (identity adjudicator)
         and tests/services/rag/test_rag_pipelines.py (demotion/no-floor state).
+      - case_group_id is the ONE authority for case-question group membership
+        and is an immutable id (contracts/rag.md 45). On a case_study exact hit
+        the pipeline fetches the whole group in one query keyed by case_group_id
+        with case_row_canonical=not.is.false — NEVER =true, because C2 left 72
+        answer-conflict rows NULL, so =true silently drops subquestions while
+        covered_indexes still looks contiguous (a fake full coverage). Rows
+        whose case_row_canonical is NULL are fail-closed OUT of the reference
+        and announced via case_answer_conflict_unresolved. A
+        case_row_granularity=whole_question hit already contains every
+        subquestion and must issue ZERO group query. A NULL case_group_id means
+        group membership is not built yet, never that the row is not a case —
+        fail open to the single-row bundle
+        (case_bundle_hydration=skipped:null_group_key), never back to
+        chunk/year aggregation. Bundle assembly orders only by
+        (case_subquestion_index, id) so the bundle is identical whichever
+        sibling row seeded it. case_bundle_source
+        (group_query|whole_row|single_row_fallback) rides every sink. The group
+        query is identity/denominator spine, so the lean retrieval profile must
+        still run it. Domain tests live in
+        tests/services/rag/test_case_group_bundle.py.
       - retrieval_profile is a retrieval-DEPTH declaration, never a second
         retrieval entry point, router, or TutorBot mode (contracts/rag.md 44).
         Naming authority is deeptutor/services/rag/retrieval_profiles.py and the
@@ -654,6 +674,9 @@ domains:
       # L1 瘦身检索（contracts/rag.md 44）：lean/full 的 exact 身份与分母逐字段
       # 相同 + 可砍清单确实被砍 + 空 sources 不得被判成 degraded。
       - tests/services/rag/test_case_grading_identity_profile.py
+      # 方案 C / C3 题级组取全（contracts/rag.md 45）：seed 不变量 + 冲突洞
+      # fail-closed + whole_question 零组查询 + 无组键零回归 + lean 共存。
+      - tests/services/rag/test_case_group_bundle.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 

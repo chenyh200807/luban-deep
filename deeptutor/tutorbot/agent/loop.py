@@ -2013,6 +2013,19 @@ class AgentLoop:
         )
         if user_stem and fc and not str(fc_current.get("reference") or "").strip() and str(fc.get("correct_answer") or "").strip():
             md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
+        # 方案 C / C3（2026-08-01）：题级组取全的来源/降级/冲突三个 marker 由
+        # supabase pipeline 单写进 exact_question payload，这里是它们进入 md 的
+        # 唯一提升点（与 case_stem_fallback / composite_qid_candidate 同一处，
+        # 不新开第二条搬运链）。三个键都在 CASE_GRADING_AUTHORITY_EXPORT_KEYS 里，
+        # 落进判分事件 → turn metadata → trace 全 sink。
+        for _bundle_marker in (
+            "case_bundle_source",
+            "case_bundle_hydration",
+            "case_answer_conflict_unresolved",
+        ):
+            _bundle_value = eq.get(_bundle_marker)
+            if str(_bundle_value or "").strip():
+                md[_bundle_marker] = _bundle_value
         covered = eq.get("covered_subquestions") or []
         eq_display_index = ""
         eq_current: dict[str, str] = {}
