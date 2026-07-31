@@ -2607,12 +2607,14 @@ class AgentLoop:
     @staticmethod
     def _case_grading_live_preview_text(user_message: str) -> str:
         user_stem, _user_answer = AgentLoop._split_case_grading_submission(user_message)
-        # 小问计数只认【问题】段的 问题N（live 事故：背景资料的编号条目 1.-4. 被
-        # 数进去，4 问的案例开场白说"按 8 个小问"）；无问题段再退回编号行计数。
-        _q_section = user_stem.split("【问题】", 1)[1] if "【问题】" in user_stem else ""
-        _q_indexes = set(re.findall(r"问题\s*(\d{1,2})", _q_section or user_stem))
-        if _q_indexes:
-            count = min(len(_q_indexes), 8)
+        # 小问计数收权（2026-08-01 端侧实测：4 问卷开场白说"按 3 个小问"）：
+        # 本函数此前维护**第二套**计数正则（行内"本问题 3 项不妥"之类文字会污染
+        # 去重集）——同一事实两把尺子，正是今天全程在杀的 N 名单病。收敛到与
+        # 判分分母同一权威 _extract_case_question_titles_for_scope，开场白数字
+        # 与判分用的小问数**结构上不可能再不一致**。
+        _titles = _extract_case_question_titles_for_scope(user_stem)
+        if len(_titles) >= 1:
+            count = min(len(_titles), 8)
             return (
                 f"这道案例题我已经进入逐采分点批改，会按 {count} 个小问逐一核对。\n\n"
                 "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
