@@ -4,6 +4,7 @@ Unified Prompt Manager - Single source of truth for all prompt loading.
 Supports multi-language, caching, and language fallbacks.
 """
 
+import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -12,11 +13,22 @@ import yaml
 from deeptutor.services.config import PROJECT_ROOT, parse_language
 
 
+class ResolvedPrompts(dict[str, Any]):
+    """Backward-compatible prompt mapping carrying its canonical source identity."""
+
+    def __init__(self, values: dict[str, Any], *, source_path: Path, content_hash: str) -> None:
+        super().__init__(values)
+        self.registry_identity = {
+            "source_path": str(source_path.relative_to(PROJECT_ROOT)),
+            "content_hash": content_hash,
+        }
+
+
 class PromptManager:
     """Unified prompt manager with singleton pattern and global caching."""
 
     _instance: "PromptManager | None" = None
-    _cache: dict[str, dict[str, Any]] = {}
+    _cache: dict[str, ResolvedPrompts] = {}
 
     # Language fallback chain: if primary language not found, try alternatives
     LANGUAGE_FALLBACKS = {
@@ -41,7 +53,7 @@ class PromptManager:
         agent_name: str,
         language: str = "zh",
         subdirectory: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> ResolvedPrompts:
         """
         Load prompts for an agent.
 
@@ -81,7 +93,7 @@ class PromptManager:
         agent_name: str,
         lang_code: str,
         subdirectory: str | None,
-    ) -> dict[str, Any]:
+    ) -> ResolvedPrompts:
         """Load prompt file with language fallback."""
         prompt_dirs = self._candidate_prompt_dirs(module_name)
         fallback_chain = self.LANGUAGE_FALLBACKS.get(lang_code, ["en"])
@@ -91,14 +103,23 @@ class PromptManager:
                 prompt_file = self._resolve_prompt_path(prompts_dir, lang, agent_name, subdirectory)
                 if prompt_file and prompt_file.exists():
                     try:
-                        with open(prompt_file, encoding="utf-8") as f:
-                            return yaml.safe_load(f) or {}
+                        raw = prompt_file.read_bytes()
+                        values = yaml.safe_load(raw.decode("utf-8")) or {}
+                        return ResolvedPrompts(
+                            values,
+                            source_path=prompt_file,
+                            content_hash=hashlib.sha256(raw).hexdigest(),
+                        )
                     except Exception as e:
                         print(f"Warning: Failed to load {prompt_file}: {e}")
                         continue
 
         print(f"Warning: No prompt file found for {module_name}/{agent_name}")
-        return {}
+        return ResolvedPrompts(
+            {},
+            source_path=PROJECT_ROOT / "missing-prompt.yaml",
+            content_hash=hashlib.sha256(b"").hexdigest(),
+        )
 
     def _candidate_prompt_dirs(self, module_name: str) -> list[Path]:
         """Return legacy and current prompt roots for a module."""
@@ -136,7 +157,7 @@ class PromptManager:
             return direct_path
 
         # Recursive search in subdirectories
-        found = list(lang_dir.rglob(f"{agent_name}.yaml"))
+        found = sorted(lang_dir.rglob(f"{agent_name}.yaml"))
         if found:
             return found[0]
 
@@ -195,7 +216,7 @@ class PromptManager:
         agent_name: str,
         language: str = "zh",
         subdirectory: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> ResolvedPrompts:
         """Force reload prompts, bypassing cache."""
         lang_code = parse_language(language)
         cache_key = self._build_cache_key(module_name, agent_name, lang_code, subdirectory)
@@ -218,4 +239,4 @@ def get_prompt_manager() -> PromptManager:
     return _prompt_manager
 
 
-__all__ = ["PromptManager", "get_prompt_manager"]
+__all__ = ["PromptManager", "ResolvedPrompts", "get_prompt_manager"]

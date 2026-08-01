@@ -70,13 +70,15 @@ jobs:
 
           # Parse the verdict + counts from summary.json on one line (no heredoc, so
           # the YAML block scalar stays intact), then split into positional params.
-          summary_line=$(python3 -c "import json; s=json.load(open('${summary}', encoding='utf-8')); c=s['summary']; print(s['verdict'], c['passed'], c['failed'], c['deferred'])")
+          summary_line=$(python3 -c "import json; s=json.load(open('${summary}', encoding='utf-8')); c=s['summary']; print(s['verdict'], c['passed'], c.get('warned', 0), c['failed'], c['deferred'])")
           set -- ${summary_line}
-          verdict="$1"; passed="$2"; failed="$3"; deferred="$4"
-          echo "verdict=${verdict} passed=${passed} failed=${failed} deferred=${deferred}"
+          verdict="$1"; passed="$2"; warned="$3"; failed="$4"; deferred="$5"
+          echo "verdict=${verdict} passed=${passed} warned=${warned} failed=${failed} deferred=${deferred}"
 
           if [ "${verdict}" = "PASS" ] && [ "${rc}" = "0" ]; then
-            echo "Observability eval gate clean: ${passed} passed, ${deferred} deferred (honest skips)."
+            echo "Observability eval gate clean: ${passed} passed."
+          elif [ "${verdict}" = "WARN" ] && [ "${rc}" = "0" ]; then
+            echo "::warning::Observability eval gate incomplete (warned=${warned}, deferred=${deferred}); this is not release authorization."
           else
             echo "::error::Observability eval gate regression (verdict=${verdict}, failed=${failed}). See summary.json + per-gate logs in the uploaded artifact."
             exit 1

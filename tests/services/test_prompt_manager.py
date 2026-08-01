@@ -16,3 +16,5 @@ def test_prompt_manager_loads_prompts_from_deeptutor_tree() -> None:
     )
 
     assert "generate_ideas" in prompts
+    assert prompts.registry_identity["source_path"].endswith("idea_agent.yaml")
+    assert len(prompts.registry_identity["content_hash"]) == 64

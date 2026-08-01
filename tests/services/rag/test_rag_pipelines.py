@@ -1765,7 +1765,7 @@ async def test_supabase_search_builds_partial_case_authority_bundle(
 
 
 @pytest.mark.asyncio
-async def test_supabase_search_promotes_high_confidence_case_question_bank_match_from_case_query(
+async def test_supabase_search_does_not_promote_case_similarity_without_exact_identity(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from deeptutor.services.rag.pipelines import supabase as supabase_module
@@ -1841,11 +1841,18 @@ async def test_supabase_search_promotes_high_confidence_case_question_bank_match
         kb_name="construction-exam",
     )
 
-    assert result["exact_question"]["chunk_id"] == "question-17468"
-    assert result["exact_question"]["source_group"] == "question_bank_case_match"
-    assert result["exact_question"]["answer_kind"] == "case_study"
-    assert result["exact_question"]["covered_subquestions"][0]["display_index"] == "5"
-    assert result["exact_question"]["covered_subquestions"][0]["authoritative_answer"] == "3335.40 万元。"
+    assert not result.get("exact_question")
+
+
+def test_case_identity_surface_includes_background_and_stem() -> None:
+    from deeptutor.services.rag.pipelines.supabase import _question_identity_surface
+
+    assert _question_identity_surface(
+        {
+            "background_context": "背景甲",
+            "stem": "问题一：计算造价",
+        }
+    ) == "背景甲 问题一：计算造价"
 
 
 @pytest.mark.asyncio
@@ -2019,9 +2026,9 @@ async def test_supabase_search_merges_case_exact_text_with_question_bank_case_ma
     covered_indexes = {
         item["display_index"] for item in result["exact_question"]["covered_subquestions"]
     }
-    assert covered_indexes == {"1", "5"}
-    assert result["exact_question"]["coverage_state"] == "partial_multi_subquestion_exact"
-    assert result["exact_question"]["coverage_ratio"] == pytest.approx(2 / 3, rel=1e-4)
+    assert covered_indexes == {"1"}
+    assert result["exact_question"]["coverage_state"] == "single_subquestion_only"
+    assert result["exact_question"]["coverage_ratio"] == pytest.approx(1 / 3, rel=1e-4)
     assert any("完全成本法" in item["prompt"] for item in result["exact_question"]["missing_subquestions"])
     from deeptutor.services.rag.exact_authority import build_exact_authority_response
 

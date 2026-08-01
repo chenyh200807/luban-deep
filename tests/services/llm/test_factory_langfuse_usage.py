@@ -7,16 +7,18 @@ from datetime import datetime, timezone
 import pytest
 
 from deeptutor.services.llm.executors import sdk_stream
-from deeptutor.services.llm.factory import complete, stream
+from deeptutor.services.llm.factory import _prompt_content_hash, complete, stream
 from deeptutor.services.llm.types import TutorResponse, TutorStreamChunk
 
 
 class _FakeObservability:
     def __init__(self) -> None:
         self.updated: list[dict[str, object]] = []
+        self.started: list[dict[str, object]] = []
 
     @contextmanager
-    def start_observation(self, **_kwargs):
+    def start_observation(self, **kwargs):
+        self.started.append(kwargs)
         yield object()
 
     def update_observation(self, _observation, **kwargs):
@@ -27,6 +29,14 @@ class _FakeObservability:
 
     def estimate_cost_details(self, **_kwargs):
         return {"input": 0.0, "output": 0.0, "total": 0.0}
+
+
+def test_prompt_content_hash_tracks_effective_messages_deterministically() -> None:
+    messages = [{"role": "system", "content": "teach"}, {"role": "user", "content": "Q1"}]
+    assert _prompt_content_hash(messages) == _prompt_content_hash(list(messages))
+    assert _prompt_content_hash(messages) != _prompt_content_hash(
+        [{"role": "system", "content": "teach"}, {"role": "user", "content": "Q2"}]
+    )
 
 
 @pytest.mark.asyncio
@@ -51,6 +61,10 @@ async def test_factory_complete_prefers_provider_usage_for_langfuse(monkeypatch)
         base_url="https://api.openai.com/v1",
         binding="openai",
         max_retries=0,
+        prompt_registry_identity={
+            "source_path": "deeptutor/agents/question/prompts/en/idea_agent.yaml",
+            "content_hash": "a" * 64,
+        },
     )
 
     assert result == "provider-ok"
@@ -59,6 +73,13 @@ async def test_factory_complete_prefers_provider_usage_for_langfuse(monkeypatch)
         "input": 12.0,
         "output": 8.0,
         "total": 20.0,
+    }
+    assert fake_observability.started[-1]["metadata"]["prompt_content_hash"] == _prompt_content_hash(
+        [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "hello"}]
+    )
+    assert fake_observability.started[-1]["metadata"]["prompt_registry_identity"] == {
+        "source_path": "deeptutor/agents/question/prompts/en/idea_agent.yaml",
+        "content_hash": "a" * 64,
     }
 
 

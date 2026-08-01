@@ -1162,3 +1162,10 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 分桶复用 `_registered_on_local_date`，与会员列表筛选**同源**，所以 KPI 数字必须等于按同一日期区间筛出的行数（`tests/services/member_console/test_service.py::test_dashboard_new_counts_agree_with_member_list_registered_date_filter` 守护）。
 
 `created_at` 缺失/不可解析、晚于今天、早于序列起点的成员**各自单独计数**（`undated_member_count` / `future_dated_member_count` / `before_window_member_count`），不得折进任何日期桶——数据缺口必须读作缺口，不能冒充真实的 0。同理，窗口起点早于 `BI_OPERATION_START_AT` 时，前端必须说明早期的 0 是没有数据而非没有新注册。
+
+## Overlay promotion durability（2026-07-31）
+
+promotion candidate 只有在 canonical learner-state store 写入成功后才可 ACK；远端读取或写入失败
+必须保留 pending，禁止回落本地 projection 后宣称 `promoted_to_global_core`。没有 durable
+candidate-id 幂等约束的 goal promotion、没有原子合并能力的 progress promotion 暂不自动晋升，
+直到 core store 提供可重放的原子 mutation authority。

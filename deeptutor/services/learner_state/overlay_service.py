@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import json
-import re
-import uuid
 from copy import deepcopy
 from datetime import datetime, timedelta
+import json
 from pathlib import Path
+import re
 from typing import Any
+import uuid
 
 from deeptutor.services.learner_state.outbox import LearnerStateOutbox
 from deeptutor.services.path_service import PathService, get_path_service
@@ -792,22 +792,15 @@ class BotLearnerOverlayService:
             applied_kind = ""
 
             if candidate_kind in {"stable_goal_signal", "explicit_goal"}:
-                goal_title = str(
-                    payload.get("title")
-                    or payload.get("goal")
-                    or payload.get("topic")
-                    or ""
-                ).strip()
-                if goal_title and hasattr(learner_state_service, "upsert_goal"):
-                    goal_payload = {
-                        "goal_type": str(payload.get("goal_type") or "study").strip() or "study",
-                        "title": goal_title,
-                        "progress": payload.get("progress", 0),
-                        "deadline": payload.get("deadline"),
-                        "source_bot_id": bot_id,
+                skipped.append(
+                    {
+                        "candidate_id": candidate_id,
+                        "candidate_kind": candidate_kind,
+                        "eligible": False,
+                        "reason": "durable_idempotency_unavailable",
                     }
-                    learner_state_service.upsert_goal(user_id, goal_payload)
-                    applied_kind = "goal"
+                )
+                continue
 
             elif candidate_kind in {"stable_preference", "explicit_preference"}:
                 preference_patch = {
@@ -816,39 +809,20 @@ class BotLearnerOverlayService:
                     if key in {"difficulty_preference", "explanation_style", "focus_topic", "focus_query"}
                     and value not in {"", None}
                 }
-                if preference_patch and hasattr(learner_state_service, "merge_profile"):
-                    learner_state_service.merge_profile(user_id, preference_patch)
+                if preference_patch:
+                    learner_state_service.merge_profile_strict(user_id, preference_patch)
                     applied_kind = "profile"
 
             elif candidate_kind in {"possible_weak_point", "weak_point_signal"}:
-                weak_point = str(
-                    payload.get("topic")
-                    or payload.get("weak_point")
-                    or payload.get("title")
-                    or ""
-                ).strip()
-                if weak_point and hasattr(learner_state_service, "merge_progress"):
-                    current_progress = {}
-                    if hasattr(learner_state_service, "read_progress"):
-                        current_progress = dict(learner_state_service.read_progress(user_id) or {})
-                    knowledge_map = dict(current_progress.get("knowledge_map") or {})
-                    existing = [
-                        str(item).strip()
-                        for item in list(knowledge_map.get("weak_points") or [])
-                        if str(item).strip()
-                    ]
-                    if weak_point not in existing:
-                        existing.append(weak_point)
-                    learner_state_service.merge_progress(
-                        user_id,
-                        {
-                            "knowledge_map": {
-                                **knowledge_map,
-                                "weak_points": existing[:8],
-                            }
-                        },
-                    )
-                    applied_kind = "progress"
+                skipped.append(
+                    {
+                        "candidate_id": candidate_id,
+                        "candidate_kind": candidate_kind,
+                        "eligible": False,
+                        "reason": "atomic_progress_merge_unavailable",
+                    }
+                )
+                continue
 
             if applied_kind:
                 if hasattr(learner_state_service, "append_memory_event"):
@@ -874,6 +848,12 @@ class BotLearnerOverlayService:
                         "applied_kind": applied_kind,
                     }
                 )
+                self.ack_promotions(
+                    bot_id,
+                    user_id,
+                    [candidate_id],
+                    reason="promoted_to_global_core",
+                )
             else:
                 drop_ids.append(candidate_id)
                 dropped.append(
@@ -883,13 +863,6 @@ class BotLearnerOverlayService:
                     }
                 )
 
-        if ack_ids:
-            self.ack_promotions(
-                bot_id,
-                user_id,
-                ack_ids,
-                reason="promoted_to_global_core",
-            )
         if drop_ids:
             self.drop_promotions(
                 bot_id,

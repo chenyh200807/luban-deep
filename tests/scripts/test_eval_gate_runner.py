@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -64,7 +63,7 @@ gates:
 
     assert result.returncode == 0, result.stderr
     summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
-    assert summary["verdict"] == "PASS"
+    assert summary["verdict"] == "WARN"
     assert summary["summary"]["deferred"] == 1
     gate = summary["gates"][0]
     assert gate["name"] == "missing_fixture_gate"
@@ -291,7 +290,35 @@ gates:
     summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
     assert [gate["name"] for gate in summary["gates"]] == ["control_plane_writer", "release_gate_report_only"]
     release_gate = summary["gates"][1]
-    assert release_gate["status"] == "PASS"
+    assert release_gate["status"] == "WARN"
+    assert summary["verdict"] == "WARN"
+    assert summary["summary"]["warned"] == 1
+
+
+def test_eval_gate_runner_fails_when_release_payload_path_is_missing(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    gates_path.write_text(
+        """
+version: 1
+gates:
+  release_gate_report_only:
+    command: ["python", "-c", "print('Final status: PASS')"]
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+    )
+
+    assert result.returncode == 1
+    summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["verdict"] == "FAIL"
+    assert summary["gates"][0]["failure_signature"] == "release_gate_report_only_payload_missing"
 
 
 def test_eval_gate_runner_filters_by_category(tmp_path: Path) -> None:

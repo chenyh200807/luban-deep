@@ -9,18 +9,17 @@ eval jobs do not accidentally evaluate a different checkout.
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 import yaml
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GATES_PATH = PROJECT_ROOT / "eval" / "gates.yaml"
@@ -179,10 +178,14 @@ def _release_gate_payload_path(stdout: str) -> Path | None:
     return None
 
 
-def _release_gate_payload_failure(stdout: str) -> dict[str, Any] | None:
+def _release_gate_payload_status(stdout: str) -> dict[str, Any]:
     payload_path = _release_gate_payload_path(stdout)
     if payload_path is None:
-        return None
+        return {
+            "status": "FAIL",
+            "reason": "release gate payload path missing",
+            "failure_signature": "release_gate_report_only_payload_missing",
+        }
     try:
         raw_payload = json.loads(payload_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -194,8 +197,13 @@ def _release_gate_payload_failure(stdout: str) -> dict[str, Any] | None:
 
     payload = raw_payload.get("payload") if isinstance(raw_payload.get("payload"), dict) else raw_payload
     final_status = str(payload.get("final_status") or "").upper()
-    if final_status != "FAIL":
-        return None
+    if final_status not in {"PASS", "WARN", "FAIL"}:
+        return {
+            "status": "FAIL",
+            "reason": f"release gate final_status invalid: {final_status or '<empty>'}",
+            "failure_signature": "release_gate_report_only_payload_invalid",
+            "release_gate_json_path": str(payload_path),
+        }
     recommendation = str(payload.get("recommendation") or "")
     blockers = [str(item) for item in payload.get("blockers") or []]
     reason_parts = [f"release gate final_status={final_status}"]
@@ -204,9 +212,13 @@ def _release_gate_payload_failure(stdout: str) -> dict[str, Any] | None:
     if blockers:
         reason_parts.append("blockers=" + ",".join(blockers))
     return {
-        "status": "FAIL",
+        "status": final_status,
         "reason": "; ".join(reason_parts),
-        "failure_signature": "release_gate_report_only_hold",
+        **(
+            {"failure_signature": "release_gate_report_only_hold"}
+            if final_status == "FAIL"
+            else {}
+        ),
         "release_gate_final_status": final_status,
         "release_gate_recommendation": recommendation,
         "release_gate_blockers": blockers,
@@ -269,8 +281,8 @@ def run_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, Any]:
     _write_log(log_path, stdout=completed.stdout, stderr=completed.stderr)
     slow_threshold = gate.slow_seconds
     slow = slow_threshold is not None and duration_s >= slow_threshold
-    payload_failure = (
-        _release_gate_payload_failure(completed.stdout)
+    payload_status = (
+        _release_gate_payload_status(completed.stdout)
         if gate.name == "release_gate_report_only" and completed.returncode == 0
         else None
     )
@@ -278,13 +290,13 @@ def run_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, Any]:
         "name": gate.name,
         "description": gate.description,
         "category": gate.category,
-        "status": payload_failure["status"] if payload_failure else ("PASS" if completed.returncode == 0 else "FAIL"),
+        "status": payload_status["status"] if payload_status else ("PASS" if completed.returncode == 0 else "FAIL"),
         "exit_code": completed.returncode,
         "duration_s": duration_s,
         "command": command,
         "workdir": str(gate.workdir),
         "log_path": str(log_path),
-        **(payload_failure or {}),
+        **(payload_status or {}),
         **({"slow": True, "slow_threshold_s": slow_threshold} if slow else {}),
     }
 
@@ -293,6 +305,7 @@ def _build_summary(results: list[dict[str, Any]], *, gates_path: Path, artifact_
     counts = {
         "passed": sum(1 for item in results if item["status"] == "PASS"),
         "failed": sum(1 for item in results if item["status"] == "FAIL"),
+        "warned": sum(1 for item in results if item["status"] == "WARN"),
         "deferred": sum(1 for item in results if item["status"] == "DEFERRED"),
         "slow": sum(1 for item in results if item.get("slow")),
     }
@@ -306,7 +319,13 @@ def _build_summary(results: list[dict[str, Any]], *, gates_path: Path, artifact_
         for item in results
         if item.get("slow")
     ]
-    verdict = "FAIL" if counts["failed"] else "PASS"
+    verdict = (
+        "FAIL"
+        if counts["failed"]
+        else "WARN"
+        if counts["warned"] or counts["deferred"]
+        else "PASS"
+    )
     return {
         "run_id": artifact_dir.name,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -332,6 +351,7 @@ def _write_markdown(summary: dict[str, Any], path: Path) -> None:
         "## Summary",
         "",
         f"- passed: {summary['summary']['passed']}",
+        f"- warned: {summary['summary'].get('warned', 0)}",
         f"- failed: {summary['summary']['failed']}",
         f"- deferred: {summary['summary']['deferred']}",
         f"- slow: {summary['summary'].get('slow', 0)}",
@@ -405,6 +425,7 @@ def main() -> int:
         "Eval gate completed: "
         f"verdict={summary['verdict']} "
         f"PASS={summary['summary']['passed']} "
+        f"WARN={summary['summary']['warned']} "
         f"FAIL={summary['summary']['failed']} "
         f"DEFERRED={summary['summary']['deferred']}"
     )

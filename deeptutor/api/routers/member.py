@@ -357,7 +357,7 @@ async def member_overlay_audit(
 
 
 @router.patch("/{user_id}/overlays/{bot_id}")
-async def patch_member_overlay(
+def patch_member_overlay(
     user_id: str,
     bot_id: str,
     body: OverlayPatchRequest,
@@ -379,7 +379,7 @@ async def patch_member_overlay(
 
 
 @router.post("/{user_id}/overlays/{bot_id}/promotions/apply")
-async def apply_member_overlay_promotions(
+def apply_member_overlay_promotions(
     user_id: str,
     bot_id: str,
     body: OverlayPromotionApplyRequest,
@@ -398,7 +398,7 @@ async def apply_member_overlay_promotions(
 
 
 @router.post("/{user_id}/overlays/{bot_id}/promotions/ack")
-async def ack_member_overlay_promotions(
+def ack_member_overlay_promotions(
     user_id: str,
     bot_id: str,
     body: OverlayPromotionDecisionRequest,
@@ -420,7 +420,7 @@ async def ack_member_overlay_promotions(
 
 
 @router.post("/{user_id}/overlays/{bot_id}/promotions/drop")
-async def drop_member_overlay_promotions(
+def drop_member_overlay_promotions(
     user_id: str,
     bot_id: str,
     body: OverlayPromotionDecisionRequest,
@@ -668,7 +668,7 @@ async def grant_membership(
 
 
 @router.post("/manual-purchase")
-async def manual_purchase_membership(
+def manual_purchase_membership(
     body: ManualPurchaseRequest,
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_user: AuthContext = Depends(require_admin),
@@ -703,7 +703,7 @@ async def manual_purchase_membership(
 
 
 @router.post("/manual-purchase/reverse")
-async def reverse_manual_purchase_membership(
+def reverse_manual_purchase_membership(
     body: ManualPurchaseReversalRequest,
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_user: AuthContext = Depends(require_admin),

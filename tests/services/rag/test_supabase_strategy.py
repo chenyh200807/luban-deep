@@ -636,9 +636,8 @@ def test_calculation_stem_correspondence_accepts_same_calculation_question() -> 
     )
 
 
-def test_stem_correspondence_skips_case_study_and_empty() -> None:
-    # case_study matches use bundle coverage, not surface overlap — never gated here
-    assert exact_question_identity_corresponds(
+def test_stem_correspondence_rejects_unrelated_case_and_empty() -> None:
+    assert not exact_question_identity_corresponds(
         original_query="背景资料：某项目……问题一：……",
         matched_stem=_FALSE_STEM,
         question_type="case_study",
@@ -852,9 +851,22 @@ def test_identity_keeps_calculation_invariant_as_orthogonal_rejector() -> None:
     )
 
 
-def test_identity_case_type_passthrough_is_preserved() -> None:
-    # 指挥官裁决：case 家族推迟收权——case 型命中继续走 case_bundle 覆盖判定。
-    assert _identity("背景资料：某项目……问题一：……", _RED_STEM, question_type="case_study")
+def test_identity_case_type_requires_the_same_surface() -> None:
+    assert not _identity(
+        "背景资料：某项目……问题一：……",
+        _RED_STEM,
+        question_type="case_study",
+    )
+    assert _identity(
+        f"请解答以下案例：{_RED_STEM}",
+        _RED_STEM,
+        question_type="case_study",
+    )
+    assert not _identity(
+        "问题一：请计算工程造价并说明理由。",
+        "背景资料：某大型工程的完整背景事实。问题一：请计算工程造价并说明理由。",
+        question_type="case_study",
+    )
 
 
 def test_identity_short_fragments_never_authorize() -> None:

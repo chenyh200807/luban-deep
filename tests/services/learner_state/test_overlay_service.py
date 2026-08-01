@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timedelta, timezone
+import json
+
+import pytest
 
 from deeptutor.services.learner_state.overlay_service import BotLearnerOverlayService
 
@@ -38,14 +40,14 @@ class _FakeLearnerStateService:
         self.goals.append(dict(goal))
         return dict(goal)
 
-    def merge_profile(self, _user_id: str, patch: dict[str, object]):
+    def merge_profile_strict(self, _user_id: str, patch: dict[str, object]):
         self.profile.update(dict(patch))
         return dict(self.profile)
 
     def read_progress(self, _user_id: str):
         return dict(self.progress)
 
-    def merge_progress(self, _user_id: str, patch: dict[str, object]):
+    def merge_progress_strict(self, _user_id: str, patch: dict[str, object]):
         knowledge_map = dict(self.progress.get("knowledge_map") or {})
         incoming = dict(patch.get("knowledge_map") or {})
         knowledge_map.update(incoming)
@@ -414,21 +416,55 @@ def test_apply_promotions_updates_global_learner_state_and_acks_candidates(tmp_p
         min_confidence=0.7,
     )
 
-    assert [item["applied_kind"] for item in result["applied"]] == ["goal", "profile", "progress"]
+    assert [item["applied_kind"] for item in result["applied"]] == ["profile"]
     assert len(result["dropped"]) == 1
-    assert learner_state_service.goals[0]["title"] == "完成案例题专项训练"
     assert learner_state_service.profile["difficulty_preference"] == "hard"
-    assert learner_state_service.progress["knowledge_map"]["weak_points"] == ["防火间距"]
     assert learner_state_service.events
     assert all(item["memory_kind"] == "overlay_promotion" for item in learner_state_service.events)
+    assert {item["reason"] for item in result["skipped"]} >= {
+        "durable_idempotency_unavailable",
+        "atomic_progress_merge_unavailable",
+    }
 
     overlay = service.read_overlay("bot_alpha", "student_demo")
-    assert overlay["promotion_candidates"] == []
+    assert {
+        item["candidate_kind"] for item in overlay["promotion_candidates"]
+    } == {"stable_goal_signal", "possible_weak_point"}
     events_path = tmp_path / "learner_state" / "bot_overlays" / "student_demo__bot_alpha.events.jsonl"
     events = [json.loads(line) for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     assert any(item["event_type"] == "overlay_promotion_apply" for item in events)
     outbox_path = tmp_path / "runtime" / "outbox.db"
     assert outbox_path.exists()
+
+
+def test_apply_promotions_keeps_candidate_pending_when_canonical_write_fails(tmp_path) -> None:
+    class FailingLearnerStateService(_FakeLearnerStateService):
+        def merge_profile_strict(self, _user_id: str, _patch: dict[str, object]):
+            raise RuntimeError("canonical write failed")
+
+    service = _make_service(tmp_path)
+    candidate = service.promote_candidate(
+        "bot_alpha",
+        "student_demo",
+        "stable_preference",
+        {
+            "explanation_style": "detailed",
+            "confidence": 0.9,
+            "promotion_basis": "user_confirmed",
+        },
+        source_feature="review",
+        source_id="turn_fail",
+    )["promotion_candidates"][0]
+
+    with pytest.raises(RuntimeError, match="canonical write failed"):
+        service.apply_promotions(
+            "bot_alpha",
+            "student_demo",
+            learner_state_service=FailingLearnerStateService(),
+        )
+
+    pending = service.read_overlay("bot_alpha", "student_demo")["promotion_candidates"]
+    assert [item["candidate_id"] for item in pending] == [candidate["candidate_id"]]
 
 
 def test_list_overlay_events_and_audit_support_filters(tmp_path) -> None:
