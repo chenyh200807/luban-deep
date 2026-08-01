@@ -66,9 +66,13 @@ _REDIS_RESOLVED = False
 
 # ── configuration ────────────────────────────────────────────────────────────────────────────────
 def cache_enabled() -> bool:
-    """Kill switch. DEFAULT ON — ``LUBAN_GRADING_RESULT_CACHE=0/false/off/no`` bypasses the seam."""
-    return str(os.environ.get("LUBAN_GRADING_RESULT_CACHE", "")).strip().lower() not in (
-        "0", "false", "off", "no")
+    """Kill switch. DEFAULT OFF (opt-in) — ``LUBAN_GRADING_RESULT_CACHE=1/true/on/yes`` enables the
+    seam. Off-by-default is deliberate: a fresh cache defaulting ON would silently change grading
+    replay semantics for every caller (incl. eval runs and stage-observability) the moment the code
+    lands, before the Valkey URL is even configured. Rollout: deploy dark → configure URL → flip 1.
+    """
+    return str(os.environ.get("LUBAN_GRADING_RESULT_CACHE", "")).strip().lower() in (
+        "1", "true", "on", "yes")
 
 
 def cache_ttl_seconds() -> float:

@@ -445,3 +445,48 @@ async def test_ordinary_active_question_grading_still_defers_to_router_decision(
     )
     assert captured["authority_source"] != "mcq_grading_full_submission"
     assert captured["authority_source"] != "case_grading_full_submission"
+
+
+# ---------------------------------------------------------------------------
+# KB 溯源 tier-3 fail-open（2026-07-29 升级核心用例）
+# ---------------------------------------------------------------------------
+def test_fetch_stem_kb_evidence_fail_open_on_error(monkeypatch):
+    """检索异常/超时/零命中一律返 []——检索绝不拖死刚复活的判分通道。"""
+    import asyncio
+    from deeptutor.capabilities import deep_question as dq
+
+    async def _boom(*a, **k):
+        raise RuntimeError("rag down")
+
+    monkeypatch.setattr(dq, "rag_search", _boom)
+    assert asyncio.run(dq._fetch_stem_kb_evidence("某案例题干", "construction-exam")) == []
+    # kb_name 缺失直接空（不触检索）
+    assert asyncio.run(dq._fetch_stem_kb_evidence("题干", None)) == []
+
+
+def test_fetch_stem_kb_evidence_prefers_textbook_sources(monkeypatch):
+    import asyncio
+    from deeptutor.capabilities import deep_question as dq
+
+    async def _fake(*a, **k):
+        return {"evidence_bundle": {"sources": [
+            {"chunk_id": "L1", "source_type": "lecture", "title": "讲义", "content": "讲义内容"},
+            {"chunk_id": "T1", "source_type": "textbook", "title": "教材", "content": "教材内容"},
+        ]}}
+
+    monkeypatch.setattr(dq, "rag_search", _fake)
+    out = asyncio.run(dq._fetch_stem_kb_evidence("题干", "kb"))
+    assert [s["chunk_id"] for s in out] == ["T1"]  # textbook/standard 优先过滤
+
+
+def test_stem_kb_grounding_flag_is_opt_in(monkeypatch):
+    """默认 OFF（六月五臂 A/B：RAG grounding 伤判分——distractor 抬分同族风险），
+    显式 true 才开。"""
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.delenv("LUBAN_STEM_RUBRIC_KB_GROUNDING", raising=False)
+    assert dq._stem_rubric_kb_grounding_enabled() is False
+    monkeypatch.setenv("LUBAN_STEM_RUBRIC_KB_GROUNDING", "true")
+    assert dq._stem_rubric_kb_grounding_enabled() is True
+    monkeypatch.setenv("LUBAN_STEM_RUBRIC_KB_GROUNDING", "off")
+    assert dq._stem_rubric_kb_grounding_enabled() is False

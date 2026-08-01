@@ -8,11 +8,12 @@ Wraps the existing ``AgentCoordinator``.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import functools
 import re
 import tempfile
-from typing import Any
+from typing import Any, Callable
 
 from loguru import logger
 
@@ -136,6 +137,33 @@ _BROAD_QUESTION_SUBJECT_SUFFIXES = ("项目管理", "建筑实务", "管理与�
 
 def _compact_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _submission_surface(context: Any) -> str:
+    """本能力的「学生这轮真实提交」单一来源（2026-08-01 尺与面收权清剿）。
+
+    ``context.user_message`` 是 turn_runtime 组装出来的信封（
+    ``[Attached Documents]`` / ``[Notebook Context]`` / ``[History Context]`` /
+    ``[User Question]``，见 services/session/turn_runtime.py:5891-5907），随账号历史
+    逐轮变化；``context.metadata['raw_user_message']`` 才是本轮学生真的发了什么。
+
+    口径与 ``AgentLoop._case_submission_surface`` **逐字一致**，剥离器直接复用同一实现
+    （懒导入，避免 tutorbot↔capabilities 顶层环；不再造第二个剥离器）：
+    raw_user_message → ``[User Question]`` 段 → 原串兜底。
+    """
+    metadata = getattr(context, "metadata", None)
+    metadata = metadata if isinstance(metadata, dict) else {}
+    raw = str(metadata.get("raw_user_message") or "").strip()
+    if raw:
+        return raw
+    assembled = str(getattr(context, "user_message", "") or "")
+    try:
+        from deeptutor.tutorbot.agent.loop import AgentLoop  # noqa: WPS433
+
+        extracted = AgentLoop._extract_current_user_question_section(assembled)
+    except Exception:  # noqa: BLE001 — 剥离器不可用时按"拿不到更干净的面"处理
+        extracted = ""
+    return (extracted or assembled).strip()
 
 
 def _requests_current_question_exclusion(topic: str) -> bool:
@@ -2294,6 +2322,56 @@ def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
         "false", "0", "off", "no")
 
 
+def _stem_rubric_kb_grounding_enabled() -> bool:
+    """KB 溯源 tier-3 推导（2026-07-29 升级）。默认 OFF（opt-in）。
+
+    默认值裁决依据 6 月五臂 A/B 硬数据（KNOWQL_BUILDOUT_BLUEPRINT.md:198-207）：
+    RAG grounding 在判分场景实测反而抬分（检索教材成 distractor，RAG+ref 臂
+    over-credit 0.20）。本升级虽只把证据用于 rubric 推导且有机械核验+降权护栏，
+    但"推导向检索内容漂移"与该发现同族——fail-open 罩不住质量风险。待学生军团
+    资产上 grounded vs ungrounded 判分质量 A/B 非劣后再翻 ON。"""
+    import os
+
+    return os.environ.get("LUBAN_STEM_RUBRIC_KB_GROUNDING", "").strip().lower() in (
+        "true", "1", "on", "yes")
+
+
+async def _fetch_stem_kb_evidence(
+    stem: str, kb_name: str | None, *, limit: int = 5
+) -> list[dict[str, Any]]:
+    """tier-3 推导前按题干检索教材/规范证据。三层 fail-open：异常/超时/零命中
+    一律返 []，推导退回纯 LLM 形态——检索绝不拖死刚复活的判分通道。
+    优先 textbook/standard 类源（讲义碎片会让"有据"虚胖）。"""
+    if not kb_name or not str(stem or "").strip():
+        return []
+    try:
+        result = await asyncio.wait_for(
+            rag_search(
+                _clip_text(stem, limit=900),
+                kb_name=kb_name,
+                intent="case_rubric_derivation",
+                question_type="case",
+                routing_metadata={
+                    "capability": "deep_question",
+                    "grading_kernel": "case_rubric_v1_tier3",
+                },
+            ),
+            timeout=8.0,
+        )
+        bundle = result.get("evidence_bundle") if isinstance(result, dict) else {}
+        raw_sources = (
+            (bundle or {}).get("sources")
+            or (result.get("sources") if isinstance(result, dict) else None)
+            or []
+        )
+        sources = [dict(x) for x in raw_sources if isinstance(x, dict) and str(x.get("content") or "").strip()]
+        preferred = [x for x in sources if str(x.get("source_type") or "").strip().lower() in ("textbook", "standard")]
+        return (preferred or sources)[:limit]
+    except Exception:  # noqa: BLE001 — fail-open：检索绝不拖死判分
+        logger.warning("LUBAN_V1 tier3 KB retrieval failed; deriving ungrounded", exc_info=True)
+        return []
+
+
 def _record_v1_langfuse(
     *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
 ) -> None:
@@ -2321,6 +2399,8 @@ def _record_v1_langfuse(
                     "grading_cache": event.get("grading_cache"),
                     "cache_key_version": event.get("cache_key_version"),
                     "student_id": student_id, "question_id": qid, "cg_type": cg_type,
+                    "kb_grounding_ratio": (event.get("kb_grounding") or {}).get("ratio"),
+                    "kb_grounding_status": (event.get("kb_grounding") or {}).get("status"),
                 },
                 score_value=ratio,
                 score_comment=f"V1 {event.get('rubric_provenance')} {aw}/{mx}",
@@ -2387,6 +2467,7 @@ async def _grade_case_rubric_v1(
                 key=key,
                 _G=_G,
                 provider_authority="deepseek:https://api.deepseek.com",
+                kb_name=(context.knowledge_bases[0] if context.knowledge_bases else None),
             )
         else:
             event = await _grade_one_case_v1(
@@ -2396,6 +2477,7 @@ async def _grade_case_rubric_v1(
                 key=key,
                 _G=_G,
                 provider_authority="deepseek:https://api.deepseek.com",
+                kb_name=(context.knowledge_bases[0] if context.knowledge_bases else None),
             )
         # Gray-rollout observability: did V1 actually grade, with what provenance/score?
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
@@ -2419,13 +2501,358 @@ async def _grade_case_rubric_v1(
         return {"status": "unavailable", "reason": "exception"}
 
 
+async def _emit_case_grading_stage(
+    on_stage: Callable[..., Any] | None, kind: str, **facts: Any
+) -> None:
+    """Best-effort progress projection out of the grading core (sequenced emit, L4).
+
+    Observation-only by construction: the core hands out *facts it has already
+    computed* (which rubric tier was selected, how many points exist, which judge
+    group landed). The observer can never write back — it returns None and its
+    exceptions are swallowed. Terminal grading truth (GradingEvent /
+    finalize_case_score / result payload) is untouched by this hook."""
+    if on_stage is None:
+        return
+    try:
+        await on_stage(kind, **facts)
+    except Exception:  # noqa: BLE001 — progress narration never breaks grading
+        logger.warning("case_rubric_v1: grading stage progress hook failed", exc_info=True)
+
+
+def _per_subquestion_grading_enabled() -> bool:
+    """OD-005 kill switch（默认 ON）：``LUBAN_CASE_PER_SUBQ_GRADING=off`` 逐字回旧形状
+    （整段一次抽取 + 只有整题范围封顶）。"""
+    import os as _os
+
+    return str(_os.environ.get("LUBAN_CASE_PER_SUBQ_GRADING", "") or "").strip().lower() not in (
+        "false", "0", "off", "no",
+    )
+
+
+def _case_reference_subquestions(ctx: dict[str, Any]) -> list[dict[str, str]]:
+    """Pure: ctx 里的 per-问参考答案结构（治理组 bundle 才有），做完整性核验。
+
+    OD-005：判分核只在**参考本身就是逐问结构化**时走逐问链——不去把拼接串再切
+    一次（那会新起一个切分权威，且切错就把答案错绑到别的问）。少于 2 问、缺序号、
+    缺答案一律回落旧的整段路径（fail-open 到既有行为，不是 fail-closed 拒答）。
+    """
+    if not _per_subquestion_grading_enabled():
+        return []
+    raw = ctx.get("case_reference_subquestions")
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        index = str(item.get("index") or "").strip()
+        answer = str(item.get("answer") or "").strip()
+        if not index.isdigit() or not answer or index in seen:
+            continue
+        seen.add(index)
+        # ``stem`` = 该行自带的那一问题面（bundle 行 surface）。缺席时留空，
+        # 由抽取侧退到"切学生整卷题面"，再切不出就不给题面——绝不顶替。
+        out.append({"index": index, "answer": answer,
+                    "stem": str(item.get("stem") or "").strip()})
+    return out if len(out) >= 2 else []
+
+
+_CASE_GROUP_ID_RE = re.compile(r"(\d{4}-case\d+)")
+
+
+def _case_group_id_from_ctx(ctx: dict[str, Any]) -> str:
+    """Pure: 从 ctx 里认出 canonical 题级组键（``{year}-case{n}``）。
+
+    只认**确定性**来源：显式 case_group_id 字段（C3 取全时 supabase 写在
+    exact_question 顶层）→ 嵌套 bundle/prefetch → question_id 前缀。认不出返回 ""，
+    调用方退下一级阶梯——绝不猜（猜错=拿别的案例的小问数当分母）。
+    """
+    for key in ("case_group_id", "case_group"):
+        gid = str((ctx or {}).get(key) or "").strip()
+        if gid:
+            return gid
+    for nest_key in ("case_bundle", "_prefetched_exact_question", "exact_question"):
+        nested = (ctx or {}).get(nest_key)
+        if isinstance(nested, dict):
+            gid = str(nested.get("case_group_id") or "").strip()
+            if gid:
+                return gid
+    qid = str((ctx or {}).get("question_id") or "").strip()
+    match = _CASE_GROUP_ID_RE.search(qid)
+    return match.group(1) if match else ""
+
+
+def _case_bundle_surface_count(ctx: dict[str, Any]) -> int:
+    """C3 bundle 的 per-问 **surface** 计数（有题面的小问有几个）。
+
+    与 ``_case_reference_subquestions`` 的区别正是这一刀的意义：后者要求「有答案」
+    （答案冲突未裁决 / C2 fail-closed 的小问会被剔掉），前者只问「这道题的题面里
+    有这一问」。分母问的是后者。
+    """
+    for holder_key, list_key in (
+        ("case_bundle", "covered_subquestions"),
+        ("_prefetched_exact_question", "covered_subquestions"),
+        ("", "covered_subquestions"),
+    ):
+        holder = (ctx or {}).get(holder_key) if holder_key else (ctx or {})
+        if not isinstance(holder, dict):
+            continue
+        rows = holder.get(list_key)
+        if not isinstance(rows, list) or not rows:
+            continue
+        indexes = {
+            str(row.get("display_index") or row.get("index") or "").strip()
+            for row in rows
+            if isinstance(row, dict)
+            and str(row.get("display_index") or row.get("index") or "").strip().isdigit()
+            and str(row.get("stem") or row.get("question") or "").strip()
+        }
+        if len(indexes) >= 2:
+            return len(indexes)
+    return 0
+
+
+def _case_stem_subquestion_count(ctx: dict[str, Any]) -> int:
+    """题面标题抽取权威的小问数（单一权威 = ``rubric_grader_v1._extract_case_question_titles``）。"""
+    pre = int((ctx or {}).get("case_stem_subquestion_count") or 0)
+    if pre > 0:
+        return pre
+    stem = str((ctx or {}).get("user_stem") or "").strip() or str(
+        (ctx or {}).get("question_stem") or (ctx or {}).get("stem") or ""
+    )
+    if not stem:
+        return 0
+    try:
+        from deeptutor.services.construction_grading.rubric_grader_v1 import (
+            _extract_case_question_titles,
+        )
+
+        return len(_extract_case_question_titles(stem) or {})
+    except Exception:  # noqa: BLE001 — 计数失败按未知处理（退下一级，不假装覆盖）
+        logger.debug("case denominator: stem title extraction failed", exc_info=True)
+        return 0
+
+
+def _resolve_case_denominator(
+    ctx: dict[str, Any], *, reference_count: int
+) -> tuple[int, str]:
+    """判分分母（题面小问数）的**权威阶梯** → ``(分母, 来源 marker)``。
+
+    R2（task#26，2026-08-01）治的病：deep_question 自持案例路径的分母曾是
+    ``max(ctx.case_stem_subquestion_count, len(参考侧))``——而 ``case_stem_subquestion_count``
+    **只有 TutorBot 侧的 ctx 构建器会写**（loop.py ``_build_v1_case_ctx``）。自持路径
+    （practice / 直调 capability）那个键恒缺席，于是分母塌成 ``len(参考侧)``：纯参考侧
+    计数、**与题面零交叉核对**。参考侧是检索装配的产物（bundle 取全成不成、兄弟行
+    重复、答案冲突是否裁决都会改变它），拿它当分母 = 让检索运气决定「这道题有几问」。
+    参考侧多出一项，学生的每一问就被稀释一份分。
+
+    阶梯（高→低，取第一个可得者）：
+      ① ``canonical`` —— canonical431 nominal 表的每案例小问数（编译期治理裁决过的
+         题面结构，只读结构不读采分点，见 ``canonical_case_subquestion_counts``）；
+      ② ``bundle`` —— C3 题级组 bundle 的 per-问 surface 计数；
+      ③ ``stem`` —— 题面标题抽取权威（``_extract_case_question_titles``）；
+      ④ ``reference_fallback`` —— 全部不可得才退参考侧计数，**并发 marker**。
+         降级必须发声：没有 marker，「分母是猜的」会被静默读成「分母是权威的」。
+    """
+    gid = _case_group_id_from_ctx(ctx)
+    if gid:
+        try:
+            from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                canonical_case_subquestion_counts,
+            )
+
+            canonical = int(canonical_case_subquestion_counts().get(gid) or 0)
+        except Exception:  # noqa: BLE001 — 分母权威永不破坏判分
+            logger.debug("case denominator: canonical lookup failed", exc_info=True)
+            canonical = 0
+        if canonical > 0:
+            return canonical, "canonical"
+    bundle_n = _case_bundle_surface_count(ctx)
+    if bundle_n > 0:
+        return bundle_n, "bundle"
+    stem_n = _case_stem_subquestion_count(ctx)
+    if stem_n > 0:
+        return stem_n, "stem"
+    return max(int(reference_count or 0), 0), "reference_fallback"
+
+
+async def _extract_rubric_per_subquestion(
+    subquestions: list[dict[str, str]], *, stem: str, nominal_full_score: float,
+    subquestion_total: int, complete: Any, key: str, _G: Any,
+    model: str, provider_authority: str,
+) -> tuple[list[dict[str, Any]], dict[str, float], int]:
+    """每小问独立抽取采分点 → (points, per-问封顶表, 实际有点位的小问数)。
+
+    - 每问一次 ``extract_rubric_from_reference_async``（并发 gather，L4 心跳已在
+      覆盖窗口内）。**题面权威阶梯**（OD-005 补刀，live 取证）：
+      ① 该问自带的 bundle 行 surface（背景 + 它自己那一问，权威）→
+      ② 从**学生整卷题面**切出该问（``case_subquestion_stem``）→
+      ③ **不给题面**（只凭参考答案抽点）。
+      绝不退到"整题题面"——生产的整题题面其实是 bank 行题面（只含问 1），
+      顶上去等于给问 2/3/4 喂问 1 的题面，抽取被带跑、产出串问采分点
+      （22:09 轮实证：q2 池 2.5 分全是问 1 的"质量计划动态管理"）。
+    - 每问名义满分 = 整题名义满分 / 题面小问数（**均分**——questions_bank 行不带
+      per-问分值，见 PR Deviations）；点池按该值归一。
+    - ``point_id`` 加问号前缀：4 次抽取各自产出 P1..Pn，不改前缀会跨问撞键，
+      verdicts 按 point_id 索引 → 判分静默错绑（这是逐问链的真陷阱，不是洁癖）。
+    - ``question_no`` 由**结构化事实**（该答案来自哪一问）确定性盖章，不信 LLM 自报。
+    - 某问抽取失败/空 → 该问不进封顶表也不贡献点位（等价于"参考没覆盖这一问"），
+      分母仍是整题名义满分，学生看到的是诚实的部分覆盖，不是凭空满分。
+    """
+    import asyncio as _asyncio
+
+    # R2（task#26，2026-08-01）：每问名义分的分母是**题面小问数的权威值**
+    # （``subquestion_total``，由 ``_resolve_case_denominator`` 的阶梯裁决），
+    # 不再 `max(权威, 参考侧项数)`。旧的 max() 让参考侧多出的幽灵项直接稀释每一问
+    # 的上限（4 问题面配 5 行参考 → 每问 2.0 而非 2.5），等于把「分母」的裁决权
+    # 又还给了检索装配结果——分母只能有一个权威。
+    # Σ逐问上限可能因此超过整题名义满分（5 行参考 × 2.5 = 12.5 > 10），这不漏分：
+    # ``finalize_case_score`` 的外闸仍按 ``nominal × scope_ratio`` 封顶（内闸只更严）。
+    total = int(subquestion_total or 0) or len(subquestions)
+    per_sub_nominal = round(float(nominal_full_score) / total, 4) if total > 0 else 0.0
+
+    def _stem_for(sub: dict[str, str]) -> str:
+        own = str(sub.get("stem") or "").strip()
+        if own:
+            return own
+        return str(_G.case_subquestion_stem(stem, sub["index"]) or "")
+
+    stems = [_stem_for(sub) for sub in subquestions]
+    for sub, sub_stem in zip(subquestions, stems):
+        if not sub_stem:
+            logger.warning(
+                "LUBAN_V1 per-subq: no own stem for subquestion {}; extracting from reference only",
+                sub["index"],
+            )
+    results = await _asyncio.gather(
+        *(
+            _G.extract_rubric_from_reference_async(
+                sub["answer"],
+                sub_stem,
+                complete,
+                key,
+                model=model,
+                provider_authority=provider_authority,
+            )
+            for sub, sub_stem in zip(subquestions, stems)
+        ),
+        return_exceptions=True,
+    )
+    points: list[dict[str, Any]] = []
+    caps: dict[str, float] = {}
+    covered = 0
+    for sub, result in zip(subquestions, results):
+        if isinstance(result, BaseException) or not result:
+            logger.warning(
+                "LUBAN_V1 per-subq extraction empty/failed for subquestion {}", sub["index"]
+            )
+            continue
+        scaled = _G.normalize_points_to_nominal(result, nominal_total=per_sub_nominal)
+        index = int(sub["index"])
+        for position, point in enumerate(scaled, 1):
+            if not isinstance(point, dict):
+                continue
+            points.append(dict(
+                point,
+                question_no=index,
+                point_id=f"q{index}_{point.get('point_id') or position}",
+            ))
+        caps[f"q{index}"] = per_sub_nominal
+        covered += 1
+    return points, caps, covered
+
+
+def _canonical_case_rubric_lookup(
+    ctx: dict[str, Any], _G: Any
+) -> tuple[list[dict[str, Any]], dict[str, float], str]:
+    """canonical431 tier-1 键路径：``{case_group_id}::E{n}`` **逐小问**查库。
+
+    今天的 tier-1 只按 ``ctx["question_id"]`` 平查一个字符串，而 canonical431 bank
+    的键是题级组 + 1-based 小问序号，所以不接这条路径的话装上库也是零命中
+    （Lane 1 §4.1 实证）。本函数是那条键路径，返回
+    ``(points, subquestion_caps, hit_marker)``：
+
+    - ``points``：命中小问的全部采分点。记录自带 ``subquestion_index`` /
+      ``question_no``（1-based），所以 ``_question_group_key`` 走显式字段分桶，
+      不会掉进那个把 0-based E 序数当问号读的 ``::E(\\d+)`` 正则兜底。
+    - ``subquestion_caps``：``{"q1": 5.0, "q2": 4.0, ...}`` —— **每问真实满分**
+      （记录的 ``official_total_score``），不是「整题满分 ÷ 小问数」的均分。
+      这是本 lane 的全部意义：2024-case1 真实是 5/4/4/3/4，均分会给每问 4.0。
+    - ``hit_marker``：``"命中问数/尝试问数"``（+ ``:disputed{n}``）。
+
+    **纯函数 + fail-closed，四条**（任一不满足 → 返回空，调用方逐字节回落既有平查）：
+
+    1. 组键或索引集缺失 → 空。索引集的可证性已由 ``_build_v1_case_ctx`` 把住
+       （只收 DB ``case_subquestion_index`` 投出来的那一族）。
+    2. slot 不是 canonical431（或 canonical431 被治理闸拒装）时，
+       ``load_rubric("2023-case3::E1")`` 在 legacy/pgo bank 里恒为空 → 返回空
+       → **未授权 slot 下行为零变化**。
+    3. ``nominal_authority_disputed`` 的小问整问剔除：这些组的 Σnominal 与一建
+       建筑实务卷面结构（案例一~三各 20、四~五各 30）对不上（2024-case3 +2.0、
+       2025-case5 −1.5）。拿一个走样的满分去封顶比不封顶更危险，宁可退回旧路径。
+    4. 分母 ≤ 0 的小问剔除：没有可信分母就没有封顶依据，不许它的点混进封顶链
+       （否则该问的点会被别的问的 cap 漏掉，等于无封顶）。
+    """
+    # 组键读取吃 R2 的单一读者（``_case_group_id_from_ctx``），不再自读
+    # ``ctx["case_group_id"]`` —— 「本轮的 case_group_id 是什么」只能有一个答案。
+    # 它比裸读多认两级来源（嵌套 bundle / question_id 前缀），但**不放松本函数的
+    # 索引可证性**：索引集仍只来自 `_build_v1_case_ctx` 的 `case_group_exact` 过滤，
+    # 而那条路径只在 eq 显式带组键时才写值 —— 组键读得更宽只会多认出「有组键但
+    # 没有可证索引」的轮次，那些轮次照样构不出键。
+    group = _case_group_id_from_ctx(ctx)
+    raw_indexes = ctx.get("case_canonical_subquestion_indexes") or []
+    indexes: list[int] = []
+    for raw in raw_indexes if isinstance(raw_indexes, (list, tuple)) else []:
+        try:
+            value = int(str(raw).strip())
+        except (TypeError, ValueError):
+            continue
+        if value > 0 and value not in indexes:
+            indexes.append(value)
+    if not group or not indexes:
+        return [], {}, ""
+    points: list[dict[str, Any]] = []
+    caps: dict[str, float] = {}
+    disputed = 0
+    for index in sorted(indexes):
+        subq_points = _G.load_rubric(f"{group}::E{index}")
+        subq_points = [p for p in (subq_points or []) if isinstance(p, dict)]
+        if not subq_points:
+            continue
+        if any(p.get("nominal_authority_disputed") for p in subq_points):
+            disputed += 1
+            continue
+        nominal = 0.0
+        for point in subq_points:
+            try:
+                nominal = max(nominal, float(point.get("official_total_score") or 0))
+            except (TypeError, ValueError):
+                continue
+        if nominal <= 0:
+            continue
+        caps[f"q{index}"] = nominal
+        points.extend(dict(p) for p in subq_points)
+    marker = f"{len(caps)}/{len(indexes)}"
+    if disputed:
+        marker = f"{marker}:disputed{disputed}"
+    if not points:
+        return [], {}, marker
+    return points, caps, marker
+
+
 async def _grade_one_case_v1(
     ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
+    kb_name: str | None = None,
+    on_stage: Callable[..., Any] | None = None,
 ) -> dict[str, Any] | None:
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
-    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer).
+
+    ``on_stage`` is an optional observation-only progress hook used by the chat entry to
+    narrate the otherwise-silent 20s rubric/judge window; see ``_emit_case_grading_stage``."""
     import os as _os
     _v1_model = _os.environ.get("LLM_MODEL", "").strip() or "deepseek-chat"
     cg = ctx.get("construction_grading_result")
@@ -2437,13 +2864,63 @@ async def _grade_one_case_v1(
     )
     if not answer:
         return None
-    # 1) governed compiled rubric (best ammunition) if in the bank
-    points = _G.load_rubric(qid) if qid else []
+    # 1) governed compiled rubric (best ammunition) if in the bank.
+    # canonical431 键路径优先（Lane 2 2026-08-01）：题级组 + 1-based 小问序号逐问
+    # 查库，命中即带每问真实满分。未命中（slot 未授权 / 无组键 / 索引不可证）时
+    # 逐字节回落既有的 ``ctx["question_id"]`` 平查——这条回落是本接线的零影响保证。
+    canonical_points, canonical_caps, canonical_key_hit = _canonical_case_rubric_lookup(ctx, _G)
+    points = canonical_points or (_G.load_rubric(qid) if qid else [])
+    # 逐问真实满分之和 = 本次判分范围的分母。>0 是「tier-1 允许进 finalize」的
+    # 唯一判据（见下方 finalize 分支）：分母来自记录而非 V0 文本解析时，那条
+    # 「cg.max_score 不够可信所以 tier-1 不封顶」的理由才消失。
+    canonical_nominal = round(sum(canonical_caps.values()), 2) if canonical_points else 0.0
     provenance = "compiled_rubric"
+
+    def _c431_marked(payload: dict[str, Any]) -> dict[str, Any]:
+        """降级/失败标记也带 canonical 命中发声。
+
+        「拒了 5 个走样分母然后什么都没找到」与「压根没这个库」在 trace 里必须
+        长得不一样——没有 marker 的降级等于没发生过。"""
+        if canonical_key_hit:
+            payload["case_canonical_key_hit"] = canonical_key_hit
+        return payload
+    # C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
+    # 题面名义分显著分歧 = 复合 qid 可能错配到别的小问，先发声观测一个窗口再定 blocking。
+    score_total_mismatch = False
+    point_pool_excess = 0.0
+    stem_fallback_used = ""
+    partial_scope = ""
+    scope_ratio = 1.0
+    # canonical 命中时逐问封顶表直接就位（复用 OD-005 的逐问机制，nominal 用真实
+    # 值替换均分）；未命中时保持空表 = 旧行为。
+    subquestion_caps: dict[str, float] = dict(canonical_caps) if canonical_points else {}
+    per_subq_grading = ""
+    denominator_source = ""
+    if points:
+        try:
+            # canonical 在场时对账基准是**逐问真实满分之和**（本次判分范围的分母），
+            # 不是整题 cg.max_score —— 采纳集小于整题时拿整题满分比会假报错配。
+            _nominal = canonical_nominal or float((cg or {}).get("max_score") or 0)
+            _rubric_total = sum(float(p.get("score") or 0) for p in points if isinstance(p, dict))
+            score_total_mismatch = _nominal > 0 and abs(_rubric_total - _nominal) > 0.01
+            # 踩点封顶观测（指挥官裁决② 2026-07-30，observe-only 先于改分）：
+            # 真题判分=踩点池封顶 min(Σ命中点分, 小题满分)，且池≥满分是常态
+            # （431 采分点实证，2025案例4 Σ=30/满分20）。V1 主路径无封顶——
+            # 池>满分的题会系统性打高分。先量化在服发生率与超额量，
+            # 确定性封顶是 canonical bank 上服的硬前置，不许盲改在服判分。
+            if _nominal > 0 and _rubric_total - _nominal > 0.01:
+                point_pool_excess = round(_rubric_total - _nominal, 2)
+        except (TypeError, ValueError):
+            score_total_mismatch = False
+            point_pool_excess = 0.0
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
         qid or "(none)", len(points),
     )
+    if points:
+        await _emit_case_grading_stage(
+            on_stage, "rubric_source", tier="compiled", point_count=len(points)
+        )
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
     #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
     if not points:
@@ -2462,40 +2939,133 @@ async def _grade_one_case_v1(
             bool(reference), len(reference), bool(stem), len(stem),
         )
         if reference:
-            points = await _G.extract_rubric_from_reference_async(
-                reference,
-                stem,
-                complete,
-                key,
-                model=_v1_model,
-                provider_authority=provider_authority,
-            )
-            points = _G.normalize_points_to_nominal(
-                points, nominal_total=float((cg or {}).get("max_score") or 0))
-            provenance = "on_the_fly_reference"
+            _nominal_full = float((cg or {}).get("max_score") or 0)
+            _subq_refs = _case_reference_subquestions(ctx)
+            if _subq_refs and _nominal_full > 0:
+                # OD-005（2026-08-01）：逐小问独立抽取 + 逐小问封顶。
+                # R2（task#26）：分母走权威阶梯，不再 `max(题面, 参考侧)`——自持路径
+                # （practice / 直调 capability）没有 case_stem_subquestion_count，旧式
+                # max() 会塌成纯参考侧计数，让检索装配的结果决定「这道题有几问」。
+                _sub_n, denominator_source = _resolve_case_denominator(
+                    ctx, reference_count=len(_subq_refs)
+                )
+                await _emit_case_grading_stage(
+                    on_stage, "rubric_source", tier="reference",
+                    subquestion_count=len(_subq_refs),
+                    denominator=_sub_n, denominator_source=denominator_source,
+                )
+                points, subquestion_caps, _covered_n = await _extract_rubric_per_subquestion(
+                    _subq_refs,
+                    # 切分源必须是**学生整卷题面**（含全部小问）。``stem`` 走的是
+                    # eq.stem = bank 行题面，只含一问——拿它切别的问必然切不出，
+                    # 旧版还会 fail-open 顶替成问 1 的题面（OD-005 补刀根因）。
+                    stem=str(ctx.get("user_stem") or "").strip() or stem,
+                    nominal_full_score=_nominal_full,
+                    subquestion_total=_sub_n,
+                    complete=complete,
+                    key=key,
+                    _G=_G,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                )
+                scope_ratio = (_covered_n / _sub_n) if _sub_n > 0 else 1.0
+                if 0 < _covered_n < _sub_n:
+                    partial_scope = f"{_covered_n}/{_sub_n}"
+                per_subq_grading = f"{_covered_n}/{_sub_n}"
+                provenance = "on_the_fly_reference"
+            else:
+                await _emit_case_grading_stage(on_stage, "rubric_source", tier="reference")
+                points = await _G.extract_rubric_from_reference_async(
+                    reference,
+                    stem,
+                    complete,
+                    key,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                )
+                # P0 兜底满分根治（2026-08-01）：参考答案只覆盖部分小问时，点池不得
+                # 缩放到整题名义满分——否则"全中即满分"是结构性必然（live 实证 tier-2
+                # 命中 4/4 全 10/10，含弱答案）。按确定性覆盖比例缩放，分母保持整题满分。
+                _cov_n = int(ctx.get("case_reference_covered_count") or 0)
+                _sub_n = int(ctx.get("case_stem_subquestion_count") or 0)
+                _scope_ratio = 1.0
+                if _nominal_full > 0 and _sub_n > 1 and 0 < _cov_n < _sub_n:
+                    _scope_ratio = _cov_n / _sub_n
+                    partial_scope = f"{_cov_n}/{_sub_n}"
+                scope_ratio = _scope_ratio
+                points = _G.normalize_points_to_nominal(
+                    points, nominal_total=_nominal_full * _scope_ratio)
+                provenance = "on_the_fly_reference"
         elif stem:
             # Tier 3: no official answer-key authority, but this is still a gradable learner need.
             # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
             # scoring channel. It must never be promoted to official correctness authority.
+            await _emit_case_grading_stage(on_stage, "rubric_source", tier="stem")
+            kb_evidence = (
+                await _fetch_stem_kb_evidence(stem, kb_name)
+                if _stem_rubric_kb_grounding_enabled()
+                else []
+            )
             points = await _G.derive_rubric_from_stem_async(
                 stem,
                 complete,
                 key,
                 model=_v1_model,
                 provider_authority=provider_authority,
+                kb_evidence=kb_evidence,
             )
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
         else:
-            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
-            return {"status": "no_reference", "question_id": qid}
+            # OD-004 根治（2026-08-01，取证订正：病灶不在 admission 而在此处 bail-out）：
+            # live 5 轮 3/5——同一半答卷，某轮判分入口不是 tutorbot 直批而是
+            # agent-loop 侧调用，其 graded_context 没有 question_stem（自由粘贴无
+            # active question）→ 与 reference 双空 → 整条 no_reference 降级 →
+            # 落回通用 agent 现编判分（权威双空）。上一刀把兜底打在 tutorbot ctx
+            # 构建器，此入口根本不经过它（五轮零触发实证）。
+            # 判分行为在场必须有判分基座：兜底上移到**共享判分核**，一处覆盖所有
+            # 入口——学生提交的文本本身就是案例题面时用它推导（tier3 只从学生自己
+            # 贴的内容推，不涉他题钥匙，与 OD-002 fail-closed 正交）。
+            # 判据回到语义（终修）：形状正则（括号锚）在真实考卷粘贴上十轮零命中；
+            # 「判分行为在场」的痕迹是提交标记/多小问结构，不是题面用不用括号。
+            from deeptutor.services.construction_grading.case_output_policy import (
+                case_submission_stem_candidate,
+            )
+
+            _fallback_stem = case_submission_stem_candidate(str(answer or ""))
+            if _fallback_stem:
+                logger.warning(
+                    "LUBAN_DIAG _grade_one_case_v1: stem fallback from submission qid={} len={}",
+                    qid or "(none)", len(_fallback_stem),
+                )
+                await _emit_case_grading_stage(on_stage, "rubric_source", tier="submission_stem")
+                kb_evidence = (
+                    await _fetch_stem_kb_evidence(_fallback_stem, kb_name)
+                    if _stem_rubric_kb_grounding_enabled()
+                    else []
+                )
+                points = await _G.derive_rubric_from_stem_async(
+                    _fallback_stem,
+                    complete,
+                    key,
+                    model=_v1_model,
+                    provider_authority=provider_authority,
+                    kb_evidence=kb_evidence,
+                )
+                points = _G.normalize_points_to_nominal(
+                    points, nominal_total=float((cg or {}).get("max_score") or 0))
+                provenance = "derived_from_stem"
+                stem_fallback_used = "submission_text"
+            if not points:
+                logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
+                return _c431_marked({"status": "no_reference", "question_id": qid})
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: post-tier points={} provenance={} qid={}",
         len(points), provenance, qid or "(none)",
     )
     if not points:
-        return {"status": "unavailable", "reason": "no_scoring_points"}
+        return _c431_marked({"status": "unavailable", "reason": "no_scoring_points"})
     # Wire the canonical typed object onto the live scoring path (foundation goes live): stamp the
     # canonical authority_source on each rubric point and build+validate the canonical
     # luban_grading_object.v1. This ARMS the G2 gate below (which keys on authority_source) — the
@@ -2513,11 +3083,30 @@ async def _grade_one_case_v1(
         allow_pending_calibration_diagnostic=is_diagnostic_rubric,
     )
     if not points:
-        return {"status": "unavailable", "reason": "no_official_scoring_points"}
+        return _c431_marked({"status": "unavailable", "reason": "no_official_scoring_points"})
+
+    async def _on_judge_group_done(*, completed: int, total: int, size: int) -> None:
+        await _emit_case_grading_stage(
+            on_stage, "judge_group_done", completed=completed, total=total, size=size
+        )
+
+    await _emit_case_grading_stage(on_stage, "rubric_ready", point_count=len(points))
+    # The progress kwarg is only threaded when an observer exists, so third-party /
+    # test doubles for ``_G`` keep their current signature (additive, not breaking).
+    _judge_progress_kwargs: dict[str, Any] = (
+        {"on_group_done": _on_judge_group_done} if on_stage is not None else {}
+    )
+    # OD-005：逐问抽取时"一组=一问"，逐组发射即"问 k 判完"。仅在该链声明，
+    # 其它调用方与测试替身的签名不受影响（additive）。
+    if subquestion_caps:
+        _judge_progress_kwargs["prefer_subquestion_groups"] = True
     # Authority material for the single grading-result cache seam (codex 审计 §3.2): everything the
     # grader cannot see from (qid, answer, points, model) but that can still move the final score.
     # Absent facts are passed as "" / None on purpose — when the coverage tri-state + scope cap land
     # upstream, populating them CHANGES the key, which is exactly the invalidation we want.
+    # OD-005 合流（2026-08-01）：逐问 caps 影响 finalize 封顶——finalize 发生在 seam
+    # 之外每轮新算，但 caps 决定的逐问分组已作为 prefer_subquestion_groups 进 key
+    # （见 grade_with_batch_judge_async）；caps 本身也入 key，双保险。
     cache_identity = {
         "rubric_provenance": provenance,
         "nominal_full_score": (cg or {}).get("max_score"),
@@ -2529,31 +3118,119 @@ async def _grade_one_case_v1(
             if ctx.get("effective_scope_cap") is not None
             else (cg or {}).get("effective_scope_cap")
         ),
+        "subquestion_caps": subquestion_caps or None,
         "provider_binding": provider_authority,
     }
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
         complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model,
-        cache_identity=cache_identity)
+        cache_identity=cache_identity, **_judge_progress_kwargs)
+    await _emit_case_grading_stage(on_stage, "judge_done")
     # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
     # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
     # diagnostic path (same as "no rubric"), exactly like an exception would.
     if event.get("degraded"):
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
-        return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
+        return _c431_marked({"status": "degraded", "reason": "no_verdict", "question_id": qid})
     event["rubric_provenance"] = provenance
+    # 覆盖对账（2026-07-30 live 事故：半张卷被当整张宣判满分）：题面多问而 rubric
+    # 只归属到部分小问时，事件携带覆盖事实+学生可见声明；渲染两个面同源消费。
+    try:
+        # 对账基准=学生所见题面优先（bank 单小问行的 stem 只含 1 问，会让
+        # 保守闸静默；user_stem 才是"学生以为在判的整题"）。
+        _stem_for_cov = str(ctx.get("user_stem") or ctx.get("question_stem") or ctx.get("stem") or "")
+        _cov = _G.case_subquestion_coverage(event, question_stem=_stem_for_cov)
+        if isinstance(_cov, dict):
+            event["case_subq_coverage"] = f"{len(_cov.get('covered') or [])}/{len(_cov.get('total') or [])}"
+            if _cov.get("uncovered"):
+                event["case_subq_uncovered"] = ",".join(str(i) for i in _cov["uncovered"])
+                event["case_subq_coverage_note"] = _G.build_case_subq_coverage_note(_cov)
+    except Exception:  # noqa: BLE001 — 观测/声明层永不破坏判分
+        pass
+    # slot 身份逐轮导出（护栏③）：slot 漂移六周无人知的洞，用导出封死。
+    try:
+        _bank_id = _G.active_bank_identity()
+        event["case_rubric_bank_slot"] = (
+            f"{_bank_id.get('slot') or '?'}:{_bank_id.get('governance') or '?'}:"
+            f"{_bank_id.get('qid_count') or 0}"
+        )
+    except Exception:  # noqa: BLE001 — 观测导出永不破坏判分
+        pass
+    # canonical431 键命中发声（Lane 2 2026-08-01）：形如 "4/4" / "0/5:disputed5"。
+    # slot 身份由既有 case_rubric_bank_slot 带出（"canonical431:authorized:96"），
+    # 这个 marker 回答的是另一个问题：**这一轮到底有几问真的走了 canonical 键**。
+    # 没有它就分不清「slot 装上了但零命中」与「slot 装上且命中」——Lane 1 §9①
+    # 正是这个洞。分母=尝试构键的小问数，所以 0/N 是一条可证伪的失败信号。
+    if canonical_key_hit:
+        event["case_canonical_key_hit"] = canonical_key_hit
+    if score_total_mismatch:
+        event["case_rubric_score_total_mismatch"] = True
+    if point_pool_excess > 0:
+        event["point_pool_exceeds_max"] = point_pool_excess
+    if stem_fallback_used:
+        event["case_stem_fallback"] = stem_fallback_used
+    # 分数三字段唯一 finalizer（多写者收敛 2026-08-01 审计）：踩点封顶
+    # min(Σ命中, 范围上限) + 对外分母=整题名义满分。capability 层此后不改分。
+    # tier-1（compiled_rubric）刻意不参与封顶：cg.max_score 出自 V0 文本解析，
+    # 可靠性不足（实证夹具池 3/名义 1——按它封顶会把判对的分砍错）；编译库的
+    # 确定性封顶 = canonical 431 带逐点分值上服后的硬前置，在那之前只保留
+    # point_pool_exceeds_max observe-only marker，不动分。
+    if provenance != "compiled_rubric":
+        # OD-005：逐问封顶与整题范围封顶串联，写分者仍只有 finalize_case_score 一个。
+        _finalize_kwargs = {"subquestion_caps": subquestion_caps} if subquestion_caps else {}
+        _G.finalize_case_score(
+            event,
+            nominal_full_score=float((cg or {}).get("max_score") or 0),
+            scope_ratio=scope_ratio,
+            **_finalize_kwargs,
+        )
+    elif canonical_nominal > 0:
+        # canonical431 命中（Lane 2 2026-08-01）：上面那条排除理由到此为止——分母
+        # 不再需要从题面解析，它就在记录里（每问 official_total_score，佑森逐点
+        # 分值 0.5 粒度、真题 PDF 视觉核查 + 5 份专家复核背书）。
+        # - ``subquestion_caps`` = 每问真实满分，min(Σ命中, nominal) 逐问封顶。
+        # - ``scope_ratio=1.0``：分母已经只算实际采纳的小问了，再乘一次覆盖比
+        #   = 双重缩放（P0 兜底满分那一族的病根形态）。
+        # - ``normalize_points_to_nominal`` 在这条链上从不调用：canonical 的点分
+        #   是真值，缩放只会毁掉它（那正是「全中即满分」的结构性成因）。
+        # 写分者仍只有 finalize_case_score 一个（多写者收敛不变）。
+        _G.finalize_case_score(
+            event,
+            nominal_full_score=canonical_nominal,
+            scope_ratio=1.0,
+            subquestion_caps=subquestion_caps,
+        )
+        # 分母来源发声与 R2 阶梯同一个 marker（分析面不该有两套词汇），但取值
+        # **刻意不同名**：R2 的 "canonical" 是「结构小问数」（只读 nominal_table、
+        # 不读采分点、走免授权逃生口），这里的 "canonical_rubric" 是「每问真实
+        # 满分」（读 records、需 production_authorized）。同名会让两级权威在
+        # 分组统计里被合并成一个，那正是要防的。
+        denominator_source = "canonical_rubric"
+    if per_subq_grading:
+        event["case_per_subq_grading"] = per_subq_grading
+    if denominator_source:
+        # R2（task#26）：分母来自阶梯哪一级，逐轮上全 sink。
+        # ``reference_fallback`` = 权威全不可得、分母只能数参考侧——这是降级，
+        # 必须发声（没有 marker 的降级等于没发生过）。
+        event["case_denominator_source"] = denominator_source
+    if partial_scope:
+        event["case_grading_partial_scope"] = partial_scope
+        event["official_score_allowed"] = False
     if is_diagnostic_rubric:
         event["grading_source"] = "rubric_scored_v1_diagnostic"
         event["answer_key_authority"] = "derived_from_stem_pending_calibration"
         event["official_score_allowed"] = False
         event["high_risk_review"] = True
         event["diagnostic_score"] = True
+        if provenance == "derived_from_stem" and hasattr(_G, "summarize_kb_grounding"):
+            event["kb_grounding"] = _G.summarize_kb_grounding(event.get("scoring_points") or [])
     return event
 
 
 async def _grade_case_batch_v1(
     graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
+    kb_name: str | None = None,
 ) -> dict[str, Any] | None:
     """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
     into one case_grading_completed event (deterministic sums), so render + same-source outcome work
@@ -2578,6 +3255,7 @@ async def _grade_case_batch_v1(
             key=key,
             _G=_G,
             provider_authority=provider_authority,
+            kb_name=kb_name,
         )
         if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
             sub_events.append(ev)
@@ -3558,8 +4236,10 @@ def _maybe_attach_general_knowledge_context(
             "student_id": student_id,
             "weak_codes": _learner_weak_canonical_codes({}),
         }
+        # 提交面收权（2026-08-01 清剿）：教学包解析的主语是「学生这轮问了什么」，
+        # 不是组装信封——跨轮 [History Context] 会把上一轮的话题解析成本轮教学包。
         pack = resolve_general_knowledge_context(
-            str(getattr(context, "user_message", "") or ""),
+            _submission_surface(context),
             learner_context=learner_context,
         )
         if pack is not None:
@@ -4072,9 +4752,10 @@ class DeepQuestionCapability(BaseCapability):
         selected_mode = str(context.metadata.get("selected_mode") or "").strip().lower()
         allow_legacy_followup_fallback = semantic_router_mode != "primary"
         next_action = str(turn_semantic_decision.get("next_action") or "").strip()
-        raw_user_message = str(
-            context.metadata.get("raw_user_message") or context.user_message or ""
-        ).strip()
+        # 提交面收权（2026-08-01 清剿）：旧写法缺 `[User Question]` 剥离器这一跳——
+        # metadata 缺 raw_user_message 的入口（非 turn_runtime 通道）会静默退回组装信封。
+        # 收敛到与 AgentLoop._case_submission_surface 同一口径的三段回退。
+        raw_user_message = _submission_surface(context)
         if next_action == "ask_clarifying_question":
             await self._emit_turn_semantic_clarification(
                 stream=stream,
@@ -4340,7 +5021,10 @@ class DeepQuestionCapability(BaseCapability):
                 turn_semantic_decision=turn_semantic_decision,
                 followup_action=followup_action,
                 question_context=followup_question_context,
-                user_message=context.user_message,
+                # 提交面收权（2026-08-01 清剿）：同一分支的兄弟调用（上下各一处）早已用
+                # raw_user_message，唯独这行还喂组装信封。该判据的 marker 集含裸 "?" 与
+                # "为什么"——挂了 [History Context] 之后它实际恒真。
+                user_message=raw_user_message,
             ):
                 await self._emit_followup_result(
                     stream=stream,
@@ -4406,7 +5090,11 @@ class DeepQuestionCapability(BaseCapability):
                 return
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
-        raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
+        # 提交面收权（2026-08-01 清剿）：raw_topic 下游喂 8 个判据（域门、锚点排除、
+        # 出题意图、轻量 topic 门…）。contract §出题考点单一 decider 明写「`考(...)` 标签
+        # 提取器只许喂**单条用户消息**，禁喂 transcript / history 拼接文本」——旧写法
+        # 退回 context.user_message 时喂的正是拼接文本，与该条款字面冲突。
+        raw_topic = str(overrides.get("topic") or "").strip() or _submission_surface(context)
         current_question_exclusion = _requests_current_question_exclusion(raw_topic)
         # WP4：唯一 topic decider。join 顺序=旧→新（memory→跨能力上下文→对话尾部），
         # 配合 anchor 的尾部截取，锚点永远落在最新对话上。
@@ -5113,10 +5801,23 @@ class DeepQuestionCapability(BaseCapability):
                     if isinstance(_g2b_meta.get("personalization_context"), dict)
                     else None
                 )
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    resolve_case_answer_method_for_render,
+                )
+
+                # A1 真口诀（拍A）：high 置信命中才挂编译口诀，否则回落现模板+发声。
+                _am_ctx = resolve_case_answer_method_for_render(_stem)
+                v1_event["case_mnemonic_source"] = (
+                    "lecture_pack:" + ",".join(
+                        str(u.get("unit_id") or "?") for u in (_am_ctx or {}).get("units") or []
+                    )
+                    if _am_ctx else "fallback_template"
+                )
                 v1_render = render_case_rubric_feedback(
                     v1_event,
                     question_stem=_stem,
                     personalization_context_pack=_g2b_pcp,
+                    answer_method_context=_am_ctx,
                 )
             if v1_render is not None:
                 answer = v1_render

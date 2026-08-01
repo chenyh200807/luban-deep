@@ -1,0 +1,1250 @@
+{
+ "schema": "student_army_gold.v2.pilot",
+ "generated_at": "2026-07-31",
+ "gold_definition": "金标 = (a) 官方采分点骨架（point_id / point_text / point_score，取自佑森解析视觉抽取的 case rubric）+ (b) 每份作答刻意植入的 expected_failures（该卷必须拿不到的采分点及其失分机理）。未列入 expected_failures 的采分点，一律应当被判为命中。作答文本本身不是金标，answer_text 只是承载失分形态的载体。",
+ "why_v2": "v1 的 10 份“学生答卷”实为官方答案的逐字截断（S03=全文+尾巴，S06=前缀），4-gram 泄漏实测 P/R 部分题 ≥0.97，因此 v1 只能测“漏没漏”，排序全对是恒等式而非能力证据。v2 用改写表达正确内容，并按四类失分形态注入可客观判定的错误，使金标能测“答错/术语不准/数值记错”。",
+ "failure_types": {
+  "omission": "少答小问或少答采分点（用自己的话写对的部分，绝不靠截断官方答案实现）",
+  "wrong": "给出与官方采分点相矛盾的做法/结论，含张冠李戴（把成立项判为不妥）",
+  "imprecise_term": "意思接近但用词不规范：口语化、近义替换、规范名称写错",
+  "numeric": "数字、天数、比例、根数、规范限值记错"
+ },
+ "leakage_gate": {
+  "metric": "character 4-gram multiset, punctuation/whitespace stripped",
+  "reference": "scratchpad/eval_army/01_cohort_select.py (identical functions)",
+  "threshold": 0.6,
+  "rule": "precision / recall / jaccard 三项全部 < 0.60 才准入；超标即重写"
+ },
+ "honest_boundaries": [
+  "作答由 LLM（Claude Opus 5）按采分点骨架撰写，不是真实考生语料；缺少真人答卷特有的书写混乱、跳题、错别字与半截句。",
+  "采分点来自佑森教育解析的视觉抽取（NOT_official=true），本身有转录误差；v2 只对齐它，不对齐官方评分标准。",
+  "expected_failures 的判定规则是人写的，仍是单一作者判断，未经第二人复核。"
+ ],
+ "questions": [
+  {
+   "question_id": "Q2023-03",
+   "year": 2023,
+   "title": "Q2023-03｜项目质量计划、灌注桩与装配式质量控制",
+   "source_chunk": "EXAM_1A434000_P0015_01",
+   "stem": "【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师认为屋面卷材流淌现象的原因分析和钉钉子法存在问题，要求施工单位按要求整改。\n\n【问题】\n1. 指出工程质量计划编制和管理中的不妥之处，并写出正确做法。工程质量计划中应设置质量控制点的关键部位和环节有哪些？\n2. 灌注桩桩身完整性检测方法还有哪些？桩身完整性抽检数量的标准规定有哪些？\n3. 指出钢筋连接接头面积百分率等要求中的不妥之处，并写出正确做法。（本问题 2 项不妥之处，多答不得分）现场钢筋直螺纹接头加工和安装质量检测专用工具有哪些？\n4. 写出屋面卷材流淌原因分析中的不妥项（本问题 3 项不妥之处，多答不得分）写出钉钉子法的正确做法。",
+   "official_answer": "①“项目部在开工后编制了项目质量计划”；正确做法：项目质量计划应在项目策划过程中编制。②“根据工程进展实施静态管理；”正确做法：根据工程进展实施动态管理。（3）关键部位和环节还有：【关关验四新】①影响结构安全的关键部位、关键环节；②采用新技术、新工艺的部位和环节；③隐蔽工程验收。\n(1) 还有：钻芯法、低应变法、声波透射法。(2) 抽检数量：不应少于总桩数的 20%且不应少于 10 根。每根柱子承台下的桩抽检数量不应少于 1 根。\n(1) 不妥之处：①“受压接头不宜大于 75%”；正确做法：受压接头可不受限制。②“直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%”；正确做法：直接承受动力荷载的结构构件采用机械连接时，不应超过 50%。(2) 包括：量尺、通规、止规、管钳扳手、扭力扳手。\n(1) 不妥之处：①“找平层的分格缝设置不当”。②“屋面板因温度变化产生胀缩”。③“卷材搭接长度太小”。(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+   "rubric_points": [
+    {
+     "point_id": "1.1",
+     "sub_q_no": "1",
+     "point_seq": 1,
+     "point_score": 0.5,
+     "point_type": "判断",
+     "point_text": "不妥①:项目部在开工后编制了项目质量计划",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.2",
+     "sub_q_no": "1",
+     "point_seq": 2,
+     "point_score": 0.5,
+     "point_type": "改错",
+     "point_text": "正确做法:项目质量计划应在项目策划过程中编制",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.3",
+     "sub_q_no": "1",
+     "point_seq": 3,
+     "point_score": 0.5,
+     "point_type": "判断",
+     "point_text": "不妥②:根据工程进展实施静态管理",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.4",
+     "sub_q_no": "1",
+     "point_seq": 4,
+     "point_score": 0.5,
+     "point_type": "改错",
+     "point_text": "正确做法:根据工程进展实施动态管理",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.5",
+     "sub_q_no": "1",
+     "point_seq": 5,
+     "point_score": 1.0,
+     "point_type": "列举",
+     "point_text": "关键部位和环节还有①影响结构安全的关键部位、关键环节",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.6",
+     "sub_q_no": "1",
+     "point_seq": 6,
+     "point_score": 1.0,
+     "point_type": "列举",
+     "point_text": "②采用新技术、新工艺的部位和环节",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.7",
+     "sub_q_no": "1",
+     "point_seq": 7,
+     "point_score": 1.0,
+     "point_type": "列举",
+     "point_text": "③隐蔽工程验收",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "2.1",
+     "sub_q_no": "2",
+     "point_seq": 1,
+     "point_score": 3.0,
+     "point_type": "列举",
+     "point_text": "还有:钻芯法、低应变法、声波透射法",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "2.2",
+     "sub_q_no": "2",
+     "point_seq": 2,
+     "point_score": 2.0,
+     "point_type": "列举",
+     "point_text": "抽检数量:不应少于总桩数的20%且不应少于10根。每根柱子承台下的桩抽检数量不应少于1根",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "3.1",
+     "sub_q_no": "3",
+     "point_seq": 1,
+     "point_score": 0.5,
+     "point_type": "判断",
+     "point_text": "不妥①:受压接头不宜大于75%",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "3.2",
+     "sub_q_no": "3",
+     "point_seq": 2,
+     "point_score": 0.5,
+     "point_type": "改错",
+     "point_text": "正确做法:受压接头可不受限制",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "3.3",
+     "sub_q_no": "3",
+     "point_seq": 3,
+     "point_score": 0.5,
+     "point_type": "判断",
+     "point_text": "不妥②:直接承受动力荷载的结构构件采用机械连接时,不宜超过50%",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "3.4",
+     "sub_q_no": "3",
+     "point_seq": 4,
+     "point_score": 0.5,
+     "point_type": "改错",
+     "point_text": "正确做法:直接承受动力荷载的结构构件采用机械连接时,不应超过50%",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "3.5",
+     "sub_q_no": "3",
+     "point_seq": 5,
+     "point_score": 3.0,
+     "point_type": "列举",
+     "point_text": "专用工具包括:量尺、通规、止规、管钳扳手、扭力扳手",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.1",
+     "sub_q_no": "4",
+     "point_seq": 1,
+     "point_score": 1.0,
+     "point_type": "判断",
+     "point_text": "不妥①:找平层的分格缝设置不当",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.2",
+     "sub_q_no": "4",
+     "point_seq": 2,
+     "point_score": 1.0,
+     "point_type": "判断",
+     "point_text": "不妥②:屋面板因温度变化产生胀缩",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.3",
+     "sub_q_no": "4",
+     "point_seq": 3,
+     "point_score": 1.0,
+     "point_type": "判断",
+     "point_text": "不妥③:卷材搭接长度太小",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.4",
+     "sub_q_no": "4",
+     "point_seq": 4,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "钉钉子法①:当施工后不久,卷材有下滑趋势时,可在卷材的上部离屋脊300~450mm范围内钉三排50mm长圆钉,钉眼上灌胶结料",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.5",
+     "sub_q_no": "4",
+     "point_seq": 5,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "钉钉子法②:卷材流淌后,横向搭接者有错动,应清除边缘翘起处的旧胶结料,重新浇灌胶结料,并压实刮平",
+     "sub_q_total_score": 5.0
+    }
+   ],
+   "rubric_point_count": 19,
+   "rubric_total_score": 20.0,
+   "rubric_total_score_authority": "official_paper_structure_1a_jianzhu",
+   "rubric_point_pool_total": 20.0,
+   "answers": [
+    {
+     "answer_id": "Q2023-03::high",
+     "ability_label": "high",
+     "answer_text": "问题1：\n质量计划的编制和管理有两处站不住脚。第一，这份计划是等到工程都开工了才动手写的，时间点错了；按照要求，它属于项目前期策划阶段的产物，必须在策划过程中就形成。第二，写的是随着工程推进做静态管理，这个也不对，质量计划落地以后要跟着工程实际情况不断修订调整，属于动态管理。\n除背景里已经列出的以外，还应当把三类地方纳入质量控制点：一是关系到结构是否安全的关键部位和关键环节；二是首次使用新技术、新工艺的部位和环节；三是隐蔽工程的验收。\n\n问题2：\n桩身完整性除了高应变法，还可以用钻芯法、低应变法、声波透射法。\n抽检数量上，我记得规范要求不得低于总桩数的10%，并且总数不少于5根；另外每一根柱子下面承台里的桩，至少要抽到1根。\n\n问题3：\n接头面积百分率这几条里有两条不对。第一条，“受压接头不宜大于75%”——受压区的接头百分率其实不作限制，多少都可以。第二条，“直接承受动力荷载的构件用机械连接不宜超过50%”——这里的措辞太软，规范用的是强制口径，应当写成不应超过50%。\n直螺纹接头加工和安装现场用到的专用检具有：卡尺、通规、止规、活动扳手、扭力扳手。\n\n问题4：\n原因分析里有三条立不住：找平层分格缝设置不当、屋面板随温度胀缩、卷材搭接长度不够，这三条与卷材流淌之间没有因果关系。\n钉钉子法的规范做法是：如果铺完没多久卷材刚出现下滑苗头，可以在离屋脊三百到四百五十毫米这一带钉三排圆钉，钉子长五十毫米，钉完后往钉眼里灌胶结料；如果卷材已经淌下去、横向搭接错位了，就要把翘边处的旧胶结料清干净，重新浇灌胶结料，再压实刮平。",
+     "expected_failures": [
+      {
+       "target_point": "2.2",
+       "type": "numeric",
+       "expected_credit": "none",
+       "injected_text": "不得低于总桩数的10%，并且总数不少于5根",
+       "adjudication_rule": "采分点要求“不应少于总桩数的20%且不应少于10根”。答卷两个数值全部写错（20%→10%、10根→5根），该点不得分；后半句“每根柱子承台下不少于1根”虽对，但该采分点整体以数值为准，判不给分。"
+      },
+      {
+       "target_point": "3.5",
+       "type": "imprecise_term",
+       "expected_credit": "partial",
+       "expected_items_hit": 3,
+       "expected_items_total": 5,
+       "injected_text": "卡尺、通规、止规、活动扳手、扭力扳手",
+       "adjudication_rule": "采分点五项为“量尺、通规、止规、管钳扳手、扭力扳手”。答卷把“量尺”写成“卡尺”、把“管钳扳手”写成“活动扳手”，两项名称不规范不计；通规、止规、扭力扳手三项命中。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "1.6",
+      "1.7",
+      "2.1",
+      "3.1",
+      "3.2",
+      "3.3",
+      "3.4",
+      "4.1",
+      "4.2",
+      "4.3",
+      "4.4",
+      "4.5"
+     ],
+     "failure_type_counts": {
+      "numeric": 1,
+      "imprecise_term": 1
+     },
+     "expected_point_score": 16.8,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
+     "expected_score_ratio": 0.84,
+     "leakage_4gram": {
+      "precision": 0.1372,
+      "recall": 0.1937,
+      "jaccard": 0.0873,
+      "pass": true
+     }
+    },
+    {
+     "answer_id": "Q2023-03::mid",
+     "ability_label": "mid",
+     "answer_text": "问题1：\n不妥的地方是项目质量计划开工之后才编，编制时间不对。正确做法应该是等开工报告获批、第一个分部工程开工之前把它补齐。另外“实施静态管理”也不对，工程一直在变，质量计划得跟着变，应该是动态管理。\n质量控制点还应该包括影响结构安全的关键部位和关键环节。\n\n问题2：\n桩身完整性检测还可以用低应变法和声波透射法。\n抽检数量按规范是不少于总桩数的20%，而且不少于10根；每根柱子承台下面的桩不少于3根。\n\n问题3：\n不妥的是“受压接头不宜大于75%”，受压接头的百分率规范上是不限制的。第4条关于机械连接不宜超过50%的说法我认为没有问题，可以照做。\n现场用的专用工具有量尺、通规、止规、管钳扳手、扭力扳手。\n\n问题4：\n原因分析里不成立的有：胶结料耐热度偏低、找平层分格缝设置不当、卷材搭接长度太小。\n钉钉子法应该这样做：卷材刚铺完不久出现下滑趋势的，在离屋脊三百到四百五十毫米范围内钉三排五十毫米长的圆钉，钉眼上灌胶结料。",
+     "expected_failures": [
+      {
+       "target_point": "1.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "正确做法应该是等开工报告获批、第一个分部工程开工之前把它补齐",
+       "adjudication_rule": "采分点要求“项目质量计划应在项目策划过程中编制”。答卷给出的时点仍在开工之后，与采分点直接矛盾，不得分。"
+      },
+      {
+       "target_point": "1.6",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "答卷未提“采用新技术、新工艺的部位和环节”。"
+      },
+      {
+       "target_point": "1.7",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "答卷未提“隐蔽工程验收”。"
+      },
+      {
+       "target_point": "2.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 2,
+       "expected_items_total": 3,
+       "injected_text": "还可以用低应变法和声波透射法",
+       "adjudication_rule": "采分点三项为“钻芯法、低应变法、声波透射法”，答卷漏“钻芯法”。"
+      },
+      {
+       "target_point": "2.2",
+       "type": "numeric",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 2,
+       "injected_text": "每根柱子承台下面的桩不少于3根",
+       "adjudication_rule": "采分点含两个数值子事实：①总桩数20%且不少于10根（答对）；②每根柱子承台下不少于1根（答成3根，错）。"
+      },
+      {
+       "target_point": "3.3",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "第4条关于机械连接不宜超过50%的说法我认为没有问题，可以照做",
+       "adjudication_rule": "采分点要求判出“直接承受动力荷载的结构构件采用机械连接时不宜超过50%”为不妥；答卷明确判其为妥当，与采分点矛盾。"
+      },
+      {
+       "target_point": "3.4",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "既未判出不妥，也就未给出“不应超过50%”的正确做法。"
+      },
+      {
+       "target_point": "4.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "原因分析里不成立的有：胶结料耐热度偏低……",
+       "adjudication_rule": "采分点要求判出“屋面板因温度变化产生胀缩”为不妥；答卷未判出，反把成立原因“胶结料耐热度偏低”当作不妥（题干限定 3 项、多答不得分），属张冠李戴。"
+      },
+      {
+       "target_point": "4.5",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "答卷未写“卷材流淌后横向搭接错动的清除旧胶结料、重新浇灌、压实刮平”这一情形。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.1",
+      "1.3",
+      "1.4",
+      "1.5",
+      "3.1",
+      "3.2",
+      "3.5",
+      "4.1",
+      "4.3",
+      "4.4"
+     ],
+     "failure_type_counts": {
+      "wrong": 3,
+      "omission": 5,
+      "numeric": 1
+     },
+     "expected_point_score": 12.5,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
+     "expected_score_ratio": 0.625,
+     "leakage_4gram": {
+      "precision": 0.2247,
+      "recall": 0.1937,
+      "jaccard": 0.1161,
+      "pass": true
+     }
+    },
+    {
+     "answer_id": "Q2023-03::low",
+     "ability_label": "low",
+     "answer_text": "问题1：\n不妥的是搞静态管理，工程情况天天变，质量计划应该动态管理，随时调整。\n质量控制点还应该包括影响工期的关键环节，以及造价比较高的那些部位。\n\n问题2：\n桩身完整性还可以用低应变法检测。\n抽检数量大概是总桩数的5%，最少3根。\n\n问题3：\n不妥的是“受拉接头不宜大于50%”，受拉接头的百分率不应该大于25%。\n现场检测工具有通规和止规。\n\n问题4：\n原因分析里不对的是胶结料粘结层过厚，还有卷材搭接长度太小。\n钉钉子法就是在卷材上部离屋脊二百到三百毫米的地方钉一排二十毫米长的圆钉，钉眼刷上防锈漆。",
+     "expected_failures": [
+      {
+       "target_point": "1.1",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "答卷未判出“开工后才编制质量计划”这一不妥。"
+      },
+      {
+       "target_point": "1.2",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未判出即无对应正确做法。"
+      },
+      {
+       "target_point": "1.5",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "影响工期的关键环节，以及造价比较高的那些部位",
+       "adjudication_rule": "采分点为“影响结构安全的关键部位、关键环节”；答卷答成工期与造价维度，与采分点不符。"
+      },
+      {
+       "target_point": "1.6",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未提新技术、新工艺。"
+      },
+      {
+       "target_point": "1.7",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未提隐蔽工程验收。"
+      },
+      {
+       "target_point": "2.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 3,
+       "injected_text": "还可以用低应变法检测",
+       "adjudication_rule": "三项中只命中低应变法，漏钻芯法与声波透射法。"
+      },
+      {
+       "target_point": "2.2",
+       "type": "numeric",
+       "expected_credit": "none",
+       "injected_text": "总桩数的5%，最少3根",
+       "adjudication_rule": "20%→5%、10根→3根，两个数值均错，且未提承台下抽检要求。"
+      },
+      {
+       "target_point": "3.1",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "不妥的是“受拉接头不宜大于50%”",
+       "adjudication_rule": "采分点要求判出“受压接头不宜大于75%”不妥；答卷判的是受拉接头那一条（该条本身正确），属张冠李戴。"
+      },
+      {
+       "target_point": "3.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "受拉接头的百分率不应该大于25%",
+       "adjudication_rule": "采分点正确做法是“受压接头可不受限制”；答卷给出受拉接头 25% 的新限制，与采分点矛盾。"
+      },
+      {
+       "target_point": "3.3",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未判出第二处不妥。"
+      },
+      {
+       "target_point": "3.4",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未给出“不应超过50%”的正确做法。"
+      },
+      {
+       "target_point": "3.5",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 2,
+       "expected_items_total": 5,
+       "injected_text": "现场检测工具有通规和止规",
+       "adjudication_rule": "五项中只命中通规、止规。"
+      },
+      {
+       "target_point": "4.1",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "原因分析里不对的是胶结料粘结层过厚",
+       "adjudication_rule": "采分点要求判出“找平层的分格缝设置不当”；答卷把成立原因“胶结料粘结层过厚”判为不妥，属张冠李戴。"
+      },
+      {
+       "target_point": "4.2",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未判出“屋面板因温度变化产生胀缩”。"
+      },
+      {
+       "target_point": "4.4",
+       "type": "numeric",
+       "expected_credit": "none",
+       "injected_text": "离屋脊二百到三百毫米的地方钉一排二十毫米长的圆钉，钉眼刷上防锈漆",
+       "adjudication_rule": "采分点为“离屋脊300~450mm、三排、50mm长圆钉、钉眼灌胶结料”。答卷四个要素全错（照抄了题干中被否定的做法），不得分。"
+      },
+      {
+       "target_point": "4.5",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未写横向搭接错动的处理办法。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.3",
+      "1.4",
+      "4.3"
+     ],
+     "failure_type_counts": {
+      "omission": 10,
+      "wrong": 4,
+      "numeric": 2
+     },
+     "expected_point_score": 4.2,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
+     "expected_score_ratio": 0.21,
+     "leakage_4gram": {
+      "precision": 0.0948,
+      "recall": 0.0484,
+      "jaccard": 0.0331,
+      "pass": true
+     }
+    }
+   ]
+  },
+  {
+   "question_id": "Q2024-03",
+   "year": 2024,
+   "title": "Q2024-03｜质量检查、叠合板、填充墙与幕墙节能",
+   "source_chunk": "EXAM_1A434000_P0014_02",
+   "stem": "【背景资料】某施工单位中标新建教学楼工程，建筑面积2.46万平方米，地上4层钢筋混凝土框架-剪力墙结构，部分楼板采用预制钢筋混凝土看合板，砌体采用空心混凝土砌块，外立面为玻璃和石材幕墙，部分内墙采用装饰抹灰工艺。\n\n项目部建立了质量保证体系并制定质量管理制度，要求施工重要工序和关键节点工序交接检查时严格执行“三检”制度，采用目测法、实测法及试验法对现场工程质量进行检查。\n\n叠合板预制构件未进行结构性能检验，无驻厂监督生产。进场后，项目部会同监理工程师按规定对叠合板预制构件主要受力钢筋规格等项目进行实体检验，合格后批准使用。\n\n项目部在自检中发现填充墙与主体结构交接处出现裂缝，技术人员制定了包括柱边设置间距500mm的2φ6钢筋、里口用半砖斜砌墙等专项防治措施，要求现场严格执行。\n\n公司在装饰抹灰检查中发现有抹灰层脱层、空鼓，面层爆灰、裂缝、表面不平整、接槎和抹纹明显等与一般抹灰相同的质量通病。在检查幕墙安全和功能检验资料时发现，只有硅酮结构胶相容性和剥离粘结性、幕墙气密性和水密性等检验项目报告。施工完成后，项目部对建筑节能工程的所有分部分项工程进行了验收，符合要求后提交了竣工预验收申请。\n\n【问题】\n1. 现场质量检查的“三检”制度是哪三检？现场试验法检查的两种方法是什么？\n2. 叠合板预制构件进场后的实体检验项目还有哪些？\n3. 填充墙与主体结构交接处的裂缝一般出现在哪些部位？其防治措施还有哪些？\n4. 除一般抹灰常见质量问题外，装饰抹灰常见质量问题还有哪些？幕墙安全和功能检验项目还有哪些？\n5. 除墙体节能工程外，建筑节能围护结构节能子部分的分项工程还有哪些？",
+   "official_answer": "1. “三检”制度是指自检、互检、专检；现场试验法检查的两种方法是理化试验和无损检测。\n2. 叠合板预制构件进场后的实体检验项目还包括：受力钢筋数量、间距、保护层厚度、混凝土强度。\n3. 填充墙与主体结构交接处的裂缝一般出现在柱边、梁底、门窗洞口等部位；其防治措施还有：填充墙下口最后3皮砖应在下部墙砌完14d后砌筑；外窗下为空心砖墙时，将窗台改为细石混凝土并加配钢筋；柱与填充墙接触面应设加强网片。\n4. 装饰抹灰常见质量问题还有：色差、掉角、脱皮；幕墙安全和功能检验项目还有：幕墙后置埋件和槽式预埋件的现场拉拔力；幕墙的耐风压性能及层间变形性能。\n5. 除墙体节能工程外，建筑节能围护结构节能子部分的分项工程还有：幕墙节能工程、门窗节能工程、屋面节能工程、地面节能工程。",
+   "rubric_points": [
+    {
+     "point_id": "1.1",
+     "sub_q_no": "1",
+     "point_seq": 1,
+     "point_score": 3.0,
+     "point_type": "列举",
+     "point_text": "(1) 自检、互检、专检",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.2",
+     "sub_q_no": "1",
+     "point_seq": 2,
+     "point_score": 2.0,
+     "point_type": "列举",
+     "point_text": "(2) 理化试验、无损检测",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "2.1",
+     "sub_q_no": "2",
+     "point_seq": 1,
+     "point_score": 4.0,
+     "point_type": "列举",
+     "point_text": "主要受力钢筋数量、间距、保护层厚度、混凝土强度",
+     "sub_q_total_score": 4.0
+    },
+    {
+     "point_id": "3.1",
+     "sub_q_no": "3",
+     "point_seq": 1,
+     "point_score": 1.0,
+     "point_type": "列举",
+     "point_text": "(1) 框架梁底、柱边",
+     "sub_q_total_score": 4.0
+    },
+    {
+     "point_id": "3.2",
+     "sub_q_no": "3",
+     "point_seq": 2,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "(2)① 填充墙墙顶口最后3皮砖应在下部墙砌完14d后砌筑",
+     "sub_q_total_score": 4.0
+    },
+    {
+     "point_id": "3.3",
+     "sub_q_no": "3",
+     "point_seq": 3,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "(2)② 外窗下为空心砖墙时,将窗台板改为细石混凝土并加配钢筋",
+     "sub_q_total_score": 4.0
+    },
+    {
+     "point_id": "3.4",
+     "sub_q_no": "3",
+     "point_seq": 4,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "(2)③ 柱与填充墙接触面应设加强网片",
+     "sub_q_total_score": 4.0
+    },
+    {
+     "point_id": "4.1",
+     "sub_q_no": "4",
+     "point_seq": 1,
+     "point_score": 3.0,
+     "point_type": "列举",
+     "point_text": "(1) 色差、掉角、脱皮",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.2",
+     "sub_q_no": "4",
+     "point_seq": 2,
+     "point_score": 1.0,
+     "point_type": "列举",
+     "point_text": "(2)① 幕墙后置埋件和槽式预埋件的现场拉拔力",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "4.3",
+     "sub_q_no": "4",
+     "point_seq": 3,
+     "point_score": 1.0,
+     "point_type": "列举",
+     "point_text": "(2)② 幕墙的耐风压性能及层间变形性能",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "5.1",
+     "sub_q_no": "5",
+     "point_seq": 1,
+     "point_score": 4.0,
+     "point_type": "列举",
+     "point_text": "幕墙节能工程、门窗节能工程、屋面节能工程、地面节能工程",
+     "sub_q_total_score": 4.0
+    }
+   ],
+   "rubric_point_count": 11,
+   "rubric_total_score": 20.0,
+   "rubric_total_score_authority": "official_paper_structure_1a_jianzhu",
+   "rubric_point_pool_total": 22.0,
+   "answers": [
+    {
+     "answer_id": "Q2024-03::high",
+     "ability_label": "high",
+     "answer_text": "1. 三检指的是自检、互检、专检这三道。现场用试验法查质量，通常走两条路：一条是理化试验，另一条是无损检测。\n\n2. 叠合板预制构件进场以后，除了背景里已经查过的主要受力钢筋规格，实体检验还要覆盖受力钢筋的数量、钢筋的间距、保护层厚度，以及构件本身的混凝土强度。\n\n3. 这类裂缝多半出现在框架梁的底面和框架柱的侧边这两个位置。防治措施除了背景中已列的，还可以：填充墙顶部最后三皮砖，等下面墙体砌完7天以后再砌；外窗下方如果是空心砖砌的，把窗台板换成细石混凝土并配上钢筋；柱子与填充墙相接触的那个面上挂加强网片。\n\n4. 装饰抹灰区别于一般抹灰的问题还有颜色深浅不一、掉角、表皮起壳。幕墙的安全和功能检验，除背景中已有的报告外，还应包含后置埋件和槽式预埋件的现场拉拔力，以及幕墙的耐风压性能和层间变形性能。\n\n5. 围护结构节能这个子分部里，除墙体节能外，还有幕墙节能工程、门窗节能工程、屋面节能工程和地面节能工程这四个分项。",
+     "expected_failures": [
+      {
+       "target_point": "3.2",
+       "type": "numeric",
+       "expected_credit": "none",
+       "injected_text": "等下面墙体砌完7天以后再砌",
+       "adjudication_rule": "采分点为“下部墙砌完14d后砌筑”。答卷写 7 天，天数错，不得分。"
+      },
+      {
+       "target_point": "4.1",
+       "type": "imprecise_term",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 3,
+       "injected_text": "颜色深浅不一、掉角、表皮起壳",
+       "adjudication_rule": "采分点三项为“色差、掉角、脱皮”。答卷把“色差”写成“颜色深浅不一”、“脱皮”写成“表皮起壳”，两项术语不规范不计；仅“掉角”命中。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.1",
+      "1.2",
+      "2.1",
+      "3.1",
+      "3.3",
+      "3.4",
+      "4.2",
+      "4.3",
+      "5.1"
+     ],
+     "failure_type_counts": {
+      "numeric": 1,
+      "imprecise_term": 1
+     },
+     "expected_point_score": 19.0,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 22.0,
+     "expected_score_ratio": 0.95,
+     "leakage_4gram": {
+      "precision": 0.2451,
+      "recall": 0.3056,
+      "jaccard": 0.1574,
+      "pass": true
+     }
+    },
+    {
+     "answer_id": "Q2024-03::mid",
+     "ability_label": "mid",
+     "answer_text": "1. 三检制度就是自检、互检、专检。现场试验法有两种，一种是理化试验，另一种是不把构件弄坏、直接拿仪器测出来的那种检测。\n\n2. 叠合板进场后还要检验受力钢筋的数量和间距。\n\n3. 这种裂缝一般出现在墙体中部和窗台下面。防治措施还有：填充墙顶部最后三皮砖要等下部墙体砌完十四天以后再砌；外窗下面是空心砖墙的，窗台板改用细石混凝土并加配钢筋。\n\n4. 装饰抹灰还会有色差、掉角、脱皮这些问题。幕墙检验项目还有后置埋件和槽式预埋件的现场拉拔力。\n\n5. 围护结构节能的分项工程还有幕墙节能工程、门窗节能工程、屋面节能工程。",
+     "expected_failures": [
+      {
+       "target_point": "1.2",
+       "type": "imprecise_term",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 2,
+       "injected_text": "不把构件弄坏、直接拿仪器测出来的那种检测",
+       "adjudication_rule": "采分点两项为“理化试验、无损检测”。理化试验命中；“无损检测”被口语化描述替代，未写出规范名称，不计。"
+      },
+      {
+       "target_point": "2.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 2,
+       "expected_items_total": 4,
+       "injected_text": "还要检验受力钢筋的数量和间距",
+       "adjudication_rule": "采分点四项为“数量、间距、保护层厚度、混凝土强度”，答卷漏后两项。"
+      },
+      {
+       "target_point": "3.1",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "一般出现在墙体中部和窗台下面",
+       "adjudication_rule": "采分点为“框架梁底、柱边”。答卷给出的两个部位与采分点均不符。"
+      },
+      {
+       "target_point": "3.4",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未提“柱与填充墙接触面应设加强网片”。"
+      },
+      {
+       "target_point": "4.3",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未提“幕墙的耐风压性能及层间变形性能”。"
+      },
+      {
+       "target_point": "5.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 3,
+       "expected_items_total": 4,
+       "injected_text": "幕墙节能工程、门窗节能工程、屋面节能工程",
+       "adjudication_rule": "四项中漏“地面节能工程”。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.1",
+      "3.2",
+      "3.3",
+      "4.1",
+      "4.2"
+     ],
+     "failure_type_counts": {
+      "imprecise_term": 1,
+      "omission": 4,
+      "wrong": 1
+     },
+     "expected_point_score": 15.0,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 22.0,
+     "expected_score_ratio": 0.75,
+     "leakage_4gram": {
+      "precision": 0.3716,
+      "recall": 0.2812,
+      "jaccard": 0.1906,
+      "pass": true
+     }
+    },
+    {
+     "answer_id": "Q2024-03::low",
+     "ability_label": "low",
+     "answer_text": "1. 三检就是自检、交叉检查、公司检查。现场试验法的两种方法是目测法和实测法。\n\n2. 叠合板进场以后还要检验混凝土强度。\n\n3. 防治措施还有：柱子和填充墙接触面上挂加强网片；填充墙上面最后三皮砖等下部墙砌完3天后再砌；外窗下面是空心砖墙的，可以在窗台位置加设木砖来固定。\n\n4. 装饰抹灰常见问题还有掉角。\n\n5. 围护结构节能的分项工程还有幕墙节能工程和门窗节能工程。",
+     "expected_failures": [
+      {
+       "target_point": "1.1",
+       "type": "imprecise_term",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 3,
+       "injected_text": "自检、交叉检查、公司检查",
+       "adjudication_rule": "采分点三项为“自检、互检、专检”。自检命中；“互检”写成“交叉检查”属非规范表述，“专检”写成“公司检查”属错解（专检指专职质检人员检查，非公司层级检查），两项不计。"
+      },
+      {
+       "target_point": "1.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "现场试验法的两种方法是目测法和实测法",
+       "adjudication_rule": "采分点为“理化试验、无损检测”。答卷把并列的三种检查手段（目测法/实测法/试验法）中的两个当成试验法的两种方法，属张冠李戴。"
+      },
+      {
+       "target_point": "2.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 4,
+       "injected_text": "还要检验混凝土强度",
+       "adjudication_rule": "四项中只命中混凝土强度。"
+      },
+      {
+       "target_point": "3.1",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "完全未回答裂缝出现部位。"
+      },
+      {
+       "target_point": "3.2",
+       "type": "numeric",
+       "expected_credit": "none",
+       "injected_text": "等下部墙砌完3天后再砌",
+       "adjudication_rule": "采分点为 14d，答卷写 3 天。"
+      },
+      {
+       "target_point": "3.3",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "可以在窗台位置加设木砖来固定",
+       "adjudication_rule": "采分点为“将窗台板改为细石混凝土并加配钢筋”。答卷给出的加设木砖做法与采分点矛盾。"
+      },
+      {
+       "target_point": "4.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 3,
+       "injected_text": "还有掉角",
+       "adjudication_rule": "三项中只命中掉角，漏色差与脱皮。"
+      },
+      {
+       "target_point": "4.2",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未提现场拉拔力检验。"
+      },
+      {
+       "target_point": "4.3",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未提耐风压性能及层间变形性能。"
+      },
+      {
+       "target_point": "5.1",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 2,
+       "expected_items_total": 4,
+       "injected_text": "幕墙节能工程和门窗节能工程",
+       "adjudication_rule": "四项中漏屋面节能工程、地面节能工程。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "3.4"
+     ],
+     "failure_type_counts": {
+      "imprecise_term": 1,
+      "wrong": 2,
+      "omission": 6,
+      "numeric": 1
+     },
+     "expected_point_score": 6.0,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 22.0,
+     "expected_score_ratio": 0.3,
+     "leakage_4gram": {
+      "precision": 0.2597,
+      "recall": 0.1389,
+      "jaccard": 0.0995,
+      "pass": true
+     }
+    }
+   ],
+   "nominal_authority_disputed": true,
+   "nominal_dispute_detail": "Σ佑森逐点满分 22.0 与卷面结构 20.0 差 2.0；per-小问的 sub_q_total_score 原样保留（哪一问走样未裁决，不做重分配）。用本题算满分率时分母以 rubric_total_score 为准，并知悉全中会超过 100%。"
+  },
+  {
+   "question_id": "Q2025-03",
+   "year": 2025,
+   "title": "Q2025-03｜灌注桩、混凝土浇筑与卷材流淌",
+   "source_chunk": "EXAM_1A413000_P0012_02",
+   "stem": "【背景资料】\n某住宅工程，地下2层，地上8-12层，总建筑面积为16.5万平方米。基础为钢筋混凝土灌注桩，地上为钢筋混凝土剪力墙结构，部分楼板为叠合板。\n\n- 桩基专业分包施工过程中，在现场随意留置了灌注桩混凝土强度检验试件。\n- 桩基工程完工后，按要求对灌注桩的桩身缺陷和桩位偏差等项目进行了检验。\n- 项目部编写的地下室混凝土浇筑施工方案内容包括：梁和板宜同时浇筑混凝土；有主、次梁的楼板宜顺主梁方向浇筑；单向板宜沿板的短边方向浇筑；高度大于1m梁单独浇筑；结构完成后对结构实体质量进行检验，项目包括混凝土强度等。监理单位审查时提出了修改要求。\n- 叠合板吊装就位后，作业队对板底接缝偏差进行了校核，发现部分板底接缝高差不满足要求，按照安装要求对其进行了调节。\n- 监理工程师对1号楼屋面进行检查时，发现防水卷材出现了中等流淌现象，施工单位提出采用切割法对其进行治理整改。\n\n【问题】\n1. 灌注桩混凝土强度检验试件取样是否正确？除桩位偏差外，灌注桩的偏差检验项目还有哪些？桩身缺陷的检验方法有哪些？\n2. 改正混凝土浇筑方案中的不妥之处。混凝土结构实体检验项目还有哪些？\n3. 叠合板吊装后，对板底接缝校核的偏差项目有哪些？板底接缝高差不满足要求时如何进行调节？预制梁和叠合板的安装顺序应遵循什么原则？\n4. 屋面卷材流淌现象按其程度分，有哪三种？可采用的治理方法各是什么？",
+   "official_answer": "1. (1) 不正确；(2) 桩长、桩径；(3) 低应变法、高应变法、声波透射法、钻芯法\n2. (1) 改正：①有主、次梁的楼板宜顺次梁方向浇筑；②单向板宜沿板的长边方向浇筑。(2) 钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目；必要时可检验其他项目\n3. (1) 对板底接缝高差及宽度进行校核；(2) 将构件重新起吊，通过可调支托进行调节；(3) 先主梁、后次梁，先低后高\n4. (1) 严重流淌、中等流淌、轻微流淌；(2) ①严重流淌：可考虑拆除重铺；②轻微流淌：如不发生渗漏，一般可不予治理；③中等流淌：切割法、局部切除重铺、钉钉子法",
+   "rubric_points": [
+    {
+     "point_id": "1.1",
+     "sub_q_no": "1",
+     "point_seq": 1,
+     "point_score": 1.0,
+     "point_type": "判断",
+     "point_text": "灌注桩混凝土强度检验试件取样不正确",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.2",
+     "sub_q_no": "1",
+     "point_seq": 2,
+     "point_score": 2.0,
+     "point_type": "列举",
+     "point_text": "桩长、桩径",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "1.3",
+     "sub_q_no": "1",
+     "point_seq": 3,
+     "point_score": 2.0,
+     "point_type": "列举",
+     "point_text": "低应变法、高应变法、声波透射法、钻芯法",
+     "sub_q_total_score": 5.0
+    },
+    {
+     "point_id": "2.1",
+     "sub_q_no": "2",
+     "point_seq": 1,
+     "point_score": 1.0,
+     "point_type": "改错",
+     "point_text": "改正①:有主、次梁的楼板宜顺次梁方向浇筑",
+     "sub_q_total_score": 6.0
+    },
+    {
+     "point_id": "2.2",
+     "sub_q_no": "2",
+     "point_seq": 2,
+     "point_score": 1.0,
+     "point_type": "改错",
+     "point_text": "改正②:单向板宜沿板的长边方向浇筑",
+     "sub_q_total_score": 6.0
+    },
+    {
+     "point_id": "2.3",
+     "sub_q_no": "2",
+     "point_seq": 3,
+     "point_score": 4.0,
+     "point_type": "列举",
+     "point_text": "钢筋保护层厚度、结构位置与尺寸偏差、合约约定的项目;必要时可检验其他项目",
+     "sub_q_total_score": 6.0
+    },
+    {
+     "point_id": "3.1",
+     "sub_q_no": "3",
+     "point_seq": 1,
+     "point_score": 1.0,
+     "point_type": "程序",
+     "point_text": "对板底接缝高差及宽度进行校核",
+     "sub_q_total_score": 3.0
+    },
+    {
+     "point_id": "3.2",
+     "sub_q_no": "3",
+     "point_seq": 2,
+     "point_score": 1.0,
+     "point_type": "程序",
+     "point_text": "将构件重新起吊,通过可调支托进行调节",
+     "sub_q_total_score": 3.0
+    },
+    {
+     "point_id": "3.3",
+     "sub_q_no": "3",
+     "point_seq": 3,
+     "point_score": 1.0,
+     "point_type": "程序",
+     "point_text": "先主梁后次梁,先低后高",
+     "sub_q_total_score": 3.0
+    },
+    {
+     "point_id": "4.1",
+     "sub_q_no": "4",
+     "point_seq": 1,
+     "point_score": 1.0,
+     "point_type": "分类",
+     "point_text": "严重流淌、中等流淌、轻微流淌",
+     "sub_q_total_score": 6.0
+    },
+    {
+     "point_id": "4.2",
+     "sub_q_no": "4",
+     "point_seq": 2,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "严重流淌:可考虑拆除重铺",
+     "sub_q_total_score": 6.0
+    },
+    {
+     "point_id": "4.3",
+     "sub_q_no": "4",
+     "point_seq": 3,
+     "point_score": 1.0,
+     "point_type": "措施",
+     "point_text": "轻微流淌:如不发生渗漏,一般可不予治理",
+     "sub_q_total_score": 6.0
+    },
+    {
+     "point_id": "4.4",
+     "sub_q_no": "4",
+     "point_seq": 4,
+     "point_score": 3.0,
+     "point_type": "措施",
+     "point_text": "中等流淌:切割法、局部切除重铺、钉钉子法",
+     "sub_q_total_score": 6.0
+    }
+   ],
+   "rubric_point_count": 13,
+   "rubric_total_score": 20.0,
+   "rubric_total_score_authority": "official_paper_structure_1a_jianzhu",
+   "rubric_point_pool_total": 20.0,
+   "answers": [
+    {
+     "answer_id": "Q2025-03::high",
+     "ability_label": "high",
+     "answer_text": "1. 在现场随意留置强度检验试件的做法不正确，试件必须按规定的部位和频次留置。灌注桩的偏差检验项目，除桩位偏差外还有桩长和桩径。桩身缺陷可以用低应变法、高应变法、声波透射法和钻芯法来检验。\n\n2. 浇筑方案里有两处要改：有主梁和次梁的楼板，应当顺着次梁的方向浇筑，而不是顺主梁；单向板应当沿板的长边方向浇筑，题里写的短边不对。混凝土结构实体检验除强度外，还应包括钢筋保护层厚度、结构位置与尺寸偏差，以及合同里约定要检验的那些项目。\n\n3. 叠合板吊装就位后，要校核板底接缝的高差和宽度这两项偏差。高差超出允许范围时，把构件重新吊起来，通过可调支托调整到位。预制梁和叠合板的安装顺序，遵循先主梁后次梁、先低后高的原则。\n\n4. 卷材流淌按程度分成严重流淌、中等流淌、轻微流淌三种。严重的可以考虑拆掉重新铺；轻微的只要没有渗漏，一般不用专门处理；中等的可以用切割法、局部铲掉重做，或者钉钉子法。",
+     "expected_failures": [
+      {
+       "target_point": "2.3",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 3,
+       "expected_items_total": 4,
+       "injected_text": "钢筋保护层厚度、结构位置与尺寸偏差，以及合同里约定要检验的那些项目",
+       "adjudication_rule": "采分点四项为“钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目、必要时可检验其他项目”，答卷漏最后一项。"
+      },
+      {
+       "target_point": "4.4",
+       "type": "imprecise_term",
+       "expected_credit": "partial",
+       "expected_items_hit": 2,
+       "expected_items_total": 3,
+       "injected_text": "切割法、局部铲掉重做，或者钉钉子法",
+       "adjudication_rule": "采分点三项为“切割法、局部切除重铺、钉钉子法”。切割法与钉钉子法命中；“局部切除重铺”被写成“局部铲掉重做”，非规范表述，不计。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.1",
+      "1.2",
+      "1.3",
+      "2.1",
+      "2.2",
+      "3.1",
+      "3.2",
+      "3.3",
+      "4.1",
+      "4.2",
+      "4.3"
+     ],
+     "failure_type_counts": {
+      "omission": 1,
+      "imprecise_term": 1
+     },
+     "expected_point_score": 18.0,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
+     "expected_score_ratio": 0.9,
+     "leakage_4gram": {
+      "precision": 0.1657,
+      "recall": 0.285,
+      "jaccard": 0.117,
+      "pass": true
+     }
+    },
+    {
+     "answer_id": "Q2025-03::mid",
+     "ability_label": "mid",
+     "answer_text": "1. 不正确，试件不能随意留置。偏差检验项目还有桩径。桩身缺陷的检验方法有低应变法、高应变法和声波透射法。\n\n2. 有主、次梁的楼板顺主梁方向浇筑这一条我认为是对的，可以保留不改；单向板应当沿长边方向浇筑，题里写短边是不对的。结构实体检验项目还有钢筋保护层厚度和结构位置与尺寸偏差。\n\n3. 吊装以后要校核板底接缝的高差和宽度。高差不满足要求时，用撬棍把板撬起来，下面塞垫片找平。安装顺序是先主梁后次梁，先低后高。\n\n4. 流淌分严重、中等、轻微三种。严重流淌的可以用钉钉子法把它钉住；轻微流淌只要不漏水就不用管；中等流淌可以用切割法、局部切除重铺或者钉钉子法。",
+     "expected_failures": [
+      {
+       "target_point": "1.2",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 2,
+       "injected_text": "偏差检验项目还有桩径",
+       "adjudication_rule": "采分点两项为“桩长、桩径”，答卷漏桩长。"
+      },
+      {
+       "target_point": "1.3",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 3,
+       "expected_items_total": 4,
+       "injected_text": "低应变法、高应变法和声波透射法",
+       "adjudication_rule": "采分点四项，答卷漏钻芯法。"
+      },
+      {
+       "target_point": "2.1",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "有主、次梁的楼板顺主梁方向浇筑这一条我认为是对的，可以保留不改",
+       "adjudication_rule": "采分点要求改正为“宜顺次梁方向浇筑”；答卷明确判原方案妥当，与采分点矛盾。"
+      },
+      {
+       "target_point": "2.3",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 2,
+       "expected_items_total": 4,
+       "injected_text": "还有钢筋保护层厚度和结构位置与尺寸偏差",
+       "adjudication_rule": "四项中漏“合同约定的项目”“必要时可检验其他项目”。"
+      },
+      {
+       "target_point": "3.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "用撬棍把板撬起来，下面塞垫片找平",
+       "adjudication_rule": "采分点为“将构件重新起吊，通过可调支托进行调节”。答卷给出的撬棍加垫片做法与采分点矛盾。"
+      },
+      {
+       "target_point": "4.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "严重流淌的可以用钉钉子法把它钉住",
+       "adjudication_rule": "采分点为“严重流淌：可考虑拆除重铺”。钉钉子法是中等流淌的治理方法，答卷张冠李戴。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "1.1",
+      "2.2",
+      "3.1",
+      "3.3",
+      "4.1",
+      "4.3",
+      "4.4"
+     ],
+     "failure_type_counts": {
+      "omission": 3,
+      "wrong": 3
+     },
+     "expected_point_score": 13.5,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
+     "expected_score_ratio": 0.675,
+     "leakage_4gram": {
+      "precision": 0.1917,
+      "recall": 0.23,
+      "jaccard": 0.1168,
+      "pass": true
+     }
+    },
+    {
+     "answer_id": "Q2025-03::low",
+     "ability_label": "low",
+     "answer_text": "1. 现场留置试件按施工方便来定，我认为这样是可以的。桩身缺陷的检验方法有低应变法。\n\n2. 有主、次梁的楼板应该顺次梁方向浇筑。单向板沿短边方向浇筑没有问题。结构实体检验还要检验钢筋保护层厚度。\n\n3. 吊装完看看板缝齐不齐就行。安装顺序是先次梁后主梁，先高后低。\n\n4. 卷材流淌分成大流淌、中等流淌和小流淌。中等流淌可以用切割法处理。",
+     "expected_failures": [
+      {
+       "target_point": "1.1",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "现场留置试件按施工方便来定，我认为这样是可以的",
+       "adjudication_rule": "采分点为“取样不正确”。答卷判为正确，与采分点矛盾。"
+      },
+      {
+       "target_point": "1.2",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "完全未回答偏差检验项目。"
+      },
+      {
+       "target_point": "1.3",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 4,
+       "injected_text": "桩身缺陷的检验方法有低应变法",
+       "adjudication_rule": "四项中只命中低应变法。"
+      },
+      {
+       "target_point": "2.2",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "单向板沿短边方向浇筑没有问题",
+       "adjudication_rule": "采分点要求改正为“宜沿板的长边方向浇筑”；答卷判原方案妥当，与采分点矛盾。"
+      },
+      {
+       "target_point": "2.3",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 4,
+       "injected_text": "还要检验钢筋保护层厚度",
+       "adjudication_rule": "四项中只命中钢筋保护层厚度。"
+      },
+      {
+       "target_point": "3.1",
+       "type": "imprecise_term",
+       "expected_credit": "none",
+       "injected_text": "吊装完看看板缝齐不齐就行",
+       "adjudication_rule": "采分点要求写出“对板底接缝高差及宽度进行校核”两个偏差项目。答卷只有口语化的“板缝齐不齐”，未指明高差与宽度，不得分。"
+      },
+      {
+       "target_point": "3.2",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未回答高差不满足要求时如何调节。"
+      },
+      {
+       "target_point": "3.3",
+       "type": "wrong",
+       "expected_credit": "none",
+       "injected_text": "安装顺序是先次梁后主梁，先高后低",
+       "adjudication_rule": "采分点为“先主梁后次梁，先低后高”。答卷两个顺序全反，与采分点矛盾。"
+      },
+      {
+       "target_point": "4.1",
+       "type": "imprecise_term",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 3,
+       "injected_text": "大流淌、中等流淌和小流淌",
+       "adjudication_rule": "采分点三项为“严重流淌、中等流淌、轻微流淌”。中等流淌命中；“严重/轻微”写成“大/小”，非规范分类名称，不计。"
+      },
+      {
+       "target_point": "4.2",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未写严重流淌的治理方法。"
+      },
+      {
+       "target_point": "4.3",
+       "type": "omission",
+       "expected_credit": "none",
+       "injected_text": "",
+       "adjudication_rule": "未写轻微流淌的处理原则。"
+      },
+      {
+       "target_point": "4.4",
+       "type": "omission",
+       "expected_credit": "partial",
+       "expected_items_hit": 1,
+       "expected_items_total": 3,
+       "injected_text": "中等流淌可以用切割法处理",
+       "adjudication_rule": "三项中只命中切割法。"
+      }
+     ],
+     "expected_full_credit_points": [
+      "2.1"
+     ],
+     "failure_type_counts": {
+      "wrong": 3,
+      "omission": 7,
+      "imprecise_term": 2
+     },
+     "expected_point_score": 3.833,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
+     "expected_score_ratio": 0.1917,
+     "leakage_4gram": {
+      "precision": 0.1357,
+      "recall": 0.095,
+      "jaccard": 0.0592,
+      "pass": true
+     }
+    }
+   ]
+  }
+ ],
+ "counts": {
+  "questions": 3,
+  "answers": 9,
+  "rubric_points": 43,
+  "expected_failures": 65,
+  "expected_failures_by_type": {
+   "numeric": 6,
+   "imprecise_term": 7,
+   "wrong": 16,
+   "omission": 36
+  }
+ }
+}

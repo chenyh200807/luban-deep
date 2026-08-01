@@ -109,43 +109,10 @@ def test_save_turn_persists_raw_user_message_instead_of_context_envelope() -> No
     assert "参考证据" not in session.messages[0]["content"]
 
 
-@pytest.mark.asyncio
-async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path) -> None:
+def _make_loop_fixtures(tmp_path, provider):
     from deeptutor.tutorbot.agent.tools.base import Tool
     from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
     from deeptutor.tutorbot.bus.queue import MessageBus
-    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-
-    class LoopingProvider(LLMProvider):
-        def __init__(self) -> None:
-            super().__init__()
-            self.calls = 0
-
-        async def chat(
-            self,
-            messages: list[dict[str, Any]],
-            tools: list[dict[str, Any]] | None = None,
-            model: str | None = None,
-            max_tokens: int = 4096,
-            temperature: float = 0.7,
-            reasoning_effort: str | None = None,
-            tool_choice: str | dict[str, Any] | None = None,
-            on_content_delta=None,
-        ) -> LLMResponse:
-            self.calls += 1
-            return LLMResponse(
-                content="继续调用工具",
-                tool_calls=[
-                    ToolCallRequest(
-                        id=f"call_{self.calls}",
-                        name="rag",
-                        arguments={"topic": f"round-{self.calls}"},
-                    )
-                ],
-            )
-
-        def get_default_model(self) -> str:
-            return "fake-model"
 
     class DummyTool(Tool):
         def __init__(self) -> None:
@@ -171,7 +138,6 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
             self.calls.append(dict(kwargs))
             return f"executed:{kwargs['topic']}"
 
-    provider = LoopingProvider()
     tool = DummyTool()
     loop = AgentLoop(
         bus=MessageBus(),
@@ -185,39 +151,22 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
     )
     loop.tools = TutorBotToolRegistry()
     loop.tools.register(tool)
-    metadata = {
-        "default_tools": ["rag"],
-        "mode_execution_policy": {"max_tool_rounds": 2},
-    }
-
-    final_content, tools_used, _messages = await loop._run_agent_loop(
-        [{"role": "user", "content": "一直调用工具"}],
-        runtime_metadata=metadata,
-    )
-
-    assert provider.calls == 2
-    assert tools_used == ["rag", "rag"]
-    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
-    assert metadata["effective_max_tool_rounds"] == 2
-    # 律4: an exhausted tool budget is a TYPED failure, not an improvised
-    # English "final answer" (the old surrogate reached real learners twice).
-    assert final_content is None
-    assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
-    assert metadata["turn_failure"]["budget"] == 2
+    return loop, tool
 
 
-@pytest.mark.asyncio
-async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_search(
-    tmp_path,
-) -> None:
-    from deeptutor.tutorbot.agent.tools.base import Tool
-    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
-    from deeptutor.tutorbot.bus.queue import MessageBus
-    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+def _tool_aware_provider():
+    """Provider that searches while tool use is allowed and answers once the
+    closure round forces tool_choice="none" — the cooperative shape the
+    closure-round contract expects."""
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
-    captured: dict[str, list[list[str]]] = {"tool_name_sets": []}
+    class ToolAwareProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+            self.tools_seen: list[int] = []
+            self.tool_choices_seen: list[Any] = []
 
-    class CapturingProvider(LLMProvider):
         async def chat(
             self,
             messages: list[dict[str, Any]],
@@ -229,16 +178,237 @@ async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_
             tool_choice: str | dict[str, Any] | None = None,
             on_content_delta=None,
         ) -> LLMResponse:
+            self.calls += 1
+            self.tools_seen.append(len(tools or []))
+            self.tool_choices_seen.append(tool_choice)
+            self.max_tokens_seen = max_tokens
+            if tools and tool_choice != "none":
+                return LLMResponse(
+                    content="继续调用工具",
+                    tool_calls=[
+                        ToolCallRequest(
+                            id=f"call_{self.calls}",
+                            name="rag",
+                            arguments={"topic": f"round-{self.calls}"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="基于已检索证据：不妥之处是排水坡度 0.1% 偏小，正确做法是不小于 0.2%。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    return ToolAwareProvider()
+
+
+@pytest.mark.asyncio
+async def test_exhausted_tool_budget_runs_closure_round_and_synthesizes_answer(tmp_path) -> None:
+    """Fall-through-to-understanding: when every budgeted round was a search, one
+    extra closure round (tools kept for prompt-cache prefix, tool_choice="none")
+    must answer from gathered evidence instead of failing closed to the canned
+    template (production session unified_1785314628533_23c29374: 4/4 rounds
+    searched, 142k tokens of evidence discarded into a refusal)."""
+    provider = _tool_aware_provider()
+    loop, tool = _make_loop_fixtures(tmp_path, provider)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 2},
+    }
+
+    final_content, tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 3  # 2 budgeted search rounds + 1 closure round
+    # Deep answers use the wired 8192 cap (AgentDefaults.max_tokens was dead
+    # config; provider GenerationSettings default 4096 truncates long
+    # multi-subquestion closure answers).
+    assert provider.max_tokens_seen == 8192
+    # Closure round keeps the tools block (prompt-cache prefix stability) and
+    # relies on server-enforced tool_choice="none".
+    assert provider.tools_seen == [1, 1, 1]
+    assert provider.tool_choices_seen == [None, None, "none"]
+    assert tools_used == ["rag", "rag"]
+    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
+    assert final_content is not None and "基于已检索证据" in final_content
+    assert "turn_failure" not in metadata
+    assert metadata["forced_closure_round"] == 3
+    assert any(
+        item.get("role") == "system" and "收束作答" in str(item.get("content") or "")
+        for item in messages
+    )
+
+
+@pytest.mark.asyncio
+async def test_stubborn_tool_calls_on_closure_round_stay_typed_failure(tmp_path) -> None:
+    """Safety net (律4): a provider that ignores tool_choice="none" and keeps
+    emitting pure tool calls still yields a TYPED failure — closure-round tool
+    calls are never executed and never accepted as an answer."""
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class StubbornProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            return LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(
+                        id=f"call_{self.calls}",
+                        name="rag",
+                        arguments={"topic": f"round-{self.calls}"},
+                    )
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    provider = StubbornProvider()
+    loop, tool = _make_loop_fixtures(tmp_path, provider)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 2},
+    }
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    # 2 search rounds + closure round + visible-answer repair retry.
+    assert provider.calls == 4
+    # Closure-round and repair-round tool calls are never recorded or executed.
+    assert tools_used == ["rag", "rag"]
+    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
+    assert metadata["effective_max_tool_rounds"] == 2
+    assert metadata["forced_closure_round"] == 3
+    assert final_content is None
+    assert metadata["turn_failure"]["kind"] == "model_empty_answer"
+
+
+@pytest.mark.asyncio
+async def test_single_round_policy_keeps_tools_and_budget_semantics(tmp_path) -> None:
+    """max_tool_rounds == 1 (fast policy shape): the only round keeps its tools
+    armed and no closure round is appended."""
+    provider = _tool_aware_provider()
+    loop, tool = _make_loop_fixtures(tmp_path, provider)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 1},
+    }
+
+    final_content, tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 1
+    assert provider.tools_seen == [1]
+    assert provider.tool_choices_seen == [None]
+    assert tools_used == ["rag"]
+    assert tool.calls == [{"topic": "round-1"}]
+    assert "forced_closure_round" not in metadata
+    assert not any(
+        item.get("role") == "system" and "收束作答" in str(item.get("content") or "")
+        for item in messages
+    )
+    assert final_content is None
+    assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
+    assert metadata["turn_failure"]["budget"] == 1
+
+
+@pytest.mark.asyncio
+async def test_prefetch_round_seeds_saturation_and_first_round_keeps_rag(
+    tmp_path,
+) -> None:
+    """收权回归（2026-07-29）：防冗余检索的唯一权威是 rag_saturation。
+    ①首轮不再暗藏 rag（旧的 prefetched_rag_satisfied 首轮抑制曾让模型白烧一轮吃
+    "Tool 'rag' is not available"，生产事故实证）；②预取轮播种进 saturation 账本，
+    模型复读预取 query 时立即饱和，下一轮才摘 rag。"""
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    captured: dict[str, list[list[str]]] = {"tool_name_sets": []}
+
+    class ReplayingProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
             captured["tool_name_sets"].append(
                 [
                     str(item.get("function", {}).get("name") or "")
                     for item in list(tools or [])
                 ]
             )
+            if self.calls == 1:
+                # 复读预取 query（相似度 1.0、源重合 1.0）→ 应触发饱和。
+                return LLMResponse(
+                    content=None,
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_1",
+                            name="rag",
+                            arguments={"query": "临时用水 消火栓间距 排水坡度"},
+                        )
+                    ],
+                )
             return LLMResponse(content="基于已召回证据回答。")
 
         def get_default_model(self) -> str:
             return "fake-model"
+
+    class TracingRagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "dummy"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "重复证据"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {"sources": [{"chunk_id": "S1"}, {"chunk_id": "S2"}]}
 
     class DummyTool(Tool):
         def __init__(self, name: str) -> None:
@@ -265,7 +435,7 @@ async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_
 
     loop = AgentLoop(
         bus=MessageBus(),
-        provider=CapturingProvider(),
+        provider=ReplayingProvider(),
         workspace=tmp_path,
         session_manager=SimpleNamespace(
             get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
@@ -273,40 +443,47 @@ async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_
         ),
     )
     loop.tools = TutorBotToolRegistry()
-    loop.tools.register(DummyTool("rag"))
+    loop.tools.register(TracingRagTool())
     loop.tools.register(DummyTool("web_search"))
     metadata = {
         "default_tools": ["rag", "web_search"],
         "prefetched_rag_satisfied": True,
+        "_latest_rag_trace_metadata": {
+            "rag_round": {
+                "round_index": 1,
+                "query": "临时用水 消火栓间距 排水坡度",
+                "sources": [{"chunk_id": "S1"}, {"chunk_id": "S2"}],
+            }
+        },
     }
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
-        [
-            {"role": "user", "content": "案例题采分点怎么答？"},
-            {
-                "role": "assistant",
-                "tool_calls": [
-                    {
-                        "id": "prefetch-rag-1",
-                        "type": "function",
-                        "function": {"name": "rag", "arguments": "{}"},
-                    }
-                ],
-            },
-            {
-                "role": "tool",
-                "tool_call_id": "prefetch-rag-1",
-                "name": "rag",
-                "content": "标准采分点：先编制方案，再审批交底。",
-            },
-        ],
+        [{"role": "user", "content": "案例题采分点怎么答？"}],
         runtime_metadata=metadata,
     )
 
     assert final_content == "基于已召回证据回答。"
-    assert tools_used == []
-    assert captured["tool_name_sets"] == [["web_search"]]
-    assert metadata["prefetched_rag_suppressed_first_loop"] is True
+    # ①首轮 rag 保持在工具列表里（不再暗藏）。
+    assert captured["tool_name_sets"][0] == ["rag", "web_search"]
+    # ②复读预取 query 的调用被执行一次后触发饱和，下一轮 rag 被摘除。
+    assert tools_used == ["rag"]
+    assert captured["tool_name_sets"][1] == ["web_search"]
+    assert "prefetched_rag_suppressed_first_loop" not in metadata
+    # ③饱和必须显式告知模型（不许无声藏工具——重试跑步机的根源），
+    # 且只注入一次。
+    notices = [
+        item
+        for item in _messages
+        if item.get("role") == "system" and "检索已饱和" in str(item.get("content") or "")
+    ]
+    assert len(notices) == 1
+    # ④协议序列不变量（review B-1）：assistant(tool_calls) 后必须紧跟其全部
+    # tool 结果，任何 system 消息不得插入中间——OpenAI-strict provider 会 400。
+    for idx, item in enumerate(_messages):
+        if item.get("role") == "assistant" and item.get("tool_calls"):
+            tool_call_count = len(item["tool_calls"])
+            followers = _messages[idx + 1 : idx + 1 + tool_call_count]
+            assert [f.get("role") for f in followers] == ["tool"] * tool_call_count
 
 
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
@@ -640,7 +817,7 @@ async def test_v1_case_stream_plan_derives_diagnostic_for_unbanked_full_case(
     monkeypatch.setattr(G, "load_rubric", lambda _qid: [])
     captured: dict[str, str] = {}
 
-    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat", provider_authority=""):
+    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat", provider_authority="", kb_evidence=None):
         captured["stem"] = stem
         captured["provider_authority"] = provider_authority
         return [
@@ -774,7 +951,9 @@ async def test_apply_v1_or_case_fallback_falls_back_to_legacy_when_v1_off(
     out = await _loop()._apply_v1_or_case_fallback(
         "得分：3分（满分5分）", runtime_metadata=md, user_message="判断题作答")
     assert "逐采分点点评" not in out                  # not V1
-    assert out == "" or "不硬估" in out                # legacy demote (or no-op)
+    # 新契约（P0 2026-07-29）：实质内容不再被模板整篇替换——硬分口径以追加免责
+    # 声明降级，正文保留。
+    assert out == "" or ("评分口径说明" in out and out.startswith("得分：3分"))
 
 
 @pytest.mark.asyncio
@@ -843,7 +1022,7 @@ async def test_case_grading_direct_path_streams_preview_and_returns_v1(monkeypat
     saved: list[Session] = []
     loop.sessions = type("NoopSessions", (), {"save": lambda self, session: saved.append(session)})()
 
-    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message):
+    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message, **_kwargs):
         runtime_metadata["_v1_case_graded"] = True
         runtime_metadata["v1_case_graded"] = True
         runtime_metadata["score_authority"] = "rubric_scored_v1"
@@ -911,7 +1090,7 @@ async def test_case_grading_direct_path_streams_score_first_then_sealed_blocks(m
     saved: list[Session] = []
     loop.sessions = type("NoopSessions", (), {"save": lambda self, session: saved.append(session)})()
 
-    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message):
+    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message, **_kwargs):
         runtime_metadata["_v1_case_graded"] = True
         runtime_metadata["v1_case_graded"] = True
         runtime_metadata["score_authority"] = "rubric_scored_v1"
@@ -1410,3 +1589,1124 @@ async def test_prefetched_rag_grounding_projects_answer_to_learner_option_surfac
     assert options[0] == {"key": "A", "value": "5%"}
     assert "【答案】D" not in tool_message["content"]
     assert tool_results == [tool_message["content"]]
+
+
+# ---------------------------------------------------------------------------
+# tier1/2 可达性收复 批1a（2026-07-30 指挥官阶段1）
+# ---------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_case_grading_direct_prefetches_exact_before_v1(tmp_path, monkeypatch) -> None:
+    """直批此前先于 prefetch 执行 → 粘贴库内题 eq 恒缺、恒 tier3。收复后：
+    直批入口先跑既有 prefetch（匹配权威不变），V1 计划能看到 _prefetched_exact_question。"""
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class _P(LLMProvider):
+        async def chat(self, messages, tools=None, model=None, max_tokens=4096,
+                       temperature=0.7, reasoning_effort=None, tool_choice=None,
+                       on_content_delta=None):
+            return LLMResponse(content="占位")
+
+        def get_default_model(self):
+            return "fake"
+
+    loop = AgentLoop(
+        bus=MessageBus(), provider=_P(), workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    calls = {"prefetch": 0, "plan_saw_eq": None}
+
+    async def _fake_prefetch(*, initial_messages, current_message, runtime_metadata, **kw):
+        calls["prefetch"] += 1
+        runtime_metadata["_prefetched_exact_question"] = {
+            "answer_kind": "case_study", "question_id": 9348,
+            "source_chunk_id": "EXAM_1A430000_P0014_06", "exam_year": 2024,
+        }
+        return initial_messages
+
+    async def _fake_plan(*, runtime_metadata, user_message, **_kwargs):
+        calls["plan_saw_eq"] = isinstance(
+            runtime_metadata.get("_prefetched_exact_question"), dict
+        )
+        return {"final_text": "## 批改\n占位判分正文", "score_first": "占位"}
+
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _fake_prefetch)
+    monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_plan)
+    monkeypatch.setattr(loop, "_is_case_grading_scene", lambda md: True)
+    # 本测试聚焦管道时序（prefetch 先于 V1）；门策略另有专测，这里放行。
+    monkeypatch.setattr(
+        AgentLoop, "_should_prefetch_grounded_rag",
+        classmethod(lambda cls, **kw: True),
+    )
+
+    from deeptutor.tutorbot.bus.events import InboundMessage
+    msg = InboundMessage(channel="test", sender_id="u", chat_id="c", content="题干…\n作答…")
+    # 1b admission：直批取回权威只看 kb 在场（不再受聊天门管辖）。
+    md_ref = {"question_lifecycle_scene": "case_grading", "default_kb": "construction-exam"}
+    out = await loop._run_case_grading_direct(
+        msg=msg, session=SimpleNamespace(metadata={}, key="k", messages=[], last_consolidated=0),
+        history=[], current_message="【题目】某工程…\n【我的作答】…",
+        runtime_metadata=md_ref,
+        runtime_instruction="",
+    )
+
+    assert calls["prefetch"] == 1
+    assert calls["plan_saw_eq"] is True
+    # 门必须发声（1b 仪器）：allowed 且命中 eq → marker=allowed。
+    assert str(md_ref.get("case_grading_prefetch_gate") or "").startswith("allowed")
+
+
+@pytest.mark.asyncio
+async def test_grounded_prefetch_is_idempotent_per_turn(tmp_path, monkeypatch) -> None:
+    """幂等闸：直批已 prefetch 后 fell_through 到外层，同 turn 不得二次检索。"""
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class _P(LLMProvider):
+        async def chat(self, *a, **k):
+            return LLMResponse(content="x")
+
+        def get_default_model(self):
+            return "fake"
+
+    loop = AgentLoop(
+        bus=MessageBus(), provider=_P(), workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    md = {"_grounded_rag_prefetch_done": True}
+    executed = {"rag": 0}
+
+    class _Boom:
+        def preview_args(self, a):
+            executed["rag"] += 1
+            return a
+
+    monkeypatch.setattr(loop.tools, "get", lambda name: _Boom())
+    out = await loop._maybe_prefetch_grounded_rag(
+        initial_messages=[{"role": "user", "content": "q"}],
+        current_message="q", runtime_metadata=md,
+    )
+    assert executed["rag"] == 0  # 幂等：直接短路，未触检索
+
+
+# ---------------------------------------------------------------------------
+# tier1/2 可达性收复 批1b（2026-07-30 指挥官修正令：门+A3+复合qid观测+成功侧导出同批）
+# ---------------------------------------------------------------------------
+def _direct_loop(tmp_path):
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class _P(LLMProvider):
+        async def chat(self, *a, **k):
+            return LLMResponse(content="占位")
+
+        def get_default_model(self):
+            return "fake"
+
+    return AgentLoop(
+        bus=MessageBus(), provider=_P(), workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+
+
+async def _run_direct(loop, md_ref, monkeypatch, *, plan=None):
+    from deeptutor.tutorbot.bus.events import InboundMessage
+
+    calls = {"prefetch": 0}
+
+    async def _fake_prefetch(*, initial_messages, current_message, runtime_metadata, **kw):
+        calls["prefetch"] += 1
+        return initial_messages
+
+    async def _fake_plan(*, runtime_metadata, user_message, **_kwargs):
+        return plan
+
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _fake_prefetch)
+    monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_plan)
+    monkeypatch.setattr(loop, "_is_case_grading_scene", lambda md: True)
+    msg = InboundMessage(channel="test", sender_id="u", chat_id="c", content="题干…\n作答…")
+    await loop._run_case_grading_direct(
+        msg=msg, session=SimpleNamespace(metadata={}, key="k", messages=[], last_consolidated=0),
+        history=[], current_message="【题目】某工程基坑深6米…问题1：指出不妥之处。\n【我的作答】深度超5米应专家论证。",
+        runtime_metadata=md_ref, runtime_instruction="",
+    )
+    return calls
+
+
+@pytest.mark.asyncio
+async def test_direct_admission_ignores_chat_gate_veto(tmp_path, monkeypatch) -> None:
+    """死锁回归（live 实证 denied:decision）：权威空壳 active_object（键在值空）曾触发
+    通用聊天门禁检索——「没权威→禁取权威」。1b 收权后：直批 admission 只看 kb 在场，
+    聊天门（此处保持真实实现，会拒）无否决权。"""
+    md_ref = {
+        "question_lifecycle_scene": "case_grading",
+        "knowledge_bases": ["construction-exam"],
+        # 生产实况复刻：无 default_tools + 空壳 active_object（question_id/correct_answer 全空）
+        "active_object": {
+            "object_type": "single_question",
+            "state_snapshot": {"question": "某工程基坑…", "question_id": "", "correct_answer": None,
+                               "user_answer": ""},
+        },
+    }
+    calls = await _run_direct(_direct_loop(tmp_path), md_ref, monkeypatch)
+    assert calls["prefetch"] == 1
+    assert md_ref.get("case_grading_prefetch_gate") == "allowed_no_exact_hit"
+
+
+@pytest.mark.asyncio
+async def test_direct_admission_no_kb_denies_with_voice(tmp_path, monkeypatch) -> None:
+    md_ref = {"question_lifecycle_scene": "case_grading"}
+    calls = await _run_direct(_direct_loop(tmp_path), md_ref, monkeypatch)
+    assert calls["prefetch"] == 0
+    assert md_ref.get("case_grading_prefetch_gate") == "denied:no_default_kb"
+
+
+@pytest.mark.asyncio
+async def test_direct_admission_authority_present_skips_fetch(tmp_path, monkeypatch) -> None:
+    md_ref = {
+        "question_lifecycle_scene": "case_grading",
+        "default_kb": "construction-exam",
+        "exact_question": {
+            "answer_kind": "case_study",
+            "correct_answer": "开挖深度超过5m（含）应组织专家论证。",
+        },
+    }
+    calls = await _run_direct(_direct_loop(tmp_path), md_ref, monkeypatch)
+    assert calls["prefetch"] == 0
+    assert md_ref.get("case_grading_prefetch_gate") == "authority_already_present"
+
+
+def test_case_stem_numeric_variant_gate() -> None:
+    """改数变体闸：同单位、值不同、且用户值不在题库题任何数字中 → 判变体；
+    子集粘贴（用户数字 ⊆ 题库数字）永不触发。"""
+    eq = {
+        "stem": "某基坑开挖深度6米，合同价3000万元。",
+        "covered_subquestions": [{"prompt": "问题1：指出不妥之处？", "question": ""}],
+    }
+    # 改数变体：6米 → 8米
+    assert AgentLoop._case_stem_numeric_variant(eq, "某基坑开挖深度8米，问题1：指出不妥之处？") is True
+    # 同题原数：不触发
+    assert AgentLoop._case_stem_numeric_variant(eq, "某基坑开挖深度6米，问题1：指出不妥之处？") is False
+    # 子集粘贴（只提金额）：不触发
+    assert AgentLoop._case_stem_numeric_variant(eq, "合同价3000万元的工程，问题1？") is False
+    # 题库无带单位数字：闸不表态
+    assert AgentLoop._case_stem_numeric_variant({"stem": "论述质量管理要点。"}, "深度8米") is False
+
+
+def test_build_ctx_numeric_variant_demotes_eq() -> None:
+    """真实威胁形状：小问文字与题库题完全一致（锚定匹配放行），但背景资料数字被改
+    （6米→8米）。2-gram/锚定匹配对此无鉴别力，数字变体闸必须兜底撤销 eq——
+    否则官方 rubric 会去判一道数值语义已变的题。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "【背景资料】某基坑开挖深度6米。",
+            "covered_subquestions": [
+                {"question": "【问题1】指出土方开挖中的不妥之处？",
+                 "authoritative_answer": "应专家论证", "display_index": "1"},
+            ],
+        },
+    }
+    ctx = AgentLoop._build_v1_case_ctx(
+        md,
+        "【背景资料】某基坑开挖深度8米。【问题1】指出土方开挖中的不妥之处？\n我的答案：需要论证。",
+    )
+    assert md.get("exact_question_blocked_reason") == "case_numeric_variant"
+    assert ctx["correct_answer"] == ""  # eq 已撤，参考答案不得泄入
+
+
+def test_build_ctx_composite_qid_candidate_observe_only() -> None:
+    """复合 qid【观测不武装】：唯一性审计实证运行时 display_index(1基) 与编译期
+    En(0基) 无共享权威（模拟命中 23/354 全部错绑）——候选键只导出 marker，
+    绝不进 ctx.question_id 喂 load_rubric。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "question_id": 9348,
+            "source_chunk_id": "EXAM_1A430000_P0014_06",
+            "exam_year": 2024,
+            "stem": "【背景资料】某工程基坑开挖深度6米。",
+            "covered_subquestions": [
+                {"prompt": "【问题1】指出土方开挖中的不妥之处？",
+                 "authoritative_answer": "开挖深度超过5m（含）应组织专家论证。",
+                 "display_index": "1"},
+                {"prompt": "【问题2】说明正确做法？",
+                 "authoritative_answer": "应编制专项施工方案。",
+                 "display_index": "2"},
+            ],
+        },
+    }
+    ctx = AgentLoop._build_v1_case_ctx(
+        md,
+        "【背景资料】某工程基坑开挖深度6米。【问题1】指出土方开挖中的不妥之处？\n我的答案：深度超5米应专家论证。",
+    )
+    assert md.get("case_grading_composite_qid_candidate") == "2024::EXAM_1A430000_P0014_06::E1"
+    assert ctx["question_id"] == "9348"  # 不武装：仍是 bank 整数 id，永不命中 pgo 键
+
+
+@pytest.mark.asyncio
+async def test_outer_seam_reentry_only_on_authority_upgrade(tmp_path, monkeypatch) -> None:
+    """单发闸窄豁免：fell_through 后仅当 qid 客观升级（空→有）才放行一次再入，
+    升级也发声（case_grading_outer_seam_reentry marker）。"""
+    loop = _direct_loop(tmp_path)
+    # 目录级既往病免疫：别处测试会把模块 logger 换成缺方法的 SimpleNamespace。
+    import deeptutor.tutorbot.agent.loop as _loop_mod
+    monkeypatch.setattr(
+        _loop_mod, "logger",
+        SimpleNamespace(debug=lambda *a, **k: None, info=lambda *a, **k: None,
+                        warning=lambda *a, **k: None, error=lambda *a, **k: None),
+    )
+
+    # (a) qid 未升级 → 维持关闭
+    md_a = {"case_grading_direct_fell_through": True, "case_grading_direct_attempt_qid": ""}
+    monkeypatch.setattr(loop, "_build_v1_case_ctx", lambda md, um: {"question_id": ""})
+    assert await loop._v1_case_stream_plan(runtime_metadata=md_a, user_message="q") is None
+    assert "case_grading_outer_seam_reentry" not in md_a
+
+    # (b) qid 升级 → 放行一次并发声（scene 置非 case_grading 让其随即返回，
+    # marker 在场即证明已越过单发闸）
+    md_b = {
+        "case_grading_direct_fell_through": True,
+        "case_grading_direct_attempt_qid": "",
+        "question_lifecycle_scene": "mcq_grading",
+    }
+    monkeypatch.setattr(loop, "_build_v1_case_ctx", lambda md, um: {"question_id": "9348"})
+    assert await loop._v1_case_stream_plan(runtime_metadata=md_b, user_message="q") is None
+    assert md_b.get("case_grading_outer_seam_reentry") == "authority_upgraded"
+
+    # (c) 已再入过 → 不得二次放行
+    md_c = dict(md_b)
+    assert await loop._v1_case_stream_plan(runtime_metadata=md_c, user_message="q") is None
+
+
+def test_case_grading_new_markers_projected_per_turn() -> None:
+    """观测对称律：新 marker 必须在 CASE_GRADING_TURN_METADATA_KEYS 里随每跳导出。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_TURN_METADATA_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    for key in (
+        "case_grading_prefetch_gate",
+        "case_grading_direct_attempt_qid",
+        "case_grading_composite_qid_candidate",
+        "case_grading_outer_seam_reentry",
+        "case_rubric_score_total_mismatch",
+    ):
+        assert key in CASE_GRADING_TURN_METADATA_KEYS, key
+    # 通用 marker 不得入 case 元组（strip 会在非 case 轮剥掉别的路径写的值）
+    assert "exact_question_blocked_reason" not in CASE_GRADING_TURN_METADATA_KEYS
+    assert "case_reference_blocked_reason" not in CASE_GRADING_TURN_METADATA_KEYS
+
+    source = {
+        "question_lifecycle_scene": "case_grading",
+        "case_grading_prefetch_gate": "allowed",
+        "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+    }
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(source, target)
+    assert target["case_grading_prefetch_gate"] == "allowed"
+    assert target["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+
+
+@pytest.mark.asyncio
+async def test_prefetch_tool_query_override_and_empty_exact_honesty(tmp_path, monkeypatch) -> None:
+    """1b live 实证双修：①直批身份检索只喂题干（作答噪声污染 shape 分类与匹配）；
+    ②pipeline 未命中时 trace 元数据带 exact_question: {}，空壳不得写入
+    _prefetched_exact_question 冒充命中（marker 必须落 allowed_no_exact_hit）。"""
+    loop = _direct_loop(tmp_path)
+    seen = {"query": None}
+
+    class _FakeRagTool:
+        def preview_args(self, params):
+            seen["query"] = params.get("query")
+            return dict(params)
+
+        def consume_trace_metadata(self):
+            return {"exact_question": {}}  # pipeline 未命中的真实形状
+
+    class _FakeTools:
+        def get(self, name):
+            return _FakeRagTool() if name == "rag" else None
+
+        async def execute(self, name, _args):
+            return "无命中的普通检索文本"
+
+    loop.tools = _FakeTools()
+
+    class _Ctx:
+        def add_assistant_message(self, messages, content, **_k):
+            return [*messages, {"role": "assistant", "content": content}]
+
+        def add_tool_result(self, messages, tool_call_id, name, result):
+            return [*messages, {"role": "tool", "name": name, "content": result}]
+
+    loop.context = _Ctx()
+    monkeypatch.setattr(loop, "_augment_rag_trace_metadata",
+                        lambda **k: dict((k.get("tool_trace_metadata") or {})))
+    monkeypatch.setattr(loop, "_record_rag_trace_status", lambda *a, **k: None)
+
+    md = {}
+    await loop._maybe_prefetch_grounded_rag(
+        initial_messages=[{"role": "user", "content": "全文"}],
+        current_message="【背景资料】题干…【问题】1. …\n我的答案：作答…",
+        runtime_metadata=md,
+        force_authority_fetch=True,
+        tool_query_override="【背景资料】题干…【问题】1. …",
+    )
+    # ① 检索 query 被题干覆写（不含作答）
+    assert seen["query"] == "【背景资料】题干…【问题】1. …"
+    # ② 空壳 exact 不得入场
+    assert "_prefetched_exact_question" not in md
+
+
+def test_build_ctx_exports_user_stem_for_coverage() -> None:
+    """覆盖对账基准（live 实证）：exact 命中单小问兄弟行时 eq.stem 只含 1 问，
+    ctx 必须另携学生所见整题面 user_stem 供覆盖对账。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "【背景资料】某工程。【问题1】指出不妥之处？",  # 单小问行
+            "covered_subquestions": [
+                {"prompt": "【问题1】指出不妥之处？", "authoritative_answer": "答案", "display_index": "1"},
+            ],
+        },
+    }
+    user_paste = (
+        "【背景资料】某工程。【问题1】指出不妥之处？【问题2】写出名称？"
+        "【问题3】构造名称？【问题4】工艺流程？\n我的答案：只答问题1。"
+    )
+    ctx = AgentLoop._build_v1_case_ctx(md, user_paste)
+    assert "问题4" in ctx["user_stem"]          # 整题面在
+    assert "问题4" not in ctx["question_stem"]  # eq.stem 只有 1 问（判分接地不变）
+
+
+def test_build_ctx_fail_closed_when_stem_unsplittable() -> None:
+    """OD-002 fail-closed 保底闸：疑似案例投稿但作答切割失败（user_stem 空）时，
+    题库参考答案不得入判——核验面缺失宁降 tier3，不许拿别人家钥匙倒诬。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "【背景资料】另一道题的题干。",
+            "correct_answer": "别人家的答案钥匙",
+            "covered_subquestions": [
+                {"prompt": "【问题1】？", "authoritative_answer": "别人家的答案", "display_index": "1"},
+            ],
+        },
+    }
+    # 无任何可识别作答标记的长案例形状文本 → split 失败 → user_stem 空
+    weird = "【背景资料】某工程质量问题描述很长" + "内容" * 60 + "\n【问题】相关小问混排无标记作答内容混在一起"
+    ctx = AgentLoop._build_v1_case_ctx(md, weird)
+    assert md.get("exact_question_blocked_reason") == "unverifiable_submission_shape"
+    assert ctx["correct_answer"] == ""  # 钥匙没入判
+
+
+def test_toolless_repair_messages_strip_tool_shape() -> None:
+    """OD-003 根治：修复轮消息必须剥掉工具形态（tool_calls 壳+tool 角色），
+    证据展平为文本——模型没有可模仿的工具语法，才不会继续吐 tool_calls。"""
+    messages = [
+        {"role": "system", "content": "你是助教"},
+        {"role": "user", "content": "【背景资料】某工程…\n【问题】1. 指出不妥？"},
+        {"role": "assistant", "content": "", "tool_calls": [{"id": "c1", "function": {"name": "rag"}}]},
+        {"role": "tool", "tool_call_id": "c1", "name": "rag", "content": "检索证据A"},
+        {"role": "assistant", "content": "草稿片段", "tool_calls": [{"id": "c2", "function": {"name": "rag"}}]},
+        {"role": "tool", "tool_call_id": "c2", "name": "rag", "content": "检索证据B"},
+    ]
+    out = AgentLoop._toolless_repair_messages(messages, repair_prompt="请直接作答")
+    assert all("tool_calls" not in m for m in out)
+    assert all(m.get("role") != "tool" for m in out)
+    joined = "\n".join(str(m.get("content") or "") for m in out)
+    assert "检索证据A" in joined and "检索证据B" in joined   # 证据不丢
+    assert "【问题】1. 指出不妥？" in joined                  # 题面在
+    assert out[-1]["content"] == "请直接作答"                 # 修复指令末位
+    assert "草稿片段" in joined                               # 草稿保留供参考
+
+
+def test_toolless_repair_truncates_huge_evidence() -> None:
+    messages = [{"role": "system", "content": "s"}, {"role": "user", "content": "q"}]
+    messages += [{"role": "tool", "tool_call_id": f"c{i}", "name": "rag", "content": "证" * 3000}
+                 for i in range(5)]
+    out = AgentLoop._toolless_repair_messages(messages, repair_prompt="p", max_evidence_chars=1000)
+    ev = next(m for m in out if "已检索到的全部证据" in str(m.get("content") or ""))
+    assert len(ev["content"]) < 1400 and "证据已截断" in ev["content"]
+
+
+def test_build_ctx_stem_fallback_when_scene_jitter_drops_case_context() -> None:
+    """OD-004 补刀：scene 抖动（LLM 参与）导致 eq/fc/split 全空时，判分不得因
+    题面缺位整条降级——学生已交案例作答=判分行为在场，题面兜底取其原文
+    （tier3 从学生自己贴的题面推导，不涉他题钥匙，无倒诬风险）。"""
+    md = {}
+    raw = ("【背景资料】某工程施工中出现质量问题需要整改" + "详细描述" * 30 +
+           "\n【问题】1. 指出不妥？2. 正确做法？\n以上是我的理解，请批改。")
+    ctx = AgentLoop._build_v1_case_ctx(md, raw)
+    assert ctx["question_stem"], "题面不得为空（否则 no_reference 整条降级）"
+    assert md.get("case_stem_fallback") == "raw_submission"
+    # 短文本/非案例形状不兜底（不制造假判分面）
+    md2 = {}
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, "这题怎么做？")
+    assert "case_stem_fallback" not in md2
+
+
+def test_case_stem_fallback_marker_projected_from_event() -> None:
+    """OD-004 根治配套（[luban_grading_engine] domain test）：共享判分核落的
+    case_stem_fallback 必须经 tutorbot 事件→md 映射上全 sink（兜底生效可观测）。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    assert "case_stem_fallback" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    source = {
+        "question_lifecycle_scene": "case_grading",
+        "case_stem_fallback": "submission_text",
+        "score_authority": "rubric_scored_v1_diagnostic",
+    }
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(source, target)
+    assert target["case_stem_fallback"] == "submission_text"
+
+
+def test_build_ctx_exports_reference_coverage_counts() -> None:
+    """P0 兜底满分根治（[luban_grading_engine] domain test）：ctx 必须携带确定性
+    覆盖计数——参考答案覆盖的小问数（来自 supabase covered_indexes，此前零消费者）
+    与学生题面小问总数，供判分核按比例缩放分母。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            # 兄弟行的真实形状：stem 就是那一个小问（与用户题面中该问逐字一致）
+            "stem": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+            "covered_indexes": ["1"],          # 兄弟行：只覆盖问题1
+            "covered_subquestions": [
+                {"prompt": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+                 "authoritative_answer": "官方答案1",
+                 "display_index": "1"},
+            ],
+        },
+    }
+    paste = ("【背景资料】某工程施工出现问题。\n"
+             "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+             "问题2：写出质量缺陷名称？\n问题3：写出防水构造层名称？\n"
+             "问题4：补充治理工艺流程？\n我的答案：只答了问题1。")
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 1
+    assert ctx["case_stem_subquestion_count"] == 4
+
+
+def test_coverage_numerator_uses_adopted_subquestions_not_row_count() -> None:
+    """P0-b（2026-08-01 live 实证）：覆盖分子必须是"参考答案实际采纳了几个小问"，
+    不是"检索回来几行兄弟行"——payload 报 4 行但按用户题面过滤后只采纳 1 问时，
+    分子必须是 1（旧行为算 4 → 1/4 的作答拿到 8/10）。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+            "covered_indexes": ["1", "2", "3", "4"],      # payload 说覆盖 4 个
+            "covered_subquestions": [
+                {"prompt": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+                 "authoritative_answer": "官方答案1", "display_index": "1"},
+                {"prompt": "问题2：写出完全不同主题的另一个小问内容？",
+                 "authoritative_answer": "官方答案2", "display_index": "2"},
+                {"prompt": "问题3：再一个不相关的小问内容描述？",
+                 "authoritative_answer": "官方答案3", "display_index": "3"},
+                {"prompt": "问题4：第四个不相关的小问内容描述？",
+                 "authoritative_answer": "官方答案4", "display_index": "4"},
+            ],
+        },
+    }
+    md["_prefetched_exact_question"]["correct_answer"] = "官方答案1"
+    # 学生贴了整题 4 问，但参考只采纳了与题面匹配的问题1
+    paste = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+             "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+             "问题2：写出质量缺陷名称有哪些内容？\n"
+             "问题3：写出防水构造层的名称？\n"
+             "问题4：补充完整治理工艺流程？\n"
+             "我的答案：我认为试验员记录不妥。")
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 1, (
+        f"分子应为实际采纳的 1 个小问，实得 {ctx['case_reference_covered_count']}"
+    )
+    assert ctx["case_stem_subquestion_count"] == 4
+
+
+def test_adoption_count_survives_missing_display_index() -> None:
+    """三态修复（codex 异源审 2026-08-01）：采纳了答案但 item 缺 display_index 时，
+    分子必须仍是采纳数（1），不得因索引未知回落到 payload 检索行数（4）再放大。"""
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "另一个不匹配的题面内容，避免顶层直配路径。",
+            "covered_indexes": ["1", "2", "3", "4"],
+            "covered_subquestions": [
+                # 命中项：有答案但**没有 display_index**
+                {"prompt": "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？",
+                 "authoritative_answer": "官方答案1"},
+                {"prompt": "问题2：写出完全不同主题的另一个小问内容？",
+                 "authoritative_answer": "官方答案2", "display_index": "2"},
+            ],
+        },
+    }
+    paste = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+             "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+             "问题2：写出质量缺陷名称有哪些内容？\n"
+             "问题3：写出防水构造层的名称？\n"
+             "问题4：补充完整治理工艺流程？\n"
+             "我的答案：我认为试验员记录不妥。")
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 1, (
+        f"索引未知的采纳行必须计入分子（=1），不得回落检索行数，实得 "
+        f"{ctx['case_reference_covered_count']}"
+    )
+
+
+def test_surface_tracing_hashes_deterministic_and_answer_independent() -> None:
+    """逐跳 surface 插桩（codex 方案 §5.4）：ctx 构建必须导出 user_stem 的
+    hash/len 且只依赖题面——同题面配不同作答，hash 必须相同（这正是定位
+    通道漂移的判据）。"""
+    md1: dict = {}
+    md2: dict = {}
+    stem = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+            "问题1：指出工程施工质量检测管理中的不妥之处并说明正确做法？\n"
+            "问题2：写出质量缺陷名称有哪些内容？\n")
+    ctx1 = AgentLoop._build_v1_case_ctx(md1, stem + "我的答案：作答甲，内容一。")
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, stem + "我的答案：完全不同的作答乙，内容二二二。")
+    assert ctx1["case_user_stem_hash"] and len(ctx1["case_user_stem_hash"]) == 12
+    assert ctx1["case_user_stem_hash"] == ctx2["case_user_stem_hash"], "hash 只许依赖题面，不许受作答影响"
+    assert md1["case_user_stem_hash"] == ctx1["case_user_stem_hash"], "md 通道与 ctx 必须同源"
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+    )
+    for key in ("case_probe_stem_hash", "case_user_stem_hash", "case_probe_marker_count"):
+        assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+
+
+def test_case_surface_strips_cross_turn_context_wrapper() -> None:
+    """跨轮包装剥离（2026-08-01 插桩实战确诊）：存库消息 1548 字符干净、运行时
+    判分面 14150——上下文包装混进题面导致 ①检索命中随机（通道漂移）②旧轮编号
+    被数成幽灵小问。判分面必须只看本轮真实提交：优先 raw_user_message。"""
+    raw = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+           "问题1：指出不妥之处并说明理由？\n问题2：写出正确做法？\n"
+           "问题3：写出构造名称？\n问题4：补充工艺流程？\n"
+           "我的答案：我认为试验员记录不妥。")
+    wrapper = ("[History Context]\n此前轮次讨论了其他题目。\n"
+               "问题5：上一轮的旧编号噪声？\n问题6：更多旧编号？\n\n"
+               "[User Question]\n" + raw)
+    # ① raw_user_message 在场：直接用原文
+    md1 = {"raw_user_message": raw}
+    ctx1 = AgentLoop._build_v1_case_ctx(md1, wrapper)
+    assert ctx1["case_stem_subquestion_count"] == 4, (
+        f"包装里的问题5/6不得被计入，实得 {ctx1['case_stem_subquestion_count']}"
+    )
+    # ② raw 缺席：走 [User Question] 剥离器，结果一致
+    ctx2 = AgentLoop._build_v1_case_ctx({}, wrapper)
+    assert ctx2["case_stem_subquestion_count"] == 4
+    assert ctx1["case_user_stem_hash"] == ctx2["case_user_stem_hash"], "两条路径必须同源"
+    # ③ hash 只依赖本轮提交，与包装内容无关
+    wrapper_b = wrapper.replace("其他题目", "完全不同的历史内容与更多噪声文字")
+    ctx3 = AgentLoop._build_v1_case_ctx({}, wrapper_b)
+    assert ctx3["case_user_stem_hash"] == ctx1["case_user_stem_hash"], "包装变化不得影响判分面 hash"
+
+
+def test_case_group_bundle_markers_lift_to_md_and_all_sinks() -> None:
+    """方案 C / C3（[luban_grading_engine] domain test，contracts/rag.md §45）：
+    supabase 侧单写进 exact payload 的三个题级组 marker 必须经 ctx 构建上到 md，
+    并在 CASE_GRADING_AUTHORITY_EXPORT_KEYS 里（否则 sink 永久 0 命中）。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    for key in (
+        "case_bundle_source",
+        "case_bundle_hydration",
+        "case_answer_conflict_unresolved",
+    ):
+        assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+
+    md: dict = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": "题库整题题面",
+            "case_bundle_source": "group_query",
+            "case_bundle_hydration": "group_query:3",
+            "case_answer_conflict_unresolved": "2023-case2:2",
+            "covered_indexes": ["1", "3", "4"],
+            "covered_subquestions": [
+                {"display_index": "1", "prompt": "问题1：指出不妥之处并说明理由？",
+                 "authoritative_answer": "官方答案1"},
+                {"display_index": "3", "prompt": "问题3：写出构造名称？",
+                 "authoritative_answer": "官方答案3"},
+                {"display_index": "4", "prompt": "问题4：补充工艺流程？",
+                 "authoritative_answer": "官方答案4"},
+            ],
+        },
+    }
+    paste = ("【背景资料】某工程施工出现问题需要整改说明。\n"
+             "问题1：指出不妥之处并说明理由？\n问题2：写出正确做法？\n"
+             "问题3：写出构造名称？\n问题4：补充工艺流程？\n"
+             "我的答案：我认为试验员记录不妥。")
+    AgentLoop._build_v1_case_ctx(md, paste)
+    assert md["case_bundle_source"] == "group_query"
+    assert md["case_bundle_hydration"] == "group_query:3"
+    assert md["case_answer_conflict_unresolved"] == "2023-case2:2"
+
+    # md → turn metadata 全 sink（漏一张名单 = 该 sink 永久 0 命中）。
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(
+        {"question_lifecycle_scene": "case_grading", **md}, target
+    )
+    assert target["case_bundle_source"] == "group_query"
+    assert target["case_answer_conflict_unresolved"] == "2023-case2:2"
+
+    # 非 case 轮不得凭空长出 marker（MCQ 路径零调用的对偶断言）。
+    md_mcq: dict = {"_prefetched_exact_question": {"answer_kind": "mcq", "stem": "选择题"}}
+    AgentLoop._build_v1_case_ctx(md_mcq, "这题选什么？")
+    assert "case_bundle_source" not in md_mcq
+
+
+def test_governed_group_bundle_adopts_all_canonical_items() -> None:
+    """C3 终修（2026-08-01 live 断点三连）：治理组 bundle（case_bundle_source=
+    group_query）整组采纳——①顶层直配早退不得抢跑（多项 bundle 禁早退）；
+    ②兄弟行全文含共享背景在整卷中非连续、逐字包含必拒（段落匹配只是缓解）；
+    ③成员资格已由编译期治理裁决，运行时不再模糊复核。"""
+    bg = "【背景资料】某施工企业中标新建一办公楼工程，" + "施工过程描述。" * 30
+    items = [
+        {"prompt": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+         "authoritative_answer": f"官方答案{i}", "display_index": str(i),
+         "question_id": str(17370 + i)}
+        for i in range(1, 5)
+    ]
+    paste = (bg + "\n【问题】1. 第1问的完整提问内容是什么？\n2. 措辞不同字的第二问？\n"
+             "3. 第3问的完整提问内容是什么？\n4. 第4问的完整提问内容是什么？\n"
+             "我的答案：作答内容若干。")
+    md = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": items[0]["prompt"],
+        "correct_answer": "官方答案1", "case_bundle_source": "group_query",
+        "covered_subquestions": items,
+        "covered_indexes": ["1", "2", "3", "4"],
+    }}
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_reference_covered_count"] == 4, (
+        f"治理组必须整组采纳，实得 {ctx['case_reference_covered_count']}"
+    )
+    for i in range(1, 5):
+        assert f"官方答案{i}" in ctx["correct_answer"]
+    # 非治理 bundle：措辞不同字的问2 仍被逐项匹配拒掉（防杂行混入的旧契约不变）
+    md2 = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": items[0]["prompt"],
+        "correct_answer": "官方答案1",
+        "covered_subquestions": items, "covered_indexes": ["1", "2", "3", "4"],
+    }}
+    ctx2 = AgentLoop._build_v1_case_ctx(md2, paste)
+    assert ctx2["case_reference_covered_count"] == 3
+
+
+def test_governed_group_bundle_exports_per_subquestion_reference() -> None:
+    """OD-005（2026-08-01）：治理组 bundle 的采纳集必须以 **per-问结构**进 ctx。
+
+    病灶：4 问答案被 ``"\\n".join`` 成一段后自由抽取，点位分布不保证——全落在
+    已答的问 1 时，只答 1/4 的整卷命中即满分（live 三轮两轮 10/10）。判分核要
+    逐问抽取+逐问封顶，前提是 ctx 里保住每问的身份与答案；旧的拼接串同时保留
+    （非治理路径与向后兼容的唯一消费面）。
+    """
+    bg = "【背景资料】某施工企业中标新建一办公楼工程，" + "施工过程描述。" * 30
+    items = [
+        {"prompt": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+         "authoritative_answer": f"官方答案{i}", "display_index": str(i),
+         "question_id": str(17370 + i)}
+        for i in range(1, 5)
+    ]
+    paste = (bg + "\n【问题】1. 第1问的完整提问内容是什么？\n2. 措辞不同字的第二问？\n"
+             "3. 第3问的完整提问内容是什么？\n4. 第4问的完整提问内容是什么？\n"
+             "我的答案：作答内容若干。")
+    md = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": items[0]["prompt"],
+        "correct_answer": "官方答案1", "case_bundle_source": "group_query",
+        "covered_subquestions": items,
+        "covered_indexes": ["1", "2", "3", "4"],
+    }}
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    subqs = ctx["case_reference_subquestions"]
+    assert [s["index"] for s in subqs] == ["1", "2", "3", "4"]
+    assert [s["answer"] for s in subqs] == [f"官方答案{i}" for i in range(1, 5)]
+    # 拼接串与逐问结构同源（同一次采纳循环），向后兼容面不得漂移。
+    assert ctx["correct_answer"] == "\n".join(s["answer"] for s in subqs)
+    assert ctx["case_stem_subquestion_count"] == 4
+
+
+def test_single_row_reference_exports_own_subquestion_index() -> None:
+    """单行兄弟行（顶层直配，非组 bundle）：采纳集就是这一个小问，
+    逐问结构也只有一条 —— 判分核据此不进逐问链（<2 问回落旧整段路径），
+    既有 scope_ratio 整题封顶原样生效。"""
+    stem = "【背景资料】某工程背景。" + "补充描述。" * 20 + "\n问题2：这一问问什么？"
+    md = {"_prefetched_exact_question": {
+        "answer_kind": "case_study", "stem": stem, "display_index": "2",
+        "correct_answer": "问题2的官方答案",
+    }}
+    paste = stem + "\n我的答案：作答内容若干。"
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    subqs = ctx["case_reference_subquestions"]
+    assert [(s["index"], s["answer"]) for s in subqs] == [("2", "问题2的官方答案")]
+    # OD-005 补刀：每问必须带**自己那一问**的题面（顶层直配时=该行 stem）。
+    assert "问题2：这一问问什么？" in subqs[0]["stem"]
+
+
+def test_narration_subq_count_shares_grading_denominator_authority() -> None:
+    """开场白小问计数收权（2026-08-01 端侧实测：4 问卷说"按 3 个小问"）：
+    narration 与判分分母必须同一权威——行内"本问题 3 项不妥"之类文字不得
+    污染计数。"""
+    paste = ("【背景资料】某工程施工过程描述。" * 8 +
+             "\n【问题】1. 指出不妥之处并说明理由？\n"
+             "2.（本问题 3 项不妥之处，多答不得分）写出正确做法？\n"
+             "3. 写出构造名称？\n4. 补充工艺流程？\n"
+             "我的答案：作答内容。")
+    text = AgentLoop._case_grading_live_preview_text(paste)
+    assert "4 个小问" in text, text
+    ctx = AgentLoop._build_v1_case_ctx({}, paste)
+    assert ctx["case_stem_subquestion_count"] == 4, "narration 与分母必须同数"
+
+
+def test_narration_count_immune_to_cross_turn_wrapper() -> None:
+    """narration 面收口（2026-08-01 live：#641 后计数 3→5）：跨轮包装里旧轮的
+    "问题5/6"不得混入开场白计数——narration 与判分分母必须同尺**同面**。"""
+    raw = ("【背景资料】某工程施工过程描述。" * 8 +
+           "\n【问题】1. 指出不妥？\n2. 写出正确做法？\n3. 构造名称？\n4. 工艺流程？\n"
+           "我的答案：作答。")
+    wrapped = ("[History Context]\n上轮讨论了问题5：旧内容？问题6：更多旧编号？\n\n"
+               "[User Question]\n" + raw)
+    surface = AgentLoop._case_submission_surface({"raw_user_message": raw}, wrapped)
+    text = AgentLoop._case_grading_live_preview_text(surface)
+    assert "4 个小问" in text, text
+    # 兜底路径（无 raw）也必须剥包装
+    surface2 = AgentLoop._case_submission_surface({}, wrapped)
+    assert "4 个小问" in AgentLoop._case_grading_live_preview_text(surface2)
+
+
+# ---------------------------------------------------------------------------
+# canonical431 tier-1 键原料的 ctx 导出（Lane 2, 2026-08-01）
+#
+# 判分核要构 ``{case_group_id}::E{n}``，原料只能从这里出。**索引来源必须可证**：
+# 只认 `_assemble_case_group_bundle` 从 DB 列 `case_subquestion_index` 投出来的
+# 那一族（`coverage="case_group_exact"`）。历史教训是硬的：拿题干正则解析出的
+# index 去对编译期 E 号，模拟建键命中 23/354、语义正确 **0** 条，全部错绑到相邻
+# 小问的 rubric —— 拿错采分点判分**且不报错**。
+# ---------------------------------------------------------------------------
+
+def _c431_group_paste_and_items(group_size: int = 4) -> tuple[str, list[dict]]:
+    bg = "【背景资料】某施工企业中标新建一办公楼工程，" + "施工过程描述。" * 30
+    items = [
+        {
+            "prompt": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+            "surface": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+            "authoritative_answer": f"官方答案{i}",
+            "display_index": str(i),
+            "coverage": "case_group_exact",
+            "question_id": str(17370 + i),
+        }
+        for i in range(1, group_size + 1)
+    ]
+    paste = (
+        bg
+        + "".join(f"\n【问题】{i}. 第{i}问的完整提问内容是什么？" for i in range(1, group_size + 1))
+        + "\n我的答案：作答内容若干。"
+    )
+    return paste, items
+
+
+def test_build_v1_case_ctx_exports_canonical431_group_key_and_db_indexes() -> None:
+    """治理组取全 → 组键 + 全部 1-based DB 索引进 ctx，判分核据此逐问构键。"""
+    paste, items = _c431_group_paste_and_items()
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": items[0]["prompt"],
+            "correct_answer": "官方答案1",
+            "case_bundle_source": "group_query",
+            "case_group_id": "2023-case2",
+            "covered_subquestions": items,
+            "covered_indexes": ["1", "2", "3", "4"],
+        }
+    }
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_group_id"] == "2023-case2"
+    assert ctx["case_canonical_subquestion_indexes"] == [1, 2, 3, 4]
+
+
+def test_build_v1_case_ctx_canonical_indexes_reject_unprovable_index_provenance() -> None:
+    """`coverage != "case_group_exact"` 的条目**不许**构键。
+
+    这些条目的 display_index 出自题干正则解析 / `index+1` 序数，与编译期 E 号
+    没有共享权威。fail-closed：索引来源不可证 → 整条留空 → 判分核回落既有平查，
+    行为零变化。"""
+    paste, items = _c431_group_paste_and_items()
+    # 问 2、问 4 的索引来源不可证（模拟非组取全路径的 display_index）
+    for item in items:
+        if item["display_index"] in ("2", "4"):
+            item["coverage"] = "similarity_sibling"
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": items[0]["prompt"],
+            "correct_answer": "官方答案1",
+            "case_bundle_source": "group_query",
+            "case_group_id": "2023-case2",
+            "covered_subquestions": items,
+            "covered_indexes": ["1", "2", "3", "4"],
+        }
+    }
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_canonical_subquestion_indexes"] == [1, 3], (
+        "只有 DB case_subquestion_index 投出来的索引才许构键"
+    )
+    # 但参考答案覆盖面不受影响（本 lane 不改采纳逻辑，只加一条只读导出）。
+    assert ctx["case_reference_covered_count"] == 4
+
+
+def test_build_v1_case_ctx_canonical_keys_empty_without_group_id() -> None:
+    """无 case_group_id（库外题 / 整题行 / 老数据）→ 组键与索引集双空。
+
+    这是「接线对未覆盖场景零影响」的可证伪面：没有组键就没有 canonical 键，
+    判分核走的还是原来那条 ``ctx["question_id"]`` 平查。"""
+    paste, items = _c431_group_paste_and_items()
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": items[0]["prompt"],
+            "correct_answer": "官方答案1",
+            "case_bundle_source": "single_row_fallback",
+            "covered_subquestions": items,
+        }
+    }
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_group_id"] == ""
+    assert ctx["case_canonical_subquestion_indexes"] == []
+
+    # 完全没有 exact_question 的自由粘贴轮同样双空。
+    ctx_free = AgentLoop._build_v1_case_ctx({}, paste)
+    assert ctx_free["case_group_id"] == ""
+    assert ctx_free["case_canonical_subquestion_indexes"] == []
+
+
+def test_canonical_key_hit_marker_is_registered_in_the_single_export_whitelist() -> None:
+    """``case_canonical_key_hit`` 必须进 CASE_GRADING_AUTHORITY_EXPORT_KEYS。
+
+    这组键此前散在三张互不同步的白名单里，live 实证「漏一张名单 = 该 sink 永久
+    0 命中」。marker 不上 sink，就没法回答「slot 切了到底有没有命中」。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    assert "case_canonical_key_hit" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    assert "case_canonical_key_hit" in CASE_GRADING_TURN_METADATA_KEYS
+
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(
+        {"question_lifecycle_scene": "case_grading", "case_canonical_key_hit": "4/4"}, target
+    )
+    assert target["case_canonical_key_hit"] == "4/4"
+
+
+def test_denominator_and_canonical_hit_markers_projected_from_event_to_md() -> None:
+    """R2 分母阶梯 + canonical431 tier-1 命中必须经 tutorbot 事件→md 映射上全 sink。
+
+    [luban_grading_engine] domain test。病灶（2026-08-01 实测）：两个 marker 进了
+    ``CASE_GRADING_AUTHORITY_EXPORT_KEYS``、也由共享判分核 ``_grade_one_case_v1``
+    落在 event 上，但 tutorbot 侧 event→md 的**唯一**搬运链（``_v1_case_stream_plan``
+    的映射元组）没有它们 —— messages 面因此恒缺席。白名单在、搬运不在，长得和
+    「这轮压根没发生」一模一样，正是「漏一张名单 = 该 sink 永久 0 命中」的同一族病。
+    """
+    import inspect
+
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    src = inspect.getsource(AgentLoop._v1_case_stream_plan)
+    for key in ("case_denominator_source", "case_canonical_key_hit"):
+        # ① 白名单（三张名单的单一权威）
+        assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS, f"{key} 未进导出白名单"
+        assert key in CASE_GRADING_TURN_METADATA_KEYS, f"{key} 未进 turn metadata 名单"
+        # ② 事件→md 搬运（缺这一环 = messages 面恒缺席）
+        assert f'("{key}", "{key}")' in src, (
+            f"{key} 缺 tutorbot 事件→md 映射：白名单在但搬运不在，marker 永远上不了 messages 面"
+        )
+        # ③ md→turn metadata 复制
+        target: dict = {}
+        copy_current_case_grading_turn_metadata(
+            {"question_lifecycle_scene": "case_grading", key: "probe"}, target
+        )
+        assert target[key] == "probe", f"{key} 未被 copy_current_case_grading_turn_metadata 复制"
+
+
+# ---------------------------------------------------------------------------
+# 自由作文道的假口诀收权（r6 宣传门 A3 唯一红点，2026-08-01）
+#
+# 现场：t2_question_only（题库内案例 qid=17357 只发题不作答），
+# execution_path=tutorbot_exact_fast_path。判分直批链早已接 A1 真口诀资产，
+# 但由模型自己写正文的 exact/agent 道没接 —— 模型在「## 记忆口诀」下顿号拼接
+# 一串漏点标题冒充口诀（无出处、非编译资产）。
+# ---------------------------------------------------------------------------
+
+_LLM_LANE_ANSWER = """## 结论
+
+第1问共2处不妥。
+
+---
+
+## 记忆口诀
+
+> **每个字对应：取样、制样、标识、封志、送检、现场检测。**
+"""
+
+
+def _mnemonic_unit_ctx() -> dict:
+    return {
+        "activation": {"band": "high"},
+        "units": [
+            {
+                "unit_id": "U-57",
+                "lecture": "工程质量检测管理",
+                "topic": "见证取样送检",
+                "source_ref": {"chunk_id": "LEC-57-03"},
+                "answer_method": {
+                    "mnemonics": ["样标封检"],
+                    "must_mentions": ["取样", "制样", "标识", "封志", "送检", "现场检测"],
+                },
+            }
+        ],
+    }
+
+
+def test_llm_lane_mnemonic_is_replaced_by_the_grading_chain_authority(monkeypatch):
+    """快答/自由作文道命中真口诀：整段换成判分链同一渲染器的输出（带出处 + 展开）。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: _mnemonic_unit_ctx())
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)  # 非直批轮：由模型写正文的那条道
+    out = AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    assert "（出处：工程质量检测管理·见证取样送检，LEC-57-03）" in out
+    assert "  展开：" in out
+    assert "每个字对应" not in out
+    assert md["mnemonic_authority_source"] == "lecture_pack:U-57"
+
+
+def test_llm_lane_mnemonic_without_authority_is_demoted_not_named_a_mnemonic(monkeypatch):
+    """没命中真口诀：绝不以「口诀」名义输出无出处的顿号拼接列表。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    out = AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    assert "口诀" not in out
+    assert "## 记忆提示" in out
+    assert "取样、制样、标识、封志、送检、现场检测" in out  # 内容零删改
+    assert md["mnemonic_authority_source"] == "demoted_no_authority"
+
+
+def test_v1_grading_lane_keeps_sole_ownership_of_its_own_mnemonic(monkeypatch):
+    """V1 判分链已按同一权威决定过口诀形态（case_mnemonic_source 已发声）→ 本层不得改二遍。"""
+    def _boom(stem):  # pragma: no cover - 断言它压根不该被调到
+        raise AssertionError("V1 已拥有口诀权威时不得再解析一次")
+
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", _boom)
+    md = _case_md()
+    md["case_mnemonic_source"] = "fallback_template"
+    assert AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    ) == ""
+
+
+def test_guard_is_inert_without_a_case_stem_or_mnemonic_wording(monkeypatch):
+    """门只看结构化事实：没案例题面（纯学习支持问句）或正文没「口诀」二字 → 逐字不动。"""
+    def _boom(stem):  # pragma: no cover
+        raise AssertionError("无案例题面时不得解析口诀资产")
+
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", _boom)
+    assert AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata={}, user_message="给我整理一建建筑实务记忆口诀"
+    ) == ""
+
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    assert AgentLoop._case_mnemonic_authority_guard(
+        "## 结论\n\n第1问共2处不妥。\n", runtime_metadata=md, user_message="这道题怎么答"
+    ) == ""
+
+
+def test_guard_never_pollutes_case_grading_markers_on_a_non_grading_turn(monkeypatch):
+    """_build_v1_case_ctx 会盖 case_user_stem_* 等导出 marker —— 守卫只能给它影子副本，
+    非判分轮不得被染色（否则 sink 上出现凭空的判分 marker）。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    assert "case_user_stem_hash" not in md
+    assert "case_user_stem_len" not in md
+
+
+def test_mnemonic_authority_marker_reaches_the_outbound_metadata(monkeypatch):
+    """升降必发声：marker 必须走 scene 无关的载体上 result 事件。
+
+    判分侧的 ``case_mnemonic_source`` 被 ``copy_current_case_grading_turn_metadata``
+    按 scene==case_grading 门控（非判分轮直接 strip），而本守卫只在非判分轮动手 ——
+    挂错键 = 该 sink 永久 0 命中（这条洞 live 上出现过不止一次）。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    target: dict = {}
+    AgentLoop._export_content_truth_metadata(md, target)
+    assert target["mnemonic_authority_source"] == "demoted_no_authority"
+
+    from deeptutor.services.construction_grading.case_output_policy import (
+        copy_current_case_grading_turn_metadata,
+    )
+
+    # 反证：挂在判分侧那个键上会被非判分轮 strip 掉。
+    stripped: dict = {"case_mnemonic_source": "demoted_no_authority"}
+    copy_current_case_grading_turn_metadata(md, stripped)
+    assert "case_mnemonic_source" not in stripped
+
+
+def test_mnemonic_authority_marker_is_registered_in_every_sink_allowlist() -> None:
+    """"漏一张名单 = 该 sink 永久 0 命中"（live 已犯过不止一次）。
+
+    ``mnemonic_authority_source`` 走 content-truth 那条 scene 无关的载体，
+    它沿途一共五张白名单：loop 导出 / manager trace+merged / manager session 桥 /
+    capability result_payload / turn_runtime 事件与 summary。缺一即观测断链。"""
+    import inspect
+
+    from deeptutor.capabilities import tutorbot as capability_module
+    from deeptutor.services.session import turn_runtime as turn_runtime_module
+    from deeptutor.services.tutorbot import manager as manager_module
+    from deeptutor.tutorbot.agent import loop as loop_module
+
+    marker = '"mnemonic_authority_source"'
+    for module, minimum in (
+        (loop_module, 1),
+        (manager_module, 2),
+        (capability_module, 1),
+        (turn_runtime_module, 2),
+    ):
+        source = inspect.getsource(module)
+        assert source.count(marker) >= minimum, (
+            f"{module.__name__} 少登记了 mnemonic_authority_source"
+        )

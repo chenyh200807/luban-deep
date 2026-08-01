@@ -9,6 +9,8 @@ import asyncio
 import json
 from pathlib import Path
 
+import pytest
+
 from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
 from deeptutor.services.construction_grading import rubric_grader_v1 as G
 
@@ -45,6 +47,109 @@ def test_deterministic_sum_and_exact_required_binary():
     assert ev["awarded_score"] == round(0 + 1.98 + 2.0, 2)
     assert ev["max_score"] == 6.0
     assert ev["official_score_allowed"] is False
+
+
+# --- 空作答不得被标"术语不精确"（2026-08-01 端侧取证：学生对问题2零作答，6 个采分点
+# --- 里 3 个被标「术语不精确（要求规范术语，近义/口语不得分）」）。归类权威 =
+# --- classify_mistake_type：能说"你的术语不精确"，前提是能指出学生写了什么。
+
+def _exact_rubric():
+    return [
+        {"point_id": "E1", "text": "编制质量计划", "score": 1.0, "policy": "exact_required",
+         "required_terms": ["质量计划"]},
+        {"point_id": "E2", "text": "总监理工程师审批", "score": 1.0, "policy": "exact_required",
+         "required_terms": ["总监理工程师"]},
+        {"point_id": "L1", "text": "列举审批流程", "score": 2.0, "policy": "list", "required_terms": []},
+    ]
+
+
+def test_empty_answer_never_labeled_near_synonym() -> None:
+    """零作答 + exact_required → 漏点（omitted），不是"术语不精确"。修前红。"""
+    judge = _judge({
+        "E1": {"status": G.MISS},
+        "E2": {"status": G.MISS, "mistake_type": "wrong_content"},   # judge 乱说也不许升级
+        "L1": {"status": G.MISS},
+    })
+    ev = G.grade_with_rubric(qid="Q1", student_answer="", rubric_points=_exact_rubric(), judge_fn=judge)
+    pts = {p["point_id"]: p for p in ev["scoring_points"]}
+    assert [p["mistake_type"] for p in ev["scoring_points"]] == [G.MISTAKE_MISS] * 3
+    assert G.MISTAKE_NEAR_SYNONYM not in {p["mistake_type"] for p in ev["scoring_points"]}
+    assert pts["E1"]["hit"] == G.MISS and pts["E1"]["score"] == 0.0
+    # 学生看到的字面也不能出现"术语不精确"
+    text = G.render_case_rubric_feedback(ev, question_stem="问题1：质量计划管理")
+    assert "术语不精确" not in text
+
+
+def test_unanswered_subquestion_points_are_omitted_not_near_synonym() -> None:
+    """整卷非空但该问零作答：verdict 无 evidence_span（含 batch 缺省 miss+low_confidence），
+    exact_required 也只能归漏点。这是 live 那 3 个假"术语不精确"的确切形状。"""
+    judge = _judge({
+        # batch 缺省 verdict（该点根本没拿到裁决）
+        "E1": {"status": G.MISS, "low_confidence": True},
+        # judge 自己说 omitted —— 不许被 exact_required 覆盖成 near_synonym
+        "E2": {"status": G.MISS, "mistake_type": "omitted", "evidence_span": ""},
+        "L1": {"status": G.MISS, "mistake_type": "omitted"},
+    })
+    ev = G.grade_with_rubric(
+        qid="Q1", student_answer="问题1：应由项目经理组织编制施工组织设计。",
+        rubric_points=_exact_rubric(), judge_fn=judge,
+    )
+    assert [p["mistake_type"] for p in ev["scoring_points"]] == [G.MISTAKE_MISS] * 3
+    text = G.render_case_rubric_feedback(ev, question_stem="问题1：质量计划管理")
+    assert "术语不精确" not in text and "漏点" in text
+
+
+def test_near_synonym_still_labeled_when_student_answer_is_quotable() -> None:
+    """反向钉死：确实写了近义表述（judge 引得出原文）时，"术语不精确"必须还在。"""
+    judge = _judge({
+        "E1": {"status": G.MISS, "evidence_span": "质量方案"},
+        "E2": {"status": G.MISS, "mistake_type": "wrong_content", "evidence_span": "监理工程师"},
+        "L1": {"status": G.PARTIAL, "partial_ratio": 0.5},
+    })
+    ev = G.grade_with_rubric(
+        qid="Q1", student_answer="应编制质量方案，报监理工程师审批。",
+        rubric_points=_exact_rubric(), judge_fn=judge,
+    )
+    pts = {p["point_id"]: p for p in ev["scoring_points"]}
+    assert pts["E1"]["mistake_type"] == G.MISTAKE_NEAR_SYNONYM
+    assert pts["E2"]["mistake_type"] == G.MISTAKE_NEAR_SYNONYM
+    assert pts["L1"]["mistake_type"] == G.MISTAKE_PARTIAL_LIST
+    assert "术语不精确" in G.render_case_rubric_feedback(ev, question_stem="问题1：质量计划管理")
+
+
+def test_pgo_coverage_path_uses_the_same_mistake_classification() -> None:
+    """两条判分路径（legacy / PGO 覆盖率）共用同一归类权威，不得各判各的。"""
+    pgo_points = [
+        {"point_id": "E1", "text": "编制质量计划", "score": None, "policy": "exact_required",
+         "required_terms": ["质量计划"], "official_total_score": 10.0,
+         "score_authority": "official_total_x_verdict_coverage"},
+        {"point_id": "E2", "text": "总监理工程师审批", "score": None, "policy": "exact_required",
+         "required_terms": ["总监理工程师"], "official_total_score": 10.0,
+         "score_authority": "official_total_x_verdict_coverage"},
+    ]
+    judge = _judge({"E1": {"status": G.MISS}, "E2": {"status": G.MISS, "mistake_type": "omitted"}})
+    ev = G.grade_with_rubric(qid="Q1", student_answer="", rubric_points=pgo_points, judge_fn=judge)
+    assert ev["grading_source"] == "rubric_scored_pgo"
+    assert [p["mistake_type"] for p in ev["scoring_points"]] == [G.MISTAKE_MISS] * 2
+
+
+def test_classify_mistake_type_ladder_is_explicit() -> None:
+    call = G.classify_mistake_type
+    assert call(policy="exact_required", status=G.HIT, verdict={}, student_answer="x") is None
+    # 空作答压过一切（包括 judge 说 wrong_content 且给了 span）
+    assert call(policy="exact_required", status=G.MISS,
+                verdict={"mistake_type": "wrong_content", "evidence_span": "写了点啥"},
+                student_answer="   ") == G.MISTAKE_MISS
+    # exact_required 无 span → 漏点
+    assert call(policy="exact_required", status=G.MISS, verdict={}, student_answer="有作答") == G.MISTAKE_MISS
+    # exact_required 有 span → 术语不精确
+    assert call(policy="exact_required", status=G.MISS, verdict={"evidence_span": "质量方案"},
+                student_answer="质量方案") == G.MISTAKE_NEAR_SYNONYM
+    # 非 exact_required：partial → 列举不全；miss → 沿用 judge 判据
+    assert call(policy="list", status=G.PARTIAL, verdict={}, student_answer="a") == G.MISTAKE_PARTIAL_LIST
+    assert call(policy="qualitative", status=G.MISS, verdict={"mistake_type": "wrong_content"},
+                student_answer="a") == G.MISTAKE_WRONG
+    assert call(policy="qualitative", status=G.MISS, verdict={}, student_answer="a") == G.MISTAKE_MISS
 
 
 def test_null_score_pgo_points_use_official_total_coverage_not_score_sum() -> None:
@@ -296,7 +401,7 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     assert "答错：你写的「塔吊」" in text                   # P3 wrong-content, NOT "漏写"
     assert "**易错点：**" in text and "列举6项检验" in text       # P2 (partial) is a weak point
     assert "## 判分" in text
-    assert "## 记忆口诀" in text
+    assert "## 记忆提示" in text        # 回落面无资产不得自称口诀（F1 附带裁决）
     assert "## 下一步建议" in text
 
 
@@ -1000,6 +1105,8 @@ def _write_test_rubric_bank(
             {
                 "status": "release_candidate",
                 "published": False,
+                # 测试替身默认已授权（本 helper 测 slot 机制非治理；治理闸有专测）
+                "production_authorized": True,
                 "expected_content_hash": pointer_hash or content_hash,
             },
             ensure_ascii=False,
@@ -1584,3 +1691,846 @@ def test_to_canonical_non_official_point_does_not_mint_official_score() -> None:
     sp = obj["scoring_points"][0]
     assert sp["authority_source"] == "textbook_cited"
     assert sp["max_score"] is None  # never minted a per-point official score
+
+
+# ---------------------------------------------------------------------------
+# P0 2026-07-29：open-world 判分死链复活的契约钉（review N-10）
+# ---------------------------------------------------------------------------
+def test_openworld_llm_calls_wire_token_budget_and_disable_thinking():
+    """四周死链根因=判分调用不传 max_tokens 吃 4096 默认+默认思考。三处调用
+    必须显式携带 max_tokens=8192 与 reasoning_effort=disabled——stub 的 **kwargs
+    会静默吞掉，此测试防将来重构删参不红。"""
+    import asyncio
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    captured: list[dict] = []
+
+    async def _capture_fn(**kwargs):
+        captured.append(kwargs)
+        return '[{"text":"占位采分点","score":2}]'
+
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案文本", "题干", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.derive_rubric_from_stem_async(
+        "题干文本", complete_fn=_capture_fn, api_key="k"))
+    asyncio.run(G.batch_judge_async(
+        [{"point_id": "P1", "text": "点", "score": 2, "policy": "qualitative", "required_terms": []}],
+        "学员作答", _capture_fn, "k"))
+
+    assert len(captured) == 3
+    for kwargs in captured:
+        assert kwargs.get("max_tokens") == 8192
+        assert kwargs.get("reasoning_effort") == "disabled"
+
+
+def test_parse_extracted_points_salvages_truncated_array():
+    """截断抢救：completion-cap 截断的数组抢救出完整对象（部分>0），
+    非截断畸形输出（有闭合]或纯文本）保持 fail-closed。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    truncated = '[{"text":"排水坡度不小于0.2%","score":2},{"text":"消火栓间距不大于120m","score":2},{"text":"被截断的'
+    points = _parse_extracted_points(truncated)
+    assert len(points) == 2
+    assert points[0]["text"].startswith("排水坡度")
+
+    # 非截断形状不抢救
+    assert _parse_extracted_points("对不起，我无法评分。") == []
+    assert _parse_extracted_points('说明 [ {"text":"垃圾","score":0} 后续文字 ] 完') == []
+
+
+# ---------------------------------------------------------------------------
+# KB 溯源 open-world 判分（2026-07-29 升级）
+# ---------------------------------------------------------------------------
+_KB_EVIDENCE = [
+    {"chunk_id": "TB_1", "title": "施工现场临时用水", "source_type": "textbook",
+     "content": "管线穿路处均应套以铁管保护，并埋入地下0.6m处。室外消火栓间距不应大于120m。"},
+    {"chunk_id": "TB_2", "title": "排水规范", "source_type": "standard",
+     "content": "排水纵沟坡度不应小于0.2%，保证排水通畅。"},
+]
+
+
+def test_attach_textbook_refs_four_quadrants():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import attach_textbook_refs
+
+    points = [
+        {"point_id": "P1", "text": "穿路套管", "score": 2.0,
+         "evidence_idx": 1, "quote": "管线穿路处均应套以铁管保护"},          # 真子串→grounded
+        {"point_id": "P2", "text": "越界引用", "score": 2.0,
+         "evidence_idx": 9, "quote": "任何话"},                            # idx 越界→unverified
+        {"point_id": "P3", "text": "编造引用", "score": 2.0,
+         "evidence_idx": 2, "quote": "坡度不应小于百分之五"},               # quote 不在 chunk→unverified（自证陷阱防线）
+        {"point_id": "P4", "text": "无引用", "score": 2.0},               # 无字段→unverified
+    ]
+    out = attach_textbook_refs(points, _KB_EVIDENCE)
+    assert out[0]["evidence_tier"] == "kb_grounded"
+    assert out[0]["textbook_ref"]["chunk_id"] == "TB_1"
+    assert out[0]["score"] == 2.0  # 有据点不降权
+    for p in out[1:]:
+        assert p["evidence_tier"] == "llm_unverified"
+        assert p["textbook_ref"] is None
+        assert p["score"] == 1.2  # ×0.6 相对降权
+    # evidence_idx/quote 已被 pop，不泄进下游
+    assert "evidence_idx" not in out[0] and "quote" not in out[0]
+
+
+def test_attach_textbook_refs_empty_evidence_all_unverified():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        attach_textbook_refs,
+        normalize_points_to_nominal,
+        summarize_kb_grounding,
+    )
+
+    points = [{"point_id": "P1", "text": "点", "score": 4.0},
+              {"point_id": "P2", "text": "点2", "score": 6.0}]
+    out = attach_textbook_refs(points, [])
+    assert all(p["evidence_tier"] == "llm_unverified" for p in out)
+    # 归一化后总分不变（相对降权不改分数量纲）
+    normalized = normalize_points_to_nominal(out, nominal_total=10.0)
+    assert abs(sum(p["score"] for p in normalized) - 10.0) < 0.01
+    g = summarize_kb_grounding(out)
+    assert g["status"] == "no_evidence" and g["ratio"] == 0.0
+
+
+def test_parse_extracted_points_passthrough_and_truncation_compat():
+    from deeptutor.services.construction_grading.rubric_grader_v1 import _parse_extracted_points
+
+    raw = '[{"text":"套管保护","score":2,"evidence_idx":1,"quote":"套以铁管保护"},{"text":"无据点","score":2}]'
+    pts = _parse_extracted_points(raw)
+    assert pts[0]["evidence_idx"] == 1 and pts[0]["quote"] == "套以铁管保护"
+    assert "evidence_idx" not in pts[1]
+    # 截断抢救兼容：带新字段的截断数组照常 salvage 完整对象
+    truncated = '[{"text":"套管","score":2,"evidence_idx":1,"quote":"套以铁管"},{"text":"被截'
+    salvaged = _parse_extracted_points(truncated)
+    assert len(salvaged) == 1 and salvaged[0]["evidence_idx"] == 1
+
+
+import asyncio as _asyncio
+
+
+def test_derive_kb_block_and_grounded_flow():
+    """kb_evidence 在场：prompt 带 E 编号块；机械核验落 textbook_ref。
+    kb_evidence 为空：prompt 与 v2 语义等价（无溯源块）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    seen_prompts: list[str] = []
+
+    async def _fn(**kwargs):
+        seen_prompts.append(kwargs["prompt"])
+        return '[{"text":"穿路套管保护","score":2,"policy":"qualitative","required_terms":[],"evidence_idx":1,"quote":"套以铁管保护"}]'
+
+    pts = _asyncio.run(G.derive_rubric_from_stem_async(
+        "临时用水管理案例题干A" , _fn, "k", kb_evidence=_KB_EVIDENCE))
+    assert "[E1]" in seen_prompts[0] and "溯源要求" in seen_prompts[0]
+    assert pts[0]["evidence_tier"] == "kb_grounded"
+
+    pts2 = _asyncio.run(G.derive_rubric_from_stem_async(
+        "临时用水管理案例题干B（无证据）", _fn, "k", kb_evidence=[]))
+    assert "[E1]" not in seen_prompts[1] and "溯源要求" not in seen_prompts[1]
+    assert pts2[0]["evidence_tier"] == "llm_unverified"
+
+
+def test_rubric_bank_governance_gate_refuses_unauthorized_slot_and_falls_back(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """护栏③（2026-07-30 owner 拍板）：content_hash 只证完整性不证授权——pgo 未授权
+    覆写服役六周的教训。pointer 缺 production_authorized=true → 拒装发声并回落授权
+    默认 slot（legacy）；身份随 active_bank_identity 导出。"""
+    import json as _json
+
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored", "case_rubric_scored.json",
+        [{"qid": "Q-L", "point_id": "L1", "text": "legacy", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json",
+        [{"qid": "Q-P", "point_id": "P1", "text": "pgo", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    # 撤销 pgo 的授权位（重建默认态）
+    pgo_pointer = tmp_path / "runtime_supply" / "v_case_rubric_scored_pgo" / "canonical_pointer.json"
+    d = _json.loads(pgo_pointer.read_text("utf-8"))
+    d["production_authorized"] = False
+    pgo_pointer.write_text(_json.dumps(d), encoding="utf-8")
+
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    G._rubric_bank.cache_clear()
+    try:
+        assert G.load_rubric("Q-P") == []          # 未授权 slot 的键绝不可达
+        assert [p["point_id"] for p in G.load_rubric("Q-L")] == ["L1"]  # 回落 legacy
+        ident = G.active_bank_identity()
+        assert ident["slot"] == "legacy"
+        assert ident["governance"] == "fallback_from:pgo"
+        assert ident["qid_count"] == 1
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_governance_gate_refuses_when_default_also_unauthorized(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import json as _json
+
+    _write_test_rubric_bank(
+        tmp_path, "v_case_rubric_scored", "case_rubric_scored.json",
+        [{"qid": "Q-L", "point_id": "L1", "text": "legacy", "score": 1.0,
+          "policy": "list", "required_terms": []}],
+    )
+    lp = tmp_path / "runtime_supply" / "v_case_rubric_scored" / "canonical_pointer.json"
+    d = _json.loads(lp.read_text("utf-8"))
+    d.pop("production_authorized", None)   # 缺位=未授权（fail-closed）
+    lp.write_text(_json.dumps(d), encoding="utf-8")
+
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
+    G._rubric_bank.cache_clear()
+    try:
+        assert G.load_rubric("Q-L") == []
+        assert G.active_bank_identity()["governance"] == "refused:unauthorized"
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_resolve_case_answer_method_high_band_only(monkeypatch) -> None:
+    """A1 真口诀（宁缺勿错挂）：只接受 high 置信带；medium/None/异常一律回落。
+
+    题面固定为真的落在 unit topic（质量验收）上——2026-08-01 起 band 之外还要过
+    topic 身份词闸，占位题面（"某案例题干…"）不再能证明 band 闸本身的行为。
+    """
+    import deeptutor.services.compiled_knowledge.lecture_answer_methods as LAM
+
+    unit = {
+        "unit_id": "U1", "lecture": "1A43", "topic": "质量验收",
+        "source_ref": {"chunk_id": "CH1"},
+        "answer_method": {"mnemonics": ["先判后改，条条对点"], "trap_alerts": ["别漏见证人"],
+                          "red_lines": [], "must_mentions": [], "formula_or_thresholds": []},
+    }
+
+    def _fake(text, **_k):
+        return {"activation": {"band": "high"}, "selected_units": [dict(unit)]}
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context", _fake)
+    out = G.resolve_case_answer_method_for_render("某案例题干…问题1：质量验收记录有哪些不妥？")
+    assert out and out["units"][0]["unit_id"] == "U1"
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
+                        lambda text, **_k: {"activation": {"band": "medium"}, "selected_units": [dict(unit)]})
+    assert G.resolve_case_answer_method_for_render("某案例题干…问题1：质量验收记录有哪些不妥？") is None
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
+                        lambda text, **_k: (_ for _ in ()).throw(RuntimeError("boom")))
+    assert G.resolve_case_answer_method_for_render("某案例题干…问题1：质量验收记录有哪些不妥？") is None
+    assert G.resolve_case_answer_method_for_render("") is None
+
+
+def test_render_case_feedback_uses_real_mnemonics_with_citation() -> None:
+    event = {
+        "event_type": "case_grading_completed", "awarded_score": 2.0, "max_score": 3.0,
+        "scoring_points": [
+            {"point_id": "P1", "text": "共用开关箱不妥", "score": 1.0, "awarded": 0.0,
+             "status": "miss", "policy": "list"},
+        ],
+        "official_score_allowed": False,
+    }
+    am = {"units": [{
+        "unit_id": "U1", "lecture": "1A43", "topic": "临时用电",
+        "source_ref": {"chunk_id": "CH9"},
+        "answer_method": {"mnemonics": ["一机一闸一漏一箱"], "trap_alerts": ["共用开关箱必扣"],
+                          "red_lines": ["严禁带电作业"]},
+    }]}
+    rendered = G.render_case_rubric_feedback(event, question_stem="临时用电案例", answer_method_context=am)
+    assert "一机一闸一漏一箱" in rendered
+    assert "⚠️ 陷阱：共用开关箱必扣" in rendered
+    assert "⛔ 红线：严禁带电作业" in rendered
+    assert "出处：1A43·临时用电，CH9" in rendered
+    # 无编译上下文 → 回落现模板（不渲染引用行）
+    fallback = G.render_case_rubric_feedback(event, question_stem="临时用电案例")
+    assert "出处：" not in fallback
+    assert "## 记忆提示" in fallback    # 回落面无资产不得自称口诀（F1 附带裁决）
+
+
+_COV_STEM = (
+    "【背景资料】某住宅工程质量检测管理。\n1. 建设单位委托检测机构。\n2. 监理见证取样。\n"
+    "【问题】\n问题1：指出不妥之处并写出正确做法？\n问题2：写出质量缺陷名称？\n"
+    "问题3：写出防水构造层名称？\n问题4：补充治理工艺流程？"
+)
+
+
+def test_case_subquestion_coverage_partial_and_note() -> None:
+    """覆盖对账（live 事故：答 2/4 问被判整题满分零漏点）：rubric 只归属到部分
+    小问 → 覆盖事实+点名未覆盖小问；全覆盖/无法归属 → 沉默不猜。"""
+    event = {
+        "event_type": "case_grading_completed",
+        "scoring_points": [
+            {"point_id": "P1", "question_no": 1, "hit": G.HIT, "score": 1.0},
+            {"point_id": "P2", "question_no": 1, "hit": G.HIT, "score": 1.0},
+            {"point_id": "P3", "question_no": 4, "hit": G.HIT, "score": 1.0},
+        ],
+    }
+    cov = G.case_subquestion_coverage(event, question_stem=_COV_STEM)
+    assert cov["covered"] == [1, 4] and cov["uncovered"] == [2, 3]
+    note = G.build_case_subq_coverage_note(cov)
+    assert "问题2、问题3" in note and "未纳入本次判分" in note and "已覆盖部分" in note
+
+    # 全覆盖 → 无声明
+    event_full = {
+        "event_type": "case_grading_completed",
+        "scoring_points": [{"point_id": f"P{i}", "question_no": i, "hit": G.HIT} for i in (1, 2, 3, 4)],
+    }
+    assert G.build_case_subq_coverage_note(
+        G.case_subquestion_coverage(event_full, question_stem=_COV_STEM)
+    ) == ""
+    # 全部无法归属 → None（宁沉默不猜）
+    event_blind = {"event_type": "case_grading_completed",
+                   "scoring_points": [{"point_id": "X", "hit": G.HIT}]}
+    assert G.case_subquestion_coverage(event_blind, question_stem=_COV_STEM) is None
+
+
+def test_render_and_stream_declare_partial_coverage() -> None:
+    event = {
+        "event_type": "case_grading_completed", "awarded_score": 3.0, "max_score": 3.0,
+        "scoring_points": [
+            {"point_id": "P1", "question_no": 1, "text": "见证记录", "hit": G.HIT,
+             "score": 1.0, "awarded": 1.0, "policy": "list"},
+            {"point_id": "P3", "question_no": 4, "text": "工艺流程", "hit": G.HIT,
+             "score": 2.0, "awarded": 2.0, "policy": "list"},
+        ],
+        "official_score_allowed": False,
+    }
+    rendered = G.render_case_rubric_feedback(event, question_stem=_COV_STEM)
+    assert "判分覆盖范围" in rendered and "问题2、问题3" in rendered
+    # stream 面同源消费 event 上的声明
+    event["case_subq_coverage_note"] = G.build_case_subq_coverage_note(
+        G.case_subquestion_coverage(event, question_stem=_COV_STEM)
+    )
+    plan = G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+    assert plan and "判分覆盖范围" in plan["score_first"]
+    assert "仅已覆盖小问" in plan["score_first"]
+
+
+def test_question_titles_cut_answer_markers_before_counting() -> None:
+    """live 实证（owner 输入重放）：作答切割认不出【我的作答】时，作答里的
+    (1)-(6) 编号被数成"题面共 6 问"并点名幽灵问题5/6。标记族必须齐备。"""
+    raw = (
+        "【背景资料】某工程。\n【问题】\n1. 指出不妥？\n2. 名称？\n3. 构造？\n4. 流程？\n"
+        "【我的作答】\n问题4：(1) 清理；(2) 支模；(3) 洒水；(4) 界面剂；(5) 浇筑；(6) 养护。"
+    )
+    assert sorted(G._extract_case_question_titles(raw)) == [1, 2, 3, 4]
+    raw2 = raw.replace("【我的作答】", "\n我的答案：")
+    assert sorted(G._extract_case_question_titles(raw2)) == [1, 2, 3, 4]
+
+
+def test_answer_marker_single_authority_bracket_forms() -> None:
+    """OD-001/002 根治：标记族单一权威——切割侧与标题抽取侧共用
+    CASE_ANSWER_MARKER_PATTERN，括号形【我的作答】两侧同时生效。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_ANSWER_MARKER_PATTERN,
+    )
+    from deeptutor.services.question_lifecycle_skills import (
+        split_full_case_answer_submission,
+        _FREE_TEXT_CASE_ANSWER_MARKER_RE,
+    )
+
+    assert _FREE_TEXT_CASE_ANSWER_MARKER_RE.pattern == CASE_ANSWER_MARKER_PATTERN
+    paste = (
+        "【背景资料】某工程混凝土施工出现质量问题。\n【问题】\n1. 指出错误？\n2. 正确做法？\n"
+        "3. 评定方法？\n4. 构造柱做法？\n【我的作答】\n问1：B：限制。"
+    )
+    stem, answer = split_full_case_answer_submission(paste)
+    assert stem and "问题" in stem and "我的作答" not in stem
+    assert "B：限制" in answer
+    # 标题抽取侧同一模式：作答里的编号不进题面计数
+    titles = G._extract_case_question_titles(paste)
+    assert sorted(titles) == [1, 2, 3, 4]
+
+
+def test_case_submission_stem_candidate_semantic_anchor() -> None:
+    """OD-004 终修：判分基座判据回到语义（提交标记/多小问结构），不再依赖
+    题面括号形状——live 10 轮源码级实证：真实考卷粘贴（#583 原文，无【背景资料】
+    括号、半角「问题:」）三个形状锚全不命中，兜底十轮零触发。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        case_submission_stem_candidate as candidate,
+    )
+
+    real_paper = (
+        "某办公楼工程，地下二层，地上16层，建筑面积3.6万平方米，现浇钢筋混凝土框架剪力墙结构。"
+        + "施工过程描述内容补充。" * 12
+        + "\n问题:\n1. 指出项目部做法中的不妥之处并说明理由。\n2. 写出正确做法。\n"
+        "【我的作答】\n问题1：安全交底不妥。"
+    )
+    assert candidate(real_paper), "真实考卷粘贴形态必须被识别为判分基座"
+    bracket_form = "【背景资料】某工程" + "施工描述内容。" * 30 + "【问题】1. 指出不妥？"
+    assert candidate(bracket_form), "既有括号形态不得回归"
+    assert candidate("这题怎么做？") == ""
+    assert candidate("我想了解建筑工程施工管理的相关知识内容介绍。" * 8) == "", "无判分痕迹的长文本不得制造判分面"
+    # 只有多小问结构（无提交标记）也算判分行为在场
+    multi_q = "某工程概述内容。" * 20 + "\n1. 指出不妥之处？\n2. 说明正确做法？"
+    assert candidate(multi_q)
+
+
+def test_finalize_case_score_single_writer_invariants() -> None:
+    """单一 finalizer（[luban_grading_engine] domain test）：缩放后封顶 +
+    对外分母/范围上限分离 + 无名义满分时不动分。验算锚=审计 §2.2。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    # 审计验算锚：缩放后命中 8.33、cap 10、对外分母 20
+    ev = {"awarded_score": 8.33, "max_score": 10.0}
+    out = finalize_case_score(ev, nominal_full_score=20.0, scope_ratio=0.5)
+    assert out["awarded_score"] == 8.33
+    assert out["max_score"] == 20.0
+    assert out["scoring_scope_max"] == 10.0
+    assert "case_score_capped_from" not in out
+
+    # 封顶生效：命中超过范围上限
+    ev2 = {"awarded_score": 12.0, "max_score": 10.0}
+    finalize_case_score(ev2, nominal_full_score=20.0, scope_ratio=0.5)
+    assert ev2["awarded_score"] == 10.0
+    assert ev2["case_score_capped_from"] == 12.0
+
+    # 无名义满分：不动分（tier-1 门禁形状——封顶待 canonical 431 上服）
+    ev3 = {"awarded_score": 30.0, "max_score": 30.0}
+    finalize_case_score(ev3, nominal_full_score=0)
+    assert ev3["awarded_score"] == 30.0 and ev3["max_score"] == 30.0
+
+
+def test_finalize_case_score_caps_each_subquestion_independently() -> None:
+    """OD-005（2026-08-01）：逐小问封顶是**结构性**不变量。
+
+    整题封顶只在参考部分覆盖时介入（scope_ratio<1）；治理组把 4 问答案全取回来
+    时 scope_ratio=1，整题闸失效，点位分布偏斜（全落在已答的问 1）即满分。
+    逐问封顶让"答对一问最多拿一问的分"不依赖任何分布假设。
+    """
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    # 点位全部堆在问 1（旧路径的 live 形态），且全命中。
+    event = {
+        "awarded_score": 10.0,
+        "max_score": 10.0,
+        "scoring_points": [
+            {"point_id": f"q1_P{i}", "question_no": 1, "score": 2.5, "max_score": 2.5}
+            for i in range(1, 5)
+        ],
+    }
+    out = finalize_case_score(
+        event, nominal_full_score=10.0, scope_ratio=1.0,
+        subquestion_caps={"q1": 2.5, "q2": 2.5, "q3": 2.5, "q4": 2.5},
+    )
+    assert out["awarded_score"] == 2.5, "问 1 最多拿 2.5，其余问零命中"
+    assert out["max_score"] == 10.0, "对外分母恒为整题名义满分"
+    assert out["case_subq_score_capped"] == "q1"
+    assert out["case_subq_capped_from"] == 10.0
+    assert out["case_subq_score_caps"] == "q1:2.5,q2:2.5,q3:2.5,q4:2.5"
+
+
+def test_finalize_case_score_subquestion_caps_do_not_touch_full_answer() -> None:
+    """不得误伤：四问各自答满 → 逐问封顶之和 = 整题名义满分。
+    键名 "1" 与 "q1" 同坐标系（与 _question_group_key 对齐）。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    event = {
+        "awarded_score": 10.0,
+        "max_score": 10.0,
+        "scoring_points": [
+            {"point_id": f"q{q}_P{i}", "question_no": q, "score": 1.25, "max_score": 1.25}
+            for q in range(1, 5) for i in (1, 2)
+        ],
+    }
+    out = finalize_case_score(
+        event, nominal_full_score=10.0, scope_ratio=1.0,
+        subquestion_caps={"1": 2.5, "2": 2.5, "3": 2.5, "4": 2.5},
+    )
+    assert out["awarded_score"] == 10.0
+    assert "case_subq_score_capped" not in out
+    assert "case_subq_capped_from" not in out
+
+
+def test_finalize_case_score_without_subquestion_caps_is_byte_identical() -> None:
+    """kill switch 关（调用方不传 caps）时逐字回旧形状：无新字段、分数不动。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import finalize_case_score
+
+    event = {
+        "awarded_score": 10.0, "max_score": 10.0,
+        "scoring_points": [{"point_id": "P1", "question_no": 1, "score": 10.0}],
+    }
+    out = finalize_case_score(event, nominal_full_score=10.0, scope_ratio=1.0)
+    assert out["awarded_score"] == 10.0
+    assert "case_subq_score_caps" not in out
+    assert "case_subq_score_capped" not in out
+
+
+def test_case_subquestion_stem_slices_background_plus_that_question() -> None:
+    """逐问抽取的题面切分：背景保留、只带那一问；切不出时 fail-open 回整题题面。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import case_subquestion_stem
+
+    stem = ("【背景资料】某工程发生若干问题。\n"
+            "问题1：指出不妥之处并说明理由？\n"
+            "问题2：写出正确做法？\n"
+            "问题3：写出构造名称？")
+    out = case_subquestion_stem(stem, "2")
+    assert "【背景资料】某工程发生若干问题。" in out
+    assert "写出正确做法" in out
+    assert "指出不妥之处" not in out
+    assert "写出构造名称" not in out
+    # 切不出 → **fail-CLOSED 空串**（OD-005 补刀 2026-08-01 live 取证）：
+    # 生产 question_stem 是 bank 行题面（只含它自己那一问），旧版 fail-open 返回
+    # 整段，等于把**问 1 的题面**喂给问 2/3/4 的抽取 → 抽出问 1 的采分点顶着
+    # q2/q3/q4 的号 → 学生逐字抄的问 1 答案凭空多拿 3.15 分。给错题面比不给坏。
+    assert case_subquestion_stem(stem, "9") == ""
+    assert case_subquestion_stem("没有小问标记的一段题面", "1") == ""
+    assert case_subquestion_stem("", "1") == ""
+
+
+def test_case_subquestion_stem_never_serves_a_sibling_question() -> None:
+    """OD-005 补刀主证伪测（live 22:09 轮取证）：生产 ``question_stem`` 是 **bank 行**
+    题面 —— 背景 + 只有它自己那一问。拿它去切问 2/3/4 必然切不出；旧版 fail-open
+    把**问 1 的整段题面**顶了上去，抽取被题面带跑，产出问 1 的采分点顶着 q2/q3/q4
+    的号（实证：q2 池 2.5 分全是"质量计划应动态管理"）。学生逐字抄问 1 的答案再
+    命中它们 → 3.15 分凭空出现、总分 5.65 而非 2.5。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import case_subquestion_stem
+
+    bank_row_stem = (
+        "【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层。\n"
+        "【问题】1. 指出工程质量计划编制和管理中的不妥之处，并写出正确做法。"
+    )
+    assert case_subquestion_stem(bank_row_stem, "1")
+    for sibling in ("2", "3", "4"):
+        got = case_subquestion_stem(bank_row_stem, sibling)
+        assert got == "", f"问{sibling} 拿到了别的问的题面：{got[:60]!r}"
+        assert "质量计划" not in got
+
+
+def test_dynamic_groups_prefer_one_group_per_subquestion_when_declared() -> None:
+    """OD-005：逐问链声明后「一组=一问」，逐组发射即"问 k 判完"；
+    未声明的调用方保持 ≤3 组的既有并发/成本纪律（additive）。"""
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        _dynamic_adjudication_groups,
+    )
+
+    points = [
+        {"point_id": f"q{q}_P{i}", "text": f"问题{q}点{i}", "score": 1.0, "question_no": q}
+        for q in range(1, 5) for i in range(1, 4)
+    ]
+    groups, strategy = _dynamic_adjudication_groups(points, prefer_subquestion_groups=True)
+    assert strategy == "dynamic_parallel_subquestion_groups"
+    assert [{p["question_no"] for p in g} for g in groups] == [{1}, {2}, {3}, {4}]
+
+    legacy_groups, legacy_strategy = _dynamic_adjudication_groups(points)
+    assert legacy_strategy == "dynamic_parallel_question_groups"
+    assert len(legacy_groups) == 2
+
+
+# --- 口诀采纳权威：band=high 不足以证明"这一问落在这个考点上" ---------------
+# 2026-08-01 端侧取证：问题1（质量计划管理）挂出「机具日检上交图」，读起来像串了
+# 施工机具的题。审计结论是两件事，不是一件：
+#   (1) 该条口诀的数据绑定是**对的**——LEC_1A434000_P0005_001 = 第一节 质量计划管理
+#       ·考点一过程管理·施工质量记录 7 项（机/日/检/上/交/图），1A434000 = 施工质量
+#       管理，不是施工机具。真正的缺陷在渲染：裸口诀不带考点归属和要点展开，缩写
+#       没解释就等于制造串题错觉。
+#   (2) 但路由确实能串题——anchor 档被采分内容词污染，无关 unit 靠"隐蔽工程""关键
+#       部位"就能顶到 high。判分侧加 topic 身份词闸拦住。
+
+
+def _fake_lecture_ctx(topic: str, *, band: str = "high"):
+    return {
+        "activation": {"band": band, "score": 0.9},
+        "selected_units": [{
+            "unit_id": "lecture.fake.0001",
+            "lecture": "专业管理",
+            "topic": topic,
+            "score": 0.9,
+            "source_ref": {"chunk_id": "LEC_1A434000_P0005_001"},
+            "answer_method": {
+                "mnemonics": ["记录口诀：机具日检上交图"],
+                "must_mentions": ["质量策划", "动态管理", "关键部位", "机具日检上交图"],
+                "trap_alerts": ["注意区分质量计划与施工组织设计的编制依据"],
+                "red_lines": ["开工前未策划"],
+            },
+        }],
+    }
+
+
+def _patch_lecture_ctx(monkeypatch, ctx) -> None:
+    from deeptutor.services.compiled_knowledge import lecture_answer_methods as LAM
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context", lambda _stem: ctx)
+
+
+def test_answer_method_adoption_requires_stem_to_hit_unit_topic(monkeypatch) -> None:
+    """高分匹配 ≠ 匹配对了考点。题面没碰到 unit 的 topic 身份词 → 不挂口诀。"""
+    stem = "问题1：指出隐蔽工程验收存在的不妥之处，并说明关键部位的正确做法。"
+    _patch_lecture_ctx(monkeypatch, _fake_lecture_ctx("质量计划管理"))
+    assert G.resolve_case_answer_method_for_render(stem) is None
+
+    on_topic = "事件一：项目部编制了施工质量计划。问题1：质量计划应设置哪些质量控制点？"
+    got = G.resolve_case_answer_method_for_render(on_topic)
+    assert got is not None and got["units"][0]["unit_id"] == "lecture.fake.0001"
+
+
+def test_answer_method_adoption_still_requires_high_band(monkeypatch) -> None:
+    """topic 闸是加在 band 闸之后的第二道证据，不得把 medium 放进来。"""
+    on_topic = "事件一：项目部编制了施工质量计划。问题1：质量计划应设置哪些质量控制点？"
+    _patch_lecture_ctx(monkeypatch, _fake_lecture_ctx("质量计划管理", band="medium"))
+    assert G.resolve_case_answer_method_for_render(on_topic) is None
+
+
+def test_mnemonic_render_carries_topic_and_expansion(monkeypatch) -> None:
+    """裸缩写口诀＝串题错觉。渲染必须带考点归属 + 要点展开 + 出处。"""
+    on_topic = "事件一：项目部编制了施工质量计划。问题1：质量计划应设置哪些质量控制点？"
+    _patch_lecture_ctx(monkeypatch, _fake_lecture_ctx("质量计划管理"))
+    ctx = G.resolve_case_answer_method_for_render(on_topic)
+    event = {
+        "scoring_points": [{"point_id": "P1", "knowledge_point": "质量控制点设置", "policy_type": "list",
+                            "hit": G.MISS, "score": 0.0, "max_score": 2.0,
+                            "mistake_type": G.MISTAKE_MISS, "evidence_span": ""}],
+        "awarded_score": 0.0, "max_score": 2.0,
+    }
+    text = G.render_case_rubric_feedback(event, question_stem=on_topic, answer_method_context=ctx)
+    block = text[text.find("## 记忆口诀"):]
+    assert "质量计划管理｜记录口诀：机具日检上交图" in block   # 口诀不再裸奔
+    assert "展开：质量策划、动态管理、关键部位" in block        # answer_style 要求的逐点展开
+    assert "机具日检上交图" not in block.split("展开：")[1].split("\n")[0]  # 展开不复读口诀本身
+    assert "LEC_1A434000_P0005_001" in block                  # 出处仍在
+
+
+def test_live_lecture_pack_does_not_attach_quality_plan_mnemonic_to_unrelated_stem() -> None:
+    """真资产回归（非 mock）：编译包里 472/524 个 unit 把 must_mentions 抄进了
+    question_patterns，"隐蔽工程"+"关键部位"两个采分内容词就能把质量计划管理
+    unit 顶到 band=high（实测 0.86）。判分侧必须拦住，同时不能误伤真命中。"""
+    unrelated = "问题1：指出隐蔽工程验收存在的不妥之处，并说明关键部位的正确做法。"
+    on_topic = ("事件一：项目部编制了施工质量计划，明确了质量策划和动态管理要求。"
+                "问题1：质量计划中应设置质量控制点的部位和环节有哪些？")
+    on_topic_ctx = G.resolve_case_answer_method_for_render(on_topic)
+    if on_topic_ctx is None:      # 编译包未随环境提供 -> 该断言无从证伪，跳过
+        return
+    assert any(str(u.get("topic")) == "质量计划管理" for u in on_topic_ctx["units"])
+    assert G.resolve_case_answer_method_for_render(unrelated) is None
+
+
+# ---------------------------------------------------------------------------
+# canonical431 slot 治理（Lane 2, 2026-08-01）
+# 注册 slot ≠ 授权 slot。本组守住「Lane 2 不翻授权」这条边界是**机器可证**的，
+# 不是口头承诺：即便有人把 LUBAN_CASE_RUBRIC_BANK_SLOT=canonical431 设上去，
+# 治理闸也必须拒装并回落 legacy，全程发声。
+# ---------------------------------------------------------------------------
+
+def test_canonical431_slot_is_registered_and_points_at_lane1_artifacts() -> None:
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    assert G._RUBRIC_BANK_SLOTS["canonical431"] == (
+        "v_case_rubric_scored_canonical431",
+        "case_rubric_scored_canonical431.json",
+    )
+    # 既有两个 slot 一字不动（注册是加法，不是改写）。
+    assert G._RUBRIC_BANK_SLOTS["legacy"] == ("v_case_rubric_scored", "case_rubric_scored.json")
+    assert G._RUBRIC_BANK_SLOTS["pgo"] == ("v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json")
+
+
+def test_canonical431_slot_loads_after_explicit_owner_authorization() -> None:
+    """授权已显式翻转（2026-08-01 主控独立提交）：依据 = Lane1 #648 17 断言全绿
+    + Lane2 #653 未授权对照零变化；保留条件 = §4 三轮 live 判别位回归
+    （2023-case4 E1 真值 2.0 vs 均分 5.0）通过，不过即回滚 slot=legacy。
+    本测试由"钉未授权态"改为"钉授权后可装载 + 完整性三闸仍全过"——授权仍是
+    显式动作：谁回滚谁再来改这行并写理由。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    bundle, reason = G._load_bank_slot("canonical431")
+    assert reason == "ok", f"授权后必须可装载（reason={reason}）"
+    assert bundle is not None and len(bundle.get("records") or {}) == 321
+
+
+def test_canonical431_env_slot_falls_back_to_legacy_and_announces(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """授权翻转后（2026-08-01）：canonical431 slot 请求应正常装载并发声授权身份。
+
+    原钉"未授权回落"的行为已随显式授权更新；回落语义仍由治理闸保障（若未来
+    回滚授权，本测试须改回并写理由）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "canonical431")
+    G._rubric_bank.cache_clear()
+    try:
+        bank = G._rubric_bank()
+        identity = G.active_bank_identity()
+        assert identity["slot"] == "canonical431", "授权后必须装载 canonical431"
+        assert identity["governance"] == "authorized"
+        assert bank.get("2024-case1::E1") is not None, "canonical 键必须可命中"
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_canonical431_bank_whitelist_carries_capping_fields() -> None:
+    """``official_total_score`` / ``nominal_authority_disputed`` / ``case_group_id``
+    必须穿过 ``_rubric_bank`` 的 by_q 白名单——白名单外的字段是**静默丢弃**的，
+    丢了这三个，逐问真实满分封顶与走样分母 fail-closed 就整线解除武装。"""
+    import json
+    from pathlib import Path
+
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    bank_path = (
+        Path(G.__file__).parent
+        / "runtime_supply"
+        / "v_case_rubric_scored_canonical431"
+        / "case_rubric_scored_canonical431.json"
+    )
+    records = json.loads(bank_path.read_text("utf-8"))["records"]
+    disputed = [r for r in records if r.get("nominal_authority_disputed")]
+    assert disputed, "Lane 1 声明的 2 组分母走样必须在记录上打了标"
+
+    # 直接跑 by_q 的投影逻辑（与 _rubric_bank 同一段代码路径，不复制断言）。
+    projected = G._project_bank_records_to_points(records[:1] + disputed[:1])
+    sample = projected[str(records[0]["qid"])][0]
+    assert sample["official_total_score"] == records[0]["official_total_score"]
+    assert sample["case_group_id"] == records[0]["case_group_id"]
+    assert sample["subquestion_index"] == records[0]["subquestion_index"]
+    disputed_point = projected[str(disputed[0]["qid"])][0]
+    assert disputed_point["nominal_authority_disputed"] is True
+
+
+def test_canonical431_bank_has_no_2022_records_and_keys_are_group_scoped() -> None:
+    """2022 全年隔离（佑森=补考卷、questions_bank=正考卷）+ 键形制 1-based。
+
+    这两条在编译期由 Lane 1 的 V3/V6 断言守住；这里是**运行时侧**的同一条不变量，
+    因为运行时才是真正会拿错卷答案去判分的地方。"""
+    import json
+    from pathlib import Path
+
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    bank_path = (
+        Path(G.__file__).parent
+        / "runtime_supply"
+        / "v_case_rubric_scored_canonical431"
+        / "case_rubric_scored_canonical431.json"
+    )
+    bundle = json.loads(bank_path.read_text("utf-8"))
+    records = bundle["records"]
+    assert records, "bank 不得为空"
+    assert not [r for r in records if str(r.get("case_group_id") or "").startswith("2022-")]
+    assert not [r for r in records if str(r.get("qid") or "").startswith("2022-")]
+    assert bundle["quarantined"], "2022 的点必须还在（隔离不是删除）"
+
+    for record in records:
+        qid = str(record["qid"])
+        assert qid == f"{record['case_group_id']}::E{record['subquestion_index']}"
+        assert int(record["subquestion_index"]) >= 1, "E 号必须 1-based（与 DB 同权威）"
+        # _question_group_key 必须走显式字段，不掉进 ::E(\d+) 正则兜底
+        assert G._question_group_key(
+            {"question_no": record["question_no"], "source_qid": qid}
+        ) == f"q{record['subquestion_index']}"
+
+
+# ---------------------------------------------------------------------------
+# 快答/自由作文道的假口诀收权（r6 宣传门 A3，2026-08-01）
+# ---------------------------------------------------------------------------
+
+_FAKE_MNEMONIC_ANSWER = """## 采分点
+
+见证记录应覆盖取样全过程。
+
+---
+
+## 记忆口诀
+
+> **见证人填见证单；每个字对应：取样、制样、标识、封志、送检、现场检测。**
+"""
+
+
+def _answer_method_ctx() -> dict:
+    return {
+        "activation": {"band": "high"},
+        "units": [
+            {
+                "unit_id": "U-57",
+                "lecture": "工程质量检测管理",
+                "topic": "见证取样送检",
+                "source_ref": {"chunk_id": "LEC-57-03"},
+                "answer_method": {
+                    "mnemonics": ["样标封检"],
+                    "must_mentions": ["取样", "制样", "标识", "封志", "送检", "现场检测"],
+                    "trap_alerts": ["试验员不得代见证人填写见证记录"],
+                    "red_lines": ["检测费用由建设单位单独列支"],
+                },
+            }
+        ],
+    }
+
+
+def test_render_answer_method_mnemonic_lines_is_the_renderer_grading_uses():
+    """抽出的共用渲染器必须与判分链渲染逐字一致（提取零行为变化的 oracle）。
+
+    共用是这次收权的**全部意义**：快答道不得有第二套口诀渲染。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    lines = G.render_answer_method_mnemonic_lines(_answer_method_ctx())
+    assert lines, "high 带资产必须渲染出内容"
+    rendered = G.render_case_rubric_feedback(
+        {"scoring_points": [], "awarded_score": 0, "max_score": 10},
+        question_stem="某工程质量检测案例",
+        answer_method_context=_answer_method_ctx(),
+    )
+    assert "\n".join(lines) in rendered
+
+
+def test_apply_case_mnemonic_authority_swaps_in_the_sourced_compiled_mnemonic():
+    """命中真口诀：假口诀整段被替换，输出必带出处 + 展开行。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    out = G.apply_case_mnemonic_authority(
+        _FAKE_MNEMONIC_ANSWER, answer_method_context=_answer_method_ctx()
+    )
+    assert out
+    assert "（出处：工程质量检测管理·见证取样送检，LEC-57-03）" in out
+    assert "  展开：" in out
+    assert "样标封检" in out
+    # 模型即兴的顿号拼接假口诀必须消失
+    assert "每个字对应" not in out
+    # 口诀段以外的正文逐字保留
+    assert "见证记录应覆盖取样全过程。" in out
+
+
+def test_apply_case_mnemonic_authority_demotes_wording_without_authority():
+    """没命中真口诀：不得以「口诀」名义输出无出处的拼接列表——只降措辞，不改内容。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    out = G.apply_case_mnemonic_authority(_FAKE_MNEMONIC_ANSWER, answer_method_context=None)
+    assert out
+    assert "口诀" not in out
+    assert "## 记忆提示" in out
+    # 内容零删改（只有名号降级）
+    assert "取样、制样、标识、封志、送检、现场检测" in out
+    assert "见证记录应覆盖取样全过程。" in out
+    assert out == _FAKE_MNEMONIC_ANSWER.replace("记忆口诀", "记忆提示")
+
+
+def test_apply_case_mnemonic_authority_is_a_noop_without_mnemonic_wording():
+    """正文本来就没有「口诀」二字：零改动（返回 "" = 保持原文的既有约定）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    plain = "## 结论\n\n第1问共2处不妥。\n"
+    assert G.apply_case_mnemonic_authority(plain, answer_method_context=None) == ""
+    assert G.apply_case_mnemonic_authority(plain, answer_method_context=_answer_method_ctx()) == ""
+
+
+def test_apply_case_mnemonic_authority_does_not_inject_a_section_the_model_never_wrote():
+    """有资产但模型只是行内提了一嘴「口诀」：不硬塞新段落（那是新模板权威），只降措辞。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    inline = "## 结论\n\n可以用口诀帮助记忆：取样、制样、标识。\n"
+    out = G.apply_case_mnemonic_authority(inline, answer_method_context=_answer_method_ctx())
+    assert out == "## 结论\n\n可以用记忆提示帮助记忆：取样、制样、标识。\n"
+
+
+def test_resolve_case_answer_method_for_render_still_gates_on_high_band(monkeypatch):
+    """收权入口没有放松：medium 带 / 无 mnemonics 的 unit 一律不挂（宁缺勿错挂）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+    from deeptutor.services.compiled_knowledge import lecture_answer_methods as L
+
+    monkeypatch.setattr(
+        L,
+        "resolve_lecture_answer_method_context",
+        lambda stem, **kw: {"activation": {"band": "medium"}, "selected_units": _answer_method_ctx()["units"]},
+    )
+    assert G.resolve_case_answer_method_for_render("某案例题干…") is None

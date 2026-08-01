@@ -105,3 +105,48 @@ def test_execute_wallet_transaction_probe_dry_run_writes_artifact(tmp_path: Path
     assert summary["status"] == "dry_run"
     assert "probe_sql_preview" in summary
     assert (tmp_path / "wallet_transaction_probe.json").exists()
+
+
+def test_resolve_wallet_env_uses_registered_db_url_when_database_url_is_placeholder(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".env").write_text(
+        "\n".join(
+            [
+                "DB_URL=postgresql://localhost:5432/postgres",
+                "DATABASE_URL=${DB_URL}",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    env = resolve_wallet_env(
+        repo_root=tmp_path,
+        environ={},
+        db_url_keys=("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL"),
+    )
+
+    assert env.db_url == "postgresql://localhost:5432/postgres"
+    assert env.postgres_enabled is True
+
+
+def test_resolve_wallet_env_rejects_unexpanded_database_url_placeholder(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".env").write_text("DATABASE_URL=${DB_URL}\n", encoding="utf-8")
+
+    env = resolve_wallet_env(repo_root=tmp_path, environ={})
+
+    assert env.db_url == ""
+    assert env.postgres_enabled is False
+
+
+def test_resolve_wallet_env_does_not_expand_default_writer_authority_to_db_url(tmp_path: Path) -> None:
+    (tmp_path / ".git").mkdir()
+    (tmp_path / ".env").write_text(
+        "DB_URL=postgresql://localhost:5432/postgres\n",
+        encoding="utf-8",
+    )
+
+    env = resolve_wallet_env(repo_root=tmp_path, environ={})
+
+    assert env.db_url == ""
+    assert env.postgres_enabled is False

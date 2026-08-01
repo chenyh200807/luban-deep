@@ -45,7 +45,7 @@ def test_terminal_mapper_maps_budget_exhausted_to_recoverable_chinese() -> None:
     from deeptutor.services.session.turn_runtime import map_turn_failure_to_public_text
 
     text = map_turn_failure_to_public_text("tool_budget_exhausted")
-    assert "拆小" in text
+    assert "再发一次" in text
     assert BUDGET_SURROGATE_MARKER not in text
 
 
@@ -543,14 +543,18 @@ async def test_agent_loop_budget_exhaustion_is_typed_not_surrogate(tmp_path) -> 
         runtime_metadata=metadata,
     )
 
-    assert provider.calls == 2
+    # 2 budgeted search rounds + closure round (tool_choice="none") + repair
+    # retry. This stubborn provider ignores the closure contract and keeps
+    # emitting tool calls with narration content — closure/repair tool calls
+    # are never executed and narration is never promoted to an answer.
+    assert provider.calls == 4
     assert tools_used == ["rag", "rag"]
+    assert metadata["forced_closure_round"] == 3
     # 律4: budget exhaustion must NOT be improvised into a legit final answer.
     assert final_content is None
     failure = metadata.get("turn_failure")
     assert isinstance(failure, dict)
-    assert failure["kind"] == "tool_budget_exhausted"
-    assert failure["budget"] == 2
+    assert failure["kind"] == "model_empty_answer"
     assert BUDGET_SURROGATE_MARKER not in json.dumps(metadata, ensure_ascii=False)
 
 
@@ -835,14 +839,14 @@ async def test_turn_runtime_budget_exhaustion_persists_failed_chinese_terminal(
     assert detail is not None
     assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
     assert len(assistant_messages) == 1
-    assert "拆小" in assistant_messages[0]["content"]
+    assert "再发一次" in assistant_messages[0]["content"]
     assert BUDGET_SURROGATE_MARKER not in assistant_messages[0]["content"]
     assert assistant_messages[0]["metadata"]["terminal_status"] == "failed"
 
     result_events = [e for e in events if e.get("type") == "result"]
     assert result_events
     assert result_events[-1]["metadata"]["error_code"] == "tool_budget_exhausted"
-    assert "拆小" in result_events[-1]["metadata"]["response"]
+    assert "再发一次" in result_events[-1]["metadata"]["response"]
     for forbidden in (
         "presentation",
         "question_followup_context",
@@ -1130,3 +1134,45 @@ async def test_turn_runtime_terminal_cas_rejects_completed_overwrite_of_cancelle
     assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
     assert assistant_messages == []  # superseded assistant output is not published
     assert billing_calls == []  # and billing is never captured
+
+
+# ---------------------------------------------------------------------------
+# 流式覆写的同源后缀豁免（turn.md:144 增补，2026-07-29）
+# ---------------------------------------------------------------------------
+def test_stream_replacement_keeps_finalized_suffix_response() -> None:
+    """finalize 链剥掉开头独白后，终态是流文本的严格后缀——覆写必须让位于
+    finalize 权威，不得把已剥离的独白前缀复活。"""
+    from deeptutor.core.stream import StreamEvent, StreamEventType
+    from deeptutor.services.session.turn_runtime import (
+        _replace_public_result_response_with_stream,
+    )
+
+    streamed = "现在我有足够的知识库证据来回答第3题。让我来组织完整回答。\n\n## 第3题：临时用水管理"
+    finalized = "## 第3题：临时用水管理"
+    event = StreamEvent(
+        type=StreamEventType.RESULT,
+        metadata={"visibility": "public", "response": finalized},
+    )
+
+    _replace_public_result_response_with_stream(event, streamed)
+
+    assert event.metadata["response"] == finalized  # 后缀豁免生效
+
+
+def test_stream_replacement_still_overrides_heterogeneous_response() -> None:
+    """turn.md:144 原保护不回退：异源 stale/fallback 文本（非流后缀）仍被
+    流文本替换，学生看到什么终态就是什么。"""
+    from deeptutor.core.stream import StreamEvent, StreamEventType
+    from deeptutor.services.session.turn_runtime import (
+        _replace_public_result_response_with_stream,
+    )
+
+    streamed = "## 第3题：临时用水管理中的不妥及正确做法"
+    event = StreamEvent(
+        type=StreamEventType.RESULT,
+        metadata={"visibility": "public", "response": "暂时未生成适合直接展示的答案，请重试一次。"},
+    )
+
+    _replace_public_result_response_with_stream(event, streamed)
+
+    assert "临时用水管理" in event.metadata["response"]

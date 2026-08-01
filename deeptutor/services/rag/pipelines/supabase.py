@@ -25,6 +25,9 @@ from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
 from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
+from deeptutor.services.rag.retrieval_profiles import (
+    RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
+)
 
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
@@ -57,6 +60,19 @@ _QUESTION_SELECT = (
     "option_reasoning,node_code,source_type,exam_year,"
     "background_context,parent_id,source_chunk_id,structured_rules,logic_rule"
 )
+# 方案 C / C3（2026-08-01）：题级归属四列的读取面。**故意不并进
+# `_QUESTION_SELECT`** —— 那条 select 是全部题库检索的公共列清单，一旦某环境
+# 的 questions_bank 还没 apply 20260801000100，PostgREST 会对整条 select 返
+# 400，把「案例组水合失败」升级成「题库检索全断」。这里单列，所有消费点都在
+# `_hydrate_case_group_bundle` 的 try 里，缺列只降级成 single_row_fallback。
+_CASE_GROUP_META_SELECT = (
+    "id,case_group_id,case_subquestion_index,case_row_granularity,case_row_canonical"
+)
+_CASE_GROUP_ROW_SELECT = _QUESTION_SELECT + "," + _CASE_GROUP_META_SELECT.replace("id,", "", 1)
+# 一建《建筑实务》每道案例 4-6 小问；12 给足两倍余量又封死 1574 行误标教材题
+# 万一被同一组键串上时的爆量面。
+_CASE_GROUP_ROW_LIMIT = 12
+_CASE_ROW_GRANULARITY_WHOLE = "whole_question"
 
 _EMBEDDING_CACHE: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
 _SUPABASE_AVAILABILITY_CACHE: dict[str, tuple[bool, float]] = {}
@@ -299,6 +315,32 @@ def _safe_json_dumps(value: Any) -> str:
         return json.dumps(value, ensure_ascii=False)
     except Exception:
         return str(value)
+
+
+def _case_reference_answer_text(value: Any) -> str:
+    """`questions_bank.correct_answer` 的形态归一（方案 C / C3）。
+
+    同一列在生产里同时存着三种形态（C1 测绘实测）：g1/g2 世代是 string、g3 是
+    array（每元素一个采分要点），独占格里 string 行不少。判分侧只吃字符串参考，
+    形态判别若散落到消费点就会长出第二套 answer authority —— 这里是唯一归一点。
+    order-preserving：array 按原序换行拼接，绝不排序（采分点有先后语义）。
+    """
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (list, tuple)):
+        parts = [_case_reference_answer_text(item) for item in value]
+        return "\n".join(part for part in parts if part)
+    if isinstance(value, dict):
+        # 形如 {"1": "...", "2": "..."} 或 {"answer": "..."}：按 key 稳定序展开，
+        # 保证同一行在任何一次读取里产出逐字节相同的参考文本。
+        parts = [
+            _case_reference_answer_text(value[key])
+            for key in sorted(value, key=lambda item: str(item))
+        ]
+        return "\n".join(part for part in parts if part)
+    return str(value).strip()
 
 
 def _rag_warning_payload(
@@ -850,6 +892,9 @@ class SupabasePipeline:
         compiled_learning_truth = kwargs.get("compiled_learning_truth")
         personalization_context = kwargs.get("personalization_context")
         personalization_context = personalization_context if isinstance(personalization_context, dict) else None
+        retrieval_profile = str(kwargs.get("retrieval_profile") or "").strip()
+        # L1 瘦身检索：同一条管线内按 profile 短路（不分叉出第二条检索函数）。
+        identity_only = retrieval_profile == RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY
         self._last_query_embedding_dim: int | None = None
         with observability.start_observation(
             name="rag.supabase.search",
@@ -872,6 +917,22 @@ class SupabasePipeline:
                 question_type=question_type,
                 routing_metadata=routing_metadata,
             )
+            if identity_only:
+                # 身份 profile 只保留 questions_bank 一族（exact text / bank 向量 /
+                # 由 bank 行客户端派生的 exact 向量 / case_like 强制 second pass）。
+                # textbook/standard/exam 三族只喂正文与 sources —— 这一轮零消费者。
+                # 连带自动关掉 standard_code_exact / standard_precision 两组
+                # （它们由 source_plan.search_standard_chunks 把门）。
+                source_plan.search_textbook_chunks = False
+                source_plan.search_standard_chunks = False
+                source_plan.search_exam_chunks = False
+                source_plan.search_questions_bank = True
+                source_plan.selection_reasons.append(
+                    f"retrieval_profile={RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY}"
+                )
+                # bank fanout 的调度判据是 `config.include_questions or question_like`；
+                # 身份检索必须无条件跑 bank，否则 exact 命脉断在调度层。
+                config.include_questions = True
             retrieval_plan = build_retrieval_plan(
                 query,
                 include_questions_default=config.include_questions,
@@ -912,7 +973,12 @@ class SupabasePipeline:
             if intent_fast_path:
                 primary_queries = primary_queries[:1]
             effective_second_pass_enabled = bool(config.second_pass_enabled and not intent_fast_path)
-            effective_rerank_enabled = bool(config.rerank_enabled and not intent_fast_path)
+            # rerank 只作用于 enriched→final_results→正文/sources；`exact_question`
+            # 在它之前由 all_plans 原始行算出（因果方向相反）。身份 profile 砍它
+            # 不改判分身份，只省 ~12k rerank token + 一次 DashScope 往返。
+            effective_rerank_enabled = bool(
+                config.rerank_enabled and not intent_fast_path and not identity_only
+            )
             exact_text_plans: list[dict[str, Any]] = []
             retrieval_warnings: list[dict[str, str]] = []
             stage_started = time.perf_counter()
@@ -957,10 +1023,20 @@ class SupabasePipeline:
                     record_stage("availability_gate", stage_started)
                     exact_text_task: asyncio.Task[list[dict[str, Any]]] | None = None
                     exact_text_started_at: float | None = None
+                    # case 粘贴的 probe query 恒长于 max_text_len（MCQ 时代校准的门），
+                    # 此前把整个 text-first 任务连同 case_exact_queries 一起闷死——
+                    # case 切片候选器成了永不消费的孤岛（1b live 实证：在库案例题
+                    # 文本路径从未运行、exact 恒 miss）。case 候选在场即放行；长
+                    # probe query 交给 build_exact_question_text_candidates 的
+                    # case_like 切片，身份仍由 exact_question_identity_corresponds
+                    # 单一裁决（候选供给变宽，采信权威不变）。
                     if (
                         exact_probe
                         and config.exact_question_text_first
-                        and len(exact_probe.query) <= config.exact_question_max_text_len
+                        and (
+                            len(exact_probe.query) <= config.exact_question_max_text_len
+                            or case_exact_queries
+                        )
                     ):
                         exact_text_candidates = [exact_probe.query]
                         for candidate in case_exact_queries:
@@ -1140,12 +1216,21 @@ class SupabasePipeline:
 
         all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan, *final_compiled_truth_plan]
         stage_started = time.perf_counter()
+        # 方案 C / C3（2026-08-01）：题级组取全必须插在 `_augment_...` **之前** ——
+        # augment 用 covered_indexes 对学生题面算分母（missing_subquestions /
+        # coverage_ratio / coverage_state）。先取全再算分母，分母才诚实；顺序反了
+        # 就是拿单行覆盖面去对整卷，仍旧 1/4。
+        # L1 瘦身 profile 共存：本步在 `identity_only` 分支**之前**，身份轮照跑——
+        # 组取全产出的正是身份与分母，恰恰是瘦身轮唯一要的东西，不得跳过。
         exact_question = self._project_mcq_exact_question_to_query_surface(
             self._augment_case_exact_question_with_query(
-                self._extract_exact_question_payload(
-                    all_plans,
-                    original_query=query,
-                    exact_probe=exact_probe,
+                await self._hydrate_case_group_bundle(
+                    self._extract_exact_question_payload(
+                        all_plans,
+                        original_query=query,
+                        exact_probe=exact_probe,
+                    ),
+                    config=config,
                 ),
                 query=query,
                 query_shape=query_shape,
@@ -1154,31 +1239,40 @@ class SupabasePipeline:
         )
         fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
         record_stage("dedupe_and_exact", stage_started)
-        stage_started = time.perf_counter()
-        enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
-        record_stage("hydrate_sources", stage_started)
-        stage_started = time.perf_counter()
-        enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
-        enriched = _project_teaching_metadata(enriched)
-        enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
-        record_stage("post_hydrate_projection", stage_started)
-        if effective_rerank_enabled:
-            stage_started = time.perf_counter()
-            reranked = await self._rerank_results(
-                query=query,
-                results=enriched,
-                config=config,
-            )
-            record_stage("rerank", stage_started)
+        if identity_only:
+            # 身份 profile 到此为止：`exact_question` 已经产出（身份 + 分母），
+            # 后面整段全是「把候选行加工成正文/sources」——全文水合、doc 多样性、
+            # rerank、ranking trace、content 拼装、source_items —— 直通轮零消费者。
+            # 只清空产物，不动 exact_question：分母逐字段与 full 模式相同。
+            stage_timings_ms["hydrate_sources"] = 0.0
+            stage_timings_ms["post_hydrate_projection"] = 0.0
+            final_results: list[dict[str, Any]] = []
         else:
-            reranked = list(enriched)
-        reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
-        final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
-        final_results = self._ensure_final_compiled_truth_presence(
-            final_results,
-            plans=final_compiled_truth_plan,
-            max_items=config.top_k,
-        )
+            stage_started = time.perf_counter()
+            enriched = await self._hydrate_sources(fused[: config.fetch_count], config=config)
+            record_stage("hydrate_sources", stage_started)
+            stage_started = time.perf_counter()
+            enriched = self._filter_partial_case_results(enriched, exact_question=exact_question)
+            enriched = _project_teaching_metadata(enriched)
+            enriched = _enforce_doc_diversity(enriched, max_per_document=config.max_per_document)
+            record_stage("post_hydrate_projection", stage_started)
+            if effective_rerank_enabled:
+                stage_started = time.perf_counter()
+                reranked = await self._rerank_results(
+                    query=query,
+                    results=enriched,
+                    config=config,
+                )
+                record_stage("rerank", stage_started)
+            else:
+                reranked = list(enriched)
+            reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
+            final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
+            final_results = self._ensure_final_compiled_truth_presence(
+                final_results,
+                plans=final_compiled_truth_plan,
+                max_items=config.top_k,
+            )
         ranking_trace = build_ranking_trace(
             final_results,
             authority_order=list(getattr(retrieval_plan, "authority_order", []) or []),
@@ -1250,6 +1344,7 @@ class SupabasePipeline:
             "rerank_enabled": bool(effective_rerank_enabled),
             "second_pass_enabled": bool(effective_second_pass_enabled),
             "primary_query_count": len(primary_queries),
+            "retrieval_profile": retrieval_profile or "full",
         }
         # post-build diagnostics (total timing is only knowable after the bundle) → trace bucket
         evidence_bundle["trace"]["stage_timings_ms"] = dict(stage_timings_ms)
@@ -1265,6 +1360,9 @@ class SupabasePipeline:
             "evidence_bundle": evidence_bundle,
             "retrieval_degraded": bool(retrieval_warnings),
             "retrieval_status": "partial" if retrieval_warnings else "ok",
+            # 观测：本轮实际生效的检索深度。lean 轮的空 content/sources 必须能与
+            # 「检索失败」区分开——降级只由 retrieval_warnings 判定，profile 不参与。
+            "retrieval_profile": retrieval_profile or "full",
         }
         if retrieval_warnings:
             payload["warnings"] = list(retrieval_warnings)
@@ -1320,6 +1418,7 @@ class SupabasePipeline:
                 ],
             },
             "exact_question": exact_question or {},
+            "retrieval_profile": retrieval_profile or "full",
             "stage_timings_ms": dict(stage_timings_ms),
             "performance_policy": dict(performance_policy),
             "retrieval_degraded": bool(retrieval_warnings),
@@ -2729,6 +2828,11 @@ class SupabasePipeline:
             ]
             return {
                 "id": selected_row.get("id") or "",
+                # tier1 可达性（2026-07-30）：顶层显式 question_id 与复合 qid 原料
+                # （pgo bank 键 = f"{exam_year}::{source_chunk_id}::E{n}"）。
+                "question_id": selected_row.get("id") or "",
+                "source_chunk_id": str(selected_row.get("source_chunk_id") or "").strip(),
+                "exam_year": selected_row.get("exam_year"),
                 "chunk_id": selected_row.get("chunk_id") or "",
                 "stem": str(
                     selected_row.get("stem")
@@ -2776,6 +2880,9 @@ class SupabasePipeline:
         options = row.get("options") or ""
         payload: dict[str, Any] = {
             "id": row.get("id") or row.get("chunk_id") or "",
+            "question_id": row.get("id") or "",
+            "source_chunk_id": str(row.get("source_chunk_id") or "").strip(),
+            "exam_year": row.get("exam_year"),
             "chunk_id": row.get("chunk_id") or "",
             "stem": stem,
             "question_type": question_type,
@@ -3034,6 +3141,299 @@ class SupabasePipeline:
             return None
         candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
         return candidates[0][2]
+
+    # ------------------------------------------------------------------
+    # 方案 C / C3：题级组取全（contracts/rag.md §45）
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _case_group_seed_ids(exact_question: dict[str, Any]) -> list[str]:
+        """命中侧候选行 id，按「先选中行、再其余兄弟行」的确定顺序去重。"""
+        ordered: list[str] = []
+        raw = [
+            exact_question.get("question_id"),
+            exact_question.get("id"),
+            *(exact_question.get("matched_question_ids") or []),
+        ]
+        for value in raw:
+            text = str(value or "").strip()
+            if text and text not in ordered:
+                ordered.append(text)
+        return ordered
+
+    async def _fetch_case_group_meta(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        seed_ids: list[str],
+        config: SupabaseSearchConfig,
+    ) -> dict[str, dict[str, Any]]:
+        """命中行的题级归属元数据。
+
+        为什么必须单独查一次：命中行有两条供给路径——PostgREST `_select`
+        (`_QUESTION_SELECT`) 与 RPC（`search_questions_bank_text` / 向量 RPC）。
+        RPC 的返回列由 DB function 签名固定，应用侧改不了，所以「从命中行里直接
+        读 case_group_id」在 RPC 路径上恒为 None。用 id 回查是唯一对两条路径都
+        成立的解析方式。
+        """
+        joined = ",".join(f'"{item}"' for item in seed_ids[:_CASE_GROUP_ROW_LIMIT])
+        rows = await self._select(
+            client,
+            table="questions_bank",
+            select=_CASE_GROUP_META_SELECT,
+            query={"id": f"in.({joined})"},
+            config=config,
+        )
+        return {
+            str(row.get("id") or "").strip(): row
+            for row in rows
+            if isinstance(row, dict) and str(row.get("id") or "").strip()
+        }
+
+    async def _fetch_case_group_rows(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        case_group_id: str,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        """按题级组取全。
+
+        `case_row_canonical=not.is.false` 而**不是** `=eq.true`：C2 对 72 行答案
+        冲突行一律留 NULL（未裁决），11 个组因此 canonical 序号带洞。写 `=true`
+        会静默丢掉这些小问，而 `covered_indexes` 仍显示连续——把「有争议」伪装成
+        「full coverage」。§45(c) 红线。
+        `question_type=eq.case_study` 是二道闸：组键本身已经把 1574 行误标教材题
+        结构性挡在外面（它们四列全 NULL），这条只防将来误写。
+        """
+        return await self._select(
+            client,
+            table="questions_bank",
+            select=_CASE_GROUP_ROW_SELECT,
+            query={
+                "case_group_id": f"eq.{case_group_id}",
+                "case_row_canonical": "not.is.false",
+                "question_type": "eq.case_study",
+                "limit": str(_CASE_GROUP_ROW_LIMIT),
+            },
+            config=config,
+        )
+
+    @staticmethod
+    def _assemble_case_group_bundle(
+        rows: list[dict[str, Any]],
+    ) -> tuple[list[dict[str, Any]], list[str]]:
+        """把组内行装成 covered_subquestions + 未裁决序号清单。
+
+        **恒等性**（本方法唯一的硬要求）：排序只用 `(case_subquestion_index, id)`，
+        绝不用 similarity / 命中顺序 / 返回顺序 —— 命中组内第 1/2/4 行、DB 返回
+        乱序，产出必须逐字节相同。这是「整卷只判 1/4 且每次判的还不是同一问」这个
+        随机性消失的铁证。
+        """
+        by_index: dict[int, list[dict[str, Any]]] = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            raw_index = row.get("case_subquestion_index")
+            try:
+                index = int(str(raw_index).strip())
+            except (TypeError, ValueError):
+                # index 为 NULL 的行（C 类 9 行只给组不给序号）：无法定位到具体
+                # 小问，宁缺勿错不入参考——给不出 display_index 的条目会让下游
+                # 覆盖对账拿不到分母。
+                continue
+            by_index.setdefault(index, []).append(row)
+
+        covered: list[dict[str, Any]] = []
+        conflict_indexes: list[str] = []
+        for index in sorted(by_index):
+            bucket = sorted(by_index[index], key=lambda item: str(item.get("id") or ""))
+            adjudicated = [row for row in bucket if row.get("case_row_canonical") is True]
+            if not adjudicated:
+                # 整格都是 NULL = 该小问的多个入库世代答案互相冲突、尚未人审。
+                # fail-closed 不入参考：分母侧自然按未覆盖算，绝不塞一个可能是
+                # 错世代的答案钥匙进去。
+                conflict_indexes.append(str(index))
+                continue
+            row = adjudicated[0]
+            surface = str(row.get("stem") or row.get("question_stem") or "").strip()
+            sub_items = extract_case_subquestion_items(surface, max_items=1)
+            prompt = str((sub_items[0] if sub_items else {}).get("prompt") or "").strip()
+            covered.append(
+                {
+                    "display_index": str(index),
+                    "prompt": prompt or surface,
+                    "surface": surface,
+                    "authoritative_answer": _case_reference_answer_text(
+                        row.get("correct_answer")
+                    ),
+                    "analysis": str(row.get("analysis") or "").strip(),
+                    "coverage": "case_group_exact",
+                    "question_id": row.get("id") or "",
+                }
+            )
+        return covered, conflict_indexes
+
+    @staticmethod
+    def _mark_case_bundle(
+        exact_question: dict[str, Any],
+        *,
+        source: str,
+        hydration: str = "",
+        case_group_id: str = "",
+        conflict_indexes: list[str] | None = None,
+    ) -> None:
+        """降级/来源发声（AGENTS 硬不变量：降级路径必须发声）。
+
+        三个 marker 全部进 CASE_GRADING_AUTHORITY_EXPORT_KEYS，一路上到判分事件、
+        turn metadata 与 trace —— 没有 marker 的降级等于没发生过。
+
+        **只写 payload 顶层，绝不动嵌套 `case_bundle`**：回落路径必须让 bundle 逐
+        字段等于改动前（回归零影响是可证伪断言，不是口号）。取全成功的路径自己
+        重建整个 `case_bundle`。
+        """
+        exact_question["case_bundle_source"] = source
+        if hydration:
+            exact_question["case_bundle_hydration"] = hydration
+        if case_group_id:
+            exact_question["case_group_id"] = case_group_id
+        if conflict_indexes:
+            exact_question["case_answer_conflict_unresolved"] = (
+                f"{case_group_id or 'unknown'}:{','.join(conflict_indexes)}"
+            )
+
+    async def _hydrate_case_group_bundle(
+        self,
+        exact_question: dict[str, Any] | None,
+        *,
+        config: SupabaseSearchConfig,
+    ) -> dict[str, Any] | None:
+        """命中案例行后按 `case_group_id` 取全组，装出整题参考（方案 C / C3）。
+
+        治的病：整卷提交只判 1/4。此前 bundle 只装「检索恰好召回的那些兄弟行」，
+        而兄弟行的召回取决于相似度与 `seen_by_index` 抢位——同一份提交每次覆盖的
+        小问都可能不同。题级组是显式 authority，取全后覆盖面与检索运气脱钩。
+
+        本方法**只改覆盖面，不改身份**：id / stem / correct_answer / source_group
+        等身份字段一律沿用命中行，题级组只负责「取全同组」，不负责「这是不是学员
+        这道题」（§45(e)；身份仍归 §32b 的 adjudicator）。
+
+        全程 fail-open：任何一步失败都回落到进来时的单行/兄弟行 bundle，只多一个
+        降级 marker，绝不 fail 整轮检索。
+        """
+        if not isinstance(exact_question, dict) or not exact_question:
+            return exact_question
+        # MCQ / free_text / 教材题路径零调用：不发任何查询，不写任何 marker。
+        if str(exact_question.get("answer_kind") or "").strip().lower() != "case_study":
+            return exact_question
+
+        seed_ids = self._case_group_seed_ids(exact_question)
+        if not seed_ids:
+            self._mark_case_bundle(
+                exact_question,
+                source="single_row_fallback",
+                hydration="skipped:no_seed_id",
+            )
+            return exact_question
+
+        try:
+            client = await self._get_client(config.timeout_s)
+            meta_by_id = await self._fetch_case_group_meta(
+                client=client, seed_ids=seed_ids, config=config
+            )
+        except Exception as exc:
+            self.logger.debug(f"Case group meta lookup failed: {exc}")
+            self._mark_case_bundle(
+                exact_question,
+                source="single_row_fallback",
+                hydration=f"degraded:group_meta_query_failed:{type(exc).__name__}",
+            )
+            return exact_question
+
+        seed_meta: dict[str, Any] | None = None
+        for seed_id in seed_ids:
+            candidate = meta_by_id.get(seed_id)
+            if isinstance(candidate, dict) and str(candidate.get("case_group_id") or "").strip():
+                seed_meta = candidate
+                break
+        if seed_meta is None:
+            # §45(d)：`case_group_id IS NULL` **不代表「不是案例」**，只代表题级
+            # 归属未建（1574 行误标教材题就落在这里）。fail-open 回单行 bundle，
+            # 不得据此反推题型、更不得回退到老的 chunk/year 聚合。
+            self._mark_case_bundle(
+                exact_question,
+                source="single_row_fallback",
+                hydration="skipped:null_group_key",
+            )
+            return exact_question
+
+        case_group_id = str(seed_meta.get("case_group_id") or "").strip()
+        granularity = str(seed_meta.get("case_row_granularity") or "").strip().lower()
+        if granularity == _CASE_ROW_GRANULARITY_WHOLE:
+            # §45(b)：整题行自含该案例全部小问（2024/2017 年份主导），命中它就
+            # **不得再发兄弟行查询**——再取全会把同一份内容重复装一遍。
+            self._mark_case_bundle(
+                exact_question,
+                source="whole_row",
+                hydration="skipped:whole_question_row",
+                case_group_id=case_group_id,
+            )
+            return exact_question
+
+        try:
+            rows = await self._fetch_case_group_rows(
+                client=client, case_group_id=case_group_id, config=config
+            )
+        except Exception as exc:
+            self.logger.debug(f"Case group row fetch failed for {case_group_id}: {exc}")
+            self._mark_case_bundle(
+                exact_question,
+                source="single_row_fallback",
+                hydration=f"degraded:group_query_failed:{type(exc).__name__}",
+                case_group_id=case_group_id,
+            )
+            return exact_question
+
+        covered, conflict_indexes = self._assemble_case_group_bundle(rows)
+        if not covered:
+            self._mark_case_bundle(
+                exact_question,
+                source="single_row_fallback",
+                hydration="degraded:group_query_empty",
+                case_group_id=case_group_id,
+                conflict_indexes=conflict_indexes,
+            )
+            return exact_question
+
+        covered_indexes = [item["display_index"] for item in covered]
+        coverage_state = (
+            "multi_subquestion_exact" if len(covered) > 1 else "single_subquestion_only"
+        )
+        exact_question["covered_subquestions"] = covered
+        exact_question["covered_indexes"] = covered_indexes
+        exact_question["coverage_state"] = coverage_state
+        exact_question["matched_question_ids"] = [
+            item["question_id"] for item in covered if item.get("question_id") not in (None, "")
+        ]
+        exact_question["case_bundle"] = {
+            **(
+                exact_question.get("case_bundle")
+                if isinstance(exact_question.get("case_bundle"), dict)
+                else {}
+            ),
+            "coverage_state": coverage_state,
+            "covered_subquestions": covered,
+            "covered_indexes": covered_indexes,
+            "raw_subquestion_count": len(covered),
+        }
+        self._mark_case_bundle(
+            exact_question,
+            source="group_query",
+            hydration=f"group_query:{len(covered)}",
+            case_group_id=case_group_id,
+            conflict_indexes=conflict_indexes,
+        )
+        return exact_question
 
     @staticmethod
     def _augment_case_exact_question_with_query(

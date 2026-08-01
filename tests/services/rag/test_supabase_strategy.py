@@ -861,3 +861,67 @@ def test_identity_short_fragments_never_authorize() -> None:
     # A tiny shared fragment (below the minimum discriminative surface) must
     # not authorize identity via the containment rule.
     assert not _identity("防水等级", "防水等级为（　）级。")
+
+
+# ---------------------------------------------------------------------------
+# tier1/2 可达性批1a（2026-07-30）：exact payload 顶层身份键
+# ---------------------------------------------------------------------------
+def test_exact_question_payload_carries_composite_qid_ingredients() -> None:
+    """A1/A4：payload 顶层必须显式携带 question_id/source_chunk_id/exam_year——
+    pgo 复合 qid = f"{exam_year}::{source_chunk_id}::E{n}" 的原料。此前顶层只有
+    "id"，ctx 组装按 question_id 取键恒空 → tier1/2 在聊天通道结构性不可达。"""
+    from deeptutor.services.rag.pipelines.supabase import SupabasePipeline
+
+    pipeline = SupabasePipeline.__new__(SupabasePipeline)
+    row = {
+        "id": 9663,
+        "chunk_id": "EXAM_1A432000_P0015_01",
+        "source_chunk_id": "EXAM_1A432000_P0015_01",
+        "exam_year": 2024,
+        "stem": "某住宅工程案例题干……问题：1.指出不妥之处。",
+        "question_type": "case_study",
+        "correct_answer": "官方参考答案……",
+        "analysis": "解析……",
+        "options": "",
+        "similarity": 0.97,
+    }
+    plans = [{
+        "group_name": "question_exact_text",
+        "results": [dict(row, _source_group="question_exact_text")],
+    }]
+    payload = pipeline._extract_exact_question_payload(
+        plans, original_query=row["stem"]
+    )
+
+    assert payload is not None
+    assert payload.get("question_id") == 9663
+    assert payload.get("source_chunk_id") == "EXAM_1A432000_P0015_01"
+    assert payload.get("exam_year") == 2024
+
+
+# ---------------------------------------------------------------------------
+# 1b exact 可达性（2026-07-30 live 实证：在库案例粘贴 exact 恒 miss 的两处根因）
+# ---------------------------------------------------------------------------
+def test_classify_query_shape_case_structure_beats_weak_mcq_stem_words() -> None:
+    """结构性 case 证据（背景资料+问题N）必须压过弱 MCQ 题干启发：「不得/应当/可以」
+    是法规语言，案例题干几乎必含。live 实证一道在库案例因问题里的"多答不得分"被判
+    mcq_like → case 切片/case_exact_queries/case_like 采用链全部失去运行资格。"""
+    case_paste = (
+        "【背景资料】某新建住宅小区，单位工程分别为地下2层，地上9~12层，总建筑面积15.5万平方米。"
+        "监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况。"
+        "【问题】\n1. 指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不妥，多答不得分）\n"
+        "2. 写出图1-1～图1-6显示的质量缺陷名称。"
+    )
+    assert classify_query_shape(case_paste) == "case_like"
+
+
+def test_classify_query_shape_real_mcq_keeps_priority() -> None:
+    # 带选项形状的真 MCQ 仍然优先判 mcq_like（选项正则先于 case 结构裁决）
+    mcq = (
+        "【背景资料】某工程质量检测中，下列做法正确的是（ ）。\n"
+        "A. 试验员制作见证记录\nB. 见证人员制作见证记录\nC. 施工员制作\nD. 监理制作\n"
+        "问题：1. 请作答。 2. 说明理由。" + "补足八十字" * 10
+    )
+    assert classify_query_shape(mcq) == "mcq_like"
+    # 无 case 结构的弱题干语言仍走 mcq_like
+    assert classify_query_shape("在基坑施工中，下列哪些行为不得进行？") == "mcq_like"

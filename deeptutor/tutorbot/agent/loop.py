@@ -8,6 +8,7 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import hashlib
 import re
 import sys
 from types import SimpleNamespace
@@ -16,7 +17,9 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_ANSWER_MARKER_PATTERN,
     build_case_grading_diagnostic_only_response,
+    build_case_grading_score_disclaimer,
     case_grading_score_authority_available,
     copy_current_case_grading_turn_metadata,
     should_demote_case_grading_hard_score,
@@ -44,6 +47,9 @@ from deeptutor.services.rag.historical_questions import (
     project_grounding_text_to_query_surface,
 )
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
+from deeptutor.services.rag.retrieval_profiles import (
+    RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
+)
 from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.services.security.tutorbot_guardrails import (
     classify_tutorbot_user_input,
@@ -70,7 +76,6 @@ from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
     build_cross_capability_context_instruction,
     content_truth_guard_response,
-    correct_construction_exam_boundary_fact_response,
     get_anchor_preservation_instruction,
     get_construction_exam_boundary_fact_instruction,
     get_lecture_skill_instruction,
@@ -88,6 +93,472 @@ if TYPE_CHECKING:
 observability = get_langfuse_observability()
 
 
+# ---------------------------------------------------------------------------
+# 案例判分渐进吐字（sequenced emit, L4 2026-08-01）
+#
+# 病：效率画像 §1.4/§5-W5 实证——学生 1.6s 看到 65 字开场白，然后死寂 20.2s(p50) /
+# 41.8s(p95)，再 3034 字一次涌出。死寂窗口精确对应 rubric 推导（22.3s p50）+ batch
+# judge：中间产物算完了但没人吐出去。
+#
+# 治：纯表达层。**总时延不变、终态真值不变**。做法是把判分核已经算出的事实（走了哪
+# 一档 rubric、拆出几个采分点、第几组判完）在它们发生的时刻就流给学生。
+#
+# 三条不变量（本模块的存在理由，改动前先读）：
+#   1. **终态即真值**：所有 narration 只发生在 score_first 之前，因此判分正文
+#      （stream_plan.final_text）始终是 streamed public text 的**严格后缀**。
+#      turn_runtime._replace_public_result_response_with_stream 的后缀豁免分支
+#      （contracts/turn.md:144）据此保持 result.response 与 finalize 链输出逐字节
+#      相同——narration 不进终态、不进 session、不进计费判定。
+#   2. **单写者**：narration 与判分正文共用同一个 on_content_delta，且 heartbeat 任务
+#      在 score_first 之前必被取消（`async with` 退出），不存在两个写者交叉。
+#   3. **零判分权力**：narration 只复述已完成的结构化事实，不含任何得分/命中断言
+#      （得分归 score_first 一处），不参与任何路由/评分/计费决策。
+#
+# 文案红线（宣传门 scripts/promo_gate/run_promo_gate.py 的断言面 = 流式 content 拼接，
+# 见 scripts/run_student_turn.py 的 visible_response）：narration 不得引入
+#   - A1 miss 用语（未作答/漏答/漏点/需要补/未覆盖…）——否则半答卷断言会被旁路成假绿；
+#   - A2/A9/A10 的 X/Y 得分对形态（`数字/数字 分`、`得分:N/M`、`得N分…满分M`）；
+#   - A4 免责用语（诊断得分预估/得分预估/仅供参考…）——免责只能由判分正文说；
+#   - A5 罐头拒答用语（拆小/一道一道发/…）。
+# 这四条由 tests/tutorbot/test_case_grading_sequenced_emit.py 用宣传门同源正则守门。
+# ---------------------------------------------------------------------------
+
+# 心跳间隔：live 判据是"最大单次停顿 ≤10s"（从 20.2s 降）。7s 留 3s 余量给
+# provider 抖动与 chunk 发送耗时。
+_CASE_GRADING_HEARTBEAT_INTERVAL_S = 7.0
+# 心跳上限：正常轮 2-3 次即被下一个真实里程碑打断。封顶防 provider 挂死时刷屏
+# （超过约 60s 还没里程碑，问题不在表达层，交给既有超时/typed failure）。
+_CASE_GRADING_MAX_HEARTBEATS = 8
+
+
+def _case_grading_progress_line(kind: str, facts: dict[str, Any]) -> str:
+    """判分进度文案的**单一权威**（纯函数，零 I/O）。
+
+    每一句只复述判分核已经算出的结构化事实；没有事实支撑的 kind 返回空串（不发）。
+    """
+    def _int(key: str) -> int:
+        try:
+            return int(facts.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    if kind == "authority_lookup_start":
+        return "先去题库里比对这道题的原题和已编译的采分点。"
+    if kind == "authority_lookup_done":
+        # 只说命中与否。内部 question_id 不进学员可见文本（是系统标识不是学习信息）。
+        if facts.get("hit"):
+            return "题库里定位到了这道题的原题，按它的编译采分点批改。"
+        return "题库里没有匹配到这道题的原题，接下来按你贴的题干自己拆采分点。"
+    if kind == "rubric_source":
+        tier = str(facts.get("tier") or "").strip()
+        if tier == "compiled":
+            count = _int("point_count")
+            if count > 0:
+                return f"编译采分点已加载，共 {count} 个，马上逐点比对你的作答。"
+            return "编译采分点已加载，马上逐点比对你的作答。"
+        if tier == "reference":
+            return "已拿到这道题的参考答案，正在把它拆成可以独立判定的采分点。"
+        if tier in ("stem", "submission_stem"):
+            return "这道题没有现成的参考答案，正在按题干推导采分点，这一步最花时间（通常二十几秒）。"
+        return ""
+    if kind == "rubric_ready":
+        count = _int("point_count")
+        if count > 0:
+            return f"采分点拆好了，共 {count} 个，现在逐点比对你的作答。"
+        return "采分点拆好了，现在逐点比对你的作答。"
+    if kind == "judge_group_done":
+        completed = _int("completed")
+        total = _int("total")
+        size = _int("size")
+        if completed <= 0 or total <= 0:
+            return ""
+        if total == 1:
+            return f"这一组采分点判完了（本组 {size} 个点）。" if size > 0 else "采分点判完了。"
+        return f"第 {completed} 组采分点判完了（本组 {size} 个点，共 {total} 组）。"
+    if kind == "judge_done":
+        return "逐点比对完成，正在汇总结论和讲评。"
+    if kind == "heartbeat":
+        label = str(facts.get("stage_label") or "").strip()
+        elapsed = _int("elapsed_s")
+        if not label or elapsed <= 0:
+            return ""
+        return f"{label}（已用时 {elapsed} 秒，完成后先给结论再给逐点明细）。"
+    return ""
+
+
+# 心跳文案里的阶段名：与 _case_grading_progress_line 的 kind 一一对应，
+# 不另起第二套阶段枚举。
+_CASE_GRADING_STAGE_LABELS: dict[str, str] = {
+    "authority_lookup_start": "还在题库里比对原题",
+    "authority_lookup_done": "还在准备采分点",
+    "rubric_source": "采分点推导中",
+    "rubric_ready": "逐点比对中",
+    "judge_group_done": "逐点比对中",
+    "judge_done": "汇总讲评中",
+}
+
+
+class _ProgressNarrator:
+    """长链路静默窗口的顺序发射器（单写者）——**机制**层，与具体链路无关。
+
+    只做两件事：(a) 能力核每报一个里程碑就把对应文案吐给学生；(b) 里程碑之间超过
+    ``interval_s`` 没有任何发射时，补一条带真实已用时的心跳，把最大停顿压到
+    ``interval_s`` 量级。它不知道也不需要知道任何得分/判定。
+
+    子类只需要绑两个纯量：``_line``（kind+facts → 文案的单一权威，纯函数）与
+    ``_LABELS``（kind → 心跳阶段名）。心跳间隔/上限的默认值走 ``_default_*``
+    类方法在**调用时**解析模块常量（不做 default-arg 绑定）。
+    """
+
+    _LABELS: dict[str, str] = {}
+
+    @staticmethod
+    def _line(kind: str, facts: dict[str, Any]) -> str:  # pragma: no cover - 抽象
+        raise NotImplementedError
+
+    @staticmethod
+    def _default_interval_s() -> float:  # pragma: no cover - 抽象
+        raise NotImplementedError
+
+    @staticmethod
+    def _default_max_heartbeats() -> int:  # pragma: no cover - 抽象
+        raise NotImplementedError
+
+    def __init__(
+        self,
+        emit: Callable[[str], Awaitable[None]] | None,
+        *,
+        interval_s: float | None = None,
+        max_heartbeats: int | None = None,
+        enabled: bool = True,
+    ) -> None:
+        # 模块常量在**调用时**解析（不做 default-arg 绑定）：常量是可调的单一权威，
+        # 测试与紧急调参都改同一个地方。
+        self._emit = emit
+        self._interval_s = max(
+            float(self._default_interval_s() if interval_s is None else interval_s),
+            0.0,
+        )
+        self._max_heartbeats = max(
+            int(self._default_max_heartbeats() if max_heartbeats is None else max_heartbeats),
+            0,
+        )
+        self._enabled = bool(enabled and emit is not None)
+        self._lock = asyncio.Lock()
+        self._heartbeat_task: asyncio.Task[None] | None = None
+        self._stage_label = ""
+        self._heartbeats = 0
+        self._last_emit_at = 0.0
+        self.emitted_lines: list[str] = []
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    async def start(self) -> None:
+        if not self._enabled or self._heartbeat_task is not None:
+            return
+        loop = asyncio.get_running_loop()
+        self._last_emit_at = loop.time()
+        self._heartbeat_task = loop.create_task(
+            self._heartbeat_loop(), name=f"{self._task_name}_heartbeat"
+        )
+
+    _task_name = "case_grading_progress"
+
+    async def stop(self) -> None:
+        """必须在终局正文首个 delta 之前调用：单写者不变量靠它兑现。"""
+        task = self._heartbeat_task
+        self._heartbeat_task = None
+        self._enabled = False
+        if task is None:
+            return
+        task.cancel()
+        try:
+            await task
+        except (asyncio.CancelledError, Exception):  # noqa: BLE001 — 收尾永不破坏判分
+            pass
+
+    async def __aenter__(self) -> _ProgressNarrator:
+        await self.start()
+        return self
+
+    async def __aexit__(self, *_exc: Any) -> None:
+        await self.stop()
+
+    def _may_emit(self) -> bool:
+        """发射前置闸（子类可收紧）。基类恒 True —— 判分道行为逐字节不变。"""
+        return True
+
+    async def stage(self, kind: str, **facts: Any) -> None:
+        """能力核的进度回调入口（signature 与 deep_question._emit_case_grading_stage 对齐）。
+
+        **观察者零权力包含"永不抛"**：本方法直接长在能力链的主干上（判分道的
+        prefetch 段、通用道的轮次/工具边界），任何叙述侧异常都不许把这一轮打挂。
+        """
+        if not self._enabled:
+            return
+        try:
+            label = self._LABELS.get(kind)
+            if label:
+                self._stage_label = label
+            line = self._line(kind, dict(facts))
+        except Exception:  # noqa: BLE001 — 文案权威出错也不许破坏终局正文
+            logger.warning("progress narration line build failed", exc_info=True)
+            return
+        await self._emit_line(line)
+
+    async def _emit_line(self, line: str) -> None:
+        text = str(line or "").strip()
+        if not text or self._emit is None or not self._may_emit():
+            return
+        # 单写者（contracts/turn.md 渐进发射 (c)）：整条叙述的发射必须是**原子**的。
+        # `_emit_visible_text_deltas` 会分片并在片间 sleep，若不持锁，正文 delta 会插进
+        # 叙述中间（实测形态：「还在读题和找依据（已用时 1<正文>秒…」）。
+        async with self._lock:
+            # 等锁期间可能已被本轮正文 delta 解除武装 —— 二次确认，否则叙述会跟在正文之后
+            # 把严格后缀不变量打破。
+            if not self._may_emit():
+                return
+            try:
+                await self._emit("\n\n" + text)
+            except Exception:  # noqa: BLE001 — 进度叙述永不破坏终局正文
+                logger.warning("progress narration emit failed", exc_info=True)
+                return
+            self.emitted_lines.append(text)
+            self._last_emit_at = asyncio.get_running_loop().time()
+
+    async def _heartbeat_loop(self) -> None:
+        if self._interval_s <= 0:
+            return
+        started_at = asyncio.get_running_loop().time()
+        while self._heartbeats < self._max_heartbeats:
+            now = asyncio.get_running_loop().time()
+            wait_s = self._interval_s - (now - self._last_emit_at)
+            if wait_s > 0:
+                await asyncio.sleep(wait_s)
+                continue
+            if not self._stage_label:
+                # 还没有任何里程碑 = 还没进入能力核，交给下一次循环。
+                await asyncio.sleep(self._interval_s)
+                continue
+            if not self._may_emit():
+                # 本轮已解除武装（通用道：正文正在流）。**必须先睡再回来**：直接 continue
+                # 会因为 `_last_emit_at` 没被刷新而 wait_s 恒 ≤0，在无 await 的紧循环里把
+                # 整个 heartbeat 预算一次性烧光、任务提前退出，之后这一轮/后续轮再也没有
+                # 心跳（2026-08-01 live 首答窗口 17.3s 空屏的帮凶之一）。
+                await asyncio.sleep(self._interval_s)
+                continue
+            self._heartbeats += 1
+            elapsed_s = int(asyncio.get_running_loop().time() - started_at)
+            await self._emit_line(
+                self._line(
+                    "heartbeat",
+                    {"stage_label": self._stage_label, "elapsed_s": max(elapsed_s, 1)},
+                )
+            )
+
+
+class _CaseGradingProgressNarrator(_ProgressNarrator):
+    """案例判分静默窗口的顺序发射器（判分链绑定，机制见 ``_ProgressNarrator``）。"""
+
+    _LABELS = _CASE_GRADING_STAGE_LABELS
+    _task_name = "case_grading_progress"
+
+    _line = staticmethod(_case_grading_progress_line)
+
+    @staticmethod
+    def _default_interval_s() -> float:
+        return _CASE_GRADING_HEARTBEAT_INTERVAL_S
+
+    @staticmethod
+    def _default_max_heartbeats() -> int:
+        return _CASE_GRADING_MAX_HEARTBEATS
+
+
+def _case_grading_sequenced_emit_enabled() -> bool:
+    """紧急 kill switch（与 LUBAN_CASE_RUBRIC_V1_ENABLED 同款纪律：默认 ON，
+    出事一个 env 变量回滚，零数据迁移面）。"""
+    raw = str(os.environ.get("LUBAN_CASE_GRADING_SEQUENCED_EMIT", "") or "").strip().lower()
+    return raw not in ("false", "0", "off", "no")
+
+
+# ---------------------------------------------------------------------------
+# 通用 agent-loop 首答窗口的渐进吐字（L4 通用道，2026-08-01 task#29）
+#
+# 病：2026-08-01 历史错误逐案重放 §7.4 实证——**同一 payload 的四次重放，TTFT 分别是
+# 64.3s / 56.5s / 40.0s / 断线**；走判分链的同题只要 2.6s（因为 L4 已给判分链装了渐进
+# 吐字）。差别不在算力，在**只有判分链有人把中间事实吐出去**：通用链的 rag 轮次、工具
+# 取证、收束轮全部发生在 `on_progress`（进度事件，微信端不当正文渲染），可见流上是纯空屏。
+#
+# 治：把 L4 的机制（有内容进度 + 7s 心跳 + 严格后缀不变量 + 观察者零权力 + kill switch）
+# 原样搬到通用链，**不新造机制**——`_ProgressNarrator` 是共用的机制层，这里只绑文案与阶段名。
+# 消费的也是既有钩子：轮次边界、`on_tool_call` 的同一时点、`on_tool_result` 的同一时点、
+# 收束轮标记。没有新增任何 capability 侧回调。
+#
+# 严格后缀不变量在通用道的兑现方式（与判分道不同，务必读）：判分道靠「全部发射都在
+# score_first 之前」；通用道**不知道哪一轮是终局轮**（要等它没有 tool_calls 才知道）。
+# 因此改用逐轮解除武装：`note_content_delta()` 在本轮出现**任何真实正文 delta** 的瞬间
+# 把叙述关掉，`begin_round()` 在下一轮开始时才重新武装。于是
+#   「叙述在同一轮内永远不跟在正文 delta 之后」
+# 恒成立；而 `final_content` 恰是**最后一轮**的正文，所以它始终是流式 public 文本的
+# 严格后缀 —— turn_runtime._replace_public_result_response_with_stream 的同源后缀豁免
+# 据此保持 result.response 逐字节不变（contracts/turn.md「渐进发射不改变终态」(a)）。
+# 附带效果：终局正文中途卡顿也不会被心跳插字（本轮已解除武装）。
+#
+# 文案红线与判分道同源（宣传门断言面 = 流式 content 拼接）：不得引入 A1 miss 用语 /
+# A2·A9·A10 得分对形态 / A4 免责用语 / A5 罐头拒答用语。
+# ---------------------------------------------------------------------------
+
+_GENERAL_LANE_HEARTBEAT_INTERVAL_S = 7.0
+# 通用链的合法长度上界比判分链大（多轮检索 + 收束轮），封顶给到 ~90s；再长说明问题不在
+# 表达层，交给既有 tool budget / typed failure。
+_GENERAL_LANE_MAX_HEARTBEATS = 12
+
+
+def _general_lane_progress_line(kind: str, facts: dict[str, Any]) -> str:
+    """通用链进度文案的**单一权威**（纯函数，零 I/O）。
+
+    每一句只复述 agent-loop 已经发生的事实（第几轮、在调哪个工具、第几组证据回来了）；
+    没有事实支撑的 kind 返回空串（不发）。它不含任何结论、判定或得分。
+    """
+
+    def _int(key: str) -> int:
+        try:
+            return int(facts.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    if kind == "retrieval_prefetch":
+        # loop 之前的预取窗口（_maybe_prefetch_grounded_rag / web_search）。live 实测
+        # 这一段就吃掉十几秒，而 narrator 原先只活在 _run_agent_loop 里 —— 学生盯的正是
+        # 这段空屏。
+        return "收到，正在去教材和规范原文里找这道题的依据。"
+    if kind == "loop_start":
+        return "依据取回来了，正在读题并规划怎么讲给你。"
+    if kind == "round_start":
+        iteration = _int("iteration")
+        if iteration <= 1:
+            return ""
+        return f"手上的依据还不够，正在继续取证（第 {iteration} 轮）。"
+    if kind == "tool_call":
+        tool = str(facts.get("tool") or "").strip()
+        index = _int("index")
+        if tool == "rag":
+            if index > 1:
+                return f"正在检索教材与规范原文（第 {index} 次）。"
+            return "正在检索教材与规范原文。"
+        if tool in ("web_search", "web"):
+            return "正在联网核对公开资料。"
+        if tool == "exec":
+            return "正在算一算数值，稍等。"
+        if not tool:
+            return ""
+        return f"正在调用「{tool}」取证。"
+    if kind == "tool_result":
+        index = _int("index")
+        if index > 1:
+            return f"第 {index} 组资料取回来了，正在核对够不够回答你的问题。"
+        return "资料取回来了，正在核对够不够回答你的问题。"
+    if kind == "synthesizing":
+        return "依据够了，正在把它们组织成给你的解答。"
+    if kind == "heartbeat":
+        label = str(facts.get("stage_label") or "").strip()
+        elapsed = _int("elapsed_s")
+        if not label or elapsed <= 0:
+            return ""
+        return f"{label}（已用时 {elapsed} 秒，取证完就开始正式作答）。"
+    return ""
+
+
+# 心跳文案里的阶段名：与 _general_lane_progress_line 的 kind 一一对应，不另起第二套枚举。
+_GENERAL_LANE_STAGE_LABELS: dict[str, str] = {
+    "retrieval_prefetch": "还在找依据",
+    "loop_start": "还在读题和规划讲法",
+    "round_start": "还在继续取证",
+    "tool_call": "还在检索原文",
+    "tool_result": "还在核对取回的依据",
+    "synthesizing": "正在组织解答",
+}
+
+
+class _GeneralLaneProgressNarrator(_ProgressNarrator):
+    """通用 agent-loop 首答窗口的顺序发射器（机制见 ``_ProgressNarrator``）。
+
+    比判分道多一件事：**逐轮解除武装**。`note_content_delta()` 一旦被本轮的真实正文
+    delta 调到，本轮不再发射任何叙述（含心跳）；`begin_round()` 才重新武装。严格后缀
+    不变量就由这一条兑现（推导见模块顶部注释）。
+    """
+
+    _LABELS = _GENERAL_LANE_STAGE_LABELS
+    _task_name = "general_lane_progress"
+
+    _line = staticmethod(_general_lane_progress_line)
+
+    @staticmethod
+    def _default_interval_s() -> float:
+        return _GENERAL_LANE_HEARTBEAT_INTERVAL_S
+
+    @staticmethod
+    def _default_max_heartbeats() -> int:
+        return _GENERAL_LANE_MAX_HEARTBEATS
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._armed = True
+
+    def begin_round(self) -> None:
+        """新一轮开始：重新武装（上一轮的正文 delta 不再压制本轮叙述）。"""
+        self._armed = True
+
+    def _may_emit(self) -> bool:
+        return self._armed
+
+    async def note_content_delta(self) -> None:
+        """本轮出现真实正文 delta —— 解除武装，并**等在飞的那条叙述发完**。
+
+        必须 await 锁：`_emit_line` 分片发射期间放开了事件循环，光置 flag 挡不住已经
+        在飞的那条叙述把正文夹碎（单写者不变量）。锁一拿到，说明叙述侧已静默。
+        """
+        self._armed = False
+        async with self._lock:
+            try:
+                self._last_emit_at = asyncio.get_running_loop().time()
+            except RuntimeError:  # pragma: no cover — 无事件循环时只是心跳节流失准
+                pass
+
+
+def _general_lane_sequenced_emit_enabled() -> bool:
+    """紧急 kill switch（与 LUBAN_CASE_GRADING_SEQUENCED_EMIT 同款纪律：默认 ON，
+    出事一个 env 变量回滚，关掉后流形状逐字节回到未改动前）。"""
+    raw = str(os.environ.get("LUBAN_GENERAL_LANE_SEQUENCED_EMIT", "") or "").strip().lower()
+    return raw not in ("false", "0", "off", "no")
+
+
+def _case_direct_lean_rag_enabled() -> bool:
+    """L1 瘦身检索 kill switch（默认 ON；off 逐字节回旧行为）。
+
+    直通判分轮的 RAG prefetch 只消费 `exact_question`（题目身份 + 分母）；
+    检索正文/sources 在该轮已被穷举证实零消费者。lean 关掉的是产物加工
+    （全文水合 / rerank / doc 多样性 / ranking trace / 正文拼装 / source_items
+    / questions_bank 以外的 source 检索），保留的是身份与分母命脉。
+    """
+    raw = str(os.environ.get("LUBAN_CASE_DIRECT_LEAN_RAG", "") or "").strip().lower()
+    return raw not in ("false", "0", "off", "no")
+
+
+def _extract_case_question_titles_for_scope(text: str) -> dict:
+    """题面小问计数（覆盖分母）——复用 rubric_grader_v1 的标题抽取单一权威。"""
+    try:
+        from deeptutor.services.construction_grading.rubric_grader_v1 import (
+            _extract_case_question_titles,
+        )
+
+        return _extract_case_question_titles(str(text or ""))
+    except Exception:  # noqa: BLE001 — 计数失败按未知处理（不缩放，不假装覆盖）
+        return {}
+
+
 class AgentLoop:
     """
     The agent loop is the core processing engine.
@@ -101,6 +572,12 @@ class AgentLoop:
     """
 
     _TOOL_RESULT_MAX_CHARS = 16_000
+    # Deep answers (multi-subquestion 案例题 closure answers especially) need
+    # more than the provider GenerationSettings default of 4096: a full
+    # 5-subquestion answer with 采分点/易错点 packaging runs ~2000-4000 tokens.
+    # config/schema.py AgentDefaults.max_tokens=8192 was the intended value but
+    # was never wired to any runtime reader; this constant is the live wiring.
+    _DEEP_ANSWER_MAX_TOKENS = 8192
     _RAG_STOP_QUERY_SIMILARITY_THRESHOLD = 0.85
     _RAG_STOP_SOURCE_OVERLAP_THRESHOLD = 0.6
     _USER_VISIBLE_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
@@ -110,6 +587,14 @@ class AgentLoop:
         "不要输出思考过程、后台过程或占位说明。",
         "刚才输出的是过程承诺，不是最终答案。请现在直接给出可展示给学员的中文答案；"
         "不要说“我先查看”“我会检索”“再给你”等过程话术。",
+    )
+    _FINAL_ROUND_SYNTHESIS_PROMPT = (
+        "检索预算已用完，本轮已禁止调用工具，必须收束作答。"
+        "请基于上面已检索到的证据和你的专业知识，直接给出面向学员的最终中文答案："
+        "不要再调用任何工具；不要以“让我”“现在我”“我先”等过程叙述开头；"
+        "题目编号按 skill 既定规则跟随用户当前消息（无编号或用户点名原卷编号时除外）；"
+        "遵守当前题目的答案显隐策略；"
+        "个别点证据不足时，先答有把握的部分，并明确标注哪些数值建议核对教材，不得编造。"
     )
     _INTERNAL_CONTEXT_MARKERS = (
         "## 参考证据",
@@ -520,6 +1005,12 @@ class AgentLoop:
         for metadata_key in (
             "content_truth_guard_applied",
             "content_truth_low_confidence_claims",
+            # 口诀权威收权（2026-08-01，observe-only）：值形如 "lecture_pack:<unit_ids>"
+            # 或 "demoted_no_authority"，挂载率/降级率的观测基础。这里不复用判分侧的
+            # ``case_mnemonic_source`` —— 那个键被 copy_current_case_grading_turn_metadata
+            # 按 scene==case_grading 门控并在非判分轮 strip 掉，而本守卫恰恰只在
+            # **非判分轮**（exact_fast_path / agent_loop 自由作文道）动手。
+            "mnemonic_authority_source",
         ):
             if metadata_key in runtime_metadata:
                 target_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -619,6 +1110,75 @@ class AgentLoop:
     def _visible_answer_repair_prompt(cls, attempt_index: int) -> str:
         index = min(max(attempt_index, 0), len(cls._VISIBLE_ANSWER_REPAIR_PROMPTS) - 1)
         return cls._VISIBLE_ANSWER_REPAIR_PROMPTS[index]
+
+    @staticmethod
+    def _toolless_repair_messages(
+        messages: list[dict[str, Any]],
+        *,
+        repair_prompt: str,
+        max_evidence_chars: int = 6000,
+    ) -> list[dict[str, Any]]:
+        """OD-003 根治（2026-08-01）：结构差异化重试——把工具形态从历史里剥掉。
+
+        取证实证：修复轮传的是**含 N 轮 assistant(tool_calls)+tool 结果的原样
+        历史**，模型被工具语法条件化，即便 tools=None、tool_choice="none" 仍继续
+        吐 tool_calls（dashscope 3 SHA 3/3 复现，正文 chunk=0 → 空返回 → 终态
+        失败模板）。收束不能依赖 provider 强制；把证据展平成纯文本、删除全部
+        tool_calls/tool 角色消息，模型就没有可模仿的工具形态。
+
+        保留：system 首条（人格/技能）、全部 user 消息（含题面）；
+        转换：tool 结果 → 一条 system 证据摘要；丢弃：assistant 的 tool_calls 壳。
+        """
+        system_head: list[dict[str, Any]] = []
+        user_turns: list[dict[str, Any]] = []
+        evidence: list[str] = []
+        assistant_texts: list[str] = []
+        for item in messages or []:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role") or "")
+            content = item.get("content")
+            text = content if isinstance(content, str) else ""
+            if role == "system":
+                if not user_turns and len(system_head) < 3:
+                    system_head.append({"role": "system", "content": text})
+                continue
+            if role == "user":
+                user_turns.append({"role": "user", "content": text})
+                continue
+            if role == "tool":
+                name = str(item.get("name") or "工具")
+                if text.strip():
+                    evidence.append(f"【{name} 结果】{text.strip()}")
+                continue
+            if role == "assistant":
+                # 只留正文，丢掉 tool_calls 壳（正是被模仿的形态）
+                if text.strip():
+                    assistant_texts.append(text.strip())
+        rebuilt: list[dict[str, Any]] = list(system_head)
+        if evidence:
+            joined = "\n\n".join(evidence)
+            if len(joined) > max_evidence_chars:
+                joined = joined[:max_evidence_chars] + "\n…（证据已截断）"
+            rebuilt.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "以下是本轮已检索到的全部证据（工具已停用，不会再有新检索）：\n\n"
+                        f"{joined}"
+                    ),
+                }
+            )
+        if assistant_texts:
+            rebuilt.append(
+                {
+                    "role": "system",
+                    "content": "你此前的草稿片段（仅供参考）：\n" + "\n".join(assistant_texts[-3:])[:2000],
+                }
+            )
+        rebuilt.extend(user_turns[-4:] or [{"role": "user", "content": "请基于上述证据作答。"}])
+        rebuilt.append({"role": "system", "content": repair_prompt})
+        return rebuilt
 
     @staticmethod
     def _chunk_visible_text_for_stream(text: str, *, target_size: int = 14) -> list[str]:
@@ -794,6 +1354,11 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> tuple[bool, str]:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # 提交面收权（2026-08-01 清剿）：本闸的语义主语是「学生**这轮**声明的答案字母」。
+        # finalize 链四个调用点一律传组装后的 current_message，包装里旧轮的「我选ABC」
+        # 会被抽成本轮 claim → 对着上一题的字母吐「我不能确认或否定 A、B、C」。
+        # 收在闸内部而不是调用侧：新增调用点不会再漏。
+        user_message = cls._case_submission_surface(metadata, user_message)
         if not metadata.get("rag_retrieval_degraded"):
             return False, ""
         if cls._has_authoritative_exact_question(metadata):
@@ -846,6 +1411,9 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> str:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # 提交面收权（2026-08-01 清剿）：同 _should_guard_degraded_exact_answer_claim，
+        # 主语=学生这轮真实提交，不是 turn_runtime 组装出来的 current_message。
+        user_message = cls._case_submission_surface(metadata, user_message)
         if not metadata.get("rag_retrieval_degraded"):
             return ""
         if cls._has_authoritative_exact_question(metadata):
@@ -964,10 +1532,13 @@ class AgentLoop:
     ) -> str:
         """可见答案修正链的唯一权威(四条 finalize 分支只许调这里,禁止内联复制)。
 
-        全链 8 步固定顺序:normalize_anchor_terms → correct_construction_exam_boundary_fact →
-        _case_exact_authority_fallback → _apply_v1_or_case_fallback → _degraded_exact_answer_claim →
-        _degraded_mcq_grading → _content_truth_guard → guard_tutorbot_output。每一步的
-        ``X(...) or final_content`` 约定(修正器返 '' = 保持原文)逐字保留。
+        全链 8 步固定顺序:_strip_leading_meta_narration → normalize_anchor_terms →
+        _case_exact_authority_fallback → _apply_v1_or_case_fallback →
+        _degraded_exact_answer_claim → _degraded_mcq_grading → _content_truth_guard →
+        guard_tutorbot_output。每一步的 ``X(...) or final_content`` 约定
+        (修正器返 '' = 保持原文)逐字保留。
+        (correct_construction_exam_boundary_fact 出口罐头已按 2026-07-29 指挥官裁决删除：
+        碎片判据不得携带整篇替换权力;原病例保护=入口证据级 hedge + KB + live eval。)
 
         ``finalize_path`` **仅作观测标签,绝不得用于门控任何修正器**——需要按路径定制时,正确做法
         是在对应修正器内部用 ``runtime_metadata`` 里的结构化事实做门(如
@@ -976,11 +1547,15 @@ class AgentLoop:
         (见 tests/tutorbot/test_finalize_visible_answer_pipeline.py),故统一为全链、不设跳过参数。
         """
 
-        final_content = normalize_anchor_terms_in_response(
-            user_message=user_message,
-            response=final_content,
+        if isinstance(runtime_metadata, dict):
+            # Per-turn observe-only marker: a stale copy carried in via session
+            # metadata must not stamp a fresh turn's trace.
+            runtime_metadata.pop("leading_meta_narration_stripped", None)
+        final_content = self._strip_leading_meta_narration(
+            final_content,
+            runtime_metadata=runtime_metadata,
         ) or final_content
-        final_content = correct_construction_exam_boundary_fact_response(
+        final_content = normalize_anchor_terms_in_response(
             user_message=user_message,
             response=final_content,
         ) or final_content
@@ -996,6 +1571,11 @@ class AgentLoop:
             str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
         )
         final_content = await self._apply_v1_or_case_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=user_message,
+        ) or final_content
+        final_content = self._case_mnemonic_authority_guard(
             final_content,
             runtime_metadata=runtime_metadata,
             user_message=user_message,
@@ -1017,6 +1597,61 @@ class AgentLoop:
         ) or final_content
         guarded_output = guard_tutorbot_output(final_content)
         return guarded_output.content or final_content
+
+    # 高置信开头独白模式：只认三族，逐句上界约 80 字、最多剥 2 句。教学过渡句
+    # （"现在我们来计算…"）与结论先行句（"我先给结论："）都不在模式内，保持原文。
+    #   族1「我…有/掌握/检索…证据/信息」  族2「让我(来)组织/整理/补充检索…」
+    #   族3「我注意到…检索/证据…，让我补充检索…」
+    # 族3 是 2026-08-01 C3 重放实证的形态（服务端落库正文开头逐字为
+    # 「我注意到检索证据中未直接给出表6.0.15的具体数值和甲醛限值，让我补充检索这两个
+    # 关键参数。」）——观察句 + 自述取证动作，族1/族2 的动词集都够不着。它比族1/族2 更
+    # 危险（"我注意到你第3问漏了…"是正当讲评），因此**同句内必须同时出现**证据侧名词
+    # 与自述取证动词才算命中，单有观察句一律保持原文。
+    _LEADING_META_NARRATION_RE = re.compile(
+        r"^(?:"
+        r"(?:现在)?我(?:已经?|现在)?(?:有|掌握|收集|检索|整理)"
+        r"[^。！？\n]{0,50}?(?:证据|信息|资料|内容)[^。！？\n]{0,20}[。！？]\s*"
+        r"|让我(?:们)?(?:来)?(?:再|先|补充|重新|继续|进一步)?"
+        r"(?:组织|整理|给出|开始撰写|检索|查询|查阅|核对)[^。！？\n]{0,40}[。！？]\s*"
+        r"|我(?:注意到|发现|看到)[^。！？\n]{0,60}?(?:证据|检索|资料|信息|文档|上下文|检索结果)"
+        r"[^。！？\n]{0,60}?让我(?:们)?(?:再|来|先|补充|重新|继续|进一步)*"
+        r"(?:检索|查询|查找|查阅|核对|确认|补充|梳理)[^。！？\n]{0,30}[。！？]\s*"
+        r"){1,2}"
+    )
+    # 剥离豁免：命中的开头句若携带答案负载（"…信息显示，答案选B。"），一律保持原文——
+    # 剥离器只许吃纯独白，不许吃结论。
+    _META_NARRATION_ANSWER_PAYLOAD_RE = re.compile(
+        r"[：:]|答案|应?选\s*[A-EＡ-Ｅ]|正确|不妥|显示|表明|说明|指出|如下"
+    )
+
+    @classmethod
+    def _strip_leading_meta_narration(
+        cls,
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Deterministic low-cost bottom guard for leaked leading narration.
+
+        The prompt layer (skill + closure instruction) owns the main fix; this
+        only strips the highest-confidence "现在我有足够的证据…。让我来组织…。"
+        prefixes when a substantive answer follows. Returns '' to keep the
+        original (finalize-chain corrector convention).
+        """
+        source = str(final_content or "")
+        if not source:
+            return ""
+        match = cls._LEADING_META_NARRATION_RE.match(source)
+        if not match:
+            return ""
+        if cls._META_NARRATION_ANSWER_PAYLOAD_RE.search(source[: match.end()]):
+            return ""
+        remainder = source[match.end():].lstrip()
+        if not cls._is_user_visible_final_answer(remainder):
+            return ""
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata["leading_meta_narration_stripped"] = True
+        return remainder
 
     @staticmethod
     def _format_answer_letters(letters: str | None) -> str:
@@ -1040,9 +1675,12 @@ class AgentLoop:
             return False
         if cls._has_authoritative_exact_question(metadata):
             return False
+        # 提交面收权（2026-08-01 清剿）：抑制流式与否的主语=学生这轮真实提交。
+        # 面错了会让纯案例轮因包装里的旧字母声明被误抑制（用户看不到吐字）。
+        surface = cls._case_submission_surface(metadata, user_message)
         return bool(
-            cls._extract_answer_letter_claim(user_message)
-            or looks_like_free_text_mcq_grading_request(user_message)
+            cls._extract_answer_letter_claim(surface)
+            or looks_like_free_text_mcq_grading_request(surface)
         )
 
     @classmethod
@@ -1278,6 +1916,69 @@ class AgentLoop:
         return self._build_exact_authority_response_sync(exact_question)
 
     @staticmethod
+    def _case_mnemonic_authority_guard(
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+        user_message: str,
+    ) -> str:
+        """自由作文道的「口诀」段收权（r6 宣传门 A3 唯一红点，2026-08-01）。
+
+        判分直批链早已接 A1 真口诀资产（``resolve_case_answer_method_for_render``），
+        但 exact_fast_path / agent_loop 这两条**由模型自己写正文**的道没接：live 实证
+        模型在「## 记忆口诀」下顿号拼接漏点标题冒充口诀（无出处、非编译资产）。
+
+        这里不新增第二套口诀权威——命中就调判分链同一个解析器 + 同一个渲染器
+        （自带出处与「展开：」行，#646 的 topic≥4 二闸在解析器内部已吃上）；没命中
+        就把「口诀」措辞降格为「记忆提示」。
+
+        门只看**结构化事实**（finalize_path 仅是观测标签，不得门控）：
+        1. 正文里真出现「口诀」二字（否则零成本 no-op）；
+        2. ``case_mnemonic_source`` 未被写过——写过=V1 判分链已用同一权威决定过口诀
+           形态，本层不得改二遍；
+        3. ``_build_v1_case_ctx``（判分面题面的既有唯一映射）能给出非空 question_stem，
+           即本轮真有案例题面。纯学习支持问句（"给我整理记忆口诀"）题面为空 → no-op。
+
+        升降必发声：``mnemonic_authority_source``（"lecture_pack:<ids>" | "demoted_no_authority"）
+        随 ``_export_content_truth_metadata`` 这条 scene 无关的载体上 result 事件——判分侧的
+        ``case_mnemonic_source`` 被 scene==case_grading 门控，非判分轮会被 strip 掉，
+        而本守卫只在非判分轮动手，所以不能挂在那个键上。
+        """
+        md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        text = str(final_content or "")
+        if "口诀" not in text:
+            return ""
+        if str(md.get("case_mnemonic_source") or "").strip():
+            return ""
+        try:
+            from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                apply_case_mnemonic_authority,
+                resolve_case_answer_method_for_render,
+            )
+
+            # 影子副本：_build_v1_case_ctx 会往 md 上盖 case_user_stem_* 等判分 marker，
+            # 非判分轮不得被它染色，所以只给它一份浅拷贝。
+            stem = str(
+                AgentLoop._build_v1_case_ctx(dict(md), user_message).get("question_stem") or ""
+            ).strip()
+            if not stem:
+                return ""
+            context = resolve_case_answer_method_for_render(stem)
+            replaced = apply_case_mnemonic_authority(text, answer_method_context=context)
+            if not replaced:
+                return ""
+        except Exception:  # noqa: BLE001 — 表达层守卫永不破坏 tutorbot 轮次
+            logger.warning("case mnemonic authority guard failed; answer unchanged", exc_info=True)
+            return ""
+        md["mnemonic_authority_source"] = (
+            "lecture_pack:"
+            + ",".join(str(u.get("unit_id") or "?") for u in (context or {}).get("units") or [])
+            if context
+            else "demoted_no_authority"
+        )
+        return replaced
+
+    @staticmethod
     def _split_case_grading_submission(user_message: str) -> tuple[str, str]:
         return split_full_case_answer_submission(user_message)
 
@@ -1308,7 +2009,12 @@ class AgentLoop:
         if isinstance(covered, list):
             for item in covered:
                 if isinstance(item, dict):
-                    parts.append(str(item.get("stem") or item.get("question") or ""))
+                    # A2（1b 补漏 2026-07-30）：supabase covered 子项只带 prompt/surface，
+                    # 旧键集在真实 payload 上恒空 → 撤销闸把每道在库题都误判 mismatch。
+                    parts.append(str(
+                        item.get("stem") or item.get("question")
+                        or item.get("surface") or item.get("prompt") or ""
+                    ))
         if _has_current_question_anchor(user_stem):
             anchored_parts = [part for part in parts if _has_current_question_anchor(part)]
             if anchored_parts:
@@ -1327,6 +2033,45 @@ class AgentLoop:
             return exact in user
         overlap = sum(1 for gram in grams if gram in user) / len(grams)
         return overlap >= 0.35
+
+    @staticmethod
+    def _case_stem_numeric_variant(exact_question: dict[str, Any], user_stem: str) -> bool:
+        """改数变体闸（1b 2026-07-30）：2-gram 文本重叠对「同题改数字」几乎无鉴别力，
+        而官方 rubric 判改数题作答是错配灾难的主通道。判据刻意保守（错配比不配危险，
+        降级是安全方向）：仅当用户题面出现「单位与题库题相同、但数值不同、且该数值
+        不在题库题任何数字中」的带单位数字时才判变体；只粘贴部分小问（用户数字是
+        题库数字子集）永不触发。"""
+
+        _UNIT_NUMBER_RE = re.compile(
+            r"(\d+(?:\.\d+)?)\s*(亿元|万元|元|%|米|mm|cm|平方米|万平方米|层|天|kN|MPa|kPa|℃|吨|m(?![a-zA-Z0-9²2]))"
+        )
+
+        def _pairs(text: str) -> set[tuple[str, str]]:
+            found = set()
+            for match in _UNIT_NUMBER_RE.finditer(str(text or "")):
+                value = match.group(1)
+                unit = "米" if match.group(2) == "m" else match.group(2)
+                found.add((value.rstrip("0").rstrip(".") if "." in value else value, unit))
+            return found
+
+        eq_parts = [
+            str(exact_question.get("stem") or ""),
+            str(exact_question.get("question") or ""),
+        ]
+        for item in exact_question.get("covered_subquestions") or []:
+            if isinstance(item, dict):
+                eq_parts.append(str(item.get("stem") or item.get("question") or item.get("prompt") or ""))
+        eq_pairs = _pairs("\n".join(eq_parts))
+        if not eq_pairs:
+            return False
+        eq_units = {unit for _value, unit in eq_pairs}
+        eq_values = {value for value, _unit in eq_pairs}
+        for value, unit in _pairs(user_stem):
+            if (value, unit) in eq_pairs:
+                continue
+            if unit in eq_units and value not in eq_values:
+                return True
+        return False
 
     @staticmethod
     def _case_reference_context_matches_user_stem(reference_context: dict[str, Any], user_stem: str) -> bool:
@@ -1374,8 +2119,13 @@ class AgentLoop:
     def _current_case_reference_from_context(
         reference_context: dict[str, Any],
         user_stem: str,
-    ) -> dict[str, str]:
-        """Return only reference answers whose question surface matches the freshly pasted case stem."""
+    ) -> dict[str, Any]:
+        """Return only reference answers whose question surface matches the freshly pasted case stem.
+
+        ``subquestions``（OD-005 2026-08-01）：采纳集的 **per-问结构**
+        ``[{"index", "answer"}, ...]``——判分核逐问抽取/逐问封顶消费它。旧的
+        ``reference`` 拼接串原样保留（非治理路径与向后兼容的唯一消费面），
+        两者同源同一次采纳循环，不是第二条搬运链。"""
 
         def _compact(value: Any) -> str:
             return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
@@ -1390,18 +2140,49 @@ class AgentLoop:
                 or "?" in text
             )
 
+        def _own_index() -> str:
+            """本行自身的小问序号（顶层直配时，采纳集就是这一个小问）。"""
+            own = str(reference_context.get("display_index") or "").strip()
+            if own.isdigit():
+                return own
+            rows = reference_context.get("covered_subquestions")
+            if isinstance(rows, list) and len(rows) == 1 and isinstance(rows[0], dict):
+                one = str(rows[0].get("display_index") or "").strip()
+                if one.isdigit():
+                    return one
+            return "1" if reference_context.get("correct_answer") else ""
+
         user = _compact(user_stem)
         if not user:
             return {
                 "reference": str(reference_context.get("correct_answer") or "").strip(),
+                "matched_count": "",
+                "matched_indexes": "",
                 "question_id": str(reference_context.get("question_id") or "").strip(),
+                "subquestions": [],
             }
+
+        def _question_segment(value: Any) -> str:
+            """行文本的小问段（C3 采纳修正 2026-08-01）：兄弟行题面=共享背景+
+            自己那一问，学生整卷=背景+问1..问N——非首问的行全文在整卷里**不是
+            连续子串**（中间隔着别的问），逐字包含必拒。取最后一个小问标题起的
+            段落做匹配——那一段在整卷里是连续的。"""
+            text = str(value or "")
+            hits = list(re.finditer(
+                r"(?:【问题】\s*[0-9０-９]|问题\s*[0-9０-９]|第\s*[0-9０-９]+\s*问"
+                r"|(?:^|\n)\s*[0-9０-９]+\s*[.．、)）])",
+                text,
+            ))
+            return text[hits[-1].start():] if hits else ""
 
         def _matches_current(value: Any) -> bool:
             if not _has_current_question_anchor(value):
                 return False
             identity = _compact(value)
-            return len(identity) >= 8 and (identity in user or user in identity)
+            if len(identity) >= 8 and (identity in user or user in identity):
+                return True
+            segment = _compact(_question_segment(value))
+            return len(segment) >= 8 and segment in user
 
         def _answer_from_item(item: dict[str, Any]) -> str:
             return str(
@@ -1412,20 +2193,60 @@ class AgentLoop:
                 or ""
             ).strip()
 
-        for key in ("question", "question_stem", "stem"):
+        # A2（tier1/2 可达性 2026-07-30）：supabase covered_subquestions 子项只带
+        # prompt/surface，旧键集永远打不着——拓宽为两族键并存。
+        # C3 修正（2026-08-01）：组 bundle（多子项）时禁走顶层直配早退——顶层
+        # stem=第 1 行全文，整卷粘贴必命中它并带着 matched_count=1 抢跑返回，
+        # 逐项采纳循环永远不执行 → 组取全了覆盖仍 1/4。多项时逐项循环才是权威。
+        _bundle_items = list(reference_context.get("covered_subquestions") or []) + list(
+            reference_context.get("items") or []
+        )
+        _multi_item_bundle = len([x for x in _bundle_items if isinstance(x, dict)]) > 1
+        for key in ("question", "question_stem", "stem", "surface", "prompt"):
+            if _multi_item_bundle:
+                break
             if _matches_current(reference_context.get(key)):
+                # 顶层直配=命中的是这一行（兄弟行形态下即"一个小问"），
+                # 采纳集必须记 1 个，不能让上层回落到 payload 的行数。
+                _own_answer = str(reference_context.get("correct_answer") or "").strip()
                 return {
-                    "reference": str(reference_context.get("correct_answer") or "").strip(),
+                    "reference": _own_answer,
+                    "matched_count": "1",
+                    "matched_indexes": _own_index(),
                     "question_id": str(reference_context.get("question_id") or "").strip(),
+                    "subquestions": (
+                        [{
+                            "index": _own_index(),
+                            "answer": _own_answer,
+                            "stem": str(reference_context.get("stem") or "").strip(),
+                        }]
+                        if _own_answer and _own_index()
+                        else []
+                    ),
                 }
 
         answers: list[str] = []
+        subquestions: list[dict[str, str]] = []
         matched_question_ids: list[str] = []
+        matched_display_indexes: list[str] = []
+        indexless_adopted = 0
         candidates = list(reference_context.get("covered_subquestions") or []) + list(reference_context.get("items") or [])
+        # 治理组整组采纳（C3 终修 2026-08-01）：case_bundle_source=group_query 的
+        # bundle，其成员资格已由 C1/C2 编译期治理裁决（case_group_id+canonical），
+        # 运行时不再用模糊文本逐项复核——种子命中（背景+首问逐字包含）已强锚定
+        # 试卷身份，逐项文本匹配只会把措辞有差的同一小问误拒（live 实证：bank
+        # 问2 与整卷问2 措辞不同字，逐项匹配 3/4）。非治理 bundle 保持逐项匹配
+        # （防随机检索杂行混入）。
+        _governed_group = (
+            str(reference_context.get("case_bundle_source") or "") == "group_query"
+        )
         for item in candidates:
             if not isinstance(item, dict):
                 continue
-            if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem")):
+            if not _governed_group and not any(
+                _matches_current(item.get(key))
+                for key in ("question", "question_stem", "stem", "surface", "prompt")
+            ):
                 continue
             answer = _answer_from_item(item)
             if answer:
@@ -1433,11 +2254,63 @@ class AgentLoop:
                 qid = str(item.get("question_id") or "").strip()
                 if qid:
                     matched_question_ids.append(qid)
+                display_index = str(item.get("display_index") or "").strip()
+                if display_index:
+                    matched_display_indexes.append(display_index)
+                    if display_index.isdigit():
+                        # OD-005 补刀：把该行**自己那一问的题面**一起带走。bundle 行的
+                        # surface = 共享背景 + 它自己那一问，是这一问题面的权威来源；
+                        # 判分核据此不必再去切分（切分只是退路，切错=拿兄弟问的题面
+                        # 去抽这一问的点，live 实证会直接产出串问采分点）。
+                        subquestions.append({
+                            "index": display_index,
+                            "answer": answer,
+                            "stem": str(item.get("surface") or item.get("prompt") or "").strip(),
+                        })
+                else:
+                    indexless_adopted += 1
+
+        # 三态修复（codex 异源审 2026-08-01）："没有采纳 / 采纳但索引未知 / 采纳且
+        # 索引已知"不得共用空字符串——索引未知的采纳行若被丢出分子，上层会误回落
+        # 到 payload 的检索行数（4）再度放大覆盖比例。分子权威=采纳数本身：
+        # 去重后的已知索引数 + 无索引的采纳行数。
+        adopted_total = len(dict.fromkeys(matched_display_indexes)) + indexless_adopted
 
         return {
             "reference": "\n".join(answers).strip(),
+            "matched_count": str(adopted_total if answers else 0),
+            # P0-b（2026-08-01 验证实证）：覆盖分子必须是"参考答案**实际采纳**了几个
+            # 小问"，不是"检索回来几行兄弟行"——本函数按用户题面过滤后的命中集才是
+            # 真正进入判分的参考面（live: payload 说 4 行、实际只采纳 1 问 → 旧分子
+            # 算成 4/5 让 1/4 的作答拿到 8/10）。
+            "matched_indexes": ",".join(dict.fromkeys(matched_display_indexes)),
             "question_id": matched_question_ids[0] if len(matched_question_ids) == 1 else "",
+            # 唯一命中一个小问时导出其 display_index，供复合 qid（tier1 pgo bank 键
+            # ``{exam_year}::{source_chunk_id}::E{n}``）确定性合成；多问或零命中留空。
+            "display_index": (
+                matched_display_indexes[0] if len(matched_display_indexes) == 1 else ""
+            ),
+            # OD-005：逐问采纳集（与 reference 拼接串同一次循环产出，同源）。
+            "subquestions": list({s["index"]: s for s in subquestions}.values()),
         }
+
+    @classmethod
+    def _case_submission_surface(cls, md: dict[str, Any] | None, current_message: str) -> str:
+        """案例判分面的学生提交单一来源（2026-08-01 插桩实战确诊）。
+
+        live 实证：存库消息 1548 字符干净，运行时判分面却是 14150——unified 入口把
+        跨轮会话上下文包装（[History Context] 等，随账号历史增长逐轮不同）注入
+        current_message。后果一因两病：①包装噪声混进检索题干 → exact 命中随机
+        → 同题不同轮走不同判分通道；②包装里旧轮编号被小问计数器数进去 → 4 问
+        数成 5（离线用干净存档复现不出的原因）。判分的身份/切割/计数面只许看
+        **本轮学生真实提交**：优先 metadata.raw_user_message（持久化的原文），
+        次选既有 [User Question] 剥离器，最后才退回 current_message。
+        """
+        raw = str(((md or {}).get("raw_user_message")) or "").strip()
+        if raw:
+            return raw
+        extracted = cls._extract_current_user_question_section(str(current_message or ""))
+        return extracted or str(current_message or "")
 
     @staticmethod
     def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
@@ -1447,6 +2320,8 @@ class AgentLoop:
         current turn is not a fresh full-case submission, or when that followup context matches the current
         pasted stem."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # 判分面单一来源收口（2026-08-01）：剥掉跨轮上下文包装，只看本轮真实提交。
+        user_message = AgentLoop._case_submission_surface(md, user_message)
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
         current_case_context = case_grading_context_from_full_submission(user_message) or {}
@@ -1463,8 +2338,21 @@ class AgentLoop:
         ).strip()
         if not user_stem or not user_answer:
             user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        # fail-closed 保底闸（OD-002 倒诬根治，指挥官相称律裁决 2026-07-31）：
+        # 身份闸/数字变体闸都以 user_stem 为对照面——切割失败（疑似案例投稿但
+        # stem 为空）时它们整线解除武装，题库参考答案会无核验入判（假命中行
+        # 17315 的钥匙判学生正确作答为零）。参考答案入判=授予判零权，判据必须
+        # 可核验：核验面缺失 → 宁降 tier3 诊断，不许倒诬。
+        if eq and not user_stem:
+            _raw_probe = str(user_message or "")
+            if len(_raw_probe) >= 120 and re.search(r"【背景资料】|【问题】|背景资料", _raw_probe):
+                md["exact_question_blocked_reason"] = "unverifiable_submission_shape"
+                eq = {}
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
+            eq = {}
+        if user_stem and eq and AgentLoop._case_stem_numeric_variant(eq, user_stem):
+            md["exact_question_blocked_reason"] = "case_numeric_variant"
             eq = {}
         fc = AgentLoop._followup_context_from_metadata(md)
         # Forward-reachability (S4, 2026-06-29): the flat followup keys
@@ -1502,10 +2390,26 @@ class AgentLoop:
         )
         if user_stem and fc and not str(fc_current.get("reference") or "").strip() and str(fc.get("correct_answer") or "").strip():
             md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
+        # 方案 C / C3（2026-08-01）：题级组取全的来源/降级/冲突三个 marker 由
+        # supabase pipeline 单写进 exact_question payload，这里是它们进入 md 的
+        # 唯一提升点（与 case_stem_fallback / composite_qid_candidate 同一处，
+        # 不新开第二条搬运链）。三个键都在 CASE_GRADING_AUTHORITY_EXPORT_KEYS 里，
+        # 落进判分事件 → turn metadata → trace 全 sink。
+        for _bundle_marker in (
+            "case_bundle_source",
+            "case_bundle_hydration",
+            "case_answer_conflict_unresolved",
+        ):
+            _bundle_value = eq.get(_bundle_marker)
+            if str(_bundle_value or "").strip():
+                md[_bundle_marker] = _bundle_value
         covered = eq.get("covered_subquestions") or []
+        eq_display_index = ""
+        eq_current: dict[str, Any] = {}
         if user_stem and eq:
             eq_current = AgentLoop._current_case_reference_from_context(eq, user_stem)
             ref = str(eq_current.get("reference") or "").strip()
+            eq_display_index = str(eq_current.get("display_index") or "").strip()
             if covered and not ref and any(
                 str(s.get("authoritative_answer") or s.get("correct_answer") or "").strip()
                 for s in covered if isinstance(s, dict)
@@ -1515,6 +2419,21 @@ class AgentLoop:
             ref = "\n".join(
                 str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
             ).strip()
+        # tier1 复合 qid（1b 2026-07-30）：pgo 编译 bank 的键是
+        # ``{exam_year}::{source_chunk_id}::E{n}``。【观测不武装】2026-07-30 唯一性
+        # 审计实证：运行时 display_index（"第N问"解析，1 基）与编译期 En（原始
+        # exercises[] 下标，0 基）之间没有共享权威——模拟建键命中 23/354、语义正确
+        # 0 条、全部错绑到相邻小问 rubric（拿错采分点判分且不报错）。E 索引在
+        # questions_bank 落显式列并回填兄弟行 source_chunk_id 前，候选键只导出
+        # marker 供观测窗口，绝不进 ctx.question_id 喂 load_rubric。
+        composite_qid_candidate = ""
+        _eq_exam_year = str(eq.get("exam_year") or "").strip()
+        _eq_source_chunk_id = str(eq.get("source_chunk_id") or "").strip()
+        if _eq_exam_year and _eq_source_chunk_id and eq_display_index.isdigit():
+            composite_qid_candidate = (
+                f"{_eq_exam_year}::{_eq_source_chunk_id}::E{eq_display_index}"
+            )
+            md["case_grading_composite_qid_candidate"] = composite_qid_candidate
         ref = current_reference or ref or str(
             fc_current.get("reference")
             or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis"))
@@ -1545,14 +2464,116 @@ class AgentLoop:
         # derivation, and mismatched exact hits are demoted before their reference answer can score.
         # Forward-reachability (S4): an active_object-derived case keeps its stem in
         # ``fc["question"]`` (NOT ``question_stem``); read it so Tier-3 has a stem to ground on.
+        # OD-004 补刀（2026-08-01，指挥官"判分行为在场"面）：live 2/3 抖动实证——
+        # lifecycle scene 有 LLM 参与，某轮判成非 case_grading → 直批跳过 → 外层
+        # V1 拿不到题面（eq/fc 皆空且 split 未成）→ question_stem 空 → 与 reference
+        # 双空 → no_reference 整条降级 → 落回通用 agent 现编判分（权威双空）。
+        # 学生已提交案例作答=判分行为在场，就必须有判分基座：题面兜底取其原文
+        # （tier3 从"学生自己贴的题面"推导，不涉任何他题钥匙，无倒诬风险）。
+        if not (str(eq.get("stem") or eq.get("question") or "").strip()
+                or str(fc.get("question_stem") or fc.get("question") or "").strip()
+                or user_stem):
+            from deeptutor.services.construction_grading.case_output_policy import (
+                case_submission_stem_candidate,
+            )
+
+            _raw = case_submission_stem_candidate(str(user_message or ""))
+            if _raw:
+                user_stem = _raw
+                md["case_stem_fallback"] = "raw_submission"
         question_stem = str(
             eq.get("stem") or eq.get("question")
             or fc.get("question_stem") or fc.get("question")
             or user_stem or ""
         )
+        # P0 兜底满分根治（2026-08-01 取证 PR#623）：参考答案只覆盖部分小问时，
+        # 分母必须诚实。exact 匹配按小问拆行存，命中的往往是**兄弟行**（只含 1 问的
+        # 答案钥匙），而 normalize_points_to_nominal 把该点池缩放到**整题名义满分** →
+        # 全中即 10/10（live 实证 tier-2 命中 4/4 全满分，含弱答案）。
+        # 覆盖比例用确定性信号：eq 的 covered_indexes（supabase 侧已按 display_index
+        # 算好、此前全仓零消费者）÷ 学生题面小问数——不靠 n-gram 事后猜（钉三实证
+        # 那条链同输入会给出 3/4 与 4/4 两个结果）。
+        _adopted_count = 0
+        if user_stem and eq:
+            _mc = str(eq_current.get("matched_count") or "").strip()
+            if _mc.isdigit():
+                _adopted_count = int(_mc)
+        _adopted = [str(_adopted_count)] * _adopted_count if _adopted_count else []
+        # 采纳集为空时回落 payload 的 covered_indexes（旧行为），但两者语义不同：
+        # 采纳集=真正进判分的小问，payload=检索命中的兄弟行数。优先采纳集。
+        _ref_covered = _adopted or [
+            str(x).strip()
+            for x in (eq.get("covered_indexes") or [])
+            if str(x or "").strip().isdigit()
+        ]
+        # OD-005（2026-08-01）：进判分核的 per-问参考结构。只在**本轮实际使用的**
+        # 那份参考上取（current_reference=学生自带参考时不是逐问结构，留空回落旧
+        # 整段路径），绝不把两份来源的小问混进同一张表。
+        _ref_subqs: list[dict[str, str]] = []
+        if not current_reference:
+            if str(eq_current.get("reference") or "").strip():
+                _ref_subqs = [
+                    dict(s) for s in (eq_current.get("subquestions") or []) if isinstance(s, dict)
+                ]
+            elif str(fc_current.get("reference") or "").strip():
+                _ref_subqs = [
+                    dict(s) for s in (fc_current.get("subquestions") or []) if isinstance(s, dict)
+                ]
+        # canonical431 tier-1 键的两个原料（Lane 2 接线 2026-08-01）：组键 +
+        # **可证来源**的小问索引集。判分核据此构 ``{case_group_id}::E{n}`` 逐问查库。
+        #
+        # fail-closed 前置断言（Lane 1 §4.2 步骤 3，非可选）：索引来源必须可证。
+        # `_assemble_case_group_bundle`（supabase.py）是全仓唯一把 DB 列
+        # `case_subquestion_index` 投成 `display_index` 的地方，它给每个条目盖
+        # `coverage="case_group_exact"`；其它路径的 `display_index` 出自题干正则
+        # 解析或 `index+1` 序数，与编译期 E 号**没有共享权威**。历史教训是硬的：
+        # loop.py 的 `{exam_year}::{source_chunk_id}::E{n}` 模拟建键命中 23/354、
+        # 语义正确 **0** 条，全部错绑到相邻小问的 rubric（拿错采分点判分且不报错）。
+        # 所以这里只认 `coverage=="case_group_exact"` 的索引，再与**本轮实际采纳**
+        # 的小问集（`matched_indexes`）取交 —— 没采纳的小问不构键，不可证的索引
+        # 不构键，两者缺一即整条留空、回落既有平查路径。
+        _canonical_group_id = str(eq.get("case_group_id") or "").strip()
+        _canonical_subq_indexes: list[int] = []
+        if _canonical_group_id:
+            _db_authored_indexes = {
+                str(s.get("display_index") or "").strip()
+                for s in covered
+                if isinstance(s, dict)
+                and str(s.get("coverage") or "").strip() == "case_group_exact"
+                and str(s.get("display_index") or "").strip().isdigit()
+            }
+            _canonical_subq_indexes = [
+                int(raw)
+                for raw in dict.fromkeys(
+                    x.strip()
+                    for x in str(eq_current.get("matched_indexes") or "").split(",")
+                )
+                if raw.isdigit() and raw in _db_authored_indexes
+            ]
+        _stem_titles = _extract_case_question_titles_for_scope(user_stem or str(eq.get("stem") or ""))
+        _user_stem_hash = hashlib.sha256(
+            (user_stem or "").strip().encode("utf-8")
+        ).hexdigest()[:12]
+        md["case_user_stem_hash"] = _user_stem_hash
+        md["case_user_stem_len"] = len((user_stem or "").strip())
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
-            "question_id": str(eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""),
+            "question_id": str(
+                eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""
+            ),
+            # 覆盖对账必须对学生所见题面（live 实证：exact 命中单小问兄弟行时，
+            # eq.stem 只含 1 问——拿 bank 行当整个世界，4 问粘贴被判 10/10）。
+            "user_stem": user_stem,
+            "case_user_stem_hash": _user_stem_hash,
+            "case_user_stem_len": len((user_stem or "").strip()),
+            "case_reference_covered_count": (
+                _adopted_count if _adopted_count else len(set(_ref_covered))
+            ),
+            "case_stem_subquestion_count": len(_stem_titles),
+            "case_reference_subquestions": _ref_subqs,
+            # canonical431 tier-1 键原料（判分核 `_canonical_case_rubric_lookup` 消费）。
+            "case_group_id": _canonical_group_id,
+            "case_canonical_subquestion_indexes": _canonical_subq_indexes,
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
@@ -1560,12 +2581,34 @@ class AgentLoop:
             "construction_grading_result": {"type": "case", "max_score": nominal},
         }
 
-    async def _v1_case_stream_plan(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any] | None:
+    async def _v1_case_stream_plan(
+        self,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+        user_message: str,
+        on_stage: Callable[..., Awaitable[None]] | None = None,
+    ) -> dict[str, Any] | None:
         """Grade a TutorBot case turn with the V1 rubric engine (single fat-skill core, reused from
         deep_question) and return a score-first stream plan. Returns None when V1 should not take over
         (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
         never raises (must not break the tutorbot turn)."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # Single-invoke guard (review N-1): when the pre-mode direct path already
+        # ran V1 and failed, the finalize outer seam must not re-run the whole
+        # engine (extract/derive + judge = 1-2 extra LLM calls on identical
+        # inputs) nor let a flaky retry clobber the deep loop's diagnosis.
+        if md.get("case_grading_direct_fell_through"):
+            # 单发闸窄豁免（1b 2026-07-30，相称律）：唯一放行 = 权威输入客观升级——
+            # 直批时 qid 空/旧，随后 agent loop 内模型自主 rag 命中 exact、qid 新出现。
+            # 同输入重跑维持关闭（#589 立法目的：省 1-2 次 LLM、防 flaky retry 覆盖
+            # deep loop 诊断）。升级也发声：case_grading_outer_seam_reentry marker。
+            attempt_qid = str(md.get("case_grading_direct_attempt_qid") or "").strip()
+            qid_now = str(
+                self._build_v1_case_ctx(md, user_message).get("question_id") or ""
+            ).strip()
+            if not qid_now or qid_now == attempt_qid or md.get("case_grading_outer_seam_reentry"):
+                return None
+            md["case_grading_outer_seam_reentry"] = "authority_upgraded"
         logger.debug(
             "LUBAN_DIAG _v1_case_render: entered md_type={} scene={} pf_eq_qid={} cg_scene={} "
             "covered_sub_keys={}",
@@ -1623,8 +2666,18 @@ class AgentLoop:
             from deeptutor.services.llm.factory import complete
 
             ctx = self._build_v1_case_ctx(md, user_message)
+            # 直批尝试 qid 快照：单发闸窄豁免的对比基线（qid 未升级 → 外 seam 不再入）。
+            md["case_grading_direct_attempt_qid"] = str(ctx.get("question_id") or "")
             if ctx.get("node_code"):
                 md.setdefault("node_code", ctx.get("node_code"))
+            kb_name = str(md.get("default_kb") or "").strip() or None
+            if not kb_name:
+                knowledge_bases = md.get("knowledge_bases")
+                if isinstance(knowledge_bases, list):
+                    kb_name = next(
+                        (str(x).strip() for x in knowledge_bases if str(x or "").strip()), None
+                    )
+            _stage_kwargs = {"on_stage": on_stage} if on_stage is not None else {}
             event = await _grade_one_case_v1(
                 ctx,
                 student_id=student_id,
@@ -1632,8 +2685,20 @@ class AgentLoop:
                 key=key,
                 _G=_G,
                 provider_authority=provider_authority,
+                kb_name=kb_name,
+                **_stage_kwargs,
             )
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
+                # Observability (P0 2026-07-29): this silent None used to leave
+                # score_authority unset, making the dead open-world channel
+                # invisible in traces for four weeks. Observe-only marker; no
+                # decision consumer.
+                status = str(event.get("status") or "").strip() if isinstance(event, dict) else ""
+                reason = str(event.get("reason") or "").strip() if isinstance(event, dict) else ""
+                md["score_authority"] = (
+                    f"v1_unavailable:{status or 'no_event'}" + (f":{reason}" if reason else "")
+                )
+                md["v1_case_graded"] = False
                 return None
             md["_v1_case_graded"] = True  # defensive: downstream demote must not override
             md["v1_case_graded"] = True
@@ -1645,6 +2710,19 @@ class AgentLoop:
             for _event_key, _metadata_key in (
                 ("adjudication_group_count", "case_grading_adjudication_group_count"),
                 ("adjudication_point_count", "case_grading_adjudication_point_count"),
+                ("case_rubric_score_total_mismatch", "case_rubric_score_total_mismatch"),
+                ("case_rubric_bank_slot", "case_rubric_bank_slot"),
+                ("case_stem_fallback", "case_stem_fallback"),
+                ("case_grading_partial_scope", "case_grading_partial_scope"),
+                ("case_per_subq_grading", "case_per_subq_grading"),
+                ("case_subq_score_caps", "case_subq_score_caps"),
+                # R2 分母权威阶梯 / canonical431 tier-1 命中（补映射 2026-08-01）：
+                # 两个 marker 已进 CASE_GRADING_AUTHORITY_EXPORT_KEYS 且由共享判分核
+                # （``_grade_one_case_v1``）落在 event 上，但 tutorbot 这条**唯一**
+                # 事件→md 搬运链漏了它们 → messages 面实测恒缺席（白名单在、搬运不在，
+                # 长得和「这轮没发生」一模一样）。增 marker 必须同时改这两处。
+                ("case_denominator_source", "case_denominator_source"),
+                ("case_canonical_key_hit", "case_canonical_key_hit"),
                 # Grading-result cache receipt (codex 审计 §3.3 risk 10): a replayed score must be
                 # distinguishable from a fresh adjudication in the turn record, otherwise cache
                 # consistency gets read as model determinism. Both this mapping AND
@@ -1674,10 +2752,22 @@ class AgentLoop:
             )
             self._schedule_v1_grading_personalization(runtime_metadata=md)
             pcp = md.get("personalization_context") if isinstance(md.get("personalization_context"), dict) else None
+            # A1 真口诀（拍A）：high 置信命中 → 编译口诀/陷阱/红线带出处；否则回落
+            # 现模板。升降必发声（case_mnemonic_source 随单源常量上全 sink）。
+            _am_ctx = _G.resolve_case_answer_method_for_render(str(ctx.get("question_stem") or ""))
+            _am_source = (
+                "lecture_pack:" + ",".join(
+                    str(u.get("unit_id") or "?") for u in (_am_ctx or {}).get("units") or []
+                )
+                if _am_ctx else "fallback_template"
+            )
+            event["case_mnemonic_source"] = _am_source
+            md["case_mnemonic_source"] = _am_source
             rendered = _G.render_case_rubric_feedback(
                 event,
                 question_stem=str(ctx.get("question_stem") or ""),
                 personalization_context_pack=pcp,
+                answer_method_context=_am_ctx,
             )
             stream_plan = _G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
             if stream_plan:
@@ -1877,13 +2967,25 @@ class AgentLoop:
     @staticmethod
     def _case_grading_live_preview_text(user_message: str) -> str:
         user_stem, _user_answer = AgentLoop._split_case_grading_submission(user_message)
-        question_titles = re.findall(r"(?:^|\n)\s*(\d+)\s*[.．、]\s*([^\n？?]{2,40}[？?]?)", user_stem)
-        if question_titles:
-            count = min(len(question_titles), 8)
+        # 小问计数收权（2026-08-01 端侧实测：4 问卷开场白说"按 3 个小问"）：
+        # 本函数此前维护**第二套**计数正则（行内"本问题 3 项不妥"之类文字会污染
+        # 去重集）——同一事实两把尺子，正是今天全程在杀的 N 名单病。收敛到与
+        # 判分分母同一权威 _extract_case_question_titles_for_scope，开场白数字
+        # 与判分用的小问数**结构上不可能再不一致**。
+        _titles = _extract_case_question_titles_for_scope(user_stem)
+        if len(_titles) >= 1:
+            count = min(len(_titles), 8)
             return (
                 f"这道案例题我已经进入逐采分点批改，会按 {count} 个小问逐一核对。\n\n"
                 "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
             )
+        # #641 收权后残留的**第二把尺子**已删除（2026-08-01 清剿）。
+        # 实测分叉（非推断）：权威 `_extract_case_question_titles` 的序号闸是
+        # `[1-9]\d{0,1}` 且 idx<=30，删掉的 fallback 用的是裸 `\d+` —— 题面为
+        # `31./32./33.` 时权威返回 0、fallback 返回 3；`01./02.` 时权威 0、fallback 2。
+        # 即开场白会报一个**判分分母根本不会用**的数字，正是 #641 要治的"同一事实
+        # 两把尺子"从 fallback 分支复发。
+        # 权威数不出来时**不报数**：报一个错数比不报数坏，也绝不用一把更宽松的尺子兜底。
         return (
             "这道案例题我已经进入逐采分点批改。\n\n"
             "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
@@ -1909,7 +3011,13 @@ class AgentLoop:
         # pinned case_grading, fall through to the generation path instead of emitting the
         # no-authority "把标准答案/采分点发来" template — which a student can never satisfy for
         # a case the bot itself authored, deadlocking "出新题". (S4 forward-reachability.)
-        if looks_like_practice_generation_request(current_message) and not (
+        # 提交面收权（2026-08-01 清剿，task#23）：这个判据的主语是「学生**这轮**在要新题」，
+        # 而 looks_like_practice_generation_request 是纯子串测试（"下一题"/"出题"/"再来一道"…）。
+        # 拿组装后的 current_message 去测，包装里注入的旧题干/解析/工作记忆投影只要出现任一
+        # marker，整卷提交就被踢出直批判分链——今天在杀的同一张脸。
+        if looks_like_practice_generation_request(
+            self._case_submission_surface(runtime_metadata, current_message)
+        ) and not (
             case_grading_score_authority_available(runtime_metadata)
         ):
             return None
@@ -1918,8 +3026,24 @@ class AgentLoop:
         if on_progress:
             await on_progress("案例题批改已进入 V1 逐采分点链路，正在拆题和核对采分点。")
         await self._emit_visible_text_deltas(
-            self._case_grading_live_preview_text(current_message),
+            # 判分面单一来源第三处收口（2026-08-01 live：641 后计数 3→5——尺子
+            # 统一了但量的面还是带跨轮包装的 current_message，旧轮"问题5"混入）。
+            # narration 与判分分母不仅要同尺，还要同面。
+            self._case_grading_live_preview_text(
+                self._case_submission_surface(runtime_metadata, current_message)
+            ),
             on_content_delta,
+        )
+
+        async def _emit_progress_line(text: str) -> None:
+            await self._emit_visible_text_deltas(text, on_content_delta)
+
+        # 渐进吐字（L4 2026-08-01）：narrator 从这里活到 score_first 之前，全部发射
+        # 都落在判分正文的前缀区 —— final_content 仍是 streamed public text 的严格
+        # 后缀，result.response 逐字节不变（见模块顶部三条不变量）。
+        narrator = _CaseGradingProgressNarrator(
+            _emit_progress_line if on_content_delta is not None else None,
+            enabled=_case_grading_sequenced_emit_enabled(),
         )
 
         initial_messages = self.context.build_messages(
@@ -1930,18 +3054,104 @@ class AgentLoop:
             chat_id=msg.chat_id,
             runtime_instruction=runtime_instruction,
         )
-        stream_plan = await self._v1_case_stream_plan(
-            runtime_metadata=runtime_metadata,
-            user_message=current_message,
-        )
-        final_content = str((stream_plan or {}).get("final_text") or "").strip()
-        if not final_content:
-            final_content = self._case_grading_no_authority_score_fallback(
-                final_content,
+        # tier1/2 可达性收复（2026-07-30 指挥官阶段1）：直批此前先于 RAG prefetch
+        # 执行，_prefetched_exact_question 恒缺 → 粘贴的题库内案例题 question_id
+        # 恒空 → 179 题编译 rubric bank 在聊天通道结构性不可达、全部落 tier3。
+        # 前移既有 prefetch（匹配权威不变：pipeline 身份链 + case_like 形状闸 +
+        # loop demoter），带幂等闸防 fell_through 后外层重复检索。
+        await narrator.start()
+        try:
+            _existing_eq = runtime_metadata.get("_prefetched_exact_question")
+            if not (isinstance(_existing_eq, dict) and _existing_eq):
+                # 直批的权威取回不归通用聊天 RAG 门管（1b 收权，2026-07-30）。live 实证
+                # 该门在直批时点必拒（denied:decision）：生命周期为粘贴题建的 active_object
+                # 是权威空壳（question_id/correct_answer 全空），却因 state_snapshot 键形状
+                # 触发 _should_disable_rag_for_active_question_flow ——「没权威→禁取权威」
+                # 死锁。直批 admission 只看判分权威本身：已有权威不取；无权威且有 kb 必取。
+                if case_grading_score_authority_available(runtime_metadata):
+                    runtime_metadata["case_grading_prefetch_gate"] = "authority_already_present"
+                elif bool(
+                    str(runtime_metadata.get("default_kb") or "").strip()
+                    or runtime_metadata.get("knowledge_bases")
+                ):
+                    runtime_metadata["case_grading_prefetch_gate"] = "allowed"
+                    await narrator.stage("authority_lookup_start")
+                    # 身份检索只喂题干：live 实证整段粘贴（题干+作答）会让 shape 分类
+                    # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
+                    # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
+                    _probe_surface = self._case_submission_surface(
+                        runtime_metadata, current_message
+                    )
+                    _probe_stem, _probe_answer = self._split_case_grading_submission(
+                        _probe_surface
+                    )
+                    # 逐跳 surface 插桩（2026-08-01，codex 兄弟行方案 §5.4 最小先手）：
+                    # 定位「同题面不同作答走不同判分通道」与「幽灵小问」两条未解病。
+                    # 只导出 hash/长度/marker 数，不落全文。判据：同题面多份作答，
+                    # probe_stem_hash 必须逐轮相同——第一次分叉的那跳就是根因层。
+                    runtime_metadata["case_probe_stem_hash"] = hashlib.sha256(
+                        (_probe_stem or "").strip().encode("utf-8")
+                    ).hexdigest()[:12]
+                    runtime_metadata["case_probe_stem_len"] = len((_probe_stem or "").strip())
+                    runtime_metadata["case_probe_answer_len"] = len((_probe_answer or "").strip())
+                    # 提交面收权（2026-08-01 清剿）：同函数的 stem/answer 探针已在 #642 收到
+                    # surface，唯独 marker 计数还在数组装面——探针是「同题面不同作答走不同
+                    # 通道」的判别位，面不对＝观测说谎（把包装里旧作答的标记数进本轮）。
+                    runtime_metadata["case_probe_marker_count"] = len(
+                        re.findall(
+                            CASE_ANSWER_MARKER_PATTERN,
+                            _probe_surface,
+                            flags=re.IGNORECASE,
+                        )
+                    )
+                    # L1 瘦身检索（2026-08-01）：直通轮只要身份与分母，不要正文。
+                    # marker 逐轮发声（进 CASE_GRADING_AUTHORITY_EXPORT_KEYS）——
+                    # live 验收判据「同题重放：exact 命中与分母与 full 轮一致、
+                    # RAG 跳 <2s、rerank 调用数 0」全靠它分组。
+                    _lean_rag = _case_direct_lean_rag_enabled()
+                    runtime_metadata["case_direct_rag_profile"] = "lean" if _lean_rag else "full"
+                    initial_messages = await self._maybe_prefetch_grounded_rag(
+                        initial_messages=initial_messages,
+                        current_message=current_message,
+                        runtime_metadata=runtime_metadata,
+                        force_authority_fetch=True,
+                        tool_query_override=(_probe_stem or "").strip() or None,
+                        retrieval_profile=(
+                            RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY if _lean_rag else None
+                        ),
+                    )
+                    _prefetched_eq = runtime_metadata.get("_prefetched_exact_question")
+                    if not (isinstance(_prefetched_eq, dict) and _prefetched_eq):
+                        runtime_metadata["case_grading_prefetch_gate"] = "allowed_no_exact_hit"
+                    # 进度只复述已经落定的检索事实（命中与否），不预告任何得分。
+                    await narrator.stage(
+                        "authority_lookup_done",
+                        hit=bool(isinstance(_prefetched_eq, dict) and _prefetched_eq),
+                    )
+                else:
+                    # 降级必须发声（AGENTS 硬不变量）：无 kb 时拒绝也要留可导出判据。
+                    runtime_metadata["case_grading_prefetch_gate"] = "denied:no_default_kb"
+            stream_plan = await self._v1_case_stream_plan(
                 runtime_metadata=runtime_metadata,
                 user_message=current_message,
+                on_stage=narrator.stage,
             )
-            stream_plan = None
+        finally:
+            # 单写者不变量：score_first 之前心跳必停。
+            await narrator.stop()
+        final_content = str((stream_plan or {}).get("final_text") or "").strip()
+        if not final_content:
+            # Fall-through-to-understanding (P0 2026-07-29): a V1 operational
+            # failure (e.g. truncated derive JSON on a long pasted stem) must NOT
+            # fail closed into the static "把标准答案发来" template — the learner
+            # submitted an answer and deserves substantive per-subquestion
+            # diagnosis. Return None so the normal generation path (case-grading
+            # skill stack) produces the diagnosis; the finalize chain's
+            # no-authority policy then demotes ONLY the official-score wording.
+            # Same S4 forward-reachability principle as the practice-generation
+            # carve-out above.
+            runtime_metadata["case_grading_direct_fell_through"] = True
+            return None
         guarded_output = guard_tutorbot_output(final_content)
         guarded_content = guarded_output.content or final_content
         if guarded_content != final_content:
@@ -2002,6 +3212,10 @@ class AgentLoop:
         # Defensive: when V1 already produced the authoritative grade, never demote it.
         if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
             return ""
+        # 提交面收权（2026-08-01 清剿）：本函数两个消费点（出题意图判据、诊断兜底文案）
+        # 的主语都是「学生这轮真实提交」。finalize 链四个调用点一律传组装后的
+        # current_message —— 包装里的"下一题/出题"会让判分降级模板被静默跳过（B1 的镜像）。
+        user_message = AgentLoop._case_submission_surface(runtime_metadata, user_message)
         # A practice-generation turn produces a NEW question, never a grade. The no-authority
         # case template must not clobber it — otherwise "再出一道新题" gets overwritten with a
         # demand for ground truth the bot itself authored (deadlock). Fall through to whatever
@@ -2014,12 +3228,30 @@ class AgentLoop:
             if isinstance(runtime_metadata, dict)
             else ""
         )
+        substantive = bool(str(final_content or "").strip())
+        # 幂等闸（review B-1）：诊断会先后过内 seam（_run_agent_loop 尾部）与外 seam
+        # （finalize 链），免责声明只许出现一次；声明自含"阅卷"会命中 demote 正则，
+        # 不加此闸则主线场景确定性双写。
+        if "评分口径说明" in str(final_content or ""):
+            return ""
         if scene == "case_grading":
             if isinstance(runtime_metadata, dict):
                 runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
                 runtime_metadata["v1_case_graded"] = False
                 runtime_metadata.setdefault("score_authority", "missing_v1_authority")
-            return build_case_grading_diagnostic_only_response(user_message)
+            # 权力/证据相称律（P0 2026-07-29）：模板只保留出生使命（不硬估官方分），
+            # 收回整篇替换权。生成路径已产出实质诊断时，只降级分数口径——追加免责
+            # 声明；零产出时模板才作为兜底整篇出场。
+            if not substantive:
+                return build_case_grading_diagnostic_only_response(user_message)
+            if should_demote_case_grading_hard_score(
+                final_content,
+                runtime_metadata=runtime_metadata,
+            ):
+                return str(final_content) + build_case_grading_score_disclaimer()
+            return ""
+        if not substantive:
+            return ""
         if not should_demote_case_grading_hard_score(
             final_content,
             runtime_metadata=runtime_metadata,
@@ -2029,7 +3261,7 @@ class AgentLoop:
             runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
             runtime_metadata["v1_case_graded"] = False
             runtime_metadata.setdefault("score_authority", "missing_v1_authority")
-        return build_case_grading_diagnostic_only_response(user_message)
+        return str(final_content) + build_case_grading_score_disclaimer()
 
     @staticmethod
     def _prefetched_case_exact_question_can_answer(runtime_metadata: dict[str, Any] | None) -> bool:
@@ -2100,11 +3332,6 @@ class AgentLoop:
             filtered.append(item)
         return filtered
 
-    @staticmethod
-    def _prefetched_rag_satisfied(runtime_metadata: dict[str, Any] | None) -> bool:
-        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        return bool(metadata.get("prefetched_rag_satisfied"))
-
     async def _run_agent_loop(
         self,
         initial_messages: list[dict],
@@ -2114,6 +3341,8 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         allow_exact_authority_override: bool = False,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
+        narrator: "_GeneralLaneProgressNarrator | None" = None,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
         external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
@@ -2121,13 +3350,36 @@ class AgentLoop:
         # turn_failure is a PER-TURN typed-failure marker; a stale copy carried in
         # via session/inbound metadata must never mark a fresh turn as failed.
         self._clear_turn_failure(runtime_metadata, external_runtime_metadata)
+        # Per-turn observe-only marker (same staleness rule as turn_failure):
+        # cleared at loop start only — a successful closure answer must keep it
+        # for the current turn's trace.
+        runtime_metadata.pop("forced_closure_round", None)
+        if external_runtime_metadata is not None:
+            external_runtime_metadata.pop("forced_closure_round", None)
         messages = initial_messages
         iteration = 0
         final_content = None
         tools_used: list[str] = []
         exact_authority: dict[str, Any] | None = None
         rag_rounds: list[dict[str, Any]] = []
+        # Anti-redundancy has ONE authority: rag_saturation. The prefetch round
+        # is seeded into its ledger so the first in-loop rag call gets a
+        # comparison basis (round_index=2) — a model re-issuing the prefetch
+        # query saturates immediately. This replaces the 2026-07-06 first-round
+        # rag suppression, which hid the tool without telling the model: the
+        # model (correctly) judged 5-subquestion evidence insufficient, called
+        # rag, burned a whole round on "Tool 'rag' is not available", and
+        # polluted every later round's context with that error. It also
+        # mutated the tools block between round 1 and round 2, breaking the
+        # provider prompt-cache prefix on every prefetch-satisfied turn; with
+        # the suppression gone that break only happens on actual saturation
+        # (rare, and the model is told about it below) — deferred, not
+        # eliminated.
+        _prefetch_trace = runtime_metadata.get("_latest_rag_trace_metadata")
+        if isinstance(_prefetch_trace, dict) and isinstance(_prefetch_trace.get("rag_round"), dict):
+            rag_rounds.append(dict(_prefetch_trace["rag_round"]))
         rag_saturation: dict[str, Any] | None = None
+        saturation_notice_sent = False
         blocked_exact_tool_retry = False
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         effective_max_iterations = self._resolve_max_tool_rounds(runtime_metadata)
@@ -2146,260 +3398,368 @@ class AgentLoop:
         # by tests/tutorbot/test_think_strip_streamer.py.
         stream_stripper = _ThinkStripStreamer()
 
+        # 通用道渐进吐字（L4 通用道，2026-08-01 task#29）：纯表达层，终态不变。
+        # 叙述与终局正文最终落在**同一个 public buffer**（同一写者、同一顺序），只是走
+        # `on_progress_narration` 这条**声明式**入口：capability 侧据此知道「这段字是我们
+        # 自己发的 sanctioned narration，不是模型正文」，从而绕开「像不像正经答案」的
+        # 起流闸（2026-08-01 live 首答窗口 17.3s 空屏的主因，见 _run_agent_loop 文档）。
+        # 没有这条入口时（CLI / 测试 / 老调用方）退回 on_content_delta，行为与之前一致。
+        narration_sink = on_progress_narration or on_content_delta
+
+        async def _emit_general_lane_progress(text: str) -> None:
+            await self._emit_visible_text_deltas(text, narration_sink)
+
+        # 外部（_process_message）可能已经为「loop 之前的取证预取窗口」起过 narrator 并
+        # 发过里程碑 —— 复用它，别新起第二个写者。
+        owns_narrator = narrator is None
+        if narrator is None:
+            narrator = _GeneralLaneProgressNarrator(
+                _emit_general_lane_progress if narration_sink is not None else None,
+                enabled=_general_lane_sequenced_emit_enabled(),
+            )
+
         async def _stream_delta(delta: str) -> None:
             if not on_content_delta or not delta:
                 return
+            # 解除武装的判据必须是「**public 流上真的多了字**」，不是「provider 回调了」。
+            # 2026-08-01 live 教训：`<think>` 推理 delta 经 stream_stripper 后产出空 chunk
+            # （public 流一个字没多），却照样把整轮叙述关掉 —— 推理模型想 15 秒，学生就
+            # 空屏 15 秒。严格后缀不变量约束的对象本来就是 public 文本，被剥掉的思考内容
+            # 不进流、不进终态，因此按 chunk 判定既更准也不放松不变量。
             chunk = stream_stripper.feed(delta)
-            if chunk:
-                await on_content_delta(chunk)
+            if not chunk:
+                return
+            # 真实正文 delta：本轮叙述立刻停口，并等在飞的那条叙述发完
+            # （终局轮的正文因此永远是流的严格后缀，且不会被叙述夹碎）。
+            await narrator.note_content_delta()
+            await on_content_delta(chunk)
 
-        while iteration < effective_max_iterations:
-            iteration += 1
+        # Fall-through-to-understanding: after the tool budget is spent without a
+        # final answer, ONE extra closure round runs with tool_choice="none" and
+        # a synthesis instruction, so the turn ends as an answer built from the
+        # evidence already gathered instead of failing closed to the canned
+        # tool_budget_exhausted template (which discarded the whole turn's
+        # retrieval work). Tools stay in the request on the closure round so the
+        # prompt prefix — and provider-side prompt cache — is unchanged; the
+        # server enforces "no more calls" on openai-compat providers (the
+        # production path). The anthropic provider maps "none" to auto today, so
+        # for it this is instruction-level only and the no-execute guard below
+        # is the backstop. Single-round policies keep their only round armed and
+        # are exempt.
+        closure_round_enabled = effective_max_iterations > 1
+        loop_limit = effective_max_iterations + (1 if closure_round_enabled else 0)
+        closure_round = False
+        if owns_narrator:
+            await narrator.start()
+        try:
+            while iteration < loop_limit:
+                iteration += 1
+                closure_round = closure_round_enabled and iteration > effective_max_iterations
+                # 渐进吐字（观察者，零权力）：轮次边界是既有事实，不新增任何 capability 回调。
+                narrator.begin_round()
+                if closure_round:
+                    await narrator.stage("synthesizing")
+                elif iteration == 1:
+                    await narrator.stage("loop_start")
+                else:
+                    await narrator.stage("round_start", iteration=iteration)
 
-            tool_defs = self._resolve_tool_definitions(runtime_metadata)
-            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
-                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
-            elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
-                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
-            elif iteration == 1 and self._prefetched_rag_satisfied(runtime_metadata):
-                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
-                runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
-                if external_runtime_metadata is not None:
-                    external_runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
-            elif rag_saturation:
-                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
-            advertised_tool_names = {
-                str(item.get("function", {}).get("name") or "").strip()
-                for item in tool_defs
-                if isinstance(item, dict) and isinstance(item.get("function"), dict)
-            }
-
-            response = await self.provider.chat_with_retry(
-                messages=messages,
-                tools=tool_defs,
-                model=effective_model,
-                on_content_delta=_stream_delta if on_content_delta else None,
-            )
-            self._record_llm_stream_telemetry(
-                runtime_metadata,
-                response,
-                call_site="agent_loop",
-                iteration=iteration,
-            )
-
-            # Completion authority is checked BEFORE content or tool calls.
-            # A truncated tool-call payload is data, not permission to execute.
-            if self._record_incomplete_response(
-                response,
-                runtime_metadata,
-                external_runtime_metadata,
-            ):
-                final_content = None
-                break
-
-            if response.has_tool_calls:
-                if (
-                    self._prefetched_case_exact_question_can_answer(runtime_metadata)
-                    and not tool_defs
-                ):
-                    if blocked_exact_tool_retry:
-                        exact_question = runtime_metadata.get("_prefetched_exact_question")
-                        fallback = (
-                            self._build_exact_authority_response_sync(exact_question)
-                            if isinstance(exact_question, dict)
-                            else ""
-                        )
-                        if fallback:
-                            final_content = fallback
-                            messages = self.context.add_assistant_message(messages, final_content)
-                            break
-                        # Typed failure: no per-branch surrogate copy — the
-                        # terminal mapper owns the learner-visible text.
-                        self._record_turn_failure(
-                            runtime_metadata,
-                            external_runtime_metadata,
-                            kind="model_empty_answer",
-                            detail="exact-authority tool retry blocked without a fallback answer",
-                        )
-                        final_content = None
-                        break
-                    blocked_exact_tool_retry = True
+                tool_defs = self._resolve_tool_definitions(runtime_metadata)
+                if self._prefetched_case_exact_question_can_answer(runtime_metadata):
+                    tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+                elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
+                    tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+                elif rag_saturation:
+                    tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+                if closure_round:
                     messages = list(messages)
                     messages.append(
-                        {
-                            "role": "system",
-                            "content": (
-                                "本轮案例题原题答案已经完整命中，工具已关闭。"
-                                "不要再调用 rag 或其他工具；请直接把现有原题证据整理成面向学员的最终答案，"
-                                "保留采分点、易错点和记忆口诀。"
-                            ),
-                        }
+                        {"role": "system", "content": self._FINAL_ROUND_SYNTHESIS_PROMPT}
                     )
-                    continue
-                if on_progress:
-                    thought = self._strip_think(response.content)
-                    if thought:
-                        await on_progress(thought)
-                    await on_progress(self._tool_hint(response.tool_calls), tool_hint=True)
+                    runtime_metadata["forced_closure_round"] = iteration
+                    if external_runtime_metadata is not None:
+                        external_runtime_metadata["forced_closure_round"] = iteration
+                advertised_tool_names = {
+                    str(item.get("function", {}).get("name") or "").strip()
+                    for item in tool_defs
+                    if isinstance(item, dict) and isinstance(item.get("function"), dict)
+                }
 
-                tool_call_dicts = [
-                    tc.to_openai_tool_call()
-                    for tc in response.tool_calls
-                ]
-                messages = self.context.add_assistant_message(
-                    messages, response.content, tool_call_dicts,
-                    reasoning_content=response.reasoning_content,
-                    thinking_blocks=response.thinking_blocks,
+                response = await self.provider.chat_with_retry(
+                    messages=messages,
+                    tools=tool_defs,
+                    model=effective_model,
+                    max_tokens=self._DEEP_ANSWER_MAX_TOKENS,
+                    tool_choice="none" if closure_round else None,
+                    on_content_delta=_stream_delta if on_content_delta else None,
+                )
+                self._record_llm_stream_telemetry(
+                    runtime_metadata,
+                    response,
+                    call_site="agent_loop",
+                    iteration=iteration,
                 )
 
-                for tool_call in response.tool_calls:
-                    if tool_call.name not in advertised_tool_names:
-                        logger.warning("Ignoring unadvertised tool call: {}", tool_call.name)
-                        messages = self.context.add_tool_result(
-                            messages,
-                            tool_call.id,
-                            tool_call.name,
-                            f"Error: Tool '{tool_call.name}' is not available in this turn.",
+                # Completion authority is checked BEFORE content or tool calls.
+                # A truncated tool-call payload is data, not permission to execute.
+                if self._record_incomplete_response(
+                    response,
+                    runtime_metadata,
+                    external_runtime_metadata,
+                ):
+                    final_content = None
+                    break
+
+                # Closure round: tool calls are disobedience of tool_choice="none",
+                # not permission to search again. They are never executed and never
+                # accepted as an answer — the accompanying content (if any) is
+                # narration, so the visible-answer repair path below owns recovery.
+                if response.has_tool_calls and not closure_round:
+                    if (
+                        self._prefetched_case_exact_question_can_answer(runtime_metadata)
+                        and not tool_defs
+                    ):
+                        if blocked_exact_tool_retry:
+                            exact_question = runtime_metadata.get("_prefetched_exact_question")
+                            fallback = (
+                                self._build_exact_authority_response_sync(exact_question)
+                                if isinstance(exact_question, dict)
+                                else ""
+                            )
+                            if fallback:
+                                final_content = fallback
+                                messages = self.context.add_assistant_message(messages, final_content)
+                                break
+                            # Typed failure: no per-branch surrogate copy — the
+                            # terminal mapper owns the learner-visible text.
+                            self._record_turn_failure(
+                                runtime_metadata,
+                                external_runtime_metadata,
+                                kind="model_empty_answer",
+                                detail="exact-authority tool retry blocked without a fallback answer",
+                            )
+                            final_content = None
+                            break
+                        blocked_exact_tool_retry = True
+                        messages = list(messages)
+                        messages.append(
+                            {
+                                "role": "system",
+                                "content": (
+                                    "本轮案例题原题答案已经完整命中，工具已关闭。"
+                                    "不要再调用 rag 或其他工具；请直接把现有原题证据整理成面向学员的最终答案，"
+                                    "保留采分点、易错点和记忆口诀。"
+                                ),
+                            }
                         )
                         continue
-                    tools_used.append(tool_call.name)
-                    preview_args = dict(tool_call.arguments or {})
-                    tool = self.tools.get(tool_call.name)
-                    if tool is not None:
-                        try:
-                            preview_args = tool.preview_args(preview_args)
-                        except Exception:
-                            preview_args = dict(tool_call.arguments or {})
-                    args_str = json.dumps(preview_args, ensure_ascii=False)
-                    logger.info("Tool call: {}({})", tool_call.name, args_str[:200])
-                    if on_tool_call:
-                        await on_tool_call(tool_call.name, preview_args)
-                    result = await self.tools.execute(tool_call.name, tool_call.arguments)
-                    tool_trace_metadata: dict[str, Any] | None = None
-                    if tool is not None:
-                        try:
-                            tool_trace_metadata = tool.consume_trace_metadata()
-                        except Exception:
-                            tool_trace_metadata = None
-                    if isinstance(tool_trace_metadata, dict):
-                        exact_candidate = (
-                            tool_trace_metadata.get("exact_question")
-                            if isinstance(tool_trace_metadata.get("exact_question"), dict)
-                            else None
-                        )
-                        if (
-                            exact_candidate
-                            and str(exact_candidate.get("answer_kind") or "").strip().lower() == "case_study"
-                        ):
-                            runtime_metadata["_prefetched_exact_question"] = exact_candidate
-                        if (
-                            exact_authority_override_allowed
-                            and exact_candidate
-                            and self._should_force_exact_authority(exact_candidate)
-                        ):
-                            exact_authority = exact_candidate
-                    if tool_call.name == "rag":
-                        tool_trace_metadata = self._augment_rag_trace_metadata(
-                            preview_args=preview_args,
-                            tool_trace_metadata=tool_trace_metadata,
-                            rag_rounds=rag_rounds,
-                        )
-                        self._record_rag_trace_status(runtime_metadata, tool_trace_metadata)
-                        current_round = (
-                            tool_trace_metadata.get("rag_round")
-                            if isinstance(tool_trace_metadata, dict)
-                            and isinstance(tool_trace_metadata.get("rag_round"), dict)
-                            else None
-                        )
-                        saturation = (
-                            self._build_rag_saturation(
-                                rag_round=current_round,
-                                runtime_metadata=runtime_metadata,
-                            )
-                            if current_round
-                            else None
-                        )
-                        if saturation:
-                            rag_saturation = saturation
-                            tool_trace_metadata["rag_saturation"] = dict(saturation)
-                    elif rag_saturation and isinstance(tool_trace_metadata, dict):
-                        tool_trace_metadata["rag_saturation"] = dict(rag_saturation)
-                    guarded_tool_result = sanitize_untrusted_context(result, source=tool_call.name)
-                    if guarded_tool_result.signals:
-                        result = str(guarded_tool_result.content or "")
-                        if not isinstance(tool_trace_metadata, dict):
-                            tool_trace_metadata = {}
-                        tool_trace_metadata["guardrail_sanitized"] = True
-                        tool_trace_metadata["guardrail_signals"] = list(guarded_tool_result.signals)
-                    if tool_call.name == "rag":
-                        result = normalize_exact_authority_display_text(result)
-                    if on_tool_result:
-                        await on_tool_result(tool_call.name, result, tool_trace_metadata)
-                    messages = self.context.add_tool_result(
-                        messages, tool_call.id, tool_call.name, result
-                    )
-            else:
-                clean = self._strip_think(response.content)
-                if not self._is_user_visible_final_answer(clean):
-                    retry_messages = list(messages)
-                    retry_messages.append(
-                        {
-                            "role": "system",
-                            "content": self._visible_answer_repair_prompt(0),
-                        }
-                    )
-                    retry_parts: list[str] = []
+                    if on_progress:
+                        thought = self._strip_think(response.content)
+                        if thought:
+                            await on_progress(thought)
+                        await on_progress(self._tool_hint(response.tool_calls), tool_hint=True)
 
-                    async def _capture_retry_delta(text: str) -> None:
-                        if text:
-                            retry_parts.append(text)
-
-                    response = await self.provider.chat_with_retry(
-                        messages=retry_messages,
-                        tools=None,
-                        model=effective_model,
-                        on_content_delta=_capture_retry_delta,
-                    )
-                    self._record_llm_stream_telemetry(
-                        runtime_metadata,
-                        response,
-                        call_site="agent_loop_repair",
-                        iteration=iteration,
-                    )
-                    clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
-                    if self._record_incomplete_response(
-                        response,
-                        runtime_metadata,
-                        external_runtime_metadata,
-                    ):
-                        final_content = None
-                        break
-                    if not self._is_user_visible_final_answer(clean):
-                        logger.error("LLM returned no user-visible final answer after retry")
-                        self._record_turn_failure(
-                            runtime_metadata,
-                            external_runtime_metadata,
-                            kind="model_empty_answer",
-                            detail="LLM returned no user-visible final answer after repair",
-                        )
-                        final_content = None
-                    else:
-                        final_content = clean
-                        if on_content_delta and final_content:
-                            await on_content_delta(final_content)
+                    tool_call_dicts = [
+                        tc.to_openai_tool_call()
+                        for tc in response.tool_calls
+                    ]
                     messages = self.context.add_assistant_message(
-                        messages,
-                        final_content,
+                        messages, response.content, tool_call_dicts,
                         reasoning_content=response.reasoning_content,
                         thinking_blocks=response.thinking_blocks,
                     )
+
+                    for tool_call in response.tool_calls:
+                        if tool_call.name not in advertised_tool_names:
+                            logger.warning("Ignoring unadvertised tool call: {}", tool_call.name)
+                            messages = self.context.add_tool_result(
+                                messages,
+                                tool_call.id,
+                                tool_call.name,
+                                (
+                                    f"Error: Tool '{tool_call.name}' is not available in this turn. "
+                                    "不要再调用该工具；请基于已有证据直接作答，或改用当前可用的其他工具。"
+                                ),
+                            )
+                            continue
+                        tools_used.append(tool_call.name)
+                        preview_args = dict(tool_call.arguments or {})
+                        tool = self.tools.get(tool_call.name)
+                        if tool is not None:
+                            try:
+                                preview_args = tool.preview_args(preview_args)
+                            except Exception:
+                                preview_args = dict(tool_call.arguments or {})
+                        args_str = json.dumps(preview_args, ensure_ascii=False)
+                        logger.info("Tool call: {}({})", tool_call.name, args_str[:200])
+                        if on_tool_call:
+                            await on_tool_call(tool_call.name, preview_args)
+                        # 与 on_tool_call 同一时点、同一事实，只是发到可见流而不是进度事件。
+                        await narrator.stage(
+                            "tool_call",
+                            tool=tool_call.name,
+                            index=sum(1 for name in tools_used if name == tool_call.name),
+                        )
+                        result = await self.tools.execute(tool_call.name, tool_call.arguments)
+                        tool_trace_metadata: dict[str, Any] | None = None
+                        if tool is not None:
+                            try:
+                                tool_trace_metadata = tool.consume_trace_metadata()
+                            except Exception:
+                                tool_trace_metadata = None
+                        if isinstance(tool_trace_metadata, dict):
+                            exact_candidate = (
+                                tool_trace_metadata.get("exact_question")
+                                if isinstance(tool_trace_metadata.get("exact_question"), dict)
+                                else None
+                            )
+                            if (
+                                exact_candidate
+                                and str(exact_candidate.get("answer_kind") or "").strip().lower() == "case_study"
+                            ):
+                                runtime_metadata["_prefetched_exact_question"] = exact_candidate
+                            if (
+                                exact_authority_override_allowed
+                                and exact_candidate
+                                and self._should_force_exact_authority(exact_candidate)
+                            ):
+                                exact_authority = exact_candidate
+                        if tool_call.name == "rag":
+                            tool_trace_metadata = self._augment_rag_trace_metadata(
+                                preview_args=preview_args,
+                                tool_trace_metadata=tool_trace_metadata,
+                                rag_rounds=rag_rounds,
+                            )
+                            self._record_rag_trace_status(runtime_metadata, tool_trace_metadata)
+                            current_round = (
+                                tool_trace_metadata.get("rag_round")
+                                if isinstance(tool_trace_metadata, dict)
+                                and isinstance(tool_trace_metadata.get("rag_round"), dict)
+                                else None
+                            )
+                            saturation = (
+                                self._build_rag_saturation(
+                                    rag_round=current_round,
+                                    runtime_metadata=runtime_metadata,
+                                )
+                                if current_round
+                                else None
+                            )
+                            if saturation:
+                                rag_saturation = saturation
+                                tool_trace_metadata["rag_saturation"] = dict(saturation)
+                        elif rag_saturation and isinstance(tool_trace_metadata, dict):
+                            tool_trace_metadata["rag_saturation"] = dict(rag_saturation)
+                        guarded_tool_result = sanitize_untrusted_context(result, source=tool_call.name)
+                        if guarded_tool_result.signals:
+                            result = str(guarded_tool_result.content or "")
+                            if not isinstance(tool_trace_metadata, dict):
+                                tool_trace_metadata = {}
+                            tool_trace_metadata["guardrail_sanitized"] = True
+                            tool_trace_metadata["guardrail_signals"] = list(guarded_tool_result.signals)
+                        if tool_call.name == "rag":
+                            result = normalize_exact_authority_display_text(result)
+                        if on_tool_result:
+                            await on_tool_result(tool_call.name, result, tool_trace_metadata)
+                        await narrator.stage("tool_result", index=len(tools_used))
+                        messages = self.context.add_tool_result(
+                            messages, tool_call.id, tool_call.name, result
+                        )
+                    # Tell the model, don't just hide the tool: silent removal
+                    # caused the retry treadmill of "Tool 'rag' is not available"
+                    # errors (up to 9 per turn in production). Injected ONCE, and
+                    # only AFTER every tool result of this round is appended — a
+                    # system message between assistant(tool_calls) and its tool
+                    # results is a protocol violation OpenAI-strict providers
+                    # reject with 400.
+                    if rag_saturation and not saturation_notice_sent:
+                        saturation_notice_sent = True
+                        messages = list(messages)
+                        messages.append(
+                            {
+                                "role": "system",
+                                "content": (
+                                    "检索已饱和（连续查询高度重复），rag 工具在本轮后停用。"
+                                    "不要再调用 rag；请基于已检索到的证据直接作答。"
+                                ),
+                            }
+                        )
+                else:
+                    clean = (
+                        None
+                        if (closure_round and response.has_tool_calls)
+                        else self._strip_think(response.content)
+                    )
+                    if not self._is_user_visible_final_answer(clean):
+                        # OD-003 根治：结构差异化重试（去工具形态），不再原样递含
+                        # tool_calls 的历史——模型会照着模仿，tools=None 也拦不住。
+                        retry_messages = self._toolless_repair_messages(
+                            messages,
+                            repair_prompt=self._visible_answer_repair_prompt(0),
+                        )
+                        retry_parts: list[str] = []
+
+                        async def _capture_retry_delta(text: str) -> None:
+                            if text:
+                                retry_parts.append(text)
+
+                        response = await self.provider.chat_with_retry(
+                            messages=retry_messages,
+                            tools=None,
+                            model=effective_model,
+                            max_tokens=self._DEEP_ANSWER_MAX_TOKENS,
+                            on_content_delta=_capture_retry_delta,
+                        )
+                        self._record_llm_stream_telemetry(
+                            runtime_metadata,
+                            response,
+                            call_site="agent_loop_repair",
+                            iteration=iteration,
+                        )
+                        # The repair call runs with tools=None: tool calls here are
+                        # protocol disobedience, and their accompanying content is
+                        # narration — never a learner-visible answer.
+                        clean = (
+                            None
+                            if response.has_tool_calls
+                            else self._strip_think(response.content) or "".join(retry_parts).strip() or None
+                        )
+                        if self._record_incomplete_response(
+                            response,
+                            runtime_metadata,
+                            external_runtime_metadata,
+                        ):
+                            final_content = None
+                            break
+                        if not self._is_user_visible_final_answer(clean):
+                            logger.error("LLM returned no user-visible final answer after retry")
+                            self._record_turn_failure(
+                                runtime_metadata,
+                                external_runtime_metadata,
+                                kind="model_empty_answer",
+                                detail="LLM returned no user-visible final answer after repair",
+                            )
+                            final_content = None
+                        else:
+                            final_content = clean
+                            if on_content_delta and final_content:
+                                await on_content_delta(final_content)
+                        messages = self.context.add_assistant_message(
+                            messages,
+                            final_content,
+                            reasoning_content=response.reasoning_content,
+                            thinking_blocks=response.thinking_blocks,
+                        )
+                        break
+                    messages = self.context.add_assistant_message(
+                        messages, clean, reasoning_content=response.reasoning_content,
+                        thinking_blocks=response.thinking_blocks,
+                    )
+                    final_content = clean
                     break
-                messages = self.context.add_assistant_message(
-                    messages, clean, reasoning_content=response.reasoning_content,
-                    thinking_blocks=response.thinking_blocks,
-                )
-                final_content = clean
-                break
+        finally:
+            # 单写者收尾：心跳任务必须在 _process_message 继续发射之前停掉。
+            await narrator.stop()
 
         if final_content is None and iteration >= effective_max_iterations:
             logger.warning("Max iterations ({}) reached", effective_max_iterations)
@@ -2825,8 +4185,19 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+        force_authority_fetch: bool = False,
+        tool_query_override: str | None = None,
+        retrieval_profile: str | None = None,
     ) -> list[dict[str, Any]]:
-        if not self._should_prefetch_grounded_rag(
+        # Idempotency (tier1/2 可达性 2026-07-30): the case-grading direct path
+        # now prefetches BEFORE V1; when it falls through to the normal flow,
+        # the outer call site must not re-run the same retrieval.
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
+        if metadata is not None and metadata.get("_grounded_rag_prefetch_done"):
+            return initial_messages
+        # force_authority_fetch: the case-grading direct admission (授权判据 =
+        # 判分权威缺位且有 kb) 已经裁决过必须取回，通用聊天门无否决权。
+        if not force_authority_fetch and not self._should_prefetch_grounded_rag(
             current_message=current_message,
             runtime_metadata=runtime_metadata,
         ):
@@ -2835,8 +4206,19 @@ class AgentLoop:
         rag_tool = self.tools.get("rag")
         if rag_tool is None:
             return initial_messages
+        if metadata is not None:
+            metadata["_grounded_rag_prefetch_done"] = True
 
         preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
+        # 直批身份检索的查询覆写（1b）：作答文本不参与「这是哪道题」的裁决。
+        if str(tool_query_override or "").strip():
+            preview_args["query"] = str(tool_query_override).strip()
+        # L1 瘦身检索（2026-08-01）：检索深度 profile 透传给统一 pipeline。
+        identity_only = (
+            str(retrieval_profile or "").strip() == RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY
+        )
+        if identity_only:
+            preview_args["retrieval_profile"] = RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
@@ -2844,18 +4226,25 @@ class AgentLoop:
 
         result = await self.tools.execute("rag", preview_args)
         result_text = str(result or "").strip()
-        if not result_text:
-            return initial_messages
-        guarded_context = sanitize_untrusted_context(result_text, source="rag")
-        result_text = normalize_exact_authority_display_text(guarded_context.content)
-        if not result_text:
-            return initial_messages
-        # Project question-bank grounding onto the learner's pasted option surface so
-        # the grading LLM never reads a bank answer LETTER that conflicts with what the
-        # learner sees (value 5% is bank-D but learner-A; the model otherwise anchors on
-        # the bank letter and marks a correct answer wrong). Deterministic + fail-safe:
-        # unchanged when the learner pasted no options or values don't correspond.
-        result_text = project_grounding_text_to_query_surface(result_text, current_message)
+        # 身份 profile 下 pipeline 不再拼装正文，`result_text` 恒空是**正常终态**。
+        # 旧的「空正文 → 直接 return」短路会在 consume_trace_metadata 之前退出，
+        # 把 exact_question 一起丢掉 —— 身份链断在这里就等于 tier3 复发。
+        if not identity_only:
+            if not result_text:
+                return initial_messages
+            guarded_context = sanitize_untrusted_context(result_text, source="rag")
+            result_text = normalize_exact_authority_display_text(guarded_context.content)
+            if not result_text:
+                return initial_messages
+            # Project question-bank grounding onto the learner's pasted option surface so
+            # the grading LLM never reads a bank answer LETTER that conflicts with what the
+            # learner sees (value 5% is bank-D but learner-A; the model otherwise anchors on
+            # the bank letter and marks a correct answer wrong). Deterministic + fail-safe:
+            # unchanged when the learner pasted no options or values don't correspond.
+            result_text = project_grounding_text_to_query_surface(result_text, current_message)
+        else:
+            guarded_context = None
+            result_text = ""
 
         tool_trace_metadata: dict[str, Any] | None = None
         try:
@@ -2867,16 +4256,28 @@ class AgentLoop:
             tool_trace_metadata=tool_trace_metadata if isinstance(tool_trace_metadata, dict) else None,
             rag_rounds=[],
         )
-        if guarded_context.signals:
+        if guarded_context is not None and guarded_context.signals:
             merged_metadata["guardrail_sanitized"] = True
             merged_metadata["guardrail_signals"] = list(guarded_context.signals)
+        if identity_only:
+            # 饱和台账不得被空 sources 轮毒化（L1 陷阱①）。`_source_overlap` 对空
+            # 集合恒返回 None，播种一个空 sources 的 prefetch 轮会让紧随其后的
+            # in-loop 轮拿到不可比的基线（round_index=2 但 overlap=None）→ 该轮
+            # 的重复 query 永远判不出饱和。身份轮本就没检索通用知识，不该占台账
+            # 一格：不播种 = fell-through 轮回到「首个 in-loop 轮 = round 1」的
+            # 原语义，第二轮起 overlap 照常可比。
+            for _ledger_key in ("rag_round", "rag_rounds", "rag_round_count"):
+                merged_metadata.pop(_ledger_key, None)
         self._record_rag_trace_status(runtime_metadata, merged_metadata)
         exact_candidate = (
             merged_metadata.get("exact_question")
             if isinstance(merged_metadata.get("exact_question"), dict)
             else None
         )
-        if isinstance(exact_candidate, dict):
+        if isinstance(exact_candidate, dict) and exact_candidate:
+            # 空壳诚实（1b live 实证）：pipeline 未命中时 trace 元数据带
+            # exact_question: {}，空 dict 冒充命中会让 _prefetched_exact_question
+            # 变成假权威在场（marker 撒谎 + 直批外层幂等闸误判已取回）。非空才写。
             # Project a bank MCQ exact_question onto the LEARNER's pasted option surface
             # before it becomes the grading authority. The bank may store the correct
             # value under a different letter (5% = D in the bank, but the learner pasted
@@ -2908,8 +4309,17 @@ class AgentLoop:
             has_sources = isinstance(sources, list) and bool(sources)
             has_exact_question = isinstance(exact_candidate, dict) and bool(exact_candidate)
             if has_sources or has_exact_question or bool(merged_metadata.get("authority_applied")):
+                # Trace-only marker (no runtime decider since the 2026-07-29
+                # suppression collapse): kept for observability parity.
                 runtime_metadata["prefetched_rag_satisfied"] = True
                 merged_metadata["prefetched_rag_satisfied"] = True
+        if identity_only:
+            # 身份 profile 到此收工：exact_question 已落进 runtime_metadata（判分
+            # 唯一消费者），下面整段是把检索正文注入 messages —— 直通轮无
+            # on_tool_call/on_tool_result 回调，正文只会落进 role:tool 消息，而
+            # session/manager.stable_messages() 丢弃一切非 user/assistant 角色、
+            # 永不回放；fell-through 时外层重建 messages，同样弃置。不注入。
+            return initial_messages
         if on_tool_call:
             await on_tool_call("rag", preview_args)
         if on_tool_result:
@@ -2966,7 +4376,9 @@ class AgentLoop:
                 "content": (
                     "首轮知识召回已完成。请直接基于现有证据回答学员，"
                     "不要复述“我去搜索/我正在查找”这类过程话术；"
-                    "只有当前证据仍明显不足时，才继续调用其他工具。"
+                    "只有当前证据仍明显不足时，才继续调用工具补充检索——"
+                    "补充检索必须针对尚未覆盖的小问换新的检索词，不要重复已检索过的查询；"
+                    "题目含多个小问时，可在同一轮并行发出多条检索（每小问一条）。"
                     + (f"\n{case_exact_instruction}" if case_exact_instruction else "")
                     + (f"\n{retrieval_degraded_instruction}" if retrieval_degraded_instruction else "")
                 ),
@@ -3129,12 +4541,11 @@ class AgentLoop:
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate
                 break
-            call_messages = list(call_messages)
-            call_messages.append(
-                {
-                    "role": "system",
-                    "content": self._visible_answer_repair_prompt(attempt),
-                }
+            # 同 OD-003 纪律：fast policy 的重试也走结构差异化（去工具形态），
+            # 避免同款"被自己历史条件化"的空返回。
+            call_messages = self._toolless_repair_messages(
+                call_messages,
+                repair_prompt=self._visible_answer_repair_prompt(attempt),
             )
 
         if final_content is None and not isinstance(runtime_metadata.get("turn_failure"), dict):
@@ -3804,6 +5215,7 @@ class AgentLoop:
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
     ) -> OutboundMessage | None:
         """Process a single inbound message and return the response."""
         # System messages: parse origin from chat_id ("channel:chat_id")
@@ -4048,7 +5460,35 @@ class AgentLoop:
                     ),
                 )
 
-        guard = classify_tutorbot_user_input(current_message)
+        # 入口闸的主语只能是「学生真实提交」——单一权威是 persist_user_content
+        # (= metadata.raw_user_message，见 4824-4825 与 _case_submission_surface 的同一口径)。
+        # 绝不能是 runtime 组装出来的 current_message：后者由 turn_runtime 的 context pack
+        # 拼成（`## 参考证据` / `### 当前题目` / `### 局部工作记忆投影` + `## 当前用户问题`，
+        # 见 services/session/turn_runtime.py:_render_evidence_block / 4137-4153），里面全是
+        # **本系统自己注入的内部上下文**。classify_user_input 的模式族是为「学生索取内部状态」
+        # 设计的，拿它去审自己注入的章节标题必然自证有罪。
+        #
+        # 2026-07-31 test2 SEV（整卷案例提交被确定性拒答）根因即此：
+        #   1. 判分正文以「…现在按小问逐条批改你的作答。」开头，被 turn_runtime 的 post-turn
+        #      回写存进 overlay.working_memory_projection；
+        #   2. 下一轮该文本被注入成 `### 局部工作记忆投影\n…现在按小问逐条…`，命中
+        #      internal_learner_memory_extraction（标签 + 48 字内的「逐条」）；
+        #   3. 闸吐 INTERNAL_INFO_REFUSAL_ZH，拒答又被回写进 working_memory，
+        #      而拒答自身含「…发给我」同样命中 → 吸收态，该学员此后每一轮都被拒答。
+        # 注入上下文的权威是 sanitize_untrusted_context（只消毒、绝不拦），不是入口闸。
+        #
+        # R1 补刀（task#26，2026-08-01）：主语从 persist_user_content 收严到
+        # ``_case_submission_surface``。persist_user_content 是**持久化**主语
+        # （`raw or current_message`），它对没有 raw 的通道（CLI / 直调 process_direct /
+        # 任何不写 metadata.raw_user_message 的入口）会**整条退回信封**——上面那条
+        # SEV 的吸收态在这些通道上理论可复现，只是 test2 走的是有 raw 的微信通道所以
+        # 先在那里爆。判分面早已用 ``_case_submission_surface`` 的三段回退把信封剥掉，
+        # 入口闸没跟上就是同一份「本轮学生真实提交」有两个口径。
+        # 这一改**只收严不放松**：三段回退里 raw 与信封剥离都比 persist_user_content
+        # 更接近学生原文；真的没有信封结构时第三段仍是 current_message 逐字（无 raw 的
+        # 裸消息通道行为不变，攻击照拦）。持久化主语不动，仍是 persist_user_content。
+        guard_subject = self._case_submission_surface(msg.metadata, current_message)
+        guard = classify_tutorbot_user_input(guard_subject)
         if guard.blocked:
             refusal = guard.content or ""
             session.add_message(
@@ -4208,47 +5648,146 @@ class AgentLoop:
                 metadata=response_metadata,
             )
 
-        initial_messages = self.context.build_messages(
-            history=history,
-            current_message=current_message,
-            media=msg.media if msg.media else None,
-            channel=msg.channel, chat_id=msg.chat_id,
-            runtime_instruction=runtime_instruction,
-        )
-        initial_messages = await self._maybe_prefetch_grounded_rag(
-            initial_messages=initial_messages,
-            current_message=current_message,
+        # 降级答案要静音时，叙述同样静音 —— 判据上提到预取之前（纯函数、同参数，语义不变），
+        # 因为 narrator 现在比这行原来的位置起得更早。
+        suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
+            user_message=current_message,
             runtime_metadata=runtime_metadata,
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
         )
-        initial_messages = await self._maybe_prefetch_web_search(
-            initial_messages=initial_messages,
-            current_message=current_message,
-            runtime_metadata=runtime_metadata,
-            force=self._should_force_web_search_after_exact_prefetch(runtime_metadata),
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
+        # 通用道渐进吐字的**覆盖窗口**（2026-08-01 live 修正）：narrator 原先只活在
+        # _run_agent_loop 里，而 loop 之前还压着 _maybe_prefetch_grounded_rag /
+        # _maybe_prefetch_web_search 两段重检索 —— 学生盯的十几秒空屏大半发生在这里，
+        # 那时候 narrator 还没出生。这里把它提前到预取之前起，并原样交给 _run_agent_loop
+        # 复用（单写者不变：全程只有这一个 narrator）。
+        narration_sink = on_progress_narration or (
+            None if suppress_agent_stream else on_content_delta
         )
-        prefetched_exact_authority = self._prefetched_exact_authority_candidate(
-            runtime_metadata,
-            current_message=current_message,
+
+        async def _emit_prefetch_progress(text: str) -> None:
+            await self._emit_visible_text_deltas(text, narration_sink)
+
+        general_lane_narrator = _GeneralLaneProgressNarrator(
+            _emit_prefetch_progress if narration_sink is not None else None,
+            enabled=_general_lane_sequenced_emit_enabled(),
         )
-        if prefetched_exact_authority:
-            final_content = await self._build_exact_authority_response(
-                prefetched_exact_authority,
-                runtime_metadata=runtime_metadata,
-                user_message=current_message,
+        await general_lane_narrator.start()
+        try:
+            await general_lane_narrator.stage("retrieval_prefetch")
+            initial_messages = self.context.build_messages(
+                history=history,
+                current_message=current_message,
+                media=msg.media if msg.media else None,
+                channel=msg.channel, chat_id=msg.chat_id,
+                runtime_instruction=runtime_instruction,
             )
-            if final_content:
+            initial_messages = await self._maybe_prefetch_grounded_rag(
+                initial_messages=initial_messages,
+                current_message=current_message,
+                runtime_metadata=runtime_metadata,
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+            )
+            initial_messages = await self._maybe_prefetch_web_search(
+                initial_messages=initial_messages,
+                current_message=current_message,
+                runtime_metadata=runtime_metadata,
+                force=self._should_force_web_search_after_exact_prefetch(runtime_metadata),
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+            )
+            prefetched_exact_authority = self._prefetched_exact_authority_candidate(
+                runtime_metadata,
+                current_message=current_message,
+            )
+            if prefetched_exact_authority:
+                final_content = await self._build_exact_authority_response(
+                    prefetched_exact_authority,
+                    runtime_metadata=runtime_metadata,
+                    user_message=current_message,
+                )
+                if final_content:
+                    final_content = await self._finalize_visible_answer(
+                        final_content,
+                        user_message=current_message,
+                        runtime_metadata=runtime_metadata,
+                        finalize_path="prefetched_authority",
+                    )
+                    all_msgs = self.context.add_assistant_message(initial_messages, final_content)
+                    await self._emit_visible_text_deltas(final_content, on_content_delta)
+                    self._save_turn(
+                        session,
+                        all_msgs,
+                        1 + len(history),
+                        persist_user_content=persist_user_content,
+                    )
+                    session.metadata["last_exact_fast_path"] = False
+                    self.sessions.save(session)
+                    await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+                    preview = (
+                        final_content[:120] + "..."
+                        if len(final_content) > 120
+                        else final_content
+                    )
+                    logger.info(
+                        "Prefetched exact authority response to {}:{}: {}",
+                        msg.channel,
+                        msg.sender_id,
+                        preview,
+                    )
+                    response_metadata = dict(msg.metadata or {})
+                    self._export_case_grading_metadata(runtime_metadata, response_metadata)
+                    self._export_content_truth_metadata(runtime_metadata, response_metadata)
+                    return OutboundMessage(
+                        channel=msg.channel,
+                        chat_id=msg.chat_id,
+                        content=final_content,
+                        metadata=response_metadata,
+                    )
+            if response_mode == "fast":
+                suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
+                    user_message=current_message,
+                    runtime_metadata=runtime_metadata,
+                )
+                final_content, all_msgs, streamed_text = await self._run_fast_policy_once(
+                    initial_messages,
+                    runtime_metadata=runtime_metadata,
+                    on_content_delta=None if suppress_fast_stream else on_content_delta,
+                )
+                turn_failure = runtime_metadata.get("turn_failure")
+                if final_content is None and isinstance(turn_failure, dict) and str(
+                    turn_failure.get("kind") or ""
+                ).strip():
+                    self._save_turn(
+                        session,
+                        all_msgs,
+                        1 + len(history),
+                        persist_user_content=persist_user_content,
+                    )
+                    session.metadata["last_exact_fast_path"] = False
+                    self.sessions.save(session)
+                    response_metadata = dict(msg.metadata or {})
+                    self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+                    response_metadata["turn_failure"] = dict(turn_failure)
+                    return OutboundMessage(
+                        channel=msg.channel,
+                        chat_id=msg.chat_id,
+                        content="",
+                        metadata=response_metadata,
+                    )
+                if final_content is None:
+                    final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
                 final_content = await self._finalize_visible_answer(
                     final_content,
                     user_message=current_message,
                     runtime_metadata=runtime_metadata,
-                    finalize_path="prefetched_authority",
+                    finalize_path="fast_policy",
                 )
-                all_msgs = self.context.add_assistant_message(initial_messages, final_content)
-                await self._emit_visible_text_deltas(final_content, on_content_delta)
+                if all_msgs:
+                    all_msgs[-1]["content"] = final_content
+                if streamed_text and final_content.startswith(streamed_text):
+                    await self._emit_visible_text_deltas(final_content[len(streamed_text):], on_content_delta)
+                elif not streamed_text:
+                    await self._emit_visible_text_deltas(final_content, on_content_delta)
                 self._save_turn(
                     session,
                     all_msgs,
@@ -4258,18 +5797,10 @@ class AgentLoop:
                 session.metadata["last_exact_fast_path"] = False
                 self.sessions.save(session)
                 await self.memory_consolidator.maybe_consolidate_by_tokens(session)
-                preview = (
-                    final_content[:120] + "..."
-                    if len(final_content) > 120
-                    else final_content
-                )
-                logger.info(
-                    "Prefetched exact authority response to {}:{}: {}",
-                    msg.channel,
-                    msg.sender_id,
-                    preview,
-                )
+                preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
+                logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
                 response_metadata = dict(msg.metadata or {})
+                self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
                 self._export_case_grading_metadata(runtime_metadata, response_metadata)
                 self._export_content_truth_metadata(runtime_metadata, response_metadata)
                 return OutboundMessage(
@@ -4278,99 +5809,34 @@ class AgentLoop:
                     content=final_content,
                     metadata=response_metadata,
                 )
-        if response_mode == "fast":
-            suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
-                user_message=current_message,
-                runtime_metadata=runtime_metadata,
-            )
-            final_content, all_msgs, streamed_text = await self._run_fast_policy_once(
+
+            async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
+                meta = dict(msg.metadata or {})
+                meta["_progress"] = True
+                meta["_tool_hint"] = tool_hint
+                await self.bus.publish_outbound(OutboundMessage(
+                    channel=msg.channel, chat_id=msg.chat_id, content=content, metadata=meta,
+                ))
+
+            final_content, _, all_msgs = await self._run_agent_loop(
                 initial_messages,
                 runtime_metadata=runtime_metadata,
-                on_content_delta=None if suppress_fast_stream else on_content_delta,
+                on_progress=on_progress or _bus_progress,
+                on_content_delta=None if suppress_agent_stream else on_content_delta,
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+                allow_exact_authority_override=(
+                    prepare_exact_question_probe(self._resolve_tool_query(current_message, runtime_metadata)) is not None
+                    and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
+                    and not self._is_question_review_scene(runtime_metadata)
+                ),
+                on_progress_narration=on_progress_narration,
+                narrator=general_lane_narrator,
             )
-            turn_failure = runtime_metadata.get("turn_failure")
-            if final_content is None and isinstance(turn_failure, dict) and str(
-                turn_failure.get("kind") or ""
-            ).strip():
-                self._save_turn(
-                    session,
-                    all_msgs,
-                    1 + len(history),
-                    persist_user_content=persist_user_content,
-                )
-                session.metadata["last_exact_fast_path"] = False
-                self.sessions.save(session)
-                response_metadata = dict(msg.metadata or {})
-                self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
-                response_metadata["turn_failure"] = dict(turn_failure)
-                return OutboundMessage(
-                    channel=msg.channel,
-                    chat_id=msg.chat_id,
-                    content="",
-                    metadata=response_metadata,
-                )
-            if final_content is None:
-                final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-            final_content = await self._finalize_visible_answer(
-                final_content,
-                user_message=current_message,
-                runtime_metadata=runtime_metadata,
-                finalize_path="fast_policy",
-            )
-            if all_msgs:
-                all_msgs[-1]["content"] = final_content
-            if streamed_text and final_content.startswith(streamed_text):
-                await self._emit_visible_text_deltas(final_content[len(streamed_text):], on_content_delta)
-            elif not streamed_text:
-                await self._emit_visible_text_deltas(final_content, on_content_delta)
-            self._save_turn(
-                session,
-                all_msgs,
-                1 + len(history),
-                persist_user_content=persist_user_content,
-            )
-            session.metadata["last_exact_fast_path"] = False
-            self.sessions.save(session)
-            await self.memory_consolidator.maybe_consolidate_by_tokens(session)
-            preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
-            logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
-            response_metadata = dict(msg.metadata or {})
-            self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
-            self._export_case_grading_metadata(runtime_metadata, response_metadata)
-            self._export_content_truth_metadata(runtime_metadata, response_metadata)
-            return OutboundMessage(
-                channel=msg.channel,
-                chat_id=msg.chat_id,
-                content=final_content,
-                metadata=response_metadata,
-            )
-
-        suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
-            user_message=current_message,
-            runtime_metadata=runtime_metadata,
-        )
-
-        async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
-            meta = dict(msg.metadata or {})
-            meta["_progress"] = True
-            meta["_tool_hint"] = tool_hint
-            await self.bus.publish_outbound(OutboundMessage(
-                channel=msg.channel, chat_id=msg.chat_id, content=content, metadata=meta,
-            ))
-
-        final_content, _, all_msgs = await self._run_agent_loop(
-            initial_messages,
-            runtime_metadata=runtime_metadata,
-            on_progress=on_progress or _bus_progress,
-            on_content_delta=None if suppress_agent_stream else on_content_delta,
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
-            allow_exact_authority_override=(
-                prepare_exact_question_probe(self._resolve_tool_query(current_message, runtime_metadata)) is not None
-                and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
-                and not self._is_question_review_scene(runtime_metadata)
-            ),
-        )
+        finally:
+            # 早退路径（fast policy / typed failure）也必须收尾：心跳任务不许活过本轮。
+            # _run_agent_loop 内部的 stop() 是幂等的，正常路径走到这里已是 no-op。
+            await general_lane_narrator.stop()
 
         if final_content is None:
             turn_failure = runtime_metadata.get("turn_failure")
@@ -4501,6 +5967,7 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         metadata: dict[str, Any] | None = None,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
     ) -> str:
         """Process a message directly (for CLI or cron usage)."""
         await self._connect_mcp()
@@ -4523,6 +5990,7 @@ class AgentLoop:
             on_content_delta=on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
+            on_progress_narration=on_progress_narration,
         )
         if (
             isinstance(metadata, dict)

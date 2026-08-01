@@ -970,8 +970,14 @@ class TutorBotManager:
         session_key: str | None = None,
         session_metadata: dict[str, Any] | None = None,
         raw_user_content: str | None = None,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
     ) -> str:
-        """Send a message to a running bot and return the response."""
+        """Send a message to a running bot and return the response.
+
+        ``on_progress_narration`` 是**渐进吐字专用 sink**（sanctioned narration），与
+        ``on_content_delta`` 落在同一个 public buffer、同一顺序，只是让 capability 侧能
+        区分「我们自己发的进度叙述」与「模型正文」，从而不被起流闸扣住。缺省时退回
+        ``on_content_delta``，行为与未接线时一致。"""
         instance = self._bots.get(bot_id)
         if not instance or not instance.running:
             raise RuntimeError(f"Bot '{bot_id}' is not running")
@@ -1198,6 +1204,7 @@ class TutorBotManager:
                         on_tool_call=_tool_call,
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
+                        on_progress_narration=on_progress_narration,
                     )
                     for metadata_key in (
                         "question_lifecycle_scene",
@@ -1215,6 +1222,9 @@ class TutorBotManager:
                         # keys above) so the result event + offline review agent can see them.
                         "content_truth_guard_applied",
                         "content_truth_low_confidence_claims",
+                        # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）：
+                        # "lecture_pack:<unit_ids>" | "demoted_no_authority"。
+                        "mnemonic_authority_source",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1227,6 +1237,11 @@ class TutorBotManager:
                         trace_metadata["turn_failure"] = runtime_metadata["turn_failure"]
                     copy_current_case_grading_turn_metadata(runtime_metadata, trace_metadata)
                     copy_current_case_grading_turn_metadata(runtime_metadata, merged_metadata)
+                    # 观测对称律（1b 2026-07-30）：trace 顶层导出不在此处——生产根
+                    # span 是 WS 层 turn.runtime，其顶层 metadata 由
+                    # turn_runtime._summarize_assistant_events 从 result event 提升
+                    # （case 判分权威键已入其 lift 清单）。manager 侧只负责把键送进
+                    # result event（上面的 session_metadata 桥）与本层 span metadata。
                     if any(
                         item.get("name") == "web_search"
                         for item in tool_trace_summary["tool_calls"]
@@ -1342,6 +1357,8 @@ class TutorBotManager:
                             # result_payload allow-list can export the low-confidence claims.
                             "content_truth_guard_applied",
                             "content_truth_low_confidence_claims",
+                            # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+                            "mnemonic_authority_source",
                             # 律4 typed failure marker → capability result_payload.
                             "turn_failure",
                         ):

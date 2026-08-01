@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, unquote, urlsplit
 
 try:
     from scripts.wallet_authority_common import (
@@ -25,6 +27,33 @@ except ModuleNotFoundError:
         utc_now_iso,
         write_json,
     )
+
+
+_AUDIT_DB_URL_KEYS = ("SUPABASE_DB_URL", "DATABASE_URL", "DB_URL")
+
+
+def _psql_environment(db_url: str) -> dict[str, str]:
+    parsed = urlsplit(db_url)
+    if parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname:
+        raise ValueError("wallet projection audit requires a PostgreSQL URL")
+    database = unquote(parsed.path.lstrip("/"))
+    if not database:
+        raise ValueError("wallet projection audit database name is missing")
+
+    env = dict(os.environ)
+    env.update(
+        {
+            "PGHOST": parsed.hostname,
+            "PGPORT": str(parsed.port or 5432),
+            "PGDATABASE": database,
+            "PGUSER": unquote(parsed.username or ""),
+            "PGPASSWORD": unquote(parsed.password or ""),
+        }
+    )
+    query = dict(parse_qsl(parsed.query, keep_blank_values=False))
+    if query.get("sslmode"):
+        env["PGSSLMODE"] = query["sslmode"]
+    return env
 
 
 def build_wallet_projection_audit_sql(*, limit: int = 100) -> str:
@@ -285,7 +314,7 @@ def audit_wallet_projection_consistency(
         "sql_preview": sql,
     }
     if not env.postgres_enabled:
-        summary["reason"] = "DATABASE_URL or SUPABASE_DB_URL is required"
+        summary["reason"] = "SUPABASE_DB_URL, DATABASE_URL, or DB_URL is required"
         write_json(summary_path, summary)
         return summary
     if not execute:
@@ -293,12 +322,29 @@ def audit_wallet_projection_consistency(
         write_json(summary_path, summary)
         return summary
 
-    completed = run_command(["psql", env.db_url, "-Atqc", sql], check=True)
-    payload = json.loads((completed.stdout or "{}").strip() or "{}")
+    readonly_sql = "\n".join(
+        (
+            "begin transaction read only;",
+            "select current_setting('transaction_read_only');",
+            sql,
+            "rollback;",
+        )
+    )
+    completed = run_command(
+        ["psql", "-v", "ON_ERROR_STOP=1", "-Atq"],
+        env=_psql_environment(env.db_url),
+        input_text=readonly_sql,
+        check=True,
+    )
+    output_lines = [line.strip() for line in (completed.stdout or "").splitlines() if line.strip()]
+    if not output_lines or output_lines[0] != "on":
+        raise RuntimeError("wallet projection audit database session is not read-only")
+    payload = json.loads(output_lines[-1] if len(output_lines) > 1 else "{}")
     summary = {
         "generated_at": utc_now_iso(),
         "limit": limit,
         "status": "ok",
+        "transaction_read_only": True,
         "result": payload,
     }
     write_json(summary_path, summary)
@@ -315,12 +361,12 @@ def main() -> int:
     output_dir = Path(args.output_dir).expanduser() if args.output_dir else repo_root / "artifacts" / "wallet_authority" / "projection_audit"
     summary = audit_wallet_projection_consistency(
         output_dir=output_dir,
-        env=resolve_wallet_env(repo_root=repo_root),
+        env=resolve_wallet_env(repo_root=repo_root, db_url_keys=_AUDIT_DB_URL_KEYS),
         limit=args.limit,
         execute=args.execute,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-    return 0
+    return 0 if summary.get("status") in {"ok", "dry_run"} else 2
 
 
 if __name__ == "__main__":

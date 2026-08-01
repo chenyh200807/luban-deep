@@ -47,6 +47,13 @@ assert(
   "chat light focus strip should not reuse low-contrast yellow text",
 );
 assert(
+  /\.page\.light\s+\.callout-tag-conclusion\s*\{\s*color:\s*#92400e;\s*background:\s*#fef3c7;\s*border:\s*1rpx solid #fcd34d;\s*\}/.test(chatWxss) &&
+    /\.page\.light\s+\.callout-tag-warning\s*\{\s*color:\s*#b91c1c;\s*background:\s*#fee2e2;\s*border:\s*1rpx solid #fca5a5;\s*\}/.test(chatWxss) &&
+    /\.page\.light\s+\.callout-tag-highlight\s*\{\s*color:\s*#1d4ed8;\s*background:\s*#dbeafe;\s*border:\s*1rpx solid #93c5fd;\s*\}/.test(chatWxss) &&
+    /\.page\.light\s+\.callout-tag-tip\s*\{\s*color:\s*#047857;\s*background:\s*#d1fae5;\s*border:\s*1rpx solid #6ee7b7;\s*\}/.test(chatWxss),
+  "old-blue light callout tags should use fully opaque semantic colors instead of dark-mode alpha styles",
+);
+assert(
   !/\.page\.light\s+\.usage-meter-fill\s*\{\s*background:\s*#111827;/.test(chatWxss),
   "chat light usage meter should not render as a black bar",
 );

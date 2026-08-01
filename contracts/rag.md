@@ -85,6 +85,32 @@
 41. `general_knowledge_context` 是 TutorBot / Chat agent runtime 的只读 compiled teaching overlay，只能显式 opt-in 或受控 cohort 启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.general_knowledge` 生成 pack/grounding，不得新建第二套 RAG、KB registry、taxonomy、learner memory 或 context schema。该 overlay 只能作为 LLM 教学上下文和 compact result metadata，不得写 canonical learner truth、不得成为 official grading key、不得覆盖 `RAGService` citations / exact-question / 标准条文 authority；低置信、域外或 active question 场景必须 fail-open 回原 RAG / grading 链路。
 42. `lecture_answer_method_context` / `luban_lecture_answer_method_context` 是 TutorBot runtime 的只读讲义答题方法 overlay，默认可对一建建筑实务高命中考试问答启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.lecture_answer_methods` 从 tracked all8 `runtime_supply` manifest 生成 pack/grounding，不得扫散乱 artifacts、不得新建第二套 RAG/KB/taxonomy/learner-memory authority。该 overlay 只能提供采分关键词、陷阱/红线、口诀、公式/适用条件和 source-bounded 联想；不得成为 official answer key、不得给标准分、不得写 canonical learner truth；域外、低置信或 active question / exact-question / grading 场景必须 fail-open 回原 authority。
 43. `SupabasePipeline` 的延迟杠杆（Battle2 S1-C）只允许在保持 §4 语义契约不变的前提下裁剪耗时，不得改变检索真相或成为新的路由 authority：(a) `search_unified` 超时预算按实测成功 p95 校准（默认 6.0s，registry 可配），超时必须走既有 typed `RAGSearchError` fail-closed 语义，不得静默空成功；(b) 批量 embedding 与 q0 检索的双 RPC 允许合并为单次 fanout，但逐字段输出必须与拆分路径一致（oracle 一致性门保证）；(c) `rerank` document cap 默认 0（关闭 doc 级 rerank），开启时只做 bounded 截断，不得改变 exact-question / 标准 / 教材的 authority order；(d) source 可用性探测（availability probe）走 SWR memo 出热路径，stale 值只用于避让不可用 source group，绝不据此把项目级不可用（§16 的 402/quota）降级成普通 warning。以上杠杆全部 fail-open / fail-closed 语义保持不变，仅减少每轮检索的时钟耗时。
+44. `retrieval_profile` 是**检索深度声明**（L1 瘦身检索，2026-08-01），不是第二条检索入口、不是路由 authority、不是 TutorBot mode：调用方声明「这一轮我消费什么」，统一 pipeline 在**同一条管线内**按 profile 短路，不得为某个 profile 分叉出平行检索函数。命名单一权威 = `deeptutor/services/rag/retrieval_profiles.py`。
+    - 缺省（空）= 全量管线，逐字节旧行为。模型自发的 in-loop `rag` 调用永远不带该键。
+    - `case_grading_identity`：案例判分直通轮的身份检索。**只允许裁剪产物加工**——全文水合（`_hydrate_sources`）、`_rerank_results`、`_enforce_doc_diversity`、`build_ranking_trace` 的候选面、`content` 拼装、`source_items` 构造、以及 `questions_bank` 以外的 source 检索（textbook/standard/exam 及其派生的 `standard_code_exact` / `standard_precision`）。
+    - **不得裁剪身份与分母命脉**：exact 文本探针批（`_search_exact_question_text_batch`）、`questions_bank` 向量检索及由其客户端派生的 `question_exact_vector`、`case_like` 强制 second pass（`covered_subquestions` / `covered_indexes` 的主要来源 = 判分分母，砍它即 P0 兜底满分病复发）、以及 `_extract_exact_question_payload` / `_augment_case_exact_question_with_query` / `_project_mcq_exact_question_to_query_surface` 三件套。同一道题在 lean 与 full 下的 `exact_question` 必须逐字段相同。
+    - **空 `content`/`sources` 是该 profile 的正常终态，不是降级**：`retrieval_degraded` / `retrieval_status` 仍只由 `retrieval_warnings` 判定；任何消费方不得因为 sources 为空把该轮标成降级（会点亮降级闸把正常判分回答降成「证据不足」）。
+    - 该 profile 的轮次不进 `rag_saturation` 台账（空 sources 会让 `_source_overlap` 恒 `None`，播种它反而毒化下一轮的比较基线）；fell-through 轮的饱和判据回到「首个 in-loop 轮 = round 1」。
+    - 观测：`evidence_bundle.performance_policy.retrieval_profile` + 结果顶层 `retrieval_profile`；TutorBot 侧逐轮导出 `case_direct_rag_profile ∈ {lean, full}`。kill switch `LUBAN_CASE_DIRECT_LEAN_RAG`（默认 ON，off 回全量）。
+
+45. **`case_group_id` 是案例题「题级归属」的唯一权威键，且是不可变 id**（方案 C / C2，2026-08-01 回填上线）。`public.questions_bank` 的四列 `case_group_id` / `case_subquestion_index` / `case_row_granularity` / `case_row_canonical` 构成该 authority，硬约束如下：
+
+    - **(a) id 合同（不可变 + 只追加）**：`case_group_id = {exam_year}-case{N}`。**一经写入即不可变**；同年新增题级组只能取该年当前 `max(N)+1`，**绝不重排既有 N**，即使发现漏题、发现 N 的页序推导有误也不重排（要纠正就新开一个组 id 并把旧组标废，不原地改号）。理由：`{year}-case{N}` 的 N 派生自年内页序排序，一次重排会让所有已消费该 id 的 trace、错题本、评分记录、eval 金标同时指错题——**排序派生的可读 id 只有在冻结后才能当 authority**。`case_group_id` 的年份前缀必须恒等于该行 `exam_year`，一个组不得跨年。
+    - **(b) 行粒度分叉**：`case_row_granularity ∈ {subquestion, whole_question}`。`whole_question` 行本身已含该案例全部小问，`case_subquestion_index` 必须为 NULL，消费方命中它时**不得再发兄弟行查询**；`subquestion` 行才走按组取全。粒度是数据事实，不是启发式——不得用题干长度、序号个数在运行时重判。
+    - **(c) `case_row_canonical` 三态，NULL ≠ false**：同一 `(case_group_id, case_subquestion_index)` 存在多个入库世代时，`true` = 收权行，`false` = 同格被收权的重复行，**`NULL` = 尚未裁决**（同格答案文本冲突，等人审）。消费方**不得把 NULL 当 false 过滤掉**——那会让存在答案冲突的小问在 bundle 里整个消失，把「有争议」静默变成「没这一问」。正确姿势：`canonical is not false`，并对 NULL 格标记 `case_answer_conflict_unresolved` 进 trace，宁可少给标准答案也不得假装该小问不存在。
+    - **(d) 只增不改既有列**：题级归属回填只写这四列，不得借机改写 `stem` / `correct_answer` / `question_type` / `source_chunk_id`。`question_type='case_study'` 今天仍混装真题案例行与教材/讲义自动生成的单问考核题（2026-08-01 实测 1959 行里 1574 行属后者），**`case_group_id IS NULL` 不代表「不是案例」**，只代表题级归属未建；消费方遇 NULL 必须 fail-open 回单行 bundle 并写 `case_bundle_hydration="skipped:null_group_key"`，不得据此反推 `question_type`。
+    - **(e) 组边界的可证伪性**：`case_group_id` 的组边界来自背景正文指纹合并，**它是可错的**，因此不得单独充当 identity 裁决。案例行晋升可见官方答案仍须走 §32b 的 `exact_question_identity_corresponds`；`case_group_id` 只负责「取全同组」，不负责「这是不是学员这道题」。
+    - 回填执行与证据：`docs/原始数据/数据盘点/2026-08-01-方案C-C2回填执行.md`；DDL：`supabase/migrations/20260801000100_questions_bank_case_group.sql`。
+
+46. **治理组 bundle 的参考答案必须以 per-问结构进判分核，且每小问独立封顶**（OD-005，2026-08-01 live 实证：整卷 4 问粘贴 + 只答问 1，在 C3 全覆盖参考下三轮两轮 10/10）。
+
+    - **(a) 不得拼接后自由抽取**：`case_bundle_source=group_query` 的 bundle，其 items 自带 `display_index` + `authoritative_answer`。判分 ctx 必须导出 `case_reference_subquestions=[{index, answer}, ...]`（单一产出点 = `AgentLoop._current_case_reference_from_context` 的同一次采纳循环；旧的 `correct_answer` 拼接串保留作非治理路径与向后兼容面，两者同源）。把 N 问答案 `"\n".join` 成一段再做**一次**开放世界抽取，点位分布不受任何约束——抽出的点恰好集中在学生已答的那一问时，命中即满分，而参考全覆盖 ⇒ `scope_ratio=1` ⇒ 整题范围封顶根本不介入。这是**正确性缺陷**，不是效率问题。
+    - **(b) 每问独立抽取**：每问的 `extract_rubric_from_reference_async` 只喂该问的 `authoritative_answer`，题面只喂该问（`case_subquestion_stem`，切不出时 fail-open 回整题题面）。点的 `question_no` 由**结构化事实**（答案来自哪一问）确定性盖章，不采信 LLM 自报。多次抽取各自产出 `P1..Pn`，`point_id` 必须加问号前缀 —— 不加则跨问撞键，verdicts 按 point_id 索引会静默错绑判分。
+    - **(c) 每问独立封顶**：每问名义满分 = 整题名义满分 ÷ 题面小问数（`questions_bank` 行不带 per-问分值，均分是当前唯一确定性依据）；每问得分 = `min(Σ该问命中, 该问名义满分)`，总分 = Σ 各问 capped，对外分母恒为整题名义满分。**写分者仍只有 `rubric_grader_v1.finalize_case_score` 一个**（codex 不变量审计 §2.1）——逐问封顶作为它的入参 `subquestion_caps`，与整题范围封顶串联，调用方不得自行改分。
+    - **(d) 未答的小问自然得零**：没答的问其点位全 miss ⇒ 该问 0 分。**不得**引入「哪几问已答」的第二判定权威（切学生作答、数编号、LLM 判定）——点位分布本身就是判定，多一张名单就多一处会漂的权威。
+    - **(e) 抽取失败 = 该问未覆盖，不是零分连坐**：某问抽取失败/空时，该问不进封顶表也不贡献点位，等价于「参考没覆盖这一问」，分母仍是整题名义满分（学生看到诚实的部分覆盖），不得把整轮判分打成 0 或降级拒答。
+    - **(f) 非治理路径不变**：`case_reference_subquestions` 少于 2 问（单行兄弟行 / 库外 tier-3 / 学生自带参考）一律回落既有整段抽取 + `scope_ratio` 整题封顶路径，逐字节旧行为。
+    - 观测：`case_per_subq_grading`（"有点位的小问数/题面小问数"，空 = 走了旧整段链）、`case_subq_score_caps`（`q1:2.5,...`）、`case_subq_score_capped` / `case_subq_capped_from`（封顶真的咬到时）；判决面 `adjudication_strategy=dynamic_parallel_subquestion_groups`（一组 = 一问，逐组发射即「问 k 判完」）。kill switch `LUBAN_CASE_PER_SUBQ_GRADING`（默认 ON，off 逐字回旧形状）。
 
 ## 当前统一语义
 
@@ -92,6 +118,23 @@
 - `exact_question.answer_kind`
 - `exact_question.case_bundle`
 - `exact_question.coverage_state`
+- `exact_question.question_id`（tier1/2 可达性 2026-07-30：payload 顶层显式身份键；
+  连同 `source_chunk_id`/`exam_year` 构成 pgo 复合 qid
+  `{exam_year}::{source_chunk_id}::E{n}` 的原料——消费方是判分 ctx 组装，
+  不得作为路由/relevance 信号）
+
+32c. case 粘贴的 exact 可达性两不变量（1b 2026-07-30，live 实证在库案例恒 miss 的两处根因）：
+  ① `classify_query_shape` 中结构性 case 证据（`_looks_like_case_study`：≥80字+背景资料+问题N）
+  必须先于弱 MCQ 题干启发（`_MCQ_STEM_RE` 的「不得/应当/可以/不属于」法规语言）裁决——
+  案例题干几乎必含这些词；真 MCQ 仍由选项形状与强关键词优先拿走。
+  ② exact text-first 探测任务不得被 `exact_probe.query ≤ max_text_len`（MCQ 时代校准的短查询门）
+  整体闷死：case 短查询（`case_exact_queries` 小问切片）在场即须放行 text-first 批次，
+  长 probe query 交给 `build_exact_question_text_candidates` 的 case_like 切片。
+  两处都只放宽**候选供给**；采信权威仍是单一 identity adjudicator
+  `exact_question_identity_corresponds`（32b），不新增放行权。
+  另：pipeline 未命中时 trace 元数据的 `exact_question: {}` 空壳不得被下游写成
+  `_prefetched_exact_question` 冒充命中（非空才写；TutorBot 直批 marker 须落
+  `allowed_no_exact_hit`）。直批身份检索只喂题干（作答文本不参与「这是哪道题」的裁决）。
 - `authoritative_answer`
 - `corrected_from`
 - `bot_id`
@@ -109,6 +152,12 @@
 - `routing_metadata.compiled_learning_truth_available`
 - `evidence_bundle.stage_timings_ms`
 - `evidence_bundle.performance_policy`
+- `retrieval_profile`
+- `evidence_bundle.performance_policy.retrieval_profile`
+- `case_direct_rag_profile`
+- `case_reference_subquestions`
+- `case_per_subq_grading`
+- `case_subq_score_caps`
 - `learning_fact_capsule`
 - `routing_metadata.personalization_context_available`
 - `PersonalizationContextPack`

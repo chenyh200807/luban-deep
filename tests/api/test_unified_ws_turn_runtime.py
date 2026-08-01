@@ -4649,6 +4649,7 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
             self.started: list[dict[str, object]] = []
             self.scopes: list[SimpleNamespace] = []
             self.updated: list[dict[str, object]] = []
+            self.terminal_states: list[dict[str, object]] = []
 
         def usage_scope(self, **kwargs):
             outer = self
@@ -4692,6 +4693,10 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
 
         def update_observation(self, _observation, **kwargs):
             self.updated.append(kwargs)
+
+        def record_turn_terminal_state(self, _observation, **kwargs):
+            self.terminal_states.append(kwargs)
+            return True
 
         def get_current_usage_summary(self):
             return {}
@@ -4877,6 +4882,9 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
 
         def update_observation(self, _observation, **_kwargs):
             return None
+
+        def record_turn_terminal_state(self, _observation, **_kwargs):
+            return True
 
         def get_current_usage_summary(self):
             return {}
@@ -10970,6 +10978,9 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
         def update_observation(self, _observation, **_kwargs):
             return None
 
+        def record_turn_terminal_state(self, _observation, **_kwargs):
+            return True
+
         def get_current_usage_summary(self):
             return {}
 
@@ -13490,3 +13501,236 @@ async def test_concurrent_start_turn_superseded_turn_not_published_and_not_bille
     assert any("第二轮的正常回答" in content for content in assistant_contents)
     # And the superseded turn never captures billing on worker A.
     assert billing_calls == []
+
+
+def test_summarize_assistant_events_lifts_case_grading_authority_markers():
+    """观测对称律（1b 2026-07-30）：判分成功侧权威标记（provenance/score_authority/
+    prefetch gate）必须从 result event 提升进 turn summary——根 span=turn.runtime
+    的 trace 顶层 metadata 由该 summary 构成，此前真值只能去 events_json 考古。"""
+    from deeptutor.services.session.turn_runtime import _summarize_assistant_events
+
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "question_lifecycle_scene": "case_grading",
+                    "score_authority": "rubric_scored_v1",
+                    "grading_rubric_provenance": "on_the_fly_reference",
+                    "v1_case_graded": True,
+                    "case_grading_prefetch_gate": "allowed",
+                    "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+                },
+            }
+        ]
+    )
+    assert summary["grading_rubric_provenance"] == "on_the_fly_reference"
+    assert summary["score_authority"] == "rubric_scored_v1"
+    assert summary["case_grading_prefetch_gate"] == "allowed"
+    assert summary["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+    assert summary["v1_case_graded"] is True
+
+    # 非 case 轮不携带这些键 → summary 不虚增
+    plain = _summarize_assistant_events([{"type": "result", "metadata": {"selected_mode": "fast"}}])
+    assert "grading_rubric_provenance" not in plain
+    assert "case_grading_prefetch_gate" not in plain
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_emits_langfuse_terminal_state_for_every_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """task#19：终态 marker 必须同时到达 TurnEventLog 和 Langfuse。
+
+    此前 Langfuse 侧只有 start 时刻指纹（root span 的 metadata 被清洗器静默砍到
+    前 20 个键），BI/排查只能读本地 jsonl/DB。这条断言锁死第二个 sink 真的在发，
+    且成功轮/失败轮都发。
+    """
+    from deeptutor.services.observability import reset_turn_event_log
+
+    reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    terminal_states: list[dict] = []
+
+    def _capture_terminal_state(observation, **kwargs):
+        terminal_states.append(kwargs)
+        return True
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class CompletedOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={
+                    "response": "ok",
+                    "metadata": {
+                        "execution_path": "case_grading_direct",
+                        "score_authority": "rubric_scored_v1",
+                        "v1_case_graded": True,
+                    },
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FailedOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            raise RuntimeError("boom")
+            yield  # pragma: no cover
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.record_turn_terminal_state",
+        _capture_terminal_state,
+    )
+
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", CompletedOrchestrator)
+    _session, completed_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(completed_turn["id"], after_seq=0):
+        pass
+
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FailedOrchestrator)
+    _session, failed_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello again",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(failed_turn["id"], after_seq=0):
+        pass
+
+    assert len(terminal_states) == 2
+    completed_metadata = terminal_states[0]["metadata"]
+    assert completed_metadata["turn_status"] == "completed"
+    assert completed_metadata["turn_id"] == completed_turn["id"]
+    assert completed_metadata["execution_path"] == "case_grading_direct"
+    assert completed_metadata["score_authority"] == "rubric_scored_v1"
+    assert completed_metadata["v1_case_graded"] is True
+    assert terminal_states[0]["level"] is None
+
+    failed_metadata = terminal_states[1]["metadata"]
+    assert failed_metadata["turn_status"] == "failed"
+    assert failed_metadata["turn_id"] == failed_turn["id"]
+    assert terminal_states[1]["level"] == "ERROR"
+    assert "failed" in terminal_states[1]["status_message"]
+
+
+@pytest.mark.asyncio
+async def test_broken_langfuse_terminal_emit_cannot_strand_the_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """观测永远不许绑架回合终结。
+
+    终态 emit 位于 finally 里、且排在「唤醒订阅者 + 摘除 execution」之前——一个
+    未捕获的观测异常会让 subscribe_turn 永久挂住（本改动的第一版就是这么挂死
+    一条 ws 测试的）。这条断言把「观测炸了、回合照样收尾」钉死。
+    """
+    from deeptutor.services.observability import reset_turn_event_log
+
+    reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    def _explode(_observation, **_kwargs):
+        raise RuntimeError("langfuse exporter exploded")
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class CompletedOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "ok", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", CompletedOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.record_turn_terminal_state",
+        _explode,
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+
+    # 订阅必须自然终止（挂住就是 asyncio.TimeoutError），且 execution 已被摘除。
+    async def _drain() -> None:
+        async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+            pass
+
+    await asyncio.wait_for(_drain(), timeout=20)
+    assert turn["id"] not in runtime._executions

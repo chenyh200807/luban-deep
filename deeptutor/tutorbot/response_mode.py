@@ -61,10 +61,28 @@ def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
     return any(marker in normalized for marker in markers)
 
 
+def _case_question_paste_signals(text: str) -> bool:
+    """案例试卷粘贴的结构信号（纯形状谓词，非独立判定门——消费方是两个既有
+    baselined gate：deep 形状加分、提交门拒接）。
+
+    生产 trace 87ad350f（2026-07-29）：549 字案例题面+单小问，恰好不含任何
+    strong marker、零问号，落进 default_fast 后 fast 单发 3 次空答案收场。
+    trace 51df5b03：`【问题】`括号形不匹配旧 `问题[:：]` 正则。长题面 +
+    「问题:」/「【问题】」小问段 = 试卷/案例粘贴；纯长粘贴本身也是深意图——
+    fast 的定位是"快答速讲"，几百字题面不是速讲对象。误判方向不对称：
+    错进 deep 只多花几秒，错进 fast 是整轮失败。
+    """
+    if len(text) >= 120 and re.search(r"问题\s*[:：]|【问题】", text):
+        return True
+    return len(text) >= 300
+
+
 def _looks_like_deep_query(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
+    if _case_question_paste_signals(text):
+        return True
     strong_markers = (
         "案例",
         "对比",
@@ -97,6 +115,11 @@ def _looks_like_deep_query(user_message: str) -> bool:
 def looks_like_explicit_brevity_request(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
+        return False
+    # 长案例试卷粘贴不归简答门：题面里偶含"简要说明"类字样（考题原文常见）
+    # 不代表用户要一句话快答——fast 单发接不住案例题（trace 51df5b03 实证，
+    # 该题面正文命中简答词后被抢进 fast）。
+    if _case_question_paste_signals(text):
         return False
     return _contains_any(
         text,
@@ -152,6 +175,11 @@ def _looks_like_fast_query(user_message: str) -> bool:
 def _looks_like_structured_submission_followup(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
+        return False
+    # 提交快答门只接短结构化提交（"第3题我选B"）。长案例试卷粘贴即使带
+    # "批改/我答"话术也不归它——fast 单发接不住案例题（P0 2026-07-29，
+    # trace 51df5b03 实证），该形状归 deep（_looks_like_deep_query 同谓词加分）。
+    if _case_question_paste_signals(text):
         return False
     if not _contains_any(text, ("我答", "我选", "批改", "判分", "打分", "订正", "改一下")):
         return False
@@ -277,6 +305,12 @@ def build_mode_execution_policy(
         normalized_selected = "deep" if normalized_requested == "deep" else "fast"
 
     if normalized_selected == "fast":
+        # 产品口径（主控裁决 2026-08-01）：**任何档位都不降判分质量**。fast 只压
+        # 主 agent 循环的 tool 轮数与时延预算（max_tool_rounds=1 / 6s），
+        # **不跳判分链**——案例判分永远跑完整 rubric + judge，且被钉在主模型上
+        # （capabilities/tutorbot.py 的 grading_turn 闸清空 fast_preferred_model）。
+        # 效率画像 §3.3 记录的"快速档≈没有体感差别"由**渐进吐字**兑现（判分正文
+        # 之前的顺序发射，contracts/turn.md「渐进发射不改变终态」），不是靠少判。
         return ModeExecutionPolicy(
             requested_mode=normalized_requested,
             selected_mode="fast",

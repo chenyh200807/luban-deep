@@ -2,25 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import sys
-import types
 from types import MethodType, SimpleNamespace
 
 import pytest
-
-fake_loguru = types.ModuleType("loguru")
-fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
-    info=lambda *args, **kwargs: None,
-    warning=lambda *args, **kwargs: None,
-    error=lambda *args, **kwargs: None,
-    debug=lambda *args, **kwargs: None,
-    exception=lambda *args, **kwargs: None,
-)
-sys.modules.setdefault("loguru", fake_loguru)
-
-fake_tiktoken = types.ModuleType("tiktoken")
-fake_tiktoken.get_encoding = lambda _name: SimpleNamespace(encode=lambda text: list(str(text or "")))  # type: ignore[attr-defined]
-sys.modules.setdefault("tiktoken", fake_tiktoken)
 
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key

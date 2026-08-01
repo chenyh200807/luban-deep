@@ -86,6 +86,14 @@ def _grade(judge, *, student_id: str = "stu_1", **overrides) -> dict:
 
 
 # ── 1. same key twice -> zero LLM calls, field-equivalent event ───────────────────────────────────
+@pytest.fixture(autouse=True)
+def _cache_opt_in(monkeypatch: pytest.MonkeyPatch):
+    """缓存 2026-08-01 合流裁决为 opt-in（默认关）：本文件测的是"启用态"行为，
+    统一显式开；默认位语义由 test_cache_is_off_by_default 单独钉。"""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")
+    yield
+
+
 def test_same_question_same_answer_replays_without_any_llm_call() -> None:
     judge = _CountingJudge()
     first = _grade(judge)
@@ -202,7 +210,12 @@ def test_kill_switch_bypasses_the_seam(monkeypatch: pytest.MonkeyPatch, off_valu
     assert "grading_cache_key" not in first
 
 
-def test_cache_is_on_by_default() -> None:
+def test_cache_is_off_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """opt-in 语义（合流裁决）：默认关——新缓存默认 ON 会在配好共享后端之前就
+    静默改判分重放语义（含 eval 与渐进发射观测，见 stage-hook 测试撞车实录）。"""
+    monkeypatch.delenv("LUBAN_GRADING_RESULT_CACHE", raising=False)
+    assert C.cache_enabled() is False
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")
     assert C.cache_enabled() is True
 
 

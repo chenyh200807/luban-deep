@@ -1,0 +1,365 @@
+{
+ "schema": "gold_pack_v2.leakage_check",
+ "metric": "character 4-gram multiset precision/recall/jaccard vs the question's official_answer",
+ "threshold": 0.6,
+ "rows": [
+  {
+   "question_id": "Q2023-03",
+   "answer_id": "Q2023-03::high",
+   "ability_label": "high",
+   "answer_chars": 586,
+   "official_chars": 416,
+   "precision": 0.1372,
+   "recall": 0.1937,
+   "jaccard": 0.0873,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2023-03",
+   "answer_id": "Q2023-03::mid",
+   "ability_label": "mid",
+   "answer_chars": 359,
+   "official_chars": 416,
+   "precision": 0.2247,
+   "recall": 0.1937,
+   "jaccard": 0.1161,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2023-03",
+   "answer_id": "Q2023-03::low",
+   "ability_label": "low",
+   "answer_chars": 214,
+   "official_chars": 416,
+   "precision": 0.0948,
+   "recall": 0.0484,
+   "jaccard": 0.0331,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2024-03",
+   "answer_id": "Q2024-03::high",
+   "ability_label": "high",
+   "answer_chars": 362,
+   "official_chars": 291,
+   "precision": 0.2451,
+   "recall": 0.3056,
+   "jaccard": 0.1574,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2024-03",
+   "answer_id": "Q2024-03::mid",
+   "ability_label": "mid",
+   "answer_chars": 221,
+   "official_chars": 291,
+   "precision": 0.3716,
+   "recall": 0.2812,
+   "jaccard": 0.1906,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2024-03",
+   "answer_id": "Q2024-03::low",
+   "ability_label": "low",
+   "answer_chars": 157,
+   "official_chars": 291,
+   "precision": 0.2597,
+   "recall": 0.1389,
+   "jaccard": 0.0995,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2025-03",
+   "answer_id": "Q2025-03::high",
+   "ability_label": "high",
+   "answer_chars": 347,
+   "official_chars": 203,
+   "precision": 0.1657,
+   "recall": 0.285,
+   "jaccard": 0.117,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2025-03",
+   "answer_id": "Q2025-03::mid",
+   "ability_label": "mid",
+   "answer_chars": 243,
+   "official_chars": 203,
+   "precision": 0.1917,
+   "recall": 0.23,
+   "jaccard": 0.1168,
+   "threshold": 0.6,
+   "pass": true
+  },
+  {
+   "question_id": "Q2025-03",
+   "answer_id": "Q2025-03::low",
+   "ability_label": "low",
+   "answer_chars": 143,
+   "official_chars": 203,
+   "precision": 0.1357,
+   "recall": 0.095,
+   "jaccard": 0.0592,
+   "threshold": 0.6,
+   "pass": true
+  }
+ ],
+ "v1_baseline_same_questions": [
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S01",
+   "precision": 0.9461,
+   "recall": 0.9782,
+   "jaccard": 0.9266,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S02",
+   "precision": 0.8918,
+   "recall": 0.9782,
+   "jaccard": 0.8745,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S03",
+   "precision": 0.886,
+   "recall": 0.9782,
+   "jaccard": 0.8688,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S04",
+   "precision": 0.8457,
+   "recall": 0.7433,
+   "jaccard": 0.6546,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S05",
+   "precision": 0.8175,
+   "recall": 0.5424,
+   "jaccard": 0.4838,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S06",
+   "precision": 0.7731,
+   "recall": 0.4455,
+   "jaccard": 0.394,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S07",
+   "precision": 0.1,
+   "recall": 0.0315,
+   "jaccard": 0.0245,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S08",
+   "precision": 0.8079,
+   "recall": 0.7433,
+   "jaccard": 0.6317,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S09",
+   "precision": 0.0903,
+   "recall": 0.0315,
+   "jaccard": 0.0239,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2023-03",
+   "student_id": "S10",
+   "precision": 0.0,
+   "recall": 0.0,
+   "jaccard": 0.0,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S01",
+   "precision": 0.9931,
+   "recall": 1.0,
+   "jaccard": 0.9931,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S02",
+   "precision": 0.9114,
+   "recall": 1.0,
+   "jaccard": 0.9114,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S03",
+   "precision": 0.9028,
+   "recall": 1.0,
+   "jaccard": 0.9028,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S04",
+   "precision": 0.8916,
+   "recall": 1.0,
+   "jaccard": 0.8916,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S05",
+   "precision": 0.8704,
+   "recall": 0.816,
+   "jaccard": 0.7276,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S06",
+   "precision": 0.8494,
+   "recall": 0.7639,
+   "jaccard": 0.6728,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S07",
+   "precision": 0.0064,
+   "recall": 0.0035,
+   "jaccard": 0.0023,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S08",
+   "precision": 0.8471,
+   "recall": 1.0,
+   "jaccard": 0.8471,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S09",
+   "precision": 0.0132,
+   "recall": 0.0069,
+   "jaccard": 0.0046,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2024-03",
+   "student_id": "S10",
+   "precision": 0.0,
+   "recall": 0.0,
+   "jaccard": 0.0,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S01",
+   "precision": 0.9901,
+   "recall": 1.0,
+   "jaccard": 0.9901,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S02",
+   "precision": 0.8772,
+   "recall": 1.0,
+   "jaccard": 0.8772,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S03",
+   "precision": 0.8658,
+   "recall": 1.0,
+   "jaccard": 0.8658,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S04",
+   "precision": 0.8511,
+   "recall": 1.0,
+   "jaccard": 0.8511,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S05",
+   "precision": 0.8511,
+   "recall": 1.0,
+   "jaccard": 0.8511,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S06",
+   "precision": 0.8235,
+   "recall": 0.91,
+   "jaccard": 0.7615,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S07",
+   "precision": 0.0,
+   "recall": 0.0,
+   "jaccard": 0.0,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S08",
+   "precision": 0.7937,
+   "recall": 1.0,
+   "jaccard": 0.7937,
+   "would_pass_v2_gate": false
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S09",
+   "precision": 0.0,
+   "recall": 0.0,
+   "jaccard": 0.0,
+   "would_pass_v2_gate": true
+  },
+  {
+   "question_id": "Q2025-03",
+   "student_id": "S10",
+   "precision": 0.0,
+   "recall": 0.0,
+   "jaccard": 0.0,
+   "would_pass_v2_gate": true
+  }
+ ],
+ "v1_comparison_note": "v1_baseline_same_questions 是同样三道题下 v1 十份“学生答卷”对 official_answer 的同一指标，用作对照：v1 的高分档答卷是官方答案的逐字截断，precision 逼近 1.0。",
+ "counts": {
+  "rows": 9,
+  "passed": 9,
+  "max_precision": 0.3716,
+  "max_recall": 0.3056,
+  "max_jaccard": 0.1906
+ }
+}

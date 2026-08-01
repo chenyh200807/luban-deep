@@ -664,3 +664,180 @@ def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_p
     assert persisted_observer_payload["turn_events"]["error_ratio"] == 0.0
     assert oa_payload["raw_evidence_bundle"]["observer_snapshot_run_id"] == observer_payload["run_id"]
     assert any(item["kind"] == "observer_snapshot" for item in oa_payload["signals"])
+
+
+def test_terminal_turn_observation_event_keeps_case_grading_authority_markers() -> None:
+    """观测对称律（1b 2026-07-30）：summarizer 已从 result event 提升判分权威标记，
+    但终态事件另有一张白名单——live 实证 lift 产出在此被二次过滤，jsonl sink
+    （observer/BI 消费面）永远看不到。本测试钉住第三张名单的透传。"""
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=100.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "bot_id": "bot-1",
+            "context_route": "",
+            "source": "authenticated_ws",
+            "user_id": "user-1",
+            "trace_id": "trace-1",
+            "question_lifecycle_scene": "case_grading",
+            "score_authority": "rubric_scored_v1",
+            "grading_rubric_provenance": "on_the_fly_reference",
+            "v1_case_graded": True,
+            "case_grading_prefetch_gate": "allowed",
+            "case_grading_composite_qid_candidate": "2024::EXAM_X::E1",
+        },
+        usage_summary={"total_tokens": 1},
+    )
+    md = event["metadata"]
+    assert md["grading_rubric_provenance"] == "on_the_fly_reference"
+    assert md["score_authority"] == "rubric_scored_v1"
+    assert md["case_grading_prefetch_gate"] == "allowed"
+    assert md["case_grading_composite_qid_candidate"] == "2024::EXAM_X::E1"
+    assert md["v1_case_graded"] is True
+
+
+def test_authority_export_keys_single_source_across_all_sinks() -> None:
+    """倾向四根治（2026-07-30 owner 拍板）：判分权威导出键收敛为单一契约常量
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS，三个消费面（summarizer lift/终态白名单/
+    per-turn 元组）全部从它派生——增键改一处即全链生效，杜绝第 N 张名单漂移。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+    )
+    from deeptutor.services.session.turn_runtime import _summarize_assistant_events
+
+    assert len(CASE_GRADING_AUTHORITY_EXPORT_KEYS) >= 10
+    # ① per-turn 元组包含全部权威键
+    for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
+        assert key in CASE_GRADING_TURN_METADATA_KEYS, key
+
+    sentinel = {key: f"v::{key}" for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS}
+    # ② summarizer lift 提升每一个权威键
+    summary = _summarize_assistant_events([{"type": "result", "metadata": dict(sentinel)}])
+    for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
+        assert summary.get(key) == sentinel[key], key
+
+    # ③ 终态事件白名单透传每一个权威键
+    event = _build_terminal_turn_observation_event(
+        session_id="s", turn_id="t", status="completed", capability_name="tutorbot",
+        duration_ms=1.0,
+        trace_metadata={"execution_engine": "tutorbot_runtime", "bot_id": "b",
+                        "context_route": "", "source": "ws", "user_id": "u",
+                        "trace_id": "tr", **sentinel},
+        usage_summary={"total_tokens": 1},
+    )
+    for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
+        assert event["metadata"].get(key) == sentinel[key], key
+
+
+def test_langfuse_terminal_state_metadata_carries_the_whole_authority_family() -> None:
+    """task#19 终点黑洞：Langfuse 是终态事件的第二个消费面，白名单仍只有一张。
+
+    第四个 sink 不得再长出第四张名单——本投影函数只 re-shape
+    ``_build_terminal_turn_observation_event`` 的产物，因此增一个 marker 仍然只改
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS 一处。
+    """
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+    )
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    sentinel = {key: f"v::{key}" for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS}
+    sentinel["execution_path"] = "v::execution_path"
+    event = _build_terminal_turn_observation_event(
+        session_id="session-lf",
+        turn_id="turn-lf",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=2500.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "bot_id": "construction-exam-coach",
+            "context_route": "case_grading",
+            "source": "wechat_miniprogram",
+            "user_id": "user-lf",
+            "trace_id": "trace-lf",
+            **sentinel,
+        },
+        usage_summary={"total_tokens": 4096, "total_calls": 3},
+    )
+
+    metadata = _langfuse_terminal_state_metadata(event)
+
+    for key, value in sentinel.items():
+        assert metadata.get(key) == value, key
+    # 终态判别位：状态/身份/时延都必须在同一条观测上，否则 ClickHouse 侧还是要跨表 join。
+    assert metadata["turn_status"] == "completed"
+    assert metadata["turn_id"] == "turn-lf"
+    assert metadata["session_id"] == "session-lf"
+    assert metadata["trace_id"] == "trace-lf"
+    assert metadata["capability"] == "tutorbot"
+    assert metadata["latency_ms"] == 2500.0
+    assert metadata["token_total"] == 4096
+
+
+def test_langfuse_terminal_state_metadata_marks_failed_turns() -> None:
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-lf",
+        turn_id="turn-lf",
+        status="failed",
+        capability_name="tutorbot",
+        duration_ms=10.0,
+        trace_metadata={"execution_engine": "tutorbot_runtime", "source": "ws"},
+        usage_summary=None,
+    )
+
+    metadata = _langfuse_terminal_state_metadata(event)
+
+    assert metadata["turn_status"] == "failed"
+    assert metadata["error_type"] == "failed"
+
+
+def test_langfuse_terminal_state_metadata_tolerates_a_broken_event() -> None:
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    assert _langfuse_terminal_state_metadata({}) == {"turn_status": "unknown"}
+    assert _langfuse_terminal_state_metadata(None) == {}  # type: ignore[arg-type]
+
+
+def test_mnemonic_authority_source_reaches_summary_and_terminal_event() -> None:
+    """口诀权威收权（r6 宣传门 A3，2026-08-01）的观测底座。
+
+    ``mnemonic_authority_source``（"lecture_pack:<unit_ids>" | "demoted_no_authority"）
+    是「真口诀挂载率 / 无出处降级率」唯一的数据来源。它走 content-truth 那条
+    **scene 无关**的载体——判分侧的 ``case_mnemonic_source`` 被 scene==case_grading
+    门控，而本守卫只在非判分轮（exact_fast_path / agent_loop 自由作文道）动手。
+    turn_runtime 这两张白名单漏一张，该 sink 就永久 0 命中。"""
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "execution_path": "tutorbot_exact_fast_path",
+                    "mnemonic_authority_source": "demoted_no_authority",
+                },
+            }
+        ]
+    )
+    assert summary["mnemonic_authority_source"] == "demoted_no_authority"
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-mn",
+        turn_id="turn-mn",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=100.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "execution_path": "tutorbot_exact_fast_path",
+            "mnemonic_authority_source": "lecture_pack:U-57",
+        },
+        usage_summary={"total_tokens": 1, "total_calls": 1},
+    )
+    assert event["metadata"]["mnemonic_authority_source"] == "lecture_pack:U-57"

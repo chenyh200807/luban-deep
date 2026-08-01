@@ -386,6 +386,9 @@ domains:
       - web/context/UnifiedChatContext.tsx
     test_files:
       - tests/api/test_experience_invite_contract.py
+      # 2026-07-31 test2 SEV: post-turn overlay 投影不得把安全闸模板写进
+      # working_memory_projection（写进去下一轮会被注入回上下文再次命中，形成吸收态）。
+      - tests/tutorbot/test_guardrail_input_subject_authority.py
       - tests/services/test_experience_invite.py
       - yousenwebview/tests/test_experience_billing_contract.js
       - tests/services/learner_state/test_lesson_evidence.py
@@ -484,6 +487,11 @@ domains:
       - deeptutor/api/routers/mobile.py
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
+      # 2026-08-01 尺与面收权清剿: orchestrator 的作答解析与 deep_question 的
+      # topic/followup 判据不得直接吃 turn 信封(context.user_message);
+      # 单一 surface = _routing_user_message / _submission_surface
+      # (protected orchestrator.py / deep_question.py)。
+      - tests/tutorbot/test_surface_authority_registry.py
       - tests/runtime/test_orchestrator_preselect_canonical.py
       - tests/runtime/test_orchestrator_single_selection.py
       - tests/runtime/test_capability_routing_map_collapse.py
@@ -583,6 +591,46 @@ domains:
         falls open to the main LLM. Domain tests live in
         tests/services/rag/test_supabase_strategy.py (identity adjudicator)
         and tests/services/rag/test_rag_pipelines.py (demotion/no-floor state).
+      - case_group_id is the ONE authority for case-question group membership
+        and is an immutable id (contracts/rag.md 45). On a case_study exact hit
+        the pipeline fetches the whole group in one query keyed by case_group_id
+        with case_row_canonical=not.is.false — NEVER =true, because C2 left 72
+        answer-conflict rows NULL, so =true silently drops subquestions while
+        covered_indexes still looks contiguous (a fake full coverage). Rows
+        whose case_row_canonical is NULL are fail-closed OUT of the reference
+        and announced via case_answer_conflict_unresolved. A
+        case_row_granularity=whole_question hit already contains every
+        subquestion and must issue ZERO group query. A NULL case_group_id means
+        group membership is not built yet, never that the row is not a case —
+        fail open to the single-row bundle
+        (case_bundle_hydration=skipped:null_group_key), never back to
+        chunk/year aggregation. Bundle assembly orders only by
+        (case_subquestion_index, id) so the bundle is identical whichever
+        sibling row seeded it. case_bundle_source
+        (group_query|whole_row|single_row_fallback) rides every sink. The group
+        query is identity/denominator spine, so the lean retrieval profile must
+        still run it. Domain tests live in
+        tests/services/rag/test_case_group_bundle.py.
+      - retrieval_profile is a retrieval-DEPTH declaration, never a second
+        retrieval entry point, router, or TutorBot mode (contracts/rag.md 44).
+        Naming authority is deeptutor/services/rag/retrieval_profiles.py and the
+        unified pipeline short-circuits INSIDE one pipeline — no parallel search
+        function may be forked for a profile. Absent/empty means the full
+        pipeline, byte-for-byte the previous behavior; model-issued in-loop rag
+        calls never carry the key. case_grading_identity may only drop product
+        ASSEMBLY (source hydration, rerank, doc diversity, content/source_items,
+        and non-questions_bank source groups); it must never drop the identity
+        and denominator spine (exact text probe batch, questions_bank vector +
+        the client-derived question_exact_vector, the case_like forced second
+        pass that supplies covered_subquestions/covered_indexes, and the exact
+        payload trio). exact_question must be field-for-field identical between
+        lean and full. Empty content/sources under this profile is a normal
+        terminal state rather than a degradation — retrieval_degraded and
+        retrieval_status stay derived from retrieval_warnings alone, and no
+        consumer may mark the round degraded merely because sources is empty
+        (that lights the degradation gates and demotes a normal graded answer
+        into "insufficient evidence"). Domain tests live in
+        tests/services/rag/test_case_grading_identity_profile.py.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -594,6 +642,10 @@ domains:
       - deeptutor/tools/rag_tool.py
       - deeptutor/agents/chat/agentic_pipeline.py
       - deeptutor/services/exam_track.py
+      # 2026-07-29: lecture answer-method activation authority — injects an
+      # exclusive-source instruction into prompts; mis-activation caused the
+      # unified_1785314628533_23c29374 production incident.
+      - deeptutor/services/compiled_knowledge/lecture_answer_methods.py
     sensitive_patterns:
       - deeptutor/services/rag/service.py
       - deeptutor/services/rag/pipelines/*.py
@@ -601,6 +653,7 @@ domains:
       - deeptutor/agents/chat/agentic_pipeline.py
       - deeptutor/services/exam_track.py
     test_files:
+      - tests/services/compiled_knowledge/test_lecture_answer_methods.py
       - tests/services/rag/test_rag_pipelines.py
       - tests/services/rag/test_rag_retrieval_timeout.py
       - tests/services/rag/test_mcq_option_surface_grading.py
@@ -626,6 +679,12 @@ domains:
       - tests/services/rag/test_supabase_fanout_dedup.py
       - tests/services/rag/test_supabase_unified_timeout.py
       - tests/services/rag/test_rerank_doc_cap.py
+      # L1 瘦身检索（contracts/rag.md 44）：lean/full 的 exact 身份与分母逐字段
+      # 相同 + 可砍清单确实被砍 + 空 sources 不得被判成 degraded。
+      - tests/services/rag/test_case_grading_identity_profile.py
+      # 方案 C / C3 题级组取全（contracts/rag.md 45）：seed 不变量 + 冲突洞
+      # fail-closed + whole_question 零组查询 + 无组键零回归 + lean 共存。
+      - tests/services/rag/test_case_group_bundle.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -857,6 +916,7 @@ domains:
       - deeptutor/services/construction_grading/per_question_grading_judge.py
       - deeptutor/services/construction_grading/case_rubric_pgo_supply.py
       - deeptutor/services/construction_grading/rubric_grader_v1.py
+      - deeptutor/services/construction_grading/grading_result_cache.py
       - deeptutor/services/construction_grading/learning_evidence.py
       - scripts/build_luban_pgo_runtime_supply.py
       - scripts/verify_luban_pgo_runtime_supply.py
@@ -868,6 +928,7 @@ domains:
       - tests/services/construction_grading/test_per_question_grading_judge.py
       - tests/services/construction_grading/test_case_rubric_pgo_supply.py
       - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/services/construction_grading/test_grading_result_cache.py
       - tests/scripts/test_build_luban_pgo_runtime_supply.py
       - tests/scripts/test_verify_luban_pgo_runtime_supply.py
       - tests/scripts/test_luban_pgo_stage5_canary_gate.py
@@ -876,6 +937,14 @@ domains:
       - tests/services/test_forward_family_reachability.py
       - tests/services/test_resolve_reveal_decision.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
+      # L4 渐进吐字（turn.md「渐进发射不改变终态」）：时序 + 终态等价 + 宣传门断言面守门。
+      - tests/tutorbot/test_case_grading_sequenced_emit.py
+      # L4 通用道渐进吐字（turn.md「渐进发射不改变终态」扩到通用 agent-loop）：
+      # 慢 LLM 下首答窗口有内容发射 + 逐轮解除武装保住严格后缀 + kill switch 关掉逐字节回旧。
+      - tests/tutorbot/test_general_lane_sequenced_emit.py
+      # L1 瘦身检索（rag.md 44）：直通轮 lean 仍必须落 exact 身份、不注入正文、
+      # 不毒化饱和台账、不点亮降级闸；kill switch off 逐字节回旧形状。
+      - tests/tutorbot/test_case_direct_lean_rag.py
       - tests/tutorbot/test_case_grading_generation_falls_through.py
       - tests/services/test_question_followup_case_submission.py
       - tests/tutorbot/test_case_grading_forward_reachability.py
@@ -898,6 +967,17 @@ domains:
       # WP4 科目薄切: loop.py 注入 get_subject_declaration_instruction()（protected loop.py）;
       # test_subject_declaration_instruction_exists_and_wired_into_loop 守门该 wiring。
       - tests/core/test_generation_topic_and_subject_authority.py
+      # 2026-07-31 test2 SEV: 入口安全闸的主语必须是学生真实提交(raw_user_message)，
+      # 不是 turn_runtime 组装出来的 current_message；否则注入的 `### 局部工作记忆投影`
+      # 会让系统自证有罪，整卷案例提交被确定性拒答（protected loop.py）。
+      - tests/tutorbot/test_guardrail_input_subject_authority.py
+      # 2026-08-01 尺与面收权清剿（contracts/turn.md §判分链学生提交单一来源）:
+      # 判分链上凡"学生这轮真实提交"语义的判据一律只许消费 submission surface;
+      # 同一事实只许一把尺子(小问计数权威数不出来时不报数,不许用更宽松的 fallback 正则)。
+      # 语义级可证伪用例(protected loop.py / question_followup.py 消费侧):
+      - tests/tutorbot/test_case_submission_surface_authority_sweep.py
+      # 止血带 scanner: 信封变量的判据形状消费点 ⊆ 白名单,新增必须显式登记。
+      - tests/tutorbot/test_surface_authority_registry.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn

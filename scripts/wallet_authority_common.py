@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass, field
@@ -32,6 +33,21 @@ def _parse_dotenv(path: Path) -> dict[str, str]:
         if key:
             values[key] = value
     return values
+
+
+_UNEXPANDED_ENV_REFERENCE_RE = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}")
+_UNEXPANDED_ENV_VALUE_RE = re.compile(r"^\$[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _first_concrete_env_value(env_values: Mapping[str, str], *keys: str) -> str:
+    for key in keys:
+        value = str(env_values.get(key) or "").strip()
+        if not value:
+            continue
+        if _UNEXPANDED_ENV_REFERENCE_RE.search(value) or _UNEXPANDED_ENV_VALUE_RE.fullmatch(value):
+            continue
+        return value
+    return ""
 
 
 @dataclass(frozen=True)
@@ -71,6 +87,7 @@ def resolve_wallet_env(
     *,
     repo_root: Path | None = None,
     environ: Mapping[str, str] | None = None,
+    db_url_keys: Sequence[str] = ("SUPABASE_DB_URL", "DATABASE_URL"),
 ) -> WalletAuthorityEnv:
     root = (repo_root or discover_repo_root()).resolve()
     env_values: dict[str, str] = {}
@@ -80,7 +97,8 @@ def resolve_wallet_env(
         for key, value in _parse_dotenv(dotenv_path).items():
             env_values[key] = value
             source_map[key] = str(dotenv_path)
-    for key, value in dict(environ or os.environ).items():
+    process_values = os.environ if environ is None else environ
+    for key, value in dict(process_values).items():
         if value:
             env_values[key] = value
             source_map[key] = "process_env"
@@ -90,7 +108,7 @@ def resolve_wallet_env(
         supabase_url=str(env_values.get("SUPABASE_URL") or "").strip(),
         api_key=service_role_key or fallback_api_key,
         service_role_key=service_role_key,
-        db_url=str(env_values.get("SUPABASE_DB_URL") or env_values.get("DATABASE_URL") or "").strip(),
+        db_url=_first_concrete_env_value(env_values, *db_url_keys),
         source_map=source_map,
     )
 
@@ -114,12 +132,14 @@ def run_command(
     command: Sequence[str],
     *,
     cwd: Path | None = None,
+    env: Mapping[str, str] | None = None,
     input_text: str | None = None,
     check: bool = True,
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         list(command),
         cwd=str(cwd) if cwd else None,
+        env=dict(env) if env is not None else None,
         input=input_text,
         text=True,
         capture_output=True,

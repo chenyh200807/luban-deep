@@ -21,6 +21,38 @@ PRODUCT_IDENTITY_RESPONSE_ZH = (
     "你可以直接把题目、答案或复习困惑发给我，我会帮你拆判断依据、踩分点和易错点。"
 )
 
+#: 账号事务/客服类问题（注销、退款、换绑手机号、投诉、找客服）不是套取内部信息，
+#: 也不是学习问题。它们此前落在「既非学习问题、也无 boundary 分支」的缝里，被通用
+#: 拒答话术打发（2026-08-01 重放：「怎样注销账号」逐字得到 INTERNAL_INFO_REFUSAL_ZH），
+#: 学员体感是「问了个正常问题被拒了」。这里给的是**服务指引**而不是拒答：
+#: 指向小程序真实存在的入口（「我的」页 + 「我的 → 意见反馈」），并把学习通道留开。
+ACCOUNT_SERVICE_RESPONSE_ZH = (
+    "账号和订单这类事我这边处理不了，帮你指个路："
+    "会员权益、充值和学习设置都在小程序底部「我的」页面里；"
+    "注销账号、退款、换绑手机号这些要人工处理的，从「我的 → 意见反馈」提交一条，"
+    "工作人员会跟进你。"
+    "学习上的事随时找我——把建筑实务的题目、错题或者复习困惑发给我就行。"
+)
+
+
+#: 安全闸自己发射的固定文案。它们是「闸的输出」，不是「学员的学习事实」——
+#: 任何把 assistant 正文投影进学员长期/局部状态的 writer 必须先用
+#: ``is_security_template_response`` 排除，否则拒答会被回写成学员状态、
+#: 下一轮再被注入回上下文，形成自我强化的吸收态
+#: （2026-07-31 test2 SEV：整卷案例提交被永久拒答）。
+SECURITY_TEMPLATE_RESPONSES_ZH: tuple[str, ...] = (
+    INTERNAL_INFO_REFUSAL_ZH,
+    PRODUCT_IDENTITY_RESPONSE_ZH,
+    ACCOUNT_SERVICE_RESPONSE_ZH,
+)
+
+
+def is_security_template_response(text: str | None) -> bool:
+    """本轮可见正文是否就是安全闸的固定模板（而非真实教学输出）。"""
+
+    source = str(text or "").strip()
+    return bool(source) and source in SECURITY_TEMPLATE_RESPONSES_ZH
+
 
 @dataclass(frozen=True)
 class TutorBotSecurityDecision:
@@ -185,6 +217,62 @@ class TutorBotSecuritySkill:
         ),
     )
 
+    #: 账号事务/客服意图。与 ``_PRODUCT_IDENTITY_GROUP`` 同级：只在**没有任何攻击信号**时
+    #: 才有机会命中，所以真实套取行为的拦截路径逐字不变。
+    _ACCOUNT_SERVICE_GROUP = SecurityPatternGroup(
+        "account_service",
+        (
+            # 注销 / 停用 / 删号
+            r"(注销|销户|注消|删除|停用|关闭|冻结).{0,8}(账号|帐号|账户|帐户|会员|个人信息|个人资料)",
+            r"(账号|帐号|账户|帐户).{0,8}(注销|销户|注消|删除|停用|关闭|找回|申诉|被封|封禁|冻结)",
+            # 退款 / 退订 / 续费
+            r"(退款|退费|退订|退钱|申请退|取消订阅|取消续费|取消自动续费|关闭自动续费)",
+            # 换绑 / 解绑 手机号、微信
+            r"(换绑|改绑|解绑|绑错|更换|修改|变更).{0,8}(手机号|手机号码|绑定手机|绑定的手机|微信|账号)",
+            r"(手机号|手机号码|绑定手机).{0,8}(换绑|改绑|解绑|绑错|更换|修改|变更|错了|不对)",
+            # 找客服 / 人工
+            r"(人工客服|在线客服|客服电话|客服微信|客服联系方式|联系客服|找客服|转人工|接人工|人工服务)",
+            r"(客服|售后|工作人员).{0,10}(在哪|怎么找|怎么联系|联系方式|电话|微信)",
+            # 投诉 / 举报（针对平台，不是案例题里的业主投诉）
+            r"(我要|我想|想要|如何|怎[么样])?.{0,4}(投诉|举报).{0,10}(你们|平台|产品|app|小程序|服务|公司)",
+            r"(我要|我想|想要).{0,4}(投诉|举报)",
+            # 支付 / 发票 / 订单
+            r"(开发票|开具发票|要发票|报销凭证)",
+            r"(充值|支付|付款|扣款|订单|续费|会员).{0,10}(失败|没到账|未到账|重复扣|扣了两次|扣错|异常|没生效|退)",
+        ),
+    )
+
+    #: 账号事务话术不得抢走真实业务题。建筑实务案例题里「投诉」「退款」「注销」都会出现
+    #: （噪声投诉、工程款退还、注册证书注销），命中任一术语即判定为学习问题、放行给正常链路。
+    _ACCOUNT_SERVICE_DOMAIN_EXCLUSIONS = (
+        "施工",
+        "监理",
+        "业主",
+        "甲方",
+        "分包",
+        "总承包",
+        "建造师",
+        "注册证书",
+        "执业资格",
+        "资质",
+        "安全生产许可",
+        "背景资料",
+        "案例题",
+        "索赔",
+        "工程款",
+        "进度款",
+        "预付款",
+        "质保金",
+        "招标",
+        "投标",
+        "竣工",
+        "验收",
+        "专项方案",
+        "居民",
+        "噪声",
+        "扬尘",
+    )
+
     _TOOL_CONTENT_GROUPS: tuple[SecurityPatternGroup, ...] = (
         SecurityPatternGroup(
             "embedded_override",
@@ -300,6 +388,14 @@ class TutorBotSecuritySkill:
         return any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in cls._META_SYSTEM_INTENT_PATTERNS)
 
     @classmethod
+    def _is_account_service_request(cls, text: str) -> bool:
+        """是否是账号事务/客服类问题（而不是建筑实务学习问题）。"""
+
+        if any(term in text for term in cls._ACCOUNT_SERVICE_DOMAIN_EXCLUSIONS):
+            return False
+        return cls._matches_group(text, cls._ACCOUNT_SERVICE_GROUP)
+
+    @classmethod
     def _taxonomy_context_can_clear_medium_signals(cls, text: str, signals: tuple[str, ...]) -> bool:
         if not signals or not set(signals).issubset(cls._CONSTRUCTION_TAXONOMY_SAFE_SIGNALS):
             return False
@@ -322,6 +418,14 @@ class TutorBotSecuritySkill:
                 level="boundary",
                 signals=(cls._PRODUCT_IDENTITY_GROUP.signal,),
                 content=PRODUCT_IDENTITY_RESPONSE_ZH,
+            )
+        if not signals and cls._is_account_service_request(normalized):
+            # 服务指引，不是拒答：短路掉教学链路，但给学员真实可走的入口。
+            return TutorBotSecurityDecision(
+                blocked=True,
+                level="boundary",
+                signals=(cls._ACCOUNT_SERVICE_GROUP.signal,),
+                content=ACCOUNT_SERVICE_RESPONSE_ZH,
             )
         if not signals:
             return TutorBotSecurityDecision(blocked=False, level="safe")

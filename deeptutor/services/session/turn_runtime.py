@@ -31,6 +31,9 @@ from deeptutor.contracts.bot_runtime_defaults import (
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.logging.context import bind_log_context, reset_log_context
+from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+)
 from deeptutor.services.exam_track import (
     exam_track_label,
     has_multiple_exam_track_mentions,
@@ -121,7 +124,9 @@ _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _PUBLIC_CANCELLED_MESSAGE = "本轮生成已取消，请重新发送或换个题目继续。"
 _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后重试。"
 # 律4 terminal mapper copy (single learner-visible text authority for failures).
-_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这道题内容较多，这次没批完，请把题目拆小一点再发一次。"
+# 收束修复后 tool_budget_exhausted 仅剩安全网角色；文案不再让用户"拆小题目"——
+# 生产 trace 已证伪该归因（拆小后仍触发），重发即可。
+_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这次没有完成解答，已记录问题。请再发一次。"
 _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
 _PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
 _PUBLIC_MODEL_TRUNCATED_MESSAGE = "这次答案没有生成完整，已停止保存。请重新发送一次。"
@@ -417,6 +422,22 @@ def _replace_public_result_response_with_stream(
     if not response:
         return
     metadata = dict(event.metadata or {})
+    # turn.md:144 protects against HETEROGENEOUS stale/fallback text replacing
+    # what the learner actually watched stream. A finalized response that is a
+    # SUFFIX of the streamed text is the same source deliberately trimmed by
+    # the finalize chain (leading meta-narration stripped, PR#583) — keep the
+    # finalize authority's version instead of resurrecting the leaked prefix.
+    # Only the EXPLICIT top-level "response" key (the finalize chain's write
+    # slot) qualifies: assistant_content/content fallbacks could be a mere
+    # tail chunk that happens to be a stream suffix, and exempting those would
+    # collapse the persisted answer to a fragment.
+    existing_response = str(metadata.get("response") or "").strip()
+    if (
+        existing_response
+        and existing_response != response
+        and response.endswith(existing_response)
+    ):
+        return
     metadata["response"] = response
     nested = metadata.get("metadata")
     if isinstance(nested, dict):
@@ -1250,6 +1271,12 @@ def _build_terminal_turn_observation_event(
         # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
         "content_truth_guard_applied",
         "content_truth_low_confidence_claims",
+        # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+        "mnemonic_authority_source",
+        # 观测对称律（1b 2026-07-30）：案例判分成功侧权威标记，键清单单一权威
+        # =CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：本表曾是第三张
+        # 互不同步的白名单，live 实证漏名单=jsonl sink 永久 0 命中）。
+        *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
         "raw_user_id",
         "member_user_id",
         "identity_resolution_status",
@@ -1278,6 +1305,53 @@ def _build_terminal_turn_observation_event(
         error_type=status if status not in {"completed", "unknown"} else "",
         metadata=metadata,
     )
+
+
+_LANGFUSE_TERMINAL_STATE_TOP_LEVEL_FIELDS: tuple[str, ...] = (
+    "session_id",
+    "turn_id",
+    "trace_id",
+    "capability",
+    "route",
+    "surface",
+    "user_id",
+    "latency_ms",
+    "token_total",
+    "error_type",
+    "observation_cohort",
+    "synthetic",
+    "test_only",
+)
+
+
+def _langfuse_terminal_state_metadata(event: dict[str, Any]) -> dict[str, Any]:
+    """Project the canonical terminal turn observation event onto Langfuse metadata.
+
+    Single authority: the marker family comes from
+    :func:`_build_terminal_turn_observation_event` (which already consumes
+    ``CASE_GRADING_AUTHORITY_EXPORT_KEYS``) — this function only re-shapes it,
+    it never re-derives or re-whitelists. Adding a marker stays a one-place edit.
+
+    ``status`` is exported as ``turn_status`` because Langfuse reserves nothing
+    named ``status`` but the observation surface already carries ``level``; a
+    distinct key keeps ClickHouse filters unambiguous.
+    """
+    if not isinstance(event, dict):
+        return {}
+    metadata = dict(event.get("metadata") or {})
+    metadata["turn_status"] = str(event.get("status") or "unknown").strip() or "unknown"
+    for field_name in _LANGFUSE_TERMINAL_STATE_TOP_LEVEL_FIELDS:
+        value = event.get(field_name)
+        if value in (None, "", [], {}):
+            continue
+        metadata.setdefault(field_name, value)
+    release = event.get("release")
+    if isinstance(release, dict):
+        for release_key in ("release_id", "git_sha", "service_version"):
+            release_value = release.get(release_key)
+            if release_value not in (None, "", [], {}):
+                metadata.setdefault(release_key, release_value)
+    return metadata
 
 
 def _usage_summary_float(summary: dict[str, Any], key: str) -> float:
@@ -1824,6 +1898,14 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 # observation event (and the offline review agent) can see them.
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
+                # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+                "mnemonic_authority_source",
+                # 观测对称律（1b 2026-07-30）：判分成功侧权威标记必须到达 trace 顶层
+                # （根 span=turn.runtime，顶层 metadata 由本 summary 构成）。键清单
+                # 单一权威=CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：曾散落
+                # 三张互不同步的白名单，漏一张=该 sink 永久 0 命中）。marker 在
+                # result event 里已被 case 场景闸过滤，此处只做无条件提升。
+                *CASE_GRADING_AUTHORITY_EXPORT_KEYS,
             ):
                 if metadata_key in candidate and metadata_key not in retrieval_metadata:
                     retrieval_metadata[metadata_key] = candidate[metadata_key]
@@ -2912,12 +2994,24 @@ class TurnRuntimeManager:
                                     get_bot_learner_overlay_service,
                                 )
 
-                                operations: list[dict[str, Any]] = [
-                                    {
-                                        "op": "set",
-                                        "field": "working_memory_projection",
-                                        "value": assistant_content.strip()[:500],
-                                    },
+                                from deeptutor.services.security.tutorbot_security_skill import (
+                                    is_security_template_response,
+                                )
+
+                                operations: list[dict[str, Any]] = []
+                                # 安全闸模板不是学习事实：把它投影进 working_memory 会在下一轮
+                                # 被当成 `### 局部工作记忆投影` 证据注回上下文，闸再次命中自己
+                                # 吐出的文案 → 吸收态（2026-07-31 test2 SEV，该学员被永久拒答）。
+                                # 单一判据由安全 skill 自己给（不新建第二套模板清单）。
+                                if not is_security_template_response(assistant_content):
+                                    operations.append(
+                                        {
+                                            "op": "set",
+                                            "field": "working_memory_projection",
+                                            "value": assistant_content.strip()[:500],
+                                        }
+                                    )
+                                operations.append(
                                     {
                                         "op": "merge",
                                         "field": "engagement_state",
@@ -2926,8 +3020,8 @@ class TurnRuntimeManager:
                                             "last_context_route": str(context_route or "").strip(),
                                             "last_capability": str(capability_name or "chat").strip(),
                                         },
-                                    },
-                                ]
+                                    }
+                                )
                                 if task_anchor_type and task_anchor_type != "none":
                                     operations.append(
                                         {
@@ -6714,27 +6808,49 @@ class TurnRuntimeManager:
                 duration_ms=turn_duration_ms,
                 stage_timings_ms=trace_metadata.get("latency_stages_ms"),
             )
+            terminal_observation_event: dict[str, Any] | None = None
             with contextlib.suppress(Exception):
-                event_log = get_turn_event_log()
                 terminal_trace_metadata = _build_final_observation_metadata(
                     usage_summary=terminal_usage_summary,
                     terminal_status=terminal_status,
                 )
-                append_ok = event_log.append(
-                    _build_terminal_turn_observation_event(
-                        session_id=session_id,
-                        turn_id=turn_id,
-                        status=terminal_status,
-                        capability_name=capability_name,
-                        duration_ms=turn_duration_ms,
-                        trace_metadata=terminal_trace_metadata,
-                        usage_summary=terminal_usage_summary,
-                    )
+                terminal_observation_event = _build_terminal_turn_observation_event(
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    status=terminal_status,
+                    capability_name=capability_name,
+                    duration_ms=turn_duration_ms,
+                    trace_metadata=terminal_trace_metadata,
+                    usage_summary=terminal_usage_summary,
                 )
-                if not append_ok:
-                    logger.debug(
-                        "Turn observation event append failed: %s",
-                        event_log.stats().get("last_write_error"),
+            if terminal_observation_event is not None:
+                with contextlib.suppress(Exception):
+                    event_log = get_turn_event_log()
+                    append_ok = event_log.append(terminal_observation_event)
+                    if not append_ok:
+                        logger.debug(
+                            "Turn observation event append failed: %s",
+                            event_log.stats().get("last_write_error"),
+                        )
+                # 终点黑洞（task#19）：TurnEventLog 之外的第二个终态消费面。同一个
+                # builder、同一张白名单，只是多一个 sink —— Langfuse 侧此前只有 start
+                # 指纹，终态 marker 一个都到不了（根因见 langfuse_adapter 的
+                # _METADATA_TOP_LEVEL_KEY_LIMIT 注释）。root chain 此刻已 __exit__，
+                # 但 OTel 允许以已结束的 span 作父级建子 span，事件仍挂在同一 trace 上。
+                #
+                # suppress 不是装饰性的：这一段之后才轮到唤醒订阅者、摘除 execution，
+                # 观测侧任何异常逃逸都会让整个 turn 的订阅者永久挂住（本改动的第一版
+                # 就是这么把一条 ws 测试挂死的）。观测永远不许绑架回合终结。
+                with contextlib.suppress(Exception):
+                    observability.record_turn_terminal_state(
+                        turn_observation,
+                        metadata=_langfuse_terminal_state_metadata(terminal_observation_event),
+                        level="ERROR" if terminal_status not in {"completed", "unknown"} else None,
+                        status_message=(
+                            f"turn terminal status={terminal_status}"
+                            if terminal_status not in {"completed", "unknown"}
+                            else None
+                        ),
                     )
             if log_context_tokens:
                 reset_log_context(log_context_tokens)

@@ -501,12 +501,17 @@ async def test_learning_fact_search_records_stage_timings_and_skips_heavy_steps(
     timings = result["evidence_bundle"]["trace"]["stage_timings_ms"]
     assert timings["total"] >= 0
     assert "primary_plan" in timings
+    # L1 瘦身检索（contracts/rag.md 44）新增 `retrieval_profile`：本轮没有声明
+    # profile，必须落 "full"（缺省 = 全量管线，逐字节旧行为）。这条断言原本是
+    # 全等比较，扩一个键而不是改成子集比较——performance_policy 是逐字段可回放
+    # 的 trace 面，宽松成 issubset 会让「某个杠杆悄悄改了默认值」失去守门。
     assert result["evidence_bundle"]["trace"]["performance_policy"] == {
         "intent_fast_path": True,
         "compiled_only_fast_path": True,
         "rerank_enabled": False,
         "second_pass_enabled": False,
         "primary_query_count": 0,
+        "retrieval_profile": "full",
     }
     assert calls["query_plans"] == []
     assert calls["rerank"] == 0
