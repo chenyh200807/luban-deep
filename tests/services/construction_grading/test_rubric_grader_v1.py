@@ -2420,3 +2420,117 @@ def test_canonical431_bank_has_no_2022_records_and_keys_are_group_scoped() -> No
         assert G._question_group_key(
             {"question_no": record["question_no"], "source_qid": qid}
         ) == f"q{record['subquestion_index']}"
+
+
+# ---------------------------------------------------------------------------
+# 快答/自由作文道的假口诀收权（r6 宣传门 A3，2026-08-01）
+# ---------------------------------------------------------------------------
+
+_FAKE_MNEMONIC_ANSWER = """## 采分点
+
+见证记录应覆盖取样全过程。
+
+---
+
+## 记忆口诀
+
+> **见证人填见证单；每个字对应：取样、制样、标识、封志、送检、现场检测。**
+"""
+
+
+def _answer_method_ctx() -> dict:
+    return {
+        "activation": {"band": "high"},
+        "units": [
+            {
+                "unit_id": "U-57",
+                "lecture": "工程质量检测管理",
+                "topic": "见证取样送检",
+                "source_ref": {"chunk_id": "LEC-57-03"},
+                "answer_method": {
+                    "mnemonics": ["样标封检"],
+                    "must_mentions": ["取样", "制样", "标识", "封志", "送检", "现场检测"],
+                    "trap_alerts": ["试验员不得代见证人填写见证记录"],
+                    "red_lines": ["检测费用由建设单位单独列支"],
+                },
+            }
+        ],
+    }
+
+
+def test_render_answer_method_mnemonic_lines_is_the_renderer_grading_uses():
+    """抽出的共用渲染器必须与判分链渲染逐字一致（提取零行为变化的 oracle）。
+
+    共用是这次收权的**全部意义**：快答道不得有第二套口诀渲染。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    lines = G.render_answer_method_mnemonic_lines(_answer_method_ctx())
+    assert lines, "high 带资产必须渲染出内容"
+    rendered = G.render_case_rubric_feedback(
+        {"scoring_points": [], "awarded_score": 0, "max_score": 10},
+        question_stem="某工程质量检测案例",
+        answer_method_context=_answer_method_ctx(),
+    )
+    assert "\n".join(lines) in rendered
+
+
+def test_apply_case_mnemonic_authority_swaps_in_the_sourced_compiled_mnemonic():
+    """命中真口诀：假口诀整段被替换，输出必带出处 + 展开行。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    out = G.apply_case_mnemonic_authority(
+        _FAKE_MNEMONIC_ANSWER, answer_method_context=_answer_method_ctx()
+    )
+    assert out
+    assert "（出处：工程质量检测管理·见证取样送检，LEC-57-03）" in out
+    assert "  展开：" in out
+    assert "样标封检" in out
+    # 模型即兴的顿号拼接假口诀必须消失
+    assert "每个字对应" not in out
+    # 口诀段以外的正文逐字保留
+    assert "见证记录应覆盖取样全过程。" in out
+
+
+def test_apply_case_mnemonic_authority_demotes_wording_without_authority():
+    """没命中真口诀：不得以「口诀」名义输出无出处的拼接列表——只降措辞，不改内容。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    out = G.apply_case_mnemonic_authority(_FAKE_MNEMONIC_ANSWER, answer_method_context=None)
+    assert out
+    assert "口诀" not in out
+    assert "## 记忆提示" in out
+    # 内容零删改（只有名号降级）
+    assert "取样、制样、标识、封志、送检、现场检测" in out
+    assert "见证记录应覆盖取样全过程。" in out
+    assert out == _FAKE_MNEMONIC_ANSWER.replace("记忆口诀", "记忆提示")
+
+
+def test_apply_case_mnemonic_authority_is_a_noop_without_mnemonic_wording():
+    """正文本来就没有「口诀」二字：零改动（返回 "" = 保持原文的既有约定）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    plain = "## 结论\n\n第1问共2处不妥。\n"
+    assert G.apply_case_mnemonic_authority(plain, answer_method_context=None) == ""
+    assert G.apply_case_mnemonic_authority(plain, answer_method_context=_answer_method_ctx()) == ""
+
+
+def test_apply_case_mnemonic_authority_does_not_inject_a_section_the_model_never_wrote():
+    """有资产但模型只是行内提了一嘴「口诀」：不硬塞新段落（那是新模板权威），只降措辞。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    inline = "## 结论\n\n可以用口诀帮助记忆：取样、制样、标识。\n"
+    out = G.apply_case_mnemonic_authority(inline, answer_method_context=_answer_method_ctx())
+    assert out == "## 结论\n\n可以用记忆提示帮助记忆：取样、制样、标识。\n"
+
+
+def test_resolve_case_answer_method_for_render_still_gates_on_high_band(monkeypatch):
+    """收权入口没有放松：medium 带 / 无 mnemonics 的 unit 一律不挂（宁缺勿错挂）。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+    from deeptutor.services.compiled_knowledge import lecture_answer_methods as L
+
+    monkeypatch.setattr(
+        L,
+        "resolve_lecture_answer_method_context",
+        lambda stem, **kw: {"activation": {"band": "medium"}, "selected_units": _answer_method_ctx()["units"]},
+    )
+    assert G.resolve_case_answer_method_for_render("某案例题干…") is None

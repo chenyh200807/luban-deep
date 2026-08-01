@@ -88,6 +88,8 @@ _RESULT_SAFE_DIAGNOSTIC_METADATA_KEYS = (
     "degraded_mcq_grading_guard_applied",
     "content_truth_guard_applied",
     "content_truth_low_confidence_claims",
+    # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+    "mnemonic_authority_source",
     "release_id",
     "git_sha",
     "deployment_environment",

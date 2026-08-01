@@ -9,7 +9,7 @@
 1. **不可变 golden**(T0 先行、T1 后原样通过): prefetched 分支新纳入的 2 个修正器对该分支的
    代表性输入是可证明 no-op(返回 ''，链约定 ``X(...) or final`` 保持原文)，以及 case_grading
    缺 V1 权威时降级模板与 runtime_metadata 副作用键逐一锁定。这些断言 T1 前后一字不改。
-2. **结构 golden**(T1 落地后新增): 单一管道按 canonical 8 步顺序驱动 + 四处调用点收敛证据。
+2. **结构 golden**(T1 落地后新增): 单一管道按 canonical 9 步顺序驱动 + 四处调用点收敛证据。
 
 全 hermetic: ``AgentLoop.__new__(AgentLoop)`` + monkeypatch，不触网络/LLM/磁盘。
 """
@@ -236,6 +236,9 @@ _CANONICAL_ORDER = [
     "normalize_anchor_terms",
     "case_exact_authority",
     "apply_v1_or_case",
+    # 口诀权威收权（2026-08-01，r6 宣传门 A3）：必须排在 apply_v1_or_case **之后** ——
+    # V1 判分链自己已按同一权威渲染过口诀，本层只管它没接管的自由作文道。
+    "case_mnemonic_authority",
     "degraded_exact_claim",
     "degraded_mcq",
     "content_truth",
@@ -270,6 +273,7 @@ def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLo
 
     loop._case_exact_authority_fallback = _rec("case_exact_authority")  # type: ignore[method-assign]
     loop._apply_v1_or_case_fallback = _apply  # type: ignore[method-assign]
+    loop._case_mnemonic_authority_guard = _rec("case_mnemonic_authority")  # type: ignore[method-assign]
     loop._degraded_exact_answer_claim_response = _rec("degraded_exact_claim")  # type: ignore[method-assign]
     loop._degraded_mcq_grading_response = _rec("degraded_mcq")  # type: ignore[method-assign]
     loop._content_truth_guard = _rec("content_truth")  # type: ignore[method-assign]
@@ -290,7 +294,7 @@ def test_finalize_visible_answer_runs_canonical_eight_step_order(
     monkeypatch: pytest.MonkeyPatch, finalize_path: str
 ) -> None:
     """T1 收权凭证: 四条 finalize 分支全部经同一 ``_finalize_visible_answer`` 管道,按 canonical
-    8 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
+    9 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
 
     loop = _loop()
     calls = _install_recording_correctors(monkeypatch, loop)
@@ -311,7 +315,7 @@ def test_finalize_visible_answer_runs_canonical_eight_step_order(
 
 def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     """收权 tripwire: 修正链修正器只许在单一管道内出现一次,四处 finalize 分支只留一行调用。
-    防止未来分支再内联复刻 8 级链(补丁螺旋回归)。"""
+    防止未来分支再内联复刻 9 级链(补丁螺旋回归)。"""
 
     source = _LOOP_SOURCE_PATH.read_text(encoding="utf-8")
     # 这些修正器唯一的调用点就是单一管道——四处 finalize 分支不再各内联一遍。
@@ -320,6 +324,7 @@ def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     assert source.count("self._degraded_exact_answer_claim_response(") == 1
     assert source.count("self._degraded_mcq_grading_response(") == 1
     assert source.count("self._content_truth_guard(") == 1
+    assert source.count("self._case_mnemonic_authority_guard(") == 1
     assert source.count("self._strip_leading_meta_narration(") == 1
     # _case_exact_authority_fallback 有 2 处:管道内 1 处 + ``_run_agent_loop`` 内层 seam 1 处
     # (line ~2326,非 finalize 分支,设计明确冻结不纳入管道)。

@@ -2514,3 +2514,165 @@ def test_canonical_key_hit_marker_is_registered_in_the_single_export_whitelist()
         {"question_lifecycle_scene": "case_grading", "case_canonical_key_hit": "4/4"}, target
     )
     assert target["case_canonical_key_hit"] == "4/4"
+
+
+# ---------------------------------------------------------------------------
+# 自由作文道的假口诀收权（r6 宣传门 A3 唯一红点，2026-08-01）
+#
+# 现场：t2_question_only（题库内案例 qid=17357 只发题不作答），
+# execution_path=tutorbot_exact_fast_path。判分直批链早已接 A1 真口诀资产，
+# 但由模型自己写正文的 exact/agent 道没接 —— 模型在「## 记忆口诀」下顿号拼接
+# 一串漏点标题冒充口诀（无出处、非编译资产）。
+# ---------------------------------------------------------------------------
+
+_LLM_LANE_ANSWER = """## 结论
+
+第1问共2处不妥。
+
+---
+
+## 记忆口诀
+
+> **每个字对应：取样、制样、标识、封志、送检、现场检测。**
+"""
+
+
+def _mnemonic_unit_ctx() -> dict:
+    return {
+        "activation": {"band": "high"},
+        "units": [
+            {
+                "unit_id": "U-57",
+                "lecture": "工程质量检测管理",
+                "topic": "见证取样送检",
+                "source_ref": {"chunk_id": "LEC-57-03"},
+                "answer_method": {
+                    "mnemonics": ["样标封检"],
+                    "must_mentions": ["取样", "制样", "标识", "封志", "送检", "现场检测"],
+                },
+            }
+        ],
+    }
+
+
+def test_llm_lane_mnemonic_is_replaced_by_the_grading_chain_authority(monkeypatch):
+    """快答/自由作文道命中真口诀：整段换成判分链同一渲染器的输出（带出处 + 展开）。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: _mnemonic_unit_ctx())
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)  # 非直批轮：由模型写正文的那条道
+    out = AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    assert "（出处：工程质量检测管理·见证取样送检，LEC-57-03）" in out
+    assert "  展开：" in out
+    assert "每个字对应" not in out
+    assert md["mnemonic_authority_source"] == "lecture_pack:U-57"
+
+
+def test_llm_lane_mnemonic_without_authority_is_demoted_not_named_a_mnemonic(monkeypatch):
+    """没命中真口诀：绝不以「口诀」名义输出无出处的顿号拼接列表。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    out = AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    assert "口诀" not in out
+    assert "## 记忆提示" in out
+    assert "取样、制样、标识、封志、送检、现场检测" in out  # 内容零删改
+    assert md["mnemonic_authority_source"] == "demoted_no_authority"
+
+
+def test_v1_grading_lane_keeps_sole_ownership_of_its_own_mnemonic(monkeypatch):
+    """V1 判分链已按同一权威决定过口诀形态（case_mnemonic_source 已发声）→ 本层不得改二遍。"""
+    def _boom(stem):  # pragma: no cover - 断言它压根不该被调到
+        raise AssertionError("V1 已拥有口诀权威时不得再解析一次")
+
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", _boom)
+    md = _case_md()
+    md["case_mnemonic_source"] = "fallback_template"
+    assert AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    ) == ""
+
+
+def test_guard_is_inert_without_a_case_stem_or_mnemonic_wording(monkeypatch):
+    """门只看结构化事实：没案例题面（纯学习支持问句）或正文没「口诀」二字 → 逐字不动。"""
+    def _boom(stem):  # pragma: no cover
+        raise AssertionError("无案例题面时不得解析口诀资产")
+
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", _boom)
+    assert AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata={}, user_message="给我整理一建建筑实务记忆口诀"
+    ) == ""
+
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    assert AgentLoop._case_mnemonic_authority_guard(
+        "## 结论\n\n第1问共2处不妥。\n", runtime_metadata=md, user_message="这道题怎么答"
+    ) == ""
+
+
+def test_guard_never_pollutes_case_grading_markers_on_a_non_grading_turn(monkeypatch):
+    """_build_v1_case_ctx 会盖 case_user_stem_* 等导出 marker —— 守卫只能给它影子副本，
+    非判分轮不得被染色（否则 sink 上出现凭空的判分 marker）。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    assert "case_user_stem_hash" not in md
+    assert "case_user_stem_len" not in md
+
+
+def test_mnemonic_authority_marker_reaches_the_outbound_metadata(monkeypatch):
+    """升降必发声：marker 必须走 scene 无关的载体上 result 事件。
+
+    判分侧的 ``case_mnemonic_source`` 被 ``copy_current_case_grading_turn_metadata``
+    按 scene==case_grading 门控（非判分轮直接 strip），而本守卫只在非判分轮动手 ——
+    挂错键 = 该 sink 永久 0 命中（这条洞 live 上出现过不止一次）。"""
+    monkeypatch.setattr(G, "resolve_case_answer_method_for_render", lambda stem: None)
+    md = _case_md()
+    md.pop("question_lifecycle_scene", None)
+    AgentLoop._case_mnemonic_authority_guard(
+        _LLM_LANE_ANSWER, runtime_metadata=md, user_message="这道题怎么答"
+    )
+    target: dict = {}
+    AgentLoop._export_content_truth_metadata(md, target)
+    assert target["mnemonic_authority_source"] == "demoted_no_authority"
+
+    from deeptutor.services.construction_grading.case_output_policy import (
+        copy_current_case_grading_turn_metadata,
+    )
+
+    # 反证：挂在判分侧那个键上会被非判分轮 strip 掉。
+    stripped: dict = {"case_mnemonic_source": "demoted_no_authority"}
+    copy_current_case_grading_turn_metadata(md, stripped)
+    assert "case_mnemonic_source" not in stripped
+
+
+def test_mnemonic_authority_marker_is_registered_in_every_sink_allowlist() -> None:
+    """"漏一张名单 = 该 sink 永久 0 命中"（live 已犯过不止一次）。
+
+    ``mnemonic_authority_source`` 走 content-truth 那条 scene 无关的载体，
+    它沿途一共五张白名单：loop 导出 / manager trace+merged / manager session 桥 /
+    capability result_payload / turn_runtime 事件与 summary。缺一即观测断链。"""
+    import inspect
+
+    from deeptutor.capabilities import tutorbot as capability_module
+    from deeptutor.services.session import turn_runtime as turn_runtime_module
+    from deeptutor.services.tutorbot import manager as manager_module
+    from deeptutor.tutorbot.agent import loop as loop_module
+
+    marker = '"mnemonic_authority_source"'
+    for module, minimum in (
+        (loop_module, 1),
+        (manager_module, 2),
+        (capability_module, 1),
+        (turn_runtime_module, 2),
+    ):
+        source = inspect.getsource(module)
+        assert source.count(marker) >= minimum, (
+            f"{module.__name__} 少登记了 mnemonic_authority_source"
+        )
