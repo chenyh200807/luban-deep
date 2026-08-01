@@ -2316,6 +2316,10 @@ def _record_v1_langfuse(
                     "scoring_points": len(event.get("scoring_points") or []),
                     "high_risk_review": event.get("high_risk_review"),
                     "official_score_allowed": False,
+                    # hit|miss|bypass — the cache-hit-rate metric source; without it a replayed
+                    # score is indistinguishable from a fresh adjudication in the trace.
+                    "grading_cache": event.get("grading_cache"),
+                    "cache_key_version": event.get("cache_key_version"),
                     "student_id": student_id, "question_id": qid, "cg_type": cg_type,
                 },
                 score_value=ratio,
@@ -2510,9 +2514,27 @@ async def _grade_one_case_v1(
     )
     if not points:
         return {"status": "unavailable", "reason": "no_official_scoring_points"}
+    # Authority material for the single grading-result cache seam (codex 审计 §3.2): everything the
+    # grader cannot see from (qid, answer, points, model) but that can still move the final score.
+    # Absent facts are passed as "" / None on purpose — when the coverage tri-state + scope cap land
+    # upstream, populating them CHANGES the key, which is exactly the invalidation we want.
+    cache_identity = {
+        "rubric_provenance": provenance,
+        "nominal_full_score": (cg or {}).get("max_score"),
+        "coverage_state": (
+            ctx.get("coverage_state") or (cg or {}).get("coverage_state") or ""
+        ),
+        "effective_scope_cap": (
+            ctx.get("effective_scope_cap")
+            if ctx.get("effective_scope_cap") is not None
+            else (cg or {}).get("effective_scope_cap")
+        ),
+        "provider_binding": provider_authority,
+    }
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
-        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model)
+        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model,
+        cache_identity=cache_identity)
     # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
     # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
     # diagnostic path (same as "no rubric"), exactly like an exception would.
@@ -2573,6 +2595,17 @@ async def _grade_case_batch_v1(
         dict(sp, source_qid=str(ev.get("question_id") or ""))
         for ev in sub_events for sp in (ev.get("scoring_points") or [])
     ]
+    # Cache observability for the bundle: children are cached individually at the single seam and the
+    # aggregate is composed from FINALIZED children (audit §3.3 risk 9 — never cache one side only).
+    # The bundle counts as a hit only when EVERY child replayed; the key is the ordered hash of the
+    # child keys, never the parent qid alone (audit §3.2).
+    from deeptutor.services.construction_grading import grading_result_cache as _cache
+    child_cache_states = [str(e.get("grading_cache") or "") for e in sub_events]
+    merged_cache_state = (
+        "hit" if child_cache_states and all(s == "hit" for s in child_cache_states)
+        else "bypass" if child_cache_states and all(s == "bypass" for s in child_cache_states)
+        else "miss"
+    )
     return {
         "event_type": "case_grading_completed",
         "student_id": student_id,
@@ -2586,6 +2619,11 @@ async def _grade_case_batch_v1(
         "llm_adjudicated": True,
         "official_score_allowed": False,
         "rubric_provenance": "batch",
+        "grading_cache": merged_cache_state,
+        "cache_key_version": _cache.CACHE_KEY_VERSION,
+        "grading_cache_key": _cache.batch_cache_key(
+            [str(e.get("grading_cache_key") or "") for e in sub_events]
+        )[:16],
         "items": sub_events,
     }
 

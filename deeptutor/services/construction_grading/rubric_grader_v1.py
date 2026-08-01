@@ -52,7 +52,16 @@ _RUBRIC_BANK_SLOTS = {
 _PGO_COVERAGE_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
 _PGO_POINT_DISPLAY_SCORE_AUTHORITY = "display_allocated_from_official_total_coverage"
 _RUBRIC_EXTRACTION_PROMPT_VERSION = "rubric_extraction_prompt.v2"
+# Bump when ``_batch_prompt`` / ``_parse_batch_verdicts`` change: it is a component of the
+# same-question-same-answer result cache key, so a bump invalidates every cached verdict shaped by
+# the old prompt (audit §3.3 risk 2 — TTL is not versioning).
+_ADJUDICATION_PROMPT_VERSION = "batch_adjudication_prompt.v1"
+# Bump when the deterministic scoring spine (grade_with_rubric / PGO coverage / normalization) changes.
+_GRADER_ALGORITHM_VERSION = "rubric_grader_v1.g1"
 _RUBRIC_EXTRACTION_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+# Identity of the verify-gated bank actually loaded this process (slot + content hash). Part of the
+# result-cache key so a bank swap can never replay scores compiled from the previous supply.
+_RUBRIC_BANK_IDENTITY: dict[str, str] = {"slot": "", "content_hash": ""}
 
 
 def _rubric_cache_ttl_seconds() -> float:
@@ -1208,6 +1217,7 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
 
     raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
     slot = str(raw_slot or "legacy").strip().lower() or "legacy"
+    _RUBRIC_BANK_IDENTITY["slot"] = slot
     slot_spec = _RUBRIC_BANK_SLOTS.get(slot)
     if slot_spec is None:
         logger.warning("rubric_grader_v1: unknown rubric bank slot %r; refusing bank", slot)
@@ -1242,6 +1252,7 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
         logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer hash mismatch; refusing bank",
                        slot)
         return {}
+    _RUBRIC_BANK_IDENTITY["content_hash"] = actual_hash
     by_q: dict[str, list[dict[str, Any]]] = {}
     for r in records:
         point = {
@@ -1279,6 +1290,16 @@ def load_rubric(qid: str) -> list[dict[str, Any]]:
     """Load a question's compiled scoring-point rubric from the tracked supply (empty if not in bank ->
     caller does open-world on-the-fly extraction). Verify-gated, cached process-wide via ``_rubric_bank``."""
     return _rubric_bank().get(str(qid), [])
+
+
+def active_rubric_bank_identity() -> dict[str, str]:
+    """The verify-gated bank actually in force this process: ``{"slot", "content_hash"}``.
+
+    Read by the grading-result cache key so a bank slot flip / recompiled supply cannot replay a score
+    produced against the previous rubric supply. ``content_hash`` is "" when the bank was refused
+    (unknown slot / hash mismatch / missing pointer) — i.e. open-world grading."""
+    _rubric_bank()  # ensure the process-wide load ran at least once
+    return dict(_RUBRIC_BANK_IDENTITY)
 
 
 def to_canonical_grading_object(
@@ -1968,19 +1989,81 @@ def grade_with_batch_judge(
                                 adjudication_metadata=metadata)
 
 
+def _resolved_cache_identity(cache_identity: dict[str, Any] | None) -> dict[str, Any]:
+    """Fill the version/authority facts this module owns; the caller supplies the rest (provenance,
+    coverage state, scope cap, nominal, provider binding)."""
+    identity = dict(cache_identity or {})
+    identity.setdefault("extraction_prompt_version", _RUBRIC_EXTRACTION_PROMPT_VERSION)
+    identity.setdefault("adjudication_prompt_version", _ADJUDICATION_PROMPT_VERSION)
+    identity.setdefault("grader_algorithm_version", _GRADER_ALGORITHM_VERSION)
+    if not identity.get("bank_slot") or not identity.get("bank_content_hash"):
+        try:
+            bank = active_rubric_bank_identity()
+        except Exception:  # noqa: BLE001 — bank identity is key material, never a grading dependency
+            bank = {}
+        identity.setdefault("bank_slot", bank.get("slot", ""))
+        identity.setdefault("bank_content_hash", bank.get("content_hash", ""))
+    return identity
+
+
 async def grade_with_batch_judge_async(
     *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
     complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
+    cache_identity: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Async V1 scoring path. Small cases stay on one batch call; larger cases are split into at most
     three concurrent sub-batches by subquestion identity when available. The deterministic sum
-    (``grade_with_rubric``) and fail-closed coverage check stay unchanged."""
+    (``grade_with_rubric``) and fail-closed coverage check stay unchanged.
+
+    THE SINGLE GRADING-RESULT CACHE SEAM (codex 判分核不变量审计 §3.2, invariants I-11/I-12). Same
+    question + same normalized answer + same rubric/version/model/provider authority replays the
+    FINAL event instead of re-adjudicating, because per-point LLM verdicts have no cross-time
+    determinism contract. Deliberately here and nowhere else: a cache in render / TutorBot / wrapper
+    layers could serve a score the grading core never produced. Every event carries
+    ``grading_cache=hit|miss|bypass`` so cache consistency is never mistaken for model determinism
+    (audit §3.3 risk 10). Cache failures degrade to a fresh adjudication — never to a broken turn."""
+    from deeptutor.services.construction_grading import grading_result_cache as _cache
+
+    identity = _resolved_cache_identity(cache_identity)
+    enabled = _cache.cache_enabled()
+    cache_key = ""
+    if enabled:
+        try:
+            cache_key = _cache.build_cache_key(
+                question_identity=qid, student_answer=student_answer,
+                rubric_points=rubric_points, model=model, identity=identity,
+            )
+            cached = await _cache.get_cached_event(cache_key)
+        except Exception:  # noqa: BLE001 — a cache read must never break grading
+            logger.warning("rubric_grader_v1: grading result cache read failed; adjudicating fresh",
+                           exc_info=True)
+            cached = None
+        if isinstance(cached, dict) and cached:
+            event = _cache.rebind_identity(cached, student_id=student_id)
+            event["grading_cache"] = "hit"
+            event["cache_key_version"] = _cache.CACHE_KEY_VERSION
+            event["grading_cache_key"] = cache_key[:16]
+            logger.info("rubric_grader_v1: grading result cache HIT qid=%s key=%s", qid, cache_key[:16])
+            return event
+
     verdicts, metadata = await _batch_judge_dynamic_async(
         rubric_points, student_answer, complete_fn, api_key, model=model
     )
-    return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
-                                verdicts=verdicts, student_id=student_id,
-                                adjudication_metadata=metadata)
+    event = _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
+                                 verdicts=verdicts, student_id=student_id,
+                                 adjudication_metadata=metadata)
+    event["grading_cache"] = "miss" if enabled else "bypass"
+    event["cache_key_version"] = _cache.CACHE_KEY_VERSION
+    if cache_key:
+        event["grading_cache_key"] = cache_key[:16]
+    # Only a terminal, non-degraded, coverage-known event may be frozen — otherwise a transient
+    # provider outage would become a permanently sticky low score (audit §3.3 risk 6).
+    if enabled and cache_key and _cache.is_cacheable_event(event):
+        try:
+            await _cache.store_cached_event(cache_key, _cache.strip_identity(event))
+        except Exception:  # noqa: BLE001 — a cache write must never break grading
+            logger.warning("rubric_grader_v1: grading result cache write failed", exc_info=True)
+    return event
 
 
 def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:
@@ -2017,6 +2100,7 @@ __all__ = ["grade_with_rubric", "grade_artifact_shadow", "rubric_points_from_art
            "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
            "extract_rubric_from_reference_async", "normalize_points_to_nominal",
+           "active_rubric_bank_identity",
            "derive_outcome_from_event",
            "to_learning_evidence", "render_case_rubric_feedback", "build_case_rubric_presentation",
            "build_case_rubric_score_first_stream", "load_rubric",

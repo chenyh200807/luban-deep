@@ -25,6 +25,25 @@ import pytest
 os.environ.setdefault("DEEPTUTOR_ENV", "local")
 
 
+@pytest.fixture(autouse=True)
+def _isolate_grading_result_cache():
+    """Per-test isolation for the same-question-same-answer grading-result cache.
+
+    The cache is DEFAULT ON in production, and its key is (correctly) built only from question +
+    answer + rubric/version/authority material — NOT from which mock a test installed. Two tests that
+    grade the same inputs with different stub behaviour therefore share a key, and the second would
+    replay the first's event instead of exercising its own path. Reset the backend around every test
+    so isolation comes from the harness, never from weakening the production key.
+    """
+    from deeptutor.services.construction_grading import grading_result_cache
+
+    grading_result_cache.reset_backend_for_tests()
+    try:
+        yield
+    finally:
+        grading_result_cache.reset_backend_for_tests()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _isolate_observer_event_dir(tmp_path_factory):
     """Redirect the observer turn-event log to a per-session tmp dir.

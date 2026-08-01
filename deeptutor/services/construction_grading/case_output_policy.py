@@ -28,6 +28,12 @@ CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
     "case_grading_adjudication_strategy",
     "case_grading_adjudication_group_count",
     "case_grading_adjudication_point_count",
+    # Grading-result cache receipt. Must stay in lockstep with the event→metadata mapping in
+    # tutorbot/agent/loop.py: a key written there but missing here is stripped from the turn
+    # projection (and vice versa it is never populated) — the cache hit rate would read as 0.
+    "case_grading_cache",
+    "case_grading_cache_key_version",
+    "case_grading_cache_key",
 )
 # An explicit case-style score *verdict* (not a bare 采分点 teaching label, a
 # rubric like "满分100分", or a unit price like "5分/平米"). Used only as the

@@ -857,6 +857,7 @@ domains:
       - deeptutor/services/construction_grading/per_question_grading_judge.py
       - deeptutor/services/construction_grading/case_rubric_pgo_supply.py
       - deeptutor/services/construction_grading/rubric_grader_v1.py
+      - deeptutor/services/construction_grading/grading_result_cache.py
       - deeptutor/services/construction_grading/learning_evidence.py
       - scripts/build_luban_pgo_runtime_supply.py
       - scripts/verify_luban_pgo_runtime_supply.py
@@ -868,6 +869,7 @@ domains:
       - tests/services/construction_grading/test_per_question_grading_judge.py
       - tests/services/construction_grading/test_case_rubric_pgo_supply.py
       - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/services/construction_grading/test_grading_result_cache.py
       - tests/scripts/test_build_luban_pgo_runtime_supply.py
       - tests/scripts/test_verify_luban_pgo_runtime_supply.py
       - tests/scripts/test_luban_pgo_stage5_canary_gate.py

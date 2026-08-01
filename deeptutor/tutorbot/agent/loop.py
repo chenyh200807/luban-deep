@@ -1645,6 +1645,14 @@ class AgentLoop:
             for _event_key, _metadata_key in (
                 ("adjudication_group_count", "case_grading_adjudication_group_count"),
                 ("adjudication_point_count", "case_grading_adjudication_point_count"),
+                # Grading-result cache receipt (codex 审计 §3.3 risk 10): a replayed score must be
+                # distinguishable from a fresh adjudication in the turn record, otherwise cache
+                # consistency gets read as model determinism. Both this mapping AND
+                # CASE_GRADING_TURN_METADATA_KEYS must carry it — a key exported in only one of the
+                # two silently vanishes from the turn projection.
+                ("grading_cache", "case_grading_cache"),
+                ("cache_key_version", "case_grading_cache_key_version"),
+                ("grading_cache_key", "case_grading_cache_key"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)
