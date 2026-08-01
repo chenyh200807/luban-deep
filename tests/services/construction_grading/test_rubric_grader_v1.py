@@ -2326,29 +2326,26 @@ def test_canonical431_slot_is_registered_and_points_at_lane1_artifacts() -> None
     assert G._RUBRIC_BANK_SLOTS["pgo"] == ("v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json")
 
 
-def test_canonical431_slot_refused_by_governance_gate_until_owner_authorizes() -> None:
-    """三道闸的前两道（manifest hash / pointer hash）已满足，第三道故意不满足。
-
-    ``production_authorized`` 是主控在 live 回归后才翻的开关；Lane 2 只接线。
-    这条断言在主控翻 true 那天会**红**——那正是它的作用：授权是一次显式动作，
-    必须有人来改这行测试并写下理由，而不是某个 PR 顺手把它带过去。"""
+def test_canonical431_slot_loads_after_explicit_owner_authorization() -> None:
+    """授权已显式翻转（2026-08-01 主控独立提交）：依据 = Lane1 #648 17 断言全绿
+    + Lane2 #653 未授权对照零变化；保留条件 = §4 三轮 live 判别位回归
+    （2023-case4 E1 真值 2.0 vs 均分 5.0）通过，不过即回滚 slot=legacy。
+    本测试由"钉未授权态"改为"钉授权后可装载 + 完整性三闸仍全过"——授权仍是
+    显式动作：谁回滚谁再来改这行并写理由。"""
     from deeptutor.services.construction_grading import rubric_grader_v1 as G
 
     bundle, reason = G._load_bank_slot("canonical431")
-    assert bundle is None
-    assert reason == "unauthorized", (
-        f"canonical431 必须卡在治理闸而不是完整性闸（reason={reason}）——"
-        "hash/pointer 类失败说明 Lane 1 的产物被改坏了"
-    )
+    assert reason == "ok", f"授权后必须可装载（reason={reason}）"
+    assert bundle is not None and len(bundle.get("records") or {}) == 321
 
 
 def test_canonical431_env_slot_falls_back_to_legacy_and_announces(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """未授权 slot 请求 → 回落 legacy + 身份发声 ``fallback_from:canonical431``。
+    """授权翻转后（2026-08-01）：canonical431 slot 请求应正常装载并发声授权身份。
 
-    这就是 slot 切换 runbook 里「翻 slot 但没翻授权」那一步的预期行为：判分不
-    中断、权威不静默替换、trace 上看得见。"""
+    原钉"未授权回落"的行为已随显式授权更新；回落语义仍由治理闸保障（若未来
+    回滚授权，本测试须改回并写理由）。"""
     from deeptutor.services.construction_grading import rubric_grader_v1 as G
 
     monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "canonical431")
@@ -2356,10 +2353,9 @@ def test_canonical431_env_slot_falls_back_to_legacy_and_announces(
     try:
         bank = G._rubric_bank()
         identity = G.active_bank_identity()
-        assert identity["slot"] == "legacy", "未授权 slot 必须回落到授权默认 slot"
-        assert identity["governance"] == "fallback_from:canonical431"
-        # 回落后 canonical 键在 legacy 库里恒不命中 → 接线面零命中（行为不变）。
-        assert bank.get("2024-case1::E1") is None
+        assert identity["slot"] == "canonical431", "授权后必须装载 canonical431"
+        assert identity["governance"] == "authorized"
+        assert bank.get("2024-case1::E1") is not None, "canonical 键必须可命中"
     finally:
         G._rubric_bank.cache_clear()
 

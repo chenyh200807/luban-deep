@@ -1,8 +1,8 @@
 {
-  "authorization_note": "待主控切换：Lane 1 只交付候选。装载前必须 (1) 在 rubric_grader_v1._RUBRIC_BANK_SLOTS 注册 'canonical431' → ('v_case_rubric_scored_canonical431', 'case_rubric_scored_canonical431.json')；(2) 打通 tier-1 键（ctx.question_id 目前不是 case_group_id::E{n}，见 2026-08-01-canonical431上服Lane1.md §4）；(3) live 回归。分值权威=佑森培训机构解析，NOT official。",
+  "authorization_note": "authorized by commander session 2026-08-01: Lane1 #648 17断言全绿 + Lane2 #653 未授权对照零变化；保留条件=§4 三轮 live 判别位回归（2023-case4 E1 真值2.0 vs 均分5.0）通过，不过即回滚 slot=legacy",
   "expected_content_hash": "9ce1e83016cfd1d29efa04ca1b756c01627b02bd0c165fd46cb246b02c95bf84",
   "namespace": "case_rubric_scored_canonical431",
-  "production_authorized": false,
+  "production_authorized": true,
   "published": false,
   "slot": "canonical431",
   "status": "release_candidate"
