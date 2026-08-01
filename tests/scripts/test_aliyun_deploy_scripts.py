@@ -301,6 +301,50 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
     assert "DEEPTUTOR_DEPLOY_MANIFEST_HASH=" in env_content
 
 
+def test_sync_regenerates_stale_auto_prompt_version_from_release_sha(tmp_path: Path) -> None:
+    """2026-08-01 生产实证：远端 DEEPTUTOR_PROMPT_VERSION=git-4505e0c10c90（04-24）与
+    DEEPTUTOR_GIT_SHA（07-31）相差三个月——旧逻辑「远端已有值就保留」让脚本自己生成的
+    lineage 戳永久粘住，观测面撒谎。`git-<sha>` 是机器戳，必须跟着发布 SHA 走。"""
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    git_sha = _run(["git", "rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        "SERVICE_ENV=production\nAPP_ENV=production\n"
+        "DEEPTUTOR_PROMPT_VERSION=git-4505e0c10c90\n",
+        encoding="utf-8",
+    )
+    env, _call_log = _build_stub_env(tmp_path, execute_release_injection=True)
+    env["SSH_STUB_REMOTE_DIR_OVERRIDE"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    assert result.returncode == 0, result.stderr
+    env_content = (remote_dir / ".env").read_text(encoding="utf-8")
+    assert f"DEEPTUTOR_PROMPT_VERSION=git-{git_sha[:12]}\n" in env_content
+    assert "git-4505e0c10c90" not in env_content
+
+
+def test_sync_keeps_human_authored_prompt_version(tmp_path: Path) -> None:
+    """反向边界：非 `git-` 的值是人写的独立 prompt 装载权威，脚本不得覆盖。"""
+    repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        "SERVICE_ENV=production\nAPP_ENV=production\n"
+        "DEEPTUTOR_PROMPT_VERSION=construction-tutor-v9\n",
+        encoding="utf-8",
+    )
+    env, _call_log = _build_stub_env(tmp_path, execute_release_injection=True)
+    env["SSH_STUB_REMOTE_DIR_OVERRIDE"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/sync_to_aliyun.sh", "once"], cwd=repo_root, env=env)
+
+    assert result.returncode == 0, result.stderr
+    env_content = (remote_dir / ".env").read_text(encoding="utf-8")
+    assert "DEEPTUTOR_PROMPT_VERSION=construction-tutor-v9\n" in env_content
+
+
 def test_sync_marks_dirty_release_lineage_when_dirty_override_is_used(tmp_path: Path) -> None:
     repo_root = _setup_sync_repo(tmp_path, branch="release/candidate")
     (repo_root / "untracked.txt").write_text("dirty\n", encoding="utf-8")

@@ -421,6 +421,35 @@ def test_strip_leading_meta_narration_never_eats_answer_bearing_first_sentence()
         assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
 
 
+def test_strip_leading_meta_narration_strips_c3_retrieval_monologue() -> None:
+    """2026-08-01 C3 重放实证形态（非批改链）：服务端落库正文逐字以这句独白开头。
+
+    见 `docs/原始数据/数据盘点/2026-08-01-历史错误逐案重放回归.md` §7.2。族1/族2 的动词集
+    都够不着「我注意到…让我补充检索…」，这条钉死族3。
+    """
+    md: dict = {}
+    out = AgentLoop._strip_leading_meta_narration(
+        "我注意到检索证据中未直接给出表6.0.15的具体数值和甲醛限值，让我补充检索这两个关键参数。"
+        "\n\n根据《民用建筑工程室内环境污染控制标准》GB50325-2020，标准间的甲醛限值为 "
+        "0.07mg/m³；检测点数按房间使用面积确定，100~500m² 时不少于 3 个点。",
+        runtime_metadata=md,
+    )
+    assert out.startswith("根据《民用建筑工程室内环境污染控制标准》")
+    assert "我注意到" not in out
+    assert md["leading_meta_narration_stripped"] is True
+
+
+def test_strip_leading_meta_narration_keeps_observation_about_the_learner() -> None:
+    """族3 的危险边界：观察句是**讲评**（谈学生作答）时一律保持原文，只有同句里同时出现
+    证据侧名词 + 自述取证动作才算独白。"""
+    for text in (
+        "我注意到你的第3问漏了一个采分点，这里补一下。\n\n专项施工方案必须经过专家论证。",
+        "我发现你把安全网的层间距记成了 15m。\n\n正确做法是每隔 10m 设置一道水平安全网。",
+        "我注意到这道题的证据链其实很清楚。\n\n施工单位应当在开工前编制专项方案并报监理审批。",
+    ):
+        assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
+
+
 def test_case_grading_disclaimer_is_idempotent_across_double_seam() -> None:
     """Review B-1 回归：诊断先后过内 seam 与外 seam，免责声明只许追加一次
     ——声明自含"阅卷"会命中 demote 正则，无幂等闸则主线确定性双写。"""
