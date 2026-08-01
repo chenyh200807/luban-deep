@@ -804,3 +804,40 @@ def test_langfuse_terminal_state_metadata_tolerates_a_broken_event() -> None:
 
     assert _langfuse_terminal_state_metadata({}) == {"turn_status": "unknown"}
     assert _langfuse_terminal_state_metadata(None) == {}  # type: ignore[arg-type]
+
+
+def test_mnemonic_authority_source_reaches_summary_and_terminal_event() -> None:
+    """口诀权威收权（r6 宣传门 A3，2026-08-01）的观测底座。
+
+    ``mnemonic_authority_source``（"lecture_pack:<unit_ids>" | "demoted_no_authority"）
+    是「真口诀挂载率 / 无出处降级率」唯一的数据来源。它走 content-truth 那条
+    **scene 无关**的载体——判分侧的 ``case_mnemonic_source`` 被 scene==case_grading
+    门控，而本守卫只在非判分轮（exact_fast_path / agent_loop 自由作文道）动手。
+    turn_runtime 这两张白名单漏一张，该 sink 就永久 0 命中。"""
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "execution_path": "tutorbot_exact_fast_path",
+                    "mnemonic_authority_source": "demoted_no_authority",
+                },
+            }
+        ]
+    )
+    assert summary["mnemonic_authority_source"] == "demoted_no_authority"
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-mn",
+        turn_id="turn-mn",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=100.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "execution_path": "tutorbot_exact_fast_path",
+            "mnemonic_authority_source": "lecture_pack:U-57",
+        },
+        usage_summary={"total_tokens": 1, "total_calls": 1},
+    )
+    assert event["metadata"]["mnemonic_authority_source"] == "lecture_pack:U-57"

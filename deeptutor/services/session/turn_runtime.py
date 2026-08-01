@@ -1271,6 +1271,8 @@ def _build_terminal_turn_observation_event(
         # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
         "content_truth_guard_applied",
         "content_truth_low_confidence_claims",
+        # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+        "mnemonic_authority_source",
         # 观测对称律（1b 2026-07-30）：案例判分成功侧权威标记，键清单单一权威
         # =CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：本表曾是第三张
         # 互不同步的白名单，live 实证漏名单=jsonl sink 永久 0 命中）。
@@ -1896,6 +1898,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 # observation event (and the offline review agent) can see them.
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
+                # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+                "mnemonic_authority_source",
                 # 观测对称律（1b 2026-07-30）：判分成功侧权威标记必须到达 trace 顶层
                 # （根 span=turn.runtime，顶层 metadata 由本 summary 构成）。键清单
                 # 单一权威=CASE_GRADING_AUTHORITY_EXPORT_KEYS（倾向四收权：曾散落
