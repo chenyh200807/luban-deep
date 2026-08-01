@@ -401,7 +401,7 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     assert "答错：你写的「塔吊」" in text                   # P3 wrong-content, NOT "漏写"
     assert "**易错点：**" in text and "列举6项检验" in text       # P2 (partial) is a weak point
     assert "## 判分" in text
-    assert "## 记忆口诀" in text
+    assert "## 记忆提示" in text        # 回落面无资产不得自称口诀（F1 附带裁决）
     assert "## 下一步建议" in text
 
 
@@ -1947,7 +1947,7 @@ def test_render_case_feedback_uses_real_mnemonics_with_citation() -> None:
     # 无编译上下文 → 回落现模板（不渲染引用行）
     fallback = G.render_case_rubric_feedback(event, question_stem="临时用电案例")
     assert "出处：" not in fallback
-    assert "## 记忆口诀" in fallback
+    assert "## 记忆提示" in fallback    # 回落面无资产不得自称口诀（F1 附带裁决）
 
 
 _COV_STEM = (

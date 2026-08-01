@@ -1288,11 +1288,14 @@ def render_case_rubric_feedback(
             else "本评分为 AI 阅卷草稿，非正式成绩。"
     lines.append(f"- {note}")
     lines.append("")
-    lines.append("## 记忆口诀")
     _am_lines = render_answer_method_mnemonic_lines(answer_method_context)
     if _am_lines:
+        lines.append("## 记忆口诀")
         lines.extend(_am_lines)
     else:
+        # 同病同治（2026-08-01 F1 附带裁决）：无编译资产时的顿号拼接不得自称
+        # "口诀"（与 A3 击落的快答假口诀同形态），降格为"记忆提示"。
+        lines.append("## 记忆提示")
         mnemonic = _mnemonic_from_weak(weak)
         if mnemonic:
             lines.append(mnemonic)
@@ -1493,7 +1496,7 @@ def build_case_rubric_score_first_stream(
     score_first = "\n".join(score_lines).strip()
 
     heading_pattern = re.compile(
-        r"(?m)^## (问题\d+[^\n]*|总体评价|判分|记忆口诀|下一步建议)\s*$"
+        r"(?m)^## (问题\d+[^\n]*|总体评价|判分|记忆口诀|记忆提示|下一步建议)\s*$"
     )
     matches = list(heading_pattern.finditer(rendered))
     sealed_blocks: list[dict[str, Any]] = []
