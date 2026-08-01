@@ -970,8 +970,14 @@ class TutorBotManager:
         session_key: str | None = None,
         session_metadata: dict[str, Any] | None = None,
         raw_user_content: str | None = None,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
     ) -> str:
-        """Send a message to a running bot and return the response."""
+        """Send a message to a running bot and return the response.
+
+        ``on_progress_narration`` 是**渐进吐字专用 sink**（sanctioned narration），与
+        ``on_content_delta`` 落在同一个 public buffer、同一顺序，只是让 capability 侧能
+        区分「我们自己发的进度叙述」与「模型正文」，从而不被起流闸扣住。缺省时退回
+        ``on_content_delta``，行为与未接线时一致。"""
         instance = self._bots.get(bot_id)
         if not instance or not instance.running:
             raise RuntimeError(f"Bot '{bot_id}' is not running")
@@ -1198,6 +1204,7 @@ class TutorBotManager:
                         on_tool_call=_tool_call,
                         on_tool_result=_tool_result,
                         metadata=runtime_metadata,
+                        on_progress_narration=on_progress_narration,
                     )
                     for metadata_key in (
                         "question_lifecycle_scene",
