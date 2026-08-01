@@ -342,6 +342,13 @@ class _ProgressNarrator:
                 # 还没有任何里程碑 = 还没进入能力核，交给下一次循环。
                 await asyncio.sleep(self._interval_s)
                 continue
+            if not self._may_emit():
+                # 本轮已解除武装（通用道：正文正在流）。**必须先睡再回来**：直接 continue
+                # 会因为 `_last_emit_at` 没被刷新而 wait_s 恒 ≤0，在无 await 的紧循环里把
+                # 整个 heartbeat 预算一次性烧光、任务提前退出，之后这一轮/后续轮再也没有
+                # 心跳（2026-08-01 live 首答窗口 17.3s 空屏的帮凶之一）。
+                await asyncio.sleep(self._interval_s)
+                continue
             self._heartbeats += 1
             elapsed_s = int(asyncio.get_running_loop().time() - started_at)
             await self._emit_line(
@@ -422,8 +429,13 @@ def _general_lane_progress_line(kind: str, facts: dict[str, Any]) -> str:
         except (TypeError, ValueError):
             return 0
 
+    if kind == "retrieval_prefetch":
+        # loop 之前的预取窗口（_maybe_prefetch_grounded_rag / web_search）。live 实测
+        # 这一段就吃掉十几秒，而 narrator 原先只活在 _run_agent_loop 里 —— 学生盯的正是
+        # 这段空屏。
+        return "收到，正在去教材和规范原文里找这道题的依据。"
     if kind == "loop_start":
-        return "正在读题，接下来去教材和规范原文里找依据。"
+        return "依据取回来了，正在读题并规划怎么讲给你。"
     if kind == "round_start":
         iteration = _int("iteration")
         if iteration <= 1:
@@ -461,7 +473,8 @@ def _general_lane_progress_line(kind: str, facts: dict[str, Any]) -> str:
 
 # 心跳文案里的阶段名：与 _general_lane_progress_line 的 kind 一一对应，不另起第二套枚举。
 _GENERAL_LANE_STAGE_LABELS: dict[str, str] = {
-    "loop_start": "还在读题和找依据",
+    "retrieval_prefetch": "还在找依据",
+    "loop_start": "还在读题和规划讲法",
     "round_start": "还在继续取证",
     "tool_call": "还在检索原文",
     "tool_result": "还在核对取回的依据",
@@ -3205,6 +3218,8 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         allow_exact_authority_override: bool = False,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
+        narrator: "_GeneralLaneProgressNarrator | None" = None,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
         external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
@@ -3261,25 +3276,40 @@ class AgentLoop:
         stream_stripper = _ThinkStripStreamer()
 
         # 通用道渐进吐字（L4 通用道，2026-08-01 task#29）：纯表达层，终态不变。
-        # 发射沿用判分道同一个 sink（on_content_delta）与同一个分片器，因此叙述与终局
-        # 正文只有一个写者；逐轮解除武装保证叙述永不跟在本轮正文之后（严格后缀不变量）。
-        async def _emit_general_lane_progress(text: str) -> None:
-            await self._emit_visible_text_deltas(text, on_content_delta)
+        # 叙述与终局正文最终落在**同一个 public buffer**（同一写者、同一顺序），只是走
+        # `on_progress_narration` 这条**声明式**入口：capability 侧据此知道「这段字是我们
+        # 自己发的 sanctioned narration，不是模型正文」，从而绕开「像不像正经答案」的
+        # 起流闸（2026-08-01 live 首答窗口 17.3s 空屏的主因，见 _run_agent_loop 文档）。
+        # 没有这条入口时（CLI / 测试 / 老调用方）退回 on_content_delta，行为与之前一致。
+        narration_sink = on_progress_narration or on_content_delta
 
-        narrator = _GeneralLaneProgressNarrator(
-            _emit_general_lane_progress if on_content_delta is not None else None,
-            enabled=_general_lane_sequenced_emit_enabled(),
-        )
+        async def _emit_general_lane_progress(text: str) -> None:
+            await self._emit_visible_text_deltas(text, narration_sink)
+
+        # 外部（_process_message）可能已经为「loop 之前的取证预取窗口」起过 narrator 并
+        # 发过里程碑 —— 复用它，别新起第二个写者。
+        owns_narrator = narrator is None
+        if narrator is None:
+            narrator = _GeneralLaneProgressNarrator(
+                _emit_general_lane_progress if narration_sink is not None else None,
+                enabled=_general_lane_sequenced_emit_enabled(),
+            )
 
         async def _stream_delta(delta: str) -> None:
             if not on_content_delta or not delta:
                 return
+            # 解除武装的判据必须是「**public 流上真的多了字**」，不是「provider 回调了」。
+            # 2026-08-01 live 教训：`<think>` 推理 delta 经 stream_stripper 后产出空 chunk
+            # （public 流一个字没多），却照样把整轮叙述关掉 —— 推理模型想 15 秒，学生就
+            # 空屏 15 秒。严格后缀不变量约束的对象本来就是 public 文本，被剥掉的思考内容
+            # 不进流、不进终态，因此按 chunk 判定既更准也不放松不变量。
+            chunk = stream_stripper.feed(delta)
+            if not chunk:
+                return
             # 真实正文 delta：本轮叙述立刻停口，并等在飞的那条叙述发完
             # （终局轮的正文因此永远是流的严格后缀，且不会被叙述夹碎）。
             await narrator.note_content_delta()
-            chunk = stream_stripper.feed(delta)
-            if chunk:
-                await on_content_delta(chunk)
+            await on_content_delta(chunk)
 
         # Fall-through-to-understanding: after the tool budget is spent without a
         # final answer, ONE extra closure round runs with tool_choice="none" and
@@ -3296,7 +3326,8 @@ class AgentLoop:
         closure_round_enabled = effective_max_iterations > 1
         loop_limit = effective_max_iterations + (1 if closure_round_enabled else 0)
         closure_round = False
-        await narrator.start()
+        if owns_narrator:
+            await narrator.start()
         try:
             while iteration < loop_limit:
                 iteration += 1
@@ -5061,6 +5092,7 @@ class AgentLoop:
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
     ) -> OutboundMessage | None:
         """Process a single inbound message and return the response."""
         # System messages: parse origin from chat_id ("channel:chat_id")
@@ -5481,47 +5513,146 @@ class AgentLoop:
                 metadata=response_metadata,
             )
 
-        initial_messages = self.context.build_messages(
-            history=history,
-            current_message=current_message,
-            media=msg.media if msg.media else None,
-            channel=msg.channel, chat_id=msg.chat_id,
-            runtime_instruction=runtime_instruction,
-        )
-        initial_messages = await self._maybe_prefetch_grounded_rag(
-            initial_messages=initial_messages,
-            current_message=current_message,
+        # 降级答案要静音时，叙述同样静音 —— 判据上提到预取之前（纯函数、同参数，语义不变），
+        # 因为 narrator 现在比这行原来的位置起得更早。
+        suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
+            user_message=current_message,
             runtime_metadata=runtime_metadata,
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
         )
-        initial_messages = await self._maybe_prefetch_web_search(
-            initial_messages=initial_messages,
-            current_message=current_message,
-            runtime_metadata=runtime_metadata,
-            force=self._should_force_web_search_after_exact_prefetch(runtime_metadata),
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
+        # 通用道渐进吐字的**覆盖窗口**（2026-08-01 live 修正）：narrator 原先只活在
+        # _run_agent_loop 里，而 loop 之前还压着 _maybe_prefetch_grounded_rag /
+        # _maybe_prefetch_web_search 两段重检索 —— 学生盯的十几秒空屏大半发生在这里，
+        # 那时候 narrator 还没出生。这里把它提前到预取之前起，并原样交给 _run_agent_loop
+        # 复用（单写者不变：全程只有这一个 narrator）。
+        narration_sink = on_progress_narration or (
+            None if suppress_agent_stream else on_content_delta
         )
-        prefetched_exact_authority = self._prefetched_exact_authority_candidate(
-            runtime_metadata,
-            current_message=current_message,
+
+        async def _emit_prefetch_progress(text: str) -> None:
+            await self._emit_visible_text_deltas(text, narration_sink)
+
+        general_lane_narrator = _GeneralLaneProgressNarrator(
+            _emit_prefetch_progress if narration_sink is not None else None,
+            enabled=_general_lane_sequenced_emit_enabled(),
         )
-        if prefetched_exact_authority:
-            final_content = await self._build_exact_authority_response(
-                prefetched_exact_authority,
-                runtime_metadata=runtime_metadata,
-                user_message=current_message,
+        await general_lane_narrator.start()
+        try:
+            await general_lane_narrator.stage("retrieval_prefetch")
+            initial_messages = self.context.build_messages(
+                history=history,
+                current_message=current_message,
+                media=msg.media if msg.media else None,
+                channel=msg.channel, chat_id=msg.chat_id,
+                runtime_instruction=runtime_instruction,
             )
-            if final_content:
+            initial_messages = await self._maybe_prefetch_grounded_rag(
+                initial_messages=initial_messages,
+                current_message=current_message,
+                runtime_metadata=runtime_metadata,
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+            )
+            initial_messages = await self._maybe_prefetch_web_search(
+                initial_messages=initial_messages,
+                current_message=current_message,
+                runtime_metadata=runtime_metadata,
+                force=self._should_force_web_search_after_exact_prefetch(runtime_metadata),
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+            )
+            prefetched_exact_authority = self._prefetched_exact_authority_candidate(
+                runtime_metadata,
+                current_message=current_message,
+            )
+            if prefetched_exact_authority:
+                final_content = await self._build_exact_authority_response(
+                    prefetched_exact_authority,
+                    runtime_metadata=runtime_metadata,
+                    user_message=current_message,
+                )
+                if final_content:
+                    final_content = await self._finalize_visible_answer(
+                        final_content,
+                        user_message=current_message,
+                        runtime_metadata=runtime_metadata,
+                        finalize_path="prefetched_authority",
+                    )
+                    all_msgs = self.context.add_assistant_message(initial_messages, final_content)
+                    await self._emit_visible_text_deltas(final_content, on_content_delta)
+                    self._save_turn(
+                        session,
+                        all_msgs,
+                        1 + len(history),
+                        persist_user_content=persist_user_content,
+                    )
+                    session.metadata["last_exact_fast_path"] = False
+                    self.sessions.save(session)
+                    await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+                    preview = (
+                        final_content[:120] + "..."
+                        if len(final_content) > 120
+                        else final_content
+                    )
+                    logger.info(
+                        "Prefetched exact authority response to {}:{}: {}",
+                        msg.channel,
+                        msg.sender_id,
+                        preview,
+                    )
+                    response_metadata = dict(msg.metadata or {})
+                    self._export_case_grading_metadata(runtime_metadata, response_metadata)
+                    self._export_content_truth_metadata(runtime_metadata, response_metadata)
+                    return OutboundMessage(
+                        channel=msg.channel,
+                        chat_id=msg.chat_id,
+                        content=final_content,
+                        metadata=response_metadata,
+                    )
+            if response_mode == "fast":
+                suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
+                    user_message=current_message,
+                    runtime_metadata=runtime_metadata,
+                )
+                final_content, all_msgs, streamed_text = await self._run_fast_policy_once(
+                    initial_messages,
+                    runtime_metadata=runtime_metadata,
+                    on_content_delta=None if suppress_fast_stream else on_content_delta,
+                )
+                turn_failure = runtime_metadata.get("turn_failure")
+                if final_content is None and isinstance(turn_failure, dict) and str(
+                    turn_failure.get("kind") or ""
+                ).strip():
+                    self._save_turn(
+                        session,
+                        all_msgs,
+                        1 + len(history),
+                        persist_user_content=persist_user_content,
+                    )
+                    session.metadata["last_exact_fast_path"] = False
+                    self.sessions.save(session)
+                    response_metadata = dict(msg.metadata or {})
+                    self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+                    response_metadata["turn_failure"] = dict(turn_failure)
+                    return OutboundMessage(
+                        channel=msg.channel,
+                        chat_id=msg.chat_id,
+                        content="",
+                        metadata=response_metadata,
+                    )
+                if final_content is None:
+                    final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
                 final_content = await self._finalize_visible_answer(
                     final_content,
                     user_message=current_message,
                     runtime_metadata=runtime_metadata,
-                    finalize_path="prefetched_authority",
+                    finalize_path="fast_policy",
                 )
-                all_msgs = self.context.add_assistant_message(initial_messages, final_content)
-                await self._emit_visible_text_deltas(final_content, on_content_delta)
+                if all_msgs:
+                    all_msgs[-1]["content"] = final_content
+                if streamed_text and final_content.startswith(streamed_text):
+                    await self._emit_visible_text_deltas(final_content[len(streamed_text):], on_content_delta)
+                elif not streamed_text:
+                    await self._emit_visible_text_deltas(final_content, on_content_delta)
                 self._save_turn(
                     session,
                     all_msgs,
@@ -5531,18 +5662,10 @@ class AgentLoop:
                 session.metadata["last_exact_fast_path"] = False
                 self.sessions.save(session)
                 await self.memory_consolidator.maybe_consolidate_by_tokens(session)
-                preview = (
-                    final_content[:120] + "..."
-                    if len(final_content) > 120
-                    else final_content
-                )
-                logger.info(
-                    "Prefetched exact authority response to {}:{}: {}",
-                    msg.channel,
-                    msg.sender_id,
-                    preview,
-                )
+                preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
+                logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
                 response_metadata = dict(msg.metadata or {})
+                self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
                 self._export_case_grading_metadata(runtime_metadata, response_metadata)
                 self._export_content_truth_metadata(runtime_metadata, response_metadata)
                 return OutboundMessage(
@@ -5551,99 +5674,34 @@ class AgentLoop:
                     content=final_content,
                     metadata=response_metadata,
                 )
-        if response_mode == "fast":
-            suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
-                user_message=current_message,
-                runtime_metadata=runtime_metadata,
-            )
-            final_content, all_msgs, streamed_text = await self._run_fast_policy_once(
+
+            async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
+                meta = dict(msg.metadata or {})
+                meta["_progress"] = True
+                meta["_tool_hint"] = tool_hint
+                await self.bus.publish_outbound(OutboundMessage(
+                    channel=msg.channel, chat_id=msg.chat_id, content=content, metadata=meta,
+                ))
+
+            final_content, _, all_msgs = await self._run_agent_loop(
                 initial_messages,
                 runtime_metadata=runtime_metadata,
-                on_content_delta=None if suppress_fast_stream else on_content_delta,
+                on_progress=on_progress or _bus_progress,
+                on_content_delta=None if suppress_agent_stream else on_content_delta,
+                on_tool_call=on_tool_call,
+                on_tool_result=on_tool_result,
+                allow_exact_authority_override=(
+                    prepare_exact_question_probe(self._resolve_tool_query(current_message, runtime_metadata)) is not None
+                    and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
+                    and not self._is_question_review_scene(runtime_metadata)
+                ),
+                on_progress_narration=on_progress_narration,
+                narrator=general_lane_narrator,
             )
-            turn_failure = runtime_metadata.get("turn_failure")
-            if final_content is None and isinstance(turn_failure, dict) and str(
-                turn_failure.get("kind") or ""
-            ).strip():
-                self._save_turn(
-                    session,
-                    all_msgs,
-                    1 + len(history),
-                    persist_user_content=persist_user_content,
-                )
-                session.metadata["last_exact_fast_path"] = False
-                self.sessions.save(session)
-                response_metadata = dict(msg.metadata or {})
-                self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
-                response_metadata["turn_failure"] = dict(turn_failure)
-                return OutboundMessage(
-                    channel=msg.channel,
-                    chat_id=msg.chat_id,
-                    content="",
-                    metadata=response_metadata,
-                )
-            if final_content is None:
-                final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-            final_content = await self._finalize_visible_answer(
-                final_content,
-                user_message=current_message,
-                runtime_metadata=runtime_metadata,
-                finalize_path="fast_policy",
-            )
-            if all_msgs:
-                all_msgs[-1]["content"] = final_content
-            if streamed_text and final_content.startswith(streamed_text):
-                await self._emit_visible_text_deltas(final_content[len(streamed_text):], on_content_delta)
-            elif not streamed_text:
-                await self._emit_visible_text_deltas(final_content, on_content_delta)
-            self._save_turn(
-                session,
-                all_msgs,
-                1 + len(history),
-                persist_user_content=persist_user_content,
-            )
-            session.metadata["last_exact_fast_path"] = False
-            self.sessions.save(session)
-            await self.memory_consolidator.maybe_consolidate_by_tokens(session)
-            preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
-            logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
-            response_metadata = dict(msg.metadata or {})
-            self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
-            self._export_case_grading_metadata(runtime_metadata, response_metadata)
-            self._export_content_truth_metadata(runtime_metadata, response_metadata)
-            return OutboundMessage(
-                channel=msg.channel,
-                chat_id=msg.chat_id,
-                content=final_content,
-                metadata=response_metadata,
-            )
-
-        suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
-            user_message=current_message,
-            runtime_metadata=runtime_metadata,
-        )
-
-        async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
-            meta = dict(msg.metadata or {})
-            meta["_progress"] = True
-            meta["_tool_hint"] = tool_hint
-            await self.bus.publish_outbound(OutboundMessage(
-                channel=msg.channel, chat_id=msg.chat_id, content=content, metadata=meta,
-            ))
-
-        final_content, _, all_msgs = await self._run_agent_loop(
-            initial_messages,
-            runtime_metadata=runtime_metadata,
-            on_progress=on_progress or _bus_progress,
-            on_content_delta=None if suppress_agent_stream else on_content_delta,
-            on_tool_call=on_tool_call,
-            on_tool_result=on_tool_result,
-            allow_exact_authority_override=(
-                prepare_exact_question_probe(self._resolve_tool_query(current_message, runtime_metadata)) is not None
-                and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
-                and not self._is_question_review_scene(runtime_metadata)
-            ),
-        )
+        finally:
+            # 早退路径（fast policy / typed failure）也必须收尾：心跳任务不许活过本轮。
+            # _run_agent_loop 内部的 stop() 是幂等的，正常路径走到这里已是 no-op。
+            await general_lane_narrator.stop()
 
         if final_content is None:
             turn_failure = runtime_metadata.get("turn_failure")
@@ -5774,6 +5832,7 @@ class AgentLoop:
         on_tool_call: Callable[[str, dict[str, Any]], Awaitable[None]] | None = None,
         on_tool_result: Callable[[str, str, dict[str, Any] | None], Awaitable[None]] | None = None,
         metadata: dict[str, Any] | None = None,
+        on_progress_narration: Callable[[str], Awaitable[None]] | None = None,
     ) -> str:
         """Process a message directly (for CLI or cron usage)."""
         await self._connect_mcp()
@@ -5796,6 +5855,7 @@ class AgentLoop:
             on_content_delta=on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
+            on_progress_narration=on_progress_narration,
         )
         if (
             isinstance(metadata, dict)
