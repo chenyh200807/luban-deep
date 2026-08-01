@@ -1108,7 +1108,11 @@ class LangfuseObservability:
             ) as observation:
                 yield observation
         finally:
-            _current_llm_call_site.reset(token)
+            # 跨 context 关闭生成器时 reset 会抛 ValueError；观测不许把异常带给调用方。
+            try:
+                _current_llm_call_site.reset(token)
+            except ValueError:
+                logger.debug("Langfuse call-site token reset skipped", exc_info=True)
 
     @contextmanager
     def _start_observation_scope(
