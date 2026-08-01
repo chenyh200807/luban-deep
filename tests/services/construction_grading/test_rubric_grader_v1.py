@@ -47,6 +47,109 @@ def test_deterministic_sum_and_exact_required_binary():
     assert ev["official_score_allowed"] is False
 
 
+# --- 空作答不得被标"术语不精确"（2026-08-01 端侧取证：学生对问题2零作答，6 个采分点
+# --- 里 3 个被标「术语不精确（要求规范术语，近义/口语不得分）」）。归类权威 =
+# --- classify_mistake_type：能说"你的术语不精确"，前提是能指出学生写了什么。
+
+def _exact_rubric():
+    return [
+        {"point_id": "E1", "text": "编制质量计划", "score": 1.0, "policy": "exact_required",
+         "required_terms": ["质量计划"]},
+        {"point_id": "E2", "text": "总监理工程师审批", "score": 1.0, "policy": "exact_required",
+         "required_terms": ["总监理工程师"]},
+        {"point_id": "L1", "text": "列举审批流程", "score": 2.0, "policy": "list", "required_terms": []},
+    ]
+
+
+def test_empty_answer_never_labeled_near_synonym() -> None:
+    """零作答 + exact_required → 漏点（omitted），不是"术语不精确"。修前红。"""
+    judge = _judge({
+        "E1": {"status": G.MISS},
+        "E2": {"status": G.MISS, "mistake_type": "wrong_content"},   # judge 乱说也不许升级
+        "L1": {"status": G.MISS},
+    })
+    ev = G.grade_with_rubric(qid="Q1", student_answer="", rubric_points=_exact_rubric(), judge_fn=judge)
+    pts = {p["point_id"]: p for p in ev["scoring_points"]}
+    assert [p["mistake_type"] for p in ev["scoring_points"]] == [G.MISTAKE_MISS] * 3
+    assert G.MISTAKE_NEAR_SYNONYM not in {p["mistake_type"] for p in ev["scoring_points"]}
+    assert pts["E1"]["hit"] == G.MISS and pts["E1"]["score"] == 0.0
+    # 学生看到的字面也不能出现"术语不精确"
+    text = G.render_case_rubric_feedback(ev, question_stem="问题1：质量计划管理")
+    assert "术语不精确" not in text
+
+
+def test_unanswered_subquestion_points_are_omitted_not_near_synonym() -> None:
+    """整卷非空但该问零作答：verdict 无 evidence_span（含 batch 缺省 miss+low_confidence），
+    exact_required 也只能归漏点。这是 live 那 3 个假"术语不精确"的确切形状。"""
+    judge = _judge({
+        # batch 缺省 verdict（该点根本没拿到裁决）
+        "E1": {"status": G.MISS, "low_confidence": True},
+        # judge 自己说 omitted —— 不许被 exact_required 覆盖成 near_synonym
+        "E2": {"status": G.MISS, "mistake_type": "omitted", "evidence_span": ""},
+        "L1": {"status": G.MISS, "mistake_type": "omitted"},
+    })
+    ev = G.grade_with_rubric(
+        qid="Q1", student_answer="问题1：应由项目经理组织编制施工组织设计。",
+        rubric_points=_exact_rubric(), judge_fn=judge,
+    )
+    assert [p["mistake_type"] for p in ev["scoring_points"]] == [G.MISTAKE_MISS] * 3
+    text = G.render_case_rubric_feedback(ev, question_stem="问题1：质量计划管理")
+    assert "术语不精确" not in text and "漏点" in text
+
+
+def test_near_synonym_still_labeled_when_student_answer_is_quotable() -> None:
+    """反向钉死：确实写了近义表述（judge 引得出原文）时，"术语不精确"必须还在。"""
+    judge = _judge({
+        "E1": {"status": G.MISS, "evidence_span": "质量方案"},
+        "E2": {"status": G.MISS, "mistake_type": "wrong_content", "evidence_span": "监理工程师"},
+        "L1": {"status": G.PARTIAL, "partial_ratio": 0.5},
+    })
+    ev = G.grade_with_rubric(
+        qid="Q1", student_answer="应编制质量方案，报监理工程师审批。",
+        rubric_points=_exact_rubric(), judge_fn=judge,
+    )
+    pts = {p["point_id"]: p for p in ev["scoring_points"]}
+    assert pts["E1"]["mistake_type"] == G.MISTAKE_NEAR_SYNONYM
+    assert pts["E2"]["mistake_type"] == G.MISTAKE_NEAR_SYNONYM
+    assert pts["L1"]["mistake_type"] == G.MISTAKE_PARTIAL_LIST
+    assert "术语不精确" in G.render_case_rubric_feedback(ev, question_stem="问题1：质量计划管理")
+
+
+def test_pgo_coverage_path_uses_the_same_mistake_classification() -> None:
+    """两条判分路径（legacy / PGO 覆盖率）共用同一归类权威，不得各判各的。"""
+    pgo_points = [
+        {"point_id": "E1", "text": "编制质量计划", "score": None, "policy": "exact_required",
+         "required_terms": ["质量计划"], "official_total_score": 10.0,
+         "score_authority": "official_total_x_verdict_coverage"},
+        {"point_id": "E2", "text": "总监理工程师审批", "score": None, "policy": "exact_required",
+         "required_terms": ["总监理工程师"], "official_total_score": 10.0,
+         "score_authority": "official_total_x_verdict_coverage"},
+    ]
+    judge = _judge({"E1": {"status": G.MISS}, "E2": {"status": G.MISS, "mistake_type": "omitted"}})
+    ev = G.grade_with_rubric(qid="Q1", student_answer="", rubric_points=pgo_points, judge_fn=judge)
+    assert ev["grading_source"] == "rubric_scored_pgo"
+    assert [p["mistake_type"] for p in ev["scoring_points"]] == [G.MISTAKE_MISS] * 2
+
+
+def test_classify_mistake_type_ladder_is_explicit() -> None:
+    call = G.classify_mistake_type
+    assert call(policy="exact_required", status=G.HIT, verdict={}, student_answer="x") is None
+    # 空作答压过一切（包括 judge 说 wrong_content 且给了 span）
+    assert call(policy="exact_required", status=G.MISS,
+                verdict={"mistake_type": "wrong_content", "evidence_span": "写了点啥"},
+                student_answer="   ") == G.MISTAKE_MISS
+    # exact_required 无 span → 漏点
+    assert call(policy="exact_required", status=G.MISS, verdict={}, student_answer="有作答") == G.MISTAKE_MISS
+    # exact_required 有 span → 术语不精确
+    assert call(policy="exact_required", status=G.MISS, verdict={"evidence_span": "质量方案"},
+                student_answer="质量方案") == G.MISTAKE_NEAR_SYNONYM
+    # 非 exact_required：partial → 列举不全；miss → 沿用 judge 判据
+    assert call(policy="list", status=G.PARTIAL, verdict={}, student_answer="a") == G.MISTAKE_PARTIAL_LIST
+    assert call(policy="qualitative", status=G.MISS, verdict={"mistake_type": "wrong_content"},
+                student_answer="a") == G.MISTAKE_WRONG
+    assert call(policy="qualitative", status=G.MISS, verdict={}, student_answer="a") == G.MISTAKE_MISS
+
+
 def test_null_score_pgo_points_use_official_total_coverage_not_score_sum() -> None:
     pgo_points = [
         {
@@ -1788,7 +1891,11 @@ def test_rubric_bank_governance_gate_refuses_when_default_also_unauthorized(
 
 
 def test_resolve_case_answer_method_high_band_only(monkeypatch) -> None:
-    """A1 真口诀（宁缺勿错挂）：只接受 high 置信带；medium/None/异常一律回落。"""
+    """A1 真口诀（宁缺勿错挂）：只接受 high 置信带；medium/None/异常一律回落。
+
+    题面固定为真的落在 unit topic（质量验收）上——2026-08-01 起 band 之外还要过
+    topic 身份词闸，占位题面（"某案例题干…"）不再能证明 band 闸本身的行为。
+    """
     import deeptutor.services.compiled_knowledge.lecture_answer_methods as LAM
 
     unit = {
@@ -1802,16 +1909,16 @@ def test_resolve_case_answer_method_high_band_only(monkeypatch) -> None:
         return {"activation": {"band": "high"}, "selected_units": [dict(unit)]}
 
     monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context", _fake)
-    out = G.resolve_case_answer_method_for_render("某案例题干…")
+    out = G.resolve_case_answer_method_for_render("某案例题干…问题1：质量验收记录有哪些不妥？")
     assert out and out["units"][0]["unit_id"] == "U1"
 
     monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
                         lambda text, **_k: {"activation": {"band": "medium"}, "selected_units": [dict(unit)]})
-    assert G.resolve_case_answer_method_for_render("某案例题干…") is None
+    assert G.resolve_case_answer_method_for_render("某案例题干…问题1：质量验收记录有哪些不妥？") is None
 
     monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context",
                         lambda text, **_k: (_ for _ in ()).throw(RuntimeError("boom")))
-    assert G.resolve_case_answer_method_for_render("某案例题干…") is None
+    assert G.resolve_case_answer_method_for_render("某案例题干…问题1：质量验收记录有哪些不妥？") is None
     assert G.resolve_case_answer_method_for_render("") is None
 
 
@@ -2109,3 +2216,90 @@ def test_dynamic_groups_prefer_one_group_per_subquestion_when_declared() -> None
     legacy_groups, legacy_strategy = _dynamic_adjudication_groups(points)
     assert legacy_strategy == "dynamic_parallel_question_groups"
     assert len(legacy_groups) == 2
+
+
+# --- 口诀采纳权威：band=high 不足以证明"这一问落在这个考点上" ---------------
+# 2026-08-01 端侧取证：问题1（质量计划管理）挂出「机具日检上交图」，读起来像串了
+# 施工机具的题。审计结论是两件事，不是一件：
+#   (1) 该条口诀的数据绑定是**对的**——LEC_1A434000_P0005_001 = 第一节 质量计划管理
+#       ·考点一过程管理·施工质量记录 7 项（机/日/检/上/交/图），1A434000 = 施工质量
+#       管理，不是施工机具。真正的缺陷在渲染：裸口诀不带考点归属和要点展开，缩写
+#       没解释就等于制造串题错觉。
+#   (2) 但路由确实能串题——anchor 档被采分内容词污染，无关 unit 靠"隐蔽工程""关键
+#       部位"就能顶到 high。判分侧加 topic 身份词闸拦住。
+
+
+def _fake_lecture_ctx(topic: str, *, band: str = "high"):
+    return {
+        "activation": {"band": band, "score": 0.9},
+        "selected_units": [{
+            "unit_id": "lecture.fake.0001",
+            "lecture": "专业管理",
+            "topic": topic,
+            "score": 0.9,
+            "source_ref": {"chunk_id": "LEC_1A434000_P0005_001"},
+            "answer_method": {
+                "mnemonics": ["记录口诀：机具日检上交图"],
+                "must_mentions": ["质量策划", "动态管理", "关键部位", "机具日检上交图"],
+                "trap_alerts": ["注意区分质量计划与施工组织设计的编制依据"],
+                "red_lines": ["开工前未策划"],
+            },
+        }],
+    }
+
+
+def _patch_lecture_ctx(monkeypatch, ctx) -> None:
+    from deeptutor.services.compiled_knowledge import lecture_answer_methods as LAM
+
+    monkeypatch.setattr(LAM, "resolve_lecture_answer_method_context", lambda _stem: ctx)
+
+
+def test_answer_method_adoption_requires_stem_to_hit_unit_topic(monkeypatch) -> None:
+    """高分匹配 ≠ 匹配对了考点。题面没碰到 unit 的 topic 身份词 → 不挂口诀。"""
+    stem = "问题1：指出隐蔽工程验收存在的不妥之处，并说明关键部位的正确做法。"
+    _patch_lecture_ctx(monkeypatch, _fake_lecture_ctx("质量计划管理"))
+    assert G.resolve_case_answer_method_for_render(stem) is None
+
+    on_topic = "事件一：项目部编制了施工质量计划。问题1：质量计划应设置哪些质量控制点？"
+    got = G.resolve_case_answer_method_for_render(on_topic)
+    assert got is not None and got["units"][0]["unit_id"] == "lecture.fake.0001"
+
+
+def test_answer_method_adoption_still_requires_high_band(monkeypatch) -> None:
+    """topic 闸是加在 band 闸之后的第二道证据，不得把 medium 放进来。"""
+    on_topic = "事件一：项目部编制了施工质量计划。问题1：质量计划应设置哪些质量控制点？"
+    _patch_lecture_ctx(monkeypatch, _fake_lecture_ctx("质量计划管理", band="medium"))
+    assert G.resolve_case_answer_method_for_render(on_topic) is None
+
+
+def test_mnemonic_render_carries_topic_and_expansion(monkeypatch) -> None:
+    """裸缩写口诀＝串题错觉。渲染必须带考点归属 + 要点展开 + 出处。"""
+    on_topic = "事件一：项目部编制了施工质量计划。问题1：质量计划应设置哪些质量控制点？"
+    _patch_lecture_ctx(monkeypatch, _fake_lecture_ctx("质量计划管理"))
+    ctx = G.resolve_case_answer_method_for_render(on_topic)
+    event = {
+        "scoring_points": [{"point_id": "P1", "knowledge_point": "质量控制点设置", "policy_type": "list",
+                            "hit": G.MISS, "score": 0.0, "max_score": 2.0,
+                            "mistake_type": G.MISTAKE_MISS, "evidence_span": ""}],
+        "awarded_score": 0.0, "max_score": 2.0,
+    }
+    text = G.render_case_rubric_feedback(event, question_stem=on_topic, answer_method_context=ctx)
+    block = text[text.find("## 记忆口诀"):]
+    assert "质量计划管理｜记录口诀：机具日检上交图" in block   # 口诀不再裸奔
+    assert "展开：质量策划、动态管理、关键部位" in block        # answer_style 要求的逐点展开
+    assert "机具日检上交图" not in block.split("展开：")[1].split("\n")[0]  # 展开不复读口诀本身
+    assert "LEC_1A434000_P0005_001" in block                  # 出处仍在
+
+
+def test_live_lecture_pack_does_not_attach_quality_plan_mnemonic_to_unrelated_stem() -> None:
+    """真资产回归（非 mock）：编译包里 472/524 个 unit 把 must_mentions 抄进了
+    question_patterns，"隐蔽工程"+"关键部位"两个采分内容词就能把质量计划管理
+    unit 顶到 band=high（实测 0.86）。判分侧必须拦住，同时不能误伤真命中。"""
+    unrelated = "问题1：指出隐蔽工程验收存在的不妥之处，并说明关键部位的正确做法。"
+    on_topic = ("事件一：项目部编制了施工质量计划，明确了质量策划和动态管理要求。"
+                "问题1：质量计划中应设置质量控制点的部位和环节有哪些？")
+    on_topic_ctx = G.resolve_case_answer_method_for_render(on_topic)
+    if on_topic_ctx is None:      # 编译包未随环境提供 -> 该断言无从证伪，跳过
+        return
+    assert any(str(u.get("topic")) == "质量计划管理" for u in on_topic_ctx["units"])
+    assert G.resolve_case_answer_method_for_render(unrelated) is None
