@@ -2660,7 +2660,12 @@ class AgentLoop:
         if on_progress:
             await on_progress("案例题批改已进入 V1 逐采分点链路，正在拆题和核对采分点。")
         await self._emit_visible_text_deltas(
-            self._case_grading_live_preview_text(current_message),
+            # 判分面单一来源第三处收口（2026-08-01 live：641 后计数 3→5——尺子
+            # 统一了但量的面还是带跨轮包装的 current_message，旧轮"问题5"混入）。
+            # narration 与判分分母不仅要同尺，还要同面。
+            self._case_grading_live_preview_text(
+                self._case_submission_surface(runtime_metadata, current_message)
+            ),
             on_content_delta,
         )
 

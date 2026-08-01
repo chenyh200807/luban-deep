@@ -2372,3 +2372,19 @@ def test_narration_subq_count_shares_grading_denominator_authority() -> None:
     assert "4 个小问" in text, text
     ctx = AgentLoop._build_v1_case_ctx({}, paste)
     assert ctx["case_stem_subquestion_count"] == 4, "narration 与分母必须同数"
+
+
+def test_narration_count_immune_to_cross_turn_wrapper() -> None:
+    """narration 面收口（2026-08-01 live：#641 后计数 3→5）：跨轮包装里旧轮的
+    "问题5/6"不得混入开场白计数——narration 与判分分母必须同尺**同面**。"""
+    raw = ("【背景资料】某工程施工过程描述。" * 8 +
+           "\n【问题】1. 指出不妥？\n2. 写出正确做法？\n3. 构造名称？\n4. 工艺流程？\n"
+           "我的答案：作答。")
+    wrapped = ("[History Context]\n上轮讨论了问题5：旧内容？问题6：更多旧编号？\n\n"
+               "[User Question]\n" + raw)
+    surface = AgentLoop._case_submission_surface({"raw_user_message": raw}, wrapped)
+    text = AgentLoop._case_grading_live_preview_text(surface)
+    assert "4 个小问" in text, text
+    # 兜底路径（无 raw）也必须剥包装
+    surface2 = AgentLoop._case_submission_surface({}, wrapped)
+    assert "4 个小问" in AgentLoop._case_grading_live_preview_text(surface2)
