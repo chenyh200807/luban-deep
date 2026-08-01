@@ -2554,6 +2554,125 @@ def _case_reference_subquestions(ctx: dict[str, Any]) -> list[dict[str, str]]:
     return out if len(out) >= 2 else []
 
 
+_CASE_GROUP_ID_RE = re.compile(r"(\d{4}-case\d+)")
+
+
+def _case_group_id_from_ctx(ctx: dict[str, Any]) -> str:
+    """Pure: 从 ctx 里认出 canonical 题级组键（``{year}-case{n}``）。
+
+    只认**确定性**来源：显式 case_group_id 字段（C3 取全时 supabase 写在
+    exact_question 顶层）→ 嵌套 bundle/prefetch → question_id 前缀。认不出返回 ""，
+    调用方退下一级阶梯——绝不猜（猜错=拿别的案例的小问数当分母）。
+    """
+    for key in ("case_group_id", "case_group"):
+        gid = str((ctx or {}).get(key) or "").strip()
+        if gid:
+            return gid
+    for nest_key in ("case_bundle", "_prefetched_exact_question", "exact_question"):
+        nested = (ctx or {}).get(nest_key)
+        if isinstance(nested, dict):
+            gid = str(nested.get("case_group_id") or "").strip()
+            if gid:
+                return gid
+    qid = str((ctx or {}).get("question_id") or "").strip()
+    match = _CASE_GROUP_ID_RE.search(qid)
+    return match.group(1) if match else ""
+
+
+def _case_bundle_surface_count(ctx: dict[str, Any]) -> int:
+    """C3 bundle 的 per-问 **surface** 计数（有题面的小问有几个）。
+
+    与 ``_case_reference_subquestions`` 的区别正是这一刀的意义：后者要求「有答案」
+    （答案冲突未裁决 / C2 fail-closed 的小问会被剔掉），前者只问「这道题的题面里
+    有这一问」。分母问的是后者。
+    """
+    for holder_key, list_key in (
+        ("case_bundle", "covered_subquestions"),
+        ("_prefetched_exact_question", "covered_subquestions"),
+        ("", "covered_subquestions"),
+    ):
+        holder = (ctx or {}).get(holder_key) if holder_key else (ctx or {})
+        if not isinstance(holder, dict):
+            continue
+        rows = holder.get(list_key)
+        if not isinstance(rows, list) or not rows:
+            continue
+        indexes = {
+            str(row.get("display_index") or row.get("index") or "").strip()
+            for row in rows
+            if isinstance(row, dict)
+            and str(row.get("display_index") or row.get("index") or "").strip().isdigit()
+            and str(row.get("stem") or row.get("question") or "").strip()
+        }
+        if len(indexes) >= 2:
+            return len(indexes)
+    return 0
+
+
+def _case_stem_subquestion_count(ctx: dict[str, Any]) -> int:
+    """题面标题抽取权威的小问数（单一权威 = ``rubric_grader_v1._extract_case_question_titles``）。"""
+    pre = int((ctx or {}).get("case_stem_subquestion_count") or 0)
+    if pre > 0:
+        return pre
+    stem = str((ctx or {}).get("user_stem") or "").strip() or str(
+        (ctx or {}).get("question_stem") or (ctx or {}).get("stem") or ""
+    )
+    if not stem:
+        return 0
+    try:
+        from deeptutor.services.construction_grading.rubric_grader_v1 import (
+            _extract_case_question_titles,
+        )
+
+        return len(_extract_case_question_titles(stem) or {})
+    except Exception:  # noqa: BLE001 — 计数失败按未知处理（退下一级，不假装覆盖）
+        logger.debug("case denominator: stem title extraction failed", exc_info=True)
+        return 0
+
+
+def _resolve_case_denominator(
+    ctx: dict[str, Any], *, reference_count: int
+) -> tuple[int, str]:
+    """判分分母（题面小问数）的**权威阶梯** → ``(分母, 来源 marker)``。
+
+    R2（task#26，2026-08-01）治的病：deep_question 自持案例路径的分母曾是
+    ``max(ctx.case_stem_subquestion_count, len(参考侧))``——而 ``case_stem_subquestion_count``
+    **只有 TutorBot 侧的 ctx 构建器会写**（loop.py ``_build_v1_case_ctx``）。自持路径
+    （practice / 直调 capability）那个键恒缺席，于是分母塌成 ``len(参考侧)``：纯参考侧
+    计数、**与题面零交叉核对**。参考侧是检索装配的产物（bundle 取全成不成、兄弟行
+    重复、答案冲突是否裁决都会改变它），拿它当分母 = 让检索运气决定「这道题有几问」。
+    参考侧多出一项，学生的每一问就被稀释一份分。
+
+    阶梯（高→低，取第一个可得者）：
+      ① ``canonical`` —— canonical431 nominal 表的每案例小问数（编译期治理裁决过的
+         题面结构，只读结构不读采分点，见 ``canonical_case_subquestion_counts``）；
+      ② ``bundle`` —— C3 题级组 bundle 的 per-问 surface 计数；
+      ③ ``stem`` —— 题面标题抽取权威（``_extract_case_question_titles``）；
+      ④ ``reference_fallback`` —— 全部不可得才退参考侧计数，**并发 marker**。
+         降级必须发声：没有 marker，「分母是猜的」会被静默读成「分母是权威的」。
+    """
+    gid = _case_group_id_from_ctx(ctx)
+    if gid:
+        try:
+            from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                canonical_case_subquestion_counts,
+            )
+
+            canonical = int(canonical_case_subquestion_counts().get(gid) or 0)
+        except Exception:  # noqa: BLE001 — 分母权威永不破坏判分
+            logger.debug("case denominator: canonical lookup failed", exc_info=True)
+            canonical = 0
+        if canonical > 0:
+            return canonical, "canonical"
+    bundle_n = _case_bundle_surface_count(ctx)
+    if bundle_n > 0:
+        return bundle_n, "bundle"
+    stem_n = _case_stem_subquestion_count(ctx)
+    if stem_n > 0:
+        return stem_n, "stem"
+    return max(int(reference_count or 0), 0), "reference_fallback"
+
+
 async def _extract_rubric_per_subquestion(
     subquestions: list[dict[str, str]], *, stem: str, nominal_full_score: float,
     subquestion_total: int, complete: Any, key: str, _G: Any,
@@ -2579,7 +2698,14 @@ async def _extract_rubric_per_subquestion(
     """
     import asyncio as _asyncio
 
-    total = max(int(subquestion_total or 0), len(subquestions))
+    # R2（task#26，2026-08-01）：每问名义分的分母是**题面小问数的权威值**
+    # （``subquestion_total``，由 ``_resolve_case_denominator`` 的阶梯裁决），
+    # 不再 `max(权威, 参考侧项数)`。旧的 max() 让参考侧多出的幽灵项直接稀释每一问
+    # 的上限（4 问题面配 5 行参考 → 每问 2.0 而非 2.5），等于把「分母」的裁决权
+    # 又还给了检索装配结果——分母只能有一个权威。
+    # Σ逐问上限可能因此超过整题名义满分（5 行参考 × 2.5 = 12.5 > 10），这不漏分：
+    # ``finalize_case_score`` 的外闸仍按 ``nominal × scope_ratio`` 封顶（内闸只更严）。
+    total = int(subquestion_total or 0) or len(subquestions)
     per_sub_nominal = round(float(nominal_full_score) / total, 4) if total > 0 else 0.0
 
     def _stem_for(sub: dict[str, str]) -> str:
@@ -2668,6 +2794,7 @@ async def _grade_one_case_v1(
     scope_ratio = 1.0
     subquestion_caps: dict[str, float] = {}
     per_subq_grading = ""
+    denominator_source = ""
     if points:
         try:
             _nominal = float((cg or {}).get("max_score") or 0)
@@ -2713,10 +2840,16 @@ async def _grade_one_case_v1(
             _subq_refs = _case_reference_subquestions(ctx)
             if _subq_refs and _nominal_full > 0:
                 # OD-005（2026-08-01）：逐小问独立抽取 + 逐小问封顶。
-                _sub_n = max(int(ctx.get("case_stem_subquestion_count") or 0), len(_subq_refs))
+                # R2（task#26）：分母走权威阶梯，不再 `max(题面, 参考侧)`——自持路径
+                # （practice / 直调 capability）没有 case_stem_subquestion_count，旧式
+                # max() 会塌成纯参考侧计数，让检索装配的结果决定「这道题有几问」。
+                _sub_n, denominator_source = _resolve_case_denominator(
+                    ctx, reference_count=len(_subq_refs)
+                )
                 await _emit_case_grading_stage(
                     on_stage, "rubric_source", tier="reference",
                     subquestion_count=len(_subq_refs),
+                    denominator=_sub_n, denominator_source=denominator_source,
                 )
                 points, subquestion_caps, _covered_n = await _extract_rubric_per_subquestion(
                     _subq_refs,
@@ -2922,6 +3055,11 @@ async def _grade_one_case_v1(
         )
     if per_subq_grading:
         event["case_per_subq_grading"] = per_subq_grading
+    if denominator_source:
+        # R2（task#26）：分母来自阶梯哪一级，逐轮上全 sink。
+        # ``reference_fallback`` = 权威全不可得、分母只能数参考侧——这是降级，
+        # 必须发声（没有 marker 的降级等于没发生过）。
+        event["case_denominator_source"] = denominator_source
     if partial_scope:
         event["case_grading_partial_scope"] = partial_scope
         event["official_score_allowed"] = False

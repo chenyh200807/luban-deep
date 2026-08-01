@@ -47,7 +47,18 @@ JudgeFn = Callable[[dict[str, Any], str], dict[str, Any]]
 _RUBRIC_BANK_SLOTS = {
     "legacy": ("v_case_rubric_scored", "case_rubric_scored.json"),
     "pgo": ("v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json"),
+    # canonical431 是 **release_candidate**（pointer.production_authorized=false）。
+    # 登记在这里只是让完整性验证链（_load_bank_slot）能定位它——治理闸依旧生效：
+    # 把 LUBAN_CASE_RUBRIC_BANK_SLOT 设成 canonical431 仍会被 unauthorized 拒装并
+    # 大声回落 legacy。本仓唯一读它的消费者是 canonical_case_subquestion_counts()，
+    # 且**只读 nominal_table / whole_case_index（结构事实=每案例几问），绝不读
+    # records（采分点内容 / 分值）** —— 分母是结构，采分点才是判分权威，两者不同级。
+    "canonical431": (
+        "v_case_rubric_scored_canonical431",
+        "case_rubric_scored_canonical431.json",
+    ),
 }
+_CANONICAL_DENOMINATOR_SLOT = "canonical431"
 
 _PGO_COVERAGE_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
 _PGO_POINT_DISPLAY_SCORE_AUTHORITY = "display_allocated_from_official_total_coverage"
@@ -1475,12 +1486,20 @@ def active_bank_identity() -> dict[str, Any]:
     return dict(_ACTIVE_BANK_IDENTITY)
 
 
-def _load_bank_slot(slot: str) -> tuple[dict[str, list[dict[str, Any]]] | None, str]:
+def _load_bank_slot(
+    slot: str, *, require_production_authorization: bool = True
+) -> tuple[dict[str, list[dict[str, Any]]] | None, str]:
     """Load ONE slot through the full verify chain.
 
     返回 (bundle, reason)。reason="unauthorized"（治理拒绝）是唯一允许上层回落授权
     默认 slot 的情形；完整性类失败（unknown/missing/hash 不符）维持既有法条：
-    fail-closed 不回落——打错 slot 名静默换权威比空 bank 更危险。"""
+    fail-closed 不回落——打错 slot 名静默换权威比空 bank 更危险。
+
+    ``require_production_authorization=False`` **只许**给「读结构事实、不读判分内容」
+    的消费者用（当前唯一一个：``canonical_case_subquestion_counts`` 读 nominal_table
+    的每案例小问数）。完整性链（hash / pointer hash）一步不减——放行的只是治理闸，
+    因为治理闸管的是「这份采分点能不能给分」，而分母是「这道题有几问」，
+    后者不是分值权威。判分内容（records）的装载路径参数默认 True，逐字不变。"""
     import json
     from pathlib import Path
 
@@ -1522,7 +1541,7 @@ def _load_bank_slot(slot: str) -> tuple[dict[str, list[dict[str, Any]]] | None, 
     # 仍是赝品。pgo 未授权覆写服役 100% 流量六周（07-11 红线在案、装载面不读治理
     # 态所以没拦住）的教训：pointer 必须显式携带 production_authorized=true 才许
     # 装载，否则拒装发声（绝不静默）。
-    if pointer.get("production_authorized") is not True:
+    if pointer.get("production_authorized") is not True and require_production_authorization:
         logger.error(
             "rubric_grader_v1: rubric bank slot %s POINTER NOT PRODUCTION-AUTHORIZED "
             "(governance gate); refusing bank. note=%s",
@@ -1530,6 +1549,63 @@ def _load_bank_slot(slot: str) -> tuple[dict[str, list[dict[str, Any]]] | None, 
         )
         return None, "unauthorized"
     return b, "ok"
+
+
+@lru_cache(maxsize=1)
+def canonical_case_subquestion_counts() -> dict[str, int]:
+    """``case_group_id -> 该案例的小问数``（canonical431 的 **结构事实**，非分值权威）。
+
+    R2（task#26，2026-08-01）：判分分母的第一权威。治的病是「分母只数参考侧」——
+    参考侧是检索/装配的产物（bundle 取全成功与否、兄弟行冲突是否被 C2 裁决都会
+    改变它），拿它当分母等于让检索运气决定「这道题有几问」。canonical431 的
+    ``nominal_table`` 键是 ``case_group_id::E{n}``，逐问一行，按 case_group_id
+    归并即得该案例的官方小问数——这是编译期治理裁决过的题面结构。
+
+    **只读 nominal_table / whole_case_index，绝不读 records**：这份 bank 的
+    ``production_authorized=false``（分值权威=佑森培训机构解析、非官方），采分点与
+    分值一分钱都不许进判分；进来的只有「几问」这个整数。完整性链照走（内容 hash +
+    pointer hash），只是不要求治理授权——见 ``_load_bank_slot`` 的参数说明。
+
+    任何一步失败返回空表（调用方按「不可得」退下一级阶梯），绝不 fail-closed 拒答。
+    """
+    try:
+        bank, reason = _load_bank_slot(
+            _CANONICAL_DENOMINATOR_SLOT, require_production_authorization=False
+        )
+    except Exception:  # noqa: BLE001 — 分母权威永不破坏判分
+        logger.warning("rubric_grader_v1: canonical denominator slot load raised", exc_info=True)
+        return {}
+    if not isinstance(bank, dict):
+        logger.info(
+            "rubric_grader_v1: canonical denominator slot unavailable (%s); "
+            "callers fall through the denominator ladder",
+            reason,
+        )
+        return {}
+    counts: dict[str, int] = {}
+    # 首选 whole_case_index（编译期显式给出的「本案例有哪些小问 qid」）。
+    index = bank.get("whole_case_index")
+    if isinstance(index, dict):
+        for group_id, qids in index.items():
+            gid = str(group_id or "").strip()
+            if gid and isinstance(qids, (list, tuple)) and qids:
+                counts[gid] = len({str(q).strip() for q in qids if str(q or "").strip()})
+    # nominal_table 兜底/补齐（whole_case_index 缺席或漏组时）：按 case_group_id 归并。
+    nominal_table = bank.get("nominal_table")
+    if isinstance(nominal_table, dict):
+        by_group: dict[str, set[str]] = {}
+        for qid, row in nominal_table.items():
+            key = str(qid or "").strip()
+            if not key:
+                continue
+            gid = str((row or {}).get("case_group_id") or "").strip() if isinstance(row, dict) else ""
+            if not gid:
+                gid = key.split("::", 1)[0].strip()
+            if gid:
+                by_group.setdefault(gid, set()).add(key)
+        for gid, qids in by_group.items():
+            counts.setdefault(gid, len(qids))
+    return counts
 
 
 @lru_cache(maxsize=1)

@@ -145,7 +145,22 @@ async def test_agent_loop_gate_still_blocks_a_real_user_extraction_attempt(tmp_p
 
 @pytest.mark.asyncio
 async def test_agent_loop_gate_falls_back_to_message_when_no_raw_surface(tmp_path) -> None:
-    """CLI / 无 raw_user_message 的通道行为逐字不变（persist_user_content 的既有回退）。"""
+    """无 raw_user_message 且**没有信封结构**的裸消息通道（CLI 等）行为逐字不变。
+
+    R1 收权（task#26，2026-08-01）后闸主语是 ``_case_submission_surface`` 而不再是
+    ``persist_user_content``。这条测试按新语义重写断言范围，**理由是收严不是放松**：
+
+    - 旧主语 ``persist_user_content = raw or current_message`` 是**持久化**口径。
+      对没有 raw 的通道它整条退回信封，于是 SEV 那条「系统自己注入的上下文把学生
+      判有罪」的吸收态在 CLI / 直调 ``process_direct`` / 任何不写
+      ``metadata.raw_user_message`` 的入口上**理论可复现**——test2 先在微信通道爆，
+      只是因为那条通道恰好有 raw。
+    - 新主语的三段回退（raw → ``## 当前用户问题`` 剥离 → current_message）每一段都
+      **更接近学生原文**，没有任何一段比旧口径更宽：闸能看到的字只会变少不会变多。
+    - 本用例是「第三段」的钉子：真的没有信封结构时，主语逐字等于 current_message，
+      攻击照拦、provider 照样不被调用——所以裸通道行为不变。
+      「第二段」（无 raw 但有信封）的行为改变由下一条用例钉死。
+    """
     provider = _CapturingProvider()
     loop = AgentLoop(bus=MessageBus(), provider=provider, workspace=tmp_path)
 
@@ -156,6 +171,35 @@ async def test_agent_loop_gate_falls_back_to_message_when_no_raw_surface(tmp_pat
 
     assert "这类内容我不展开" in content
     assert provider.called is False
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_gate_strips_the_envelope_even_without_raw_user_message(tmp_path) -> None:
+    """R1 可证伪判据（task#26）：**raw 缺失**的通道也不许被自己注入的上下文判有罪。
+
+    修前（主语=``persist_user_content``）：没有 raw → 主语整条是毒化信封 →
+    ``internal_learner_memory_extraction`` 命中 → 学生的整卷提交被替换成
+    ``INTERNAL_INFO_REFUSAL_ZH``，且拒答回写 working_memory 后自锁成吸收态。
+    修后（主语=``_case_submission_surface``）：第二段剥离器切出 ``## 当前用户问题``
+    之后的学生原文 → 正常判分。
+
+    与上一条用例互为对照：同一条 raw 缺失的输入，有信封时剥、无信封时逐字放行。
+    """
+    # 先证病灶在场：这条信封的**整体**确实会被入口闸判有罪（没有它这条测试恒绿）。
+    assert TutorBotSecuritySkill.classify_user_input(POISONED_ENVELOPE).blocked is True
+
+    provider = _CapturingProvider()
+    loop = AgentLoop(bus=MessageBus(), provider=provider, workspace=tmp_path)
+
+    content = await loop.process_direct(
+        POISONED_ENVELOPE,
+        session_key="test:guardrail-subject:cli-envelope",
+        # 关键：**不传** metadata.raw_user_message —— CLI 等通道的真实形状。
+    )
+
+    assert INTERNAL_INFO_REFUSAL_ZH not in content
+    assert "这类内容我不展开" not in content
+    assert provider.called is True
 
 
 def test_security_templates_are_recognised_and_not_learning_facts() -> None:
