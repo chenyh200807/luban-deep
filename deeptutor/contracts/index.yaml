@@ -937,6 +937,9 @@ domains:
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
       # L4 渐进吐字（turn.md「渐进发射不改变终态」）：时序 + 终态等价 + 宣传门断言面守门。
       - tests/tutorbot/test_case_grading_sequenced_emit.py
+      # L4 通用道渐进吐字（turn.md「渐进发射不改变终态」扩到通用 agent-loop）：
+      # 慢 LLM 下首答窗口有内容发射 + 逐轮解除武装保住严格后缀 + kill switch 关掉逐字节回旧。
+      - tests/tutorbot/test_general_lane_sequenced_emit.py
       # L1 瘦身检索（rag.md 44）：直通轮 lean 仍必须落 exact 身份、不注入正文、
       # 不毒化饱和台账、不点亮降级闸；kill switch off 逐字节回旧形状。
       - tests/tutorbot/test_case_direct_lean_rag.py
