@@ -2514,3 +2514,37 @@ def test_canonical_key_hit_marker_is_registered_in_the_single_export_whitelist()
         {"question_lifecycle_scene": "case_grading", "case_canonical_key_hit": "4/4"}, target
     )
     assert target["case_canonical_key_hit"] == "4/4"
+
+
+def test_denominator_and_canonical_hit_markers_projected_from_event_to_md() -> None:
+    """R2 分母阶梯 + canonical431 tier-1 命中必须经 tutorbot 事件→md 映射上全 sink。
+
+    [luban_grading_engine] domain test。病灶（2026-08-01 实测）：两个 marker 进了
+    ``CASE_GRADING_AUTHORITY_EXPORT_KEYS``、也由共享判分核 ``_grade_one_case_v1``
+    落在 event 上，但 tutorbot 侧 event→md 的**唯一**搬运链（``_v1_case_stream_plan``
+    的映射元组）没有它们 —— messages 面因此恒缺席。白名单在、搬运不在，长得和
+    「这轮压根没发生」一模一样，正是「漏一张名单 = 该 sink 永久 0 命中」的同一族病。
+    """
+    import inspect
+
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    src = inspect.getsource(AgentLoop._v1_case_stream_plan)
+    for key in ("case_denominator_source", "case_canonical_key_hit"):
+        # ① 白名单（三张名单的单一权威）
+        assert key in CASE_GRADING_AUTHORITY_EXPORT_KEYS, f"{key} 未进导出白名单"
+        assert key in CASE_GRADING_TURN_METADATA_KEYS, f"{key} 未进 turn metadata 名单"
+        # ② 事件→md 搬运（缺这一环 = messages 面恒缺席）
+        assert f'("{key}", "{key}")' in src, (
+            f"{key} 缺 tutorbot 事件→md 映射：白名单在但搬运不在，marker 永远上不了 messages 面"
+        )
+        # ③ md→turn metadata 复制
+        target: dict = {}
+        copy_current_case_grading_turn_metadata(
+            {"question_lifecycle_scene": "case_grading", key: "probe"}, target
+        )
+        assert target[key] == "probe", f"{key} 未被 copy_current_case_grading_turn_metadata 复制"

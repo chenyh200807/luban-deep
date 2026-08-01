@@ -2642,6 +2642,13 @@ class AgentLoop:
                 ("case_grading_partial_scope", "case_grading_partial_scope"),
                 ("case_per_subq_grading", "case_per_subq_grading"),
                 ("case_subq_score_caps", "case_subq_score_caps"),
+                # R2 分母权威阶梯 / canonical431 tier-1 命中（补映射 2026-08-01）：
+                # 两个 marker 已进 CASE_GRADING_AUTHORITY_EXPORT_KEYS 且由共享判分核
+                # （``_grade_one_case_v1``）落在 event 上，但 tutorbot 这条**唯一**
+                # 事件→md 搬运链漏了它们 → messages 面实测恒缺席（白名单在、搬运不在，
+                # 长得和「这轮没发生」一模一样）。增 marker 必须同时改这两处。
+                ("case_denominator_source", "case_denominator_source"),
+                ("case_canonical_key_hit", "case_canonical_key_hit"),
             ):
                 if event.get(_event_key) is not None:
                     md[_metadata_key] = event.get(_event_key)
