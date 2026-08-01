@@ -264,7 +264,17 @@ prompt_version = (
     or values.get('NEXT_PUBLIC_PROMPT_VERSION')
     or ''
 ).strip()
-if not prompt_version or prompt_version.lower() in {'unknown', 'unset', 'none'}:
+# `git-<sha>` 是**本脚本自己生成的** lineage 戳，不是人写的 prompt 版本权威。
+# 旧逻辑「远端已有值就原样保留」让第一次生成的戳永久粘住：2026-08-01 生产实测
+# DEEPTUTOR_PROMPT_VERSION=git-4505e0c10c90（04-24）与 DEEPTUTOR_GIT_SHA（07-31）
+# 相差三个月——观测面在撒谎。规则收权为：**机器生成的戳一律按本次发布 SHA 重算**，
+# 只有人写的非 git- 值（真正独立的 prompt 装载权威）才保留。
+auto_prompt_version = re.compile(r'^git-[0-9a-fA-F]{7,40}$')
+if (
+    not prompt_version
+    or prompt_version.lower() in {'unknown', 'unset', 'none'}
+    or auto_prompt_version.match(prompt_version)
+):
     prompt_version = f'git-{git_sha[:12]}'
 
 explicit_ff_snapshot_hash = (
