@@ -62,11 +62,12 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 222            # +luban_playback_manifest.v1 runtime playback projection
+  full_set_count: 223            # +luban_case_rubric_canonical431.v1 release_candidate bank
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 38      # +compiled Practice static projection receipt
+    tier2_runtime_canonical: 39      # +luban_case_rubric_canonical431.v1 (release_candidate bank, pointer-gated)
+                                     #  +compiled Practice static projection receipt
                                      #  +luban_variant_decision.v1 (variant-probe consumption slice:
                                      #  now read at runtime by luban_lesson router + retest_writeback)
     tier3_ephemeral_artifact: 175    # +luban_variant_decision_candidates.v1
@@ -678,6 +679,14 @@ tier2_canonical_contracts:
     module: deeptutor/services/construction_grading/case_rubric_pgo_supply.py
     consumed_by: deeptutor/services/construction_grading/rubric_grader_v1.py::_rubric_bank (LUBAN_CASE_RUBRIC_BANK_SLOT=pgo; default remains legacy)
     needs_field_canonicalization: true   # FIELD TODO: candidate bank record fields are validated by validate_pgo_runtime_supply; full canonical field pinning can follow once PGO lane is promoted
+
+  - name: luban_case_rubric_canonical431.v1
+    status: release_candidate
+    owner: construction_grading
+    canonical_for: canonical-431 case-rubric bank (per-point real scores + per-subquestion nominal, keyed case_group_id::E{n}; production_authorized=false until tier-1 wiring + live regression)
+    module: scripts/build_luban_canonical431_bank.py
+    consumed_by: pending (Lane-2 tier-1 wiring; pointer draft only, no runtime reader yet)
+    needs_field_canonicalization: true
 
   - name: luban_lecture_answer_skill_pack.v1
     status: runtime_canonical
