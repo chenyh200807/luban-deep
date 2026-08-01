@@ -203,6 +203,8 @@
    ],
    "rubric_point_count": 19,
    "rubric_total_score": 20.0,
+   "rubric_total_score_authority": "official_paper_structure_1a_jianzhu",
+   "rubric_point_pool_total": 20.0,
    "answers": [
     {
      "answer_id": "Q2023-03::high",
@@ -251,6 +253,7 @@
      },
      "expected_point_score": 16.8,
      "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
      "expected_score_ratio": 0.84,
      "leakage_4gram": {
       "precision": 0.1372,
@@ -351,6 +354,7 @@
      },
      "expected_point_score": 12.5,
      "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
      "expected_score_ratio": 0.625,
      "leakage_4gram": {
       "precision": 0.2247,
@@ -493,6 +497,7 @@
      },
      "expected_point_score": 4.2,
      "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
      "expected_score_ratio": 0.21,
      "leakage_4gram": {
       "precision": 0.0948,
@@ -612,7 +617,9 @@
     }
    ],
    "rubric_point_count": 11,
-   "rubric_total_score": 22.0,
+   "rubric_total_score": 20.0,
+   "rubric_total_score_authority": "official_paper_structure_1a_jianzhu",
+   "rubric_point_pool_total": 22.0,
    "answers": [
     {
      "answer_id": "Q2024-03::high",
@@ -652,8 +659,9 @@
       "imprecise_term": 1
      },
      "expected_point_score": 19.0,
-     "rubric_total_score": 22.0,
-     "expected_score_ratio": 0.8636,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 22.0,
+     "expected_score_ratio": 0.95,
      "leakage_4gram": {
       "precision": 0.2451,
       "recall": 0.3056,
@@ -728,8 +736,9 @@
       "wrong": 1
      },
      "expected_point_score": 15.0,
-     "rubric_total_score": 22.0,
-     "expected_score_ratio": 0.6818,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 22.0,
+     "expected_score_ratio": 0.75,
      "leakage_4gram": {
       "precision": 0.3716,
       "recall": 0.2812,
@@ -831,8 +840,9 @@
       "numeric": 1
      },
      "expected_point_score": 6.0,
-     "rubric_total_score": 22.0,
-     "expected_score_ratio": 0.2727,
+     "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 22.0,
+     "expected_score_ratio": 0.3,
      "leakage_4gram": {
       "precision": 0.2597,
       "recall": 0.1389,
@@ -840,7 +850,9 @@
       "pass": true
      }
     }
-   ]
+   ],
+   "nominal_authority_disputed": true,
+   "nominal_dispute_detail": "Σ佑森逐点满分 22.0 与卷面结构 20.0 差 2.0；per-小问的 sub_q_total_score 原样保留（哪一问走样未裁决，不做重分配）。用本题算满分率时分母以 rubric_total_score 为准，并知悉全中会超过 100%。"
   },
   {
    "question_id": "Q2025-03",
@@ -970,6 +982,8 @@
    ],
    "rubric_point_count": 13,
    "rubric_total_score": 20.0,
+   "rubric_total_score_authority": "official_paper_structure_1a_jianzhu",
+   "rubric_point_pool_total": 20.0,
    "answers": [
     {
      "answer_id": "Q2025-03::high",
@@ -1014,6 +1028,7 @@
      },
      "expected_point_score": 18.0,
      "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
      "expected_score_ratio": 0.9,
      "leakage_4gram": {
       "precision": 0.1657,
@@ -1091,6 +1106,7 @@
      },
      "expected_point_score": 13.5,
      "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
      "expected_score_ratio": 0.675,
      "leakage_4gram": {
       "precision": 0.1917,
@@ -1207,6 +1223,7 @@
      },
      "expected_point_score": 3.833,
      "rubric_total_score": 20.0,
+     "rubric_point_pool_total": 20.0,
      "expected_score_ratio": 0.1917,
      "leakage_4gram": {
       "precision": 0.1357,

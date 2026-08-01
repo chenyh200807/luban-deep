@@ -50,9 +50,18 @@ _RUBRIC_BANK_SLOTS = {
     # canonical431 是 **release_candidate**（pointer.production_authorized=false）。
     # 登记在这里只是让完整性验证链（_load_bank_slot）能定位它——治理闸依旧生效：
     # 把 LUBAN_CASE_RUBRIC_BANK_SLOT 设成 canonical431 仍会被 unauthorized 拒装并
-    # 大声回落 legacy。本仓唯一读它的消费者是 canonical_case_subquestion_counts()，
-    # 且**只读 nominal_table / whole_case_index（结构事实=每案例几问），绝不读
-    # records（采分点内容 / 分值）** —— 分母是结构，采分点才是判分权威，两者不同级。
+    # 大声回落 legacy（发声 fallback_from:canonical431）。翻授权是主控在 live 回归
+    # 后的独立动作，不在任何接线 lane 里。
+    #
+    # **两个消费者，两级权威，刻意不合并**：
+    #  ① canonical_case_subquestion_counts()（R2 分母阶梯）——只读 nominal_table /
+    #     whole_case_index（结构事实 = 每案例几问），**绝不读 records**，因此走
+    #     require_production_authorization=False 的逃生口。
+    #  ② deep_question._canonical_case_rubric_lookup()（Lane 2 tier-1 接线）——按
+    #     ``{case_group_id}::E{n}`` 读 **records**（采分点 + 每问真实满分），那是
+    #     分值权威（佑森估分、NOT_official），必须走默认 True 的授权路径。
+    # 分母是结构、采分点才是判分权威，两者不同级；把 ② 接到 ① 的逃生口上等于
+    # 让分值从治理旁路进场 —— 那正是 pgo 未授权覆写服役六周那一族的病。
     "canonical431": (
         "v_case_rubric_scored_canonical431",
         "case_rubric_scored_canonical431.json",
@@ -1551,6 +1560,60 @@ def _load_bank_slot(
     return b, "ok"
 
 
+# bank 记录 → 运行时 point 的**唯一**投影白名单。白名单外的字段在这里被静默
+# 丢弃：编译期写了什么不算数，能穿过这张表的才是运行时看得见的（Lane 1 §1.3
+# 就是被这条逼着复用 ``official_total_score`` 而不新造字段名）。
+_BANK_POINT_PASSTHROUGH_KEYS: tuple[str, ...] = (
+    "question_no",
+    "sub_no",
+    "subquestion_index",
+    "question_index",
+    "source_qid",
+    "max_score",
+    "official_slice",
+    "official_total_score",
+    "official_total_score_authority",
+    "score_authority",
+    "per_point_score_authority",
+    "term_authority",
+    "sub_type",
+    "source_schema",
+    "exact_term_required",
+    "factory_resolution",
+    "factory_resolution_lane",
+    "factory_point_type",
+    # canonical431（Lane 2 2026-08-01）：踩点封顶要的两个字段必须穿过白名单。
+    # ``case_group_id`` 是组身份；``nominal_authority_disputed`` 是分母 fail-closed
+    # 判据（2024-case3 Σ=22 / 2025-case5 Σ=28.5 与一建建筑实务卷面结构对不上，
+    # 拿走样的满分去封顶比不封顶更危险）。丢了它们，逐问真实满分封顶整线解除武装。
+    "case_group_id",
+    "nominal_authority_disputed",
+)
+
+
+def _project_bank_records_to_points(
+    records: list[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    """Pure: bank 记录列表 → ``{qid: [runtime point, ...]}``（白名单投影）。
+
+    从 ``_rubric_bank`` 里提出来只为一件事：白名单是判分能力的硬边界，必须能被
+    直接断言，而不是只能透过一个受治理闸+进程级缓存包住的装载器间接观察。"""
+    by_q: dict[str, list[dict[str, Any]]] = {}
+    for r in records:
+        if not isinstance(r, dict):
+            continue
+        point = {
+            "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
+            "policy": r.get("policy"), "required_terms": r.get("required_terms") or []}
+        for key in _BANK_POINT_PASSTHROUGH_KEYS:
+            if key in r:
+                point[key] = r.get(key)
+        if "source_qid" not in point and r.get("qid") is not None:
+            point["source_qid"] = r.get("qid")
+        by_q.setdefault(str(r.get("qid")), []).append(point)
+    return by_q
+
+
 @lru_cache(maxsize=1)
 def canonical_case_subquestion_counts() -> dict[str, int]:
     """``case_group_id -> 该案例的小问数``（canonical431 的 **结构事实**，非分值权威）。
@@ -1637,37 +1700,7 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
     if b is None:
         _ACTIVE_BANK_IDENTITY.update({"slot": slot, "qid_count": 0, "governance": f"refused:{reason}"})
         return {}
-    records = b.get("records") or []
-    by_q: dict[str, list[dict[str, Any]]] = {}
-    for r in records:
-        point = {
-            "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
-            "policy": r.get("policy"), "required_terms": r.get("required_terms") or []}
-        for key in (
-            "question_no",
-            "sub_no",
-            "subquestion_index",
-            "question_index",
-            "source_qid",
-            "max_score",
-            "official_slice",
-            "official_total_score",
-            "official_total_score_authority",
-            "score_authority",
-            "per_point_score_authority",
-            "term_authority",
-            "sub_type",
-            "source_schema",
-            "exact_term_required",
-            "factory_resolution",
-            "factory_resolution_lane",
-            "factory_point_type",
-        ):
-            if key in r:
-                point[key] = r.get(key)
-        if "source_qid" not in point and r.get("qid") is not None:
-            point["source_qid"] = r.get("qid")
-        by_q.setdefault(str(r.get("qid")), []).append(point)
+    by_q = _project_bank_records_to_points(b.get("records") or [])
     _ACTIVE_BANK_IDENTITY.update({"slot": slot, "qid_count": len(by_q), "governance": governance})
     return by_q
 

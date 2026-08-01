@@ -2445,6 +2445,37 @@ class AgentLoop:
                 _ref_subqs = [
                     dict(s) for s in (fc_current.get("subquestions") or []) if isinstance(s, dict)
                 ]
+        # canonical431 tier-1 键的两个原料（Lane 2 接线 2026-08-01）：组键 +
+        # **可证来源**的小问索引集。判分核据此构 ``{case_group_id}::E{n}`` 逐问查库。
+        #
+        # fail-closed 前置断言（Lane 1 §4.2 步骤 3，非可选）：索引来源必须可证。
+        # `_assemble_case_group_bundle`（supabase.py）是全仓唯一把 DB 列
+        # `case_subquestion_index` 投成 `display_index` 的地方，它给每个条目盖
+        # `coverage="case_group_exact"`；其它路径的 `display_index` 出自题干正则
+        # 解析或 `index+1` 序数，与编译期 E 号**没有共享权威**。历史教训是硬的：
+        # loop.py 的 `{exam_year}::{source_chunk_id}::E{n}` 模拟建键命中 23/354、
+        # 语义正确 **0** 条，全部错绑到相邻小问的 rubric（拿错采分点判分且不报错）。
+        # 所以这里只认 `coverage=="case_group_exact"` 的索引，再与**本轮实际采纳**
+        # 的小问集（`matched_indexes`）取交 —— 没采纳的小问不构键，不可证的索引
+        # 不构键，两者缺一即整条留空、回落既有平查路径。
+        _canonical_group_id = str(eq.get("case_group_id") or "").strip()
+        _canonical_subq_indexes: list[int] = []
+        if _canonical_group_id:
+            _db_authored_indexes = {
+                str(s.get("display_index") or "").strip()
+                for s in covered
+                if isinstance(s, dict)
+                and str(s.get("coverage") or "").strip() == "case_group_exact"
+                and str(s.get("display_index") or "").strip().isdigit()
+            }
+            _canonical_subq_indexes = [
+                int(raw)
+                for raw in dict.fromkeys(
+                    x.strip()
+                    for x in str(eq_current.get("matched_indexes") or "").split(",")
+                )
+                if raw.isdigit() and raw in _db_authored_indexes
+            ]
         _stem_titles = _extract_case_question_titles_for_scope(user_stem or str(eq.get("stem") or ""))
         _user_stem_hash = hashlib.sha256(
             (user_stem or "").strip().encode("utf-8")
@@ -2466,6 +2497,9 @@ class AgentLoop:
             ),
             "case_stem_subquestion_count": len(_stem_titles),
             "case_reference_subquestions": _ref_subqs,
+            # canonical431 tier-1 键原料（判分核 `_canonical_case_rubric_lookup` 消费）。
+            "case_group_id": _canonical_group_id,
+            "case_canonical_subquestion_indexes": _canonical_subq_indexes,
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,

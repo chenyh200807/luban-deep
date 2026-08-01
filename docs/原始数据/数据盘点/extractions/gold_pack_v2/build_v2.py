@@ -38,6 +38,22 @@ PILOT_QUESTIONS = ["Q2023-03", "Q2024-03", "Q2025-03"]
 CASE_NO = {"Q2023-03": 3, "Q2024-03": 3, "Q2025-03": 3}
 LEAK_THRESHOLD = 0.60
 
+# 满分权威（2026-08-01 订正，canonical431 Lane 1 §3.4）。
+#
+# 此前 ``rubric_total_score`` = Σ佑森逐点分值。佑森是本 pack 唯一的分值来源，
+# 自己校自己等于没校 —— 而 Lane 1 引入了**唯一一条不来自佑森的外部锚**：
+# 一建·建筑实务的卷面结构（案例一~三各 20 分、案例四~五各 30 分，合计 120）。
+# 用它压 20 个案例组：18 组精确吻合，2 组走样，其中 ``2024-case3``（= 本 pack 的
+# ``Q2024-03``）Σ采分点满分 **22.0**，比卷面多 **2.0**。金标继承了同一处走样，
+# 任何用它算「满分率」的地方分母偏大 10%。
+#
+# 订正口径：分母改用卷面结构锚，Σ点分另存 ``rubric_point_pool_total`` 并显式
+# 打争议标 —— **不做**per-小问的分值重分配。哪一问多了 2.0 是未裁决的
+# （Lane 1 ``nominal_drift_pending_adjudication``），编一个分配方案会把「不知道」
+# 伪装成「知道」，比留着不一致更危险。
+OFFICIAL_PAPER_CASE_TOTALS = {1: 20.0, 2: 20.0, 3: 20.0, 4: 30.0, 5: 30.0}
+OFFICIAL_PAPER_TOTAL_AUTHORITY = "official_paper_structure_1a_jianzhu"
+
 _PUNCT = re.compile(
     r"[\s　_、，。；：？！“”‘’（）()《》〈〉【】\[\]{}<>,.;:?!\"'`~@#$%^&*+=|\\/-]+"
 )
@@ -162,6 +178,8 @@ def main() -> None:
         official = src["official_answer"]
         off_ng = ngrams(official)
 
+        point_pool_total = round(sum(p["point_score"] for p in rubric), 2)
+        paper_total = OFFICIAL_PAPER_CASE_TOTALS[CASE_NO[qid]]
         q_out = {
             "question_id": qid,
             "year": year,
@@ -171,9 +189,21 @@ def main() -> None:
             "official_answer": official,
             "rubric_points": rubric,
             "rubric_point_count": len(rubric),
-            "rubric_total_score": round(sum(p["point_score"] for p in rubric), 2),
+            # 分母 = 卷面结构锚（外部权威），不是 Σ佑森点分（自证）。
+            "rubric_total_score": paper_total,
+            "rubric_total_score_authority": OFFICIAL_PAPER_TOTAL_AUTHORITY,
+            # Σ逐点分值原样保留 —— 它是踩点累加的上限，与卷面满分是两个坐标系。
+            "rubric_point_pool_total": point_pool_total,
             "answers": [],
         }
+        if abs(point_pool_total - paper_total) > 0.01:
+            q_out["nominal_authority_disputed"] = True
+            q_out["nominal_dispute_detail"] = (
+                f"Σ佑森逐点满分 {point_pool_total} 与卷面结构 {paper_total} 差 "
+                f"{round(point_pool_total - paper_total, 2)}；per-小问的 sub_q_total_score "
+                "原样保留（哪一问走样未裁决，不做重分配）。用本题算满分率时分母以 "
+                "rubric_total_score 为准，并知悉全中会超过 100%。"
+            )
 
         for ans in draft["answers"]:
             # --- validate expected_failures point ids ---
@@ -210,6 +240,7 @@ def main() -> None:
                     earned += pt["point_score"] * f["expected_items_hit"] / f["expected_items_total"]
             ans_out["expected_point_score"] = round(earned, 3)
             ans_out["rubric_total_score"] = q_out["rubric_total_score"]
+            ans_out["rubric_point_pool_total"] = q_out["rubric_point_pool_total"]
             ans_out["expected_score_ratio"] = round(earned / q_out["rubric_total_score"], 4)
             ans_out["leakage_4gram"] = {
                 "precision": round(p, 4),

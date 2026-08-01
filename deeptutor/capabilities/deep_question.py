@@ -2759,6 +2759,84 @@ async def _extract_rubric_per_subquestion(
     return points, caps, covered
 
 
+def _canonical_case_rubric_lookup(
+    ctx: dict[str, Any], _G: Any
+) -> tuple[list[dict[str, Any]], dict[str, float], str]:
+    """canonical431 tier-1 键路径：``{case_group_id}::E{n}`` **逐小问**查库。
+
+    今天的 tier-1 只按 ``ctx["question_id"]`` 平查一个字符串，而 canonical431 bank
+    的键是题级组 + 1-based 小问序号，所以不接这条路径的话装上库也是零命中
+    （Lane 1 §4.1 实证）。本函数是那条键路径，返回
+    ``(points, subquestion_caps, hit_marker)``：
+
+    - ``points``：命中小问的全部采分点。记录自带 ``subquestion_index`` /
+      ``question_no``（1-based），所以 ``_question_group_key`` 走显式字段分桶，
+      不会掉进那个把 0-based E 序数当问号读的 ``::E(\\d+)`` 正则兜底。
+    - ``subquestion_caps``：``{"q1": 5.0, "q2": 4.0, ...}`` —— **每问真实满分**
+      （记录的 ``official_total_score``），不是「整题满分 ÷ 小问数」的均分。
+      这是本 lane 的全部意义：2024-case1 真实是 5/4/4/3/4，均分会给每问 4.0。
+    - ``hit_marker``：``"命中问数/尝试问数"``（+ ``:disputed{n}``）。
+
+    **纯函数 + fail-closed，四条**（任一不满足 → 返回空，调用方逐字节回落既有平查）：
+
+    1. 组键或索引集缺失 → 空。索引集的可证性已由 ``_build_v1_case_ctx`` 把住
+       （只收 DB ``case_subquestion_index`` 投出来的那一族）。
+    2. slot 不是 canonical431（或 canonical431 被治理闸拒装）时，
+       ``load_rubric("2023-case3::E1")`` 在 legacy/pgo bank 里恒为空 → 返回空
+       → **未授权 slot 下行为零变化**。
+    3. ``nominal_authority_disputed`` 的小问整问剔除：这些组的 Σnominal 与一建
+       建筑实务卷面结构（案例一~三各 20、四~五各 30）对不上（2024-case3 +2.0、
+       2025-case5 −1.5）。拿一个走样的满分去封顶比不封顶更危险，宁可退回旧路径。
+    4. 分母 ≤ 0 的小问剔除：没有可信分母就没有封顶依据，不许它的点混进封顶链
+       （否则该问的点会被别的问的 cap 漏掉，等于无封顶）。
+    """
+    # 组键读取吃 R2 的单一读者（``_case_group_id_from_ctx``），不再自读
+    # ``ctx["case_group_id"]`` —— 「本轮的 case_group_id 是什么」只能有一个答案。
+    # 它比裸读多认两级来源（嵌套 bundle / question_id 前缀），但**不放松本函数的
+    # 索引可证性**：索引集仍只来自 `_build_v1_case_ctx` 的 `case_group_exact` 过滤，
+    # 而那条路径只在 eq 显式带组键时才写值 —— 组键读得更宽只会多认出「有组键但
+    # 没有可证索引」的轮次，那些轮次照样构不出键。
+    group = _case_group_id_from_ctx(ctx)
+    raw_indexes = ctx.get("case_canonical_subquestion_indexes") or []
+    indexes: list[int] = []
+    for raw in raw_indexes if isinstance(raw_indexes, (list, tuple)) else []:
+        try:
+            value = int(str(raw).strip())
+        except (TypeError, ValueError):
+            continue
+        if value > 0 and value not in indexes:
+            indexes.append(value)
+    if not group or not indexes:
+        return [], {}, ""
+    points: list[dict[str, Any]] = []
+    caps: dict[str, float] = {}
+    disputed = 0
+    for index in sorted(indexes):
+        subq_points = _G.load_rubric(f"{group}::E{index}")
+        subq_points = [p for p in (subq_points or []) if isinstance(p, dict)]
+        if not subq_points:
+            continue
+        if any(p.get("nominal_authority_disputed") for p in subq_points):
+            disputed += 1
+            continue
+        nominal = 0.0
+        for point in subq_points:
+            try:
+                nominal = max(nominal, float(point.get("official_total_score") or 0))
+            except (TypeError, ValueError):
+                continue
+        if nominal <= 0:
+            continue
+        caps[f"q{index}"] = nominal
+        points.extend(dict(p) for p in subq_points)
+    marker = f"{len(caps)}/{len(indexes)}"
+    if disputed:
+        marker = f"{marker}:disputed{disputed}"
+    if not points:
+        return [], {}, marker
+    return points, caps, marker
+
+
 async def _grade_one_case_v1(
     ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
     provider_authority: str = "",
@@ -2782,9 +2860,26 @@ async def _grade_one_case_v1(
     )
     if not answer:
         return None
-    # 1) governed compiled rubric (best ammunition) if in the bank
-    points = _G.load_rubric(qid) if qid else []
+    # 1) governed compiled rubric (best ammunition) if in the bank.
+    # canonical431 键路径优先（Lane 2 2026-08-01）：题级组 + 1-based 小问序号逐问
+    # 查库，命中即带每问真实满分。未命中（slot 未授权 / 无组键 / 索引不可证）时
+    # 逐字节回落既有的 ``ctx["question_id"]`` 平查——这条回落是本接线的零影响保证。
+    canonical_points, canonical_caps, canonical_key_hit = _canonical_case_rubric_lookup(ctx, _G)
+    points = canonical_points or (_G.load_rubric(qid) if qid else [])
+    # 逐问真实满分之和 = 本次判分范围的分母。>0 是「tier-1 允许进 finalize」的
+    # 唯一判据（见下方 finalize 分支）：分母来自记录而非 V0 文本解析时，那条
+    # 「cg.max_score 不够可信所以 tier-1 不封顶」的理由才消失。
+    canonical_nominal = round(sum(canonical_caps.values()), 2) if canonical_points else 0.0
     provenance = "compiled_rubric"
+
+    def _c431_marked(payload: dict[str, Any]) -> dict[str, Any]:
+        """降级/失败标记也带 canonical 命中发声。
+
+        「拒了 5 个走样分母然后什么都没找到」与「压根没这个库」在 trace 里必须
+        长得不一样——没有 marker 的降级等于没发生过。"""
+        if canonical_key_hit:
+            payload["case_canonical_key_hit"] = canonical_key_hit
+        return payload
     # C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
     # 题面名义分显著分歧 = 复合 qid 可能错配到别的小问，先发声观测一个窗口再定 blocking。
     score_total_mismatch = False
@@ -2792,12 +2887,16 @@ async def _grade_one_case_v1(
     stem_fallback_used = ""
     partial_scope = ""
     scope_ratio = 1.0
-    subquestion_caps: dict[str, float] = {}
+    # canonical 命中时逐问封顶表直接就位（复用 OD-005 的逐问机制，nominal 用真实
+    # 值替换均分）；未命中时保持空表 = 旧行为。
+    subquestion_caps: dict[str, float] = dict(canonical_caps) if canonical_points else {}
     per_subq_grading = ""
     denominator_source = ""
     if points:
         try:
-            _nominal = float((cg or {}).get("max_score") or 0)
+            # canonical 在场时对账基准是**逐问真实满分之和**（本次判分范围的分母），
+            # 不是整题 cg.max_score —— 采纳集小于整题时拿整题满分比会假报错配。
+            _nominal = canonical_nominal or float((cg or {}).get("max_score") or 0)
             _rubric_total = sum(float(p.get("score") or 0) for p in points if isinstance(p, dict))
             score_total_mismatch = _nominal > 0 and abs(_rubric_total - _nominal) > 0.01
             # 踩点封顶观测（指挥官裁决② 2026-07-30，observe-only 先于改分）：
@@ -2956,13 +3055,13 @@ async def _grade_one_case_v1(
                 stem_fallback_used = "submission_text"
             if not points:
                 logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
-                return {"status": "no_reference", "question_id": qid}
+                return _c431_marked({"status": "no_reference", "question_id": qid})
     logger.warning(
         "LUBAN_DIAG _grade_one_case_v1: post-tier points={} provenance={} qid={}",
         len(points), provenance, qid or "(none)",
     )
     if not points:
-        return {"status": "unavailable", "reason": "no_scoring_points"}
+        return _c431_marked({"status": "unavailable", "reason": "no_scoring_points"})
     # Wire the canonical typed object onto the live scoring path (foundation goes live): stamp the
     # canonical authority_source on each rubric point and build+validate the canonical
     # luban_grading_object.v1. This ARMS the G2 gate below (which keys on authority_source) — the
@@ -2980,7 +3079,7 @@ async def _grade_one_case_v1(
         allow_pending_calibration_diagnostic=is_diagnostic_rubric,
     )
     if not points:
-        return {"status": "unavailable", "reason": "no_official_scoring_points"}
+        return _c431_marked({"status": "unavailable", "reason": "no_official_scoring_points"})
 
     async def _on_judge_group_done(*, completed: int, total: int, size: int) -> None:
         await _emit_case_grading_stage(
@@ -3007,7 +3106,7 @@ async def _grade_one_case_v1(
     # diagnostic path (same as "no rubric"), exactly like an exception would.
     if event.get("degraded"):
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
-        return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
+        return _c431_marked({"status": "degraded", "reason": "no_verdict", "question_id": qid})
     event["rubric_provenance"] = provenance
     # 覆盖对账（2026-07-30 live 事故：半张卷被当整张宣判满分）：题面多问而 rubric
     # 只归属到部分小问时，事件携带覆盖事实+学生可见声明；渲染两个面同源消费。
@@ -3032,6 +3131,13 @@ async def _grade_one_case_v1(
         )
     except Exception:  # noqa: BLE001 — 观测导出永不破坏判分
         pass
+    # canonical431 键命中发声（Lane 2 2026-08-01）：形如 "4/4" / "0/5:disputed5"。
+    # slot 身份由既有 case_rubric_bank_slot 带出（"canonical431:authorized:96"），
+    # 这个 marker 回答的是另一个问题：**这一轮到底有几问真的走了 canonical 键**。
+    # 没有它就分不清「slot 装上了但零命中」与「slot 装上且命中」——Lane 1 §9①
+    # 正是这个洞。分母=尝试构键的小问数，所以 0/N 是一条可证伪的失败信号。
+    if canonical_key_hit:
+        event["case_canonical_key_hit"] = canonical_key_hit
     if score_total_mismatch:
         event["case_rubric_score_total_mismatch"] = True
     if point_pool_excess > 0:
@@ -3053,6 +3159,28 @@ async def _grade_one_case_v1(
             scope_ratio=scope_ratio,
             **_finalize_kwargs,
         )
+    elif canonical_nominal > 0:
+        # canonical431 命中（Lane 2 2026-08-01）：上面那条排除理由到此为止——分母
+        # 不再需要从题面解析，它就在记录里（每问 official_total_score，佑森逐点
+        # 分值 0.5 粒度、真题 PDF 视觉核查 + 5 份专家复核背书）。
+        # - ``subquestion_caps`` = 每问真实满分，min(Σ命中, nominal) 逐问封顶。
+        # - ``scope_ratio=1.0``：分母已经只算实际采纳的小问了，再乘一次覆盖比
+        #   = 双重缩放（P0 兜底满分那一族的病根形态）。
+        # - ``normalize_points_to_nominal`` 在这条链上从不调用：canonical 的点分
+        #   是真值，缩放只会毁掉它（那正是「全中即满分」的结构性成因）。
+        # 写分者仍只有 finalize_case_score 一个（多写者收敛不变）。
+        _G.finalize_case_score(
+            event,
+            nominal_full_score=canonical_nominal,
+            scope_ratio=1.0,
+            subquestion_caps=subquestion_caps,
+        )
+        # 分母来源发声与 R2 阶梯同一个 marker（分析面不该有两套词汇），但取值
+        # **刻意不同名**：R2 的 "canonical" 是「结构小问数」（只读 nominal_table、
+        # 不读采分点、走免授权逃生口），这里的 "canonical_rubric" 是「每问真实
+        # 满分」（读 records、需 production_authorized）。同名会让两级权威在
+        # 分组统计里被合并成一个，那正是要防的。
+        denominator_source = "canonical_rubric"
     if per_subq_grading:
         event["case_per_subq_grading"] = per_subq_grading
     if denominator_source:
