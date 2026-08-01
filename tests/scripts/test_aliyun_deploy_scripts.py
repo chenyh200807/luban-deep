@@ -280,7 +280,7 @@ def test_sync_injects_release_lineage_into_remote_env(tmp_path: Path) -> None:
     remote_dir = tmp_path / "remote"
     remote_dir.mkdir()
     (remote_dir / ".env").write_text(
-        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\nFF_WORKER_CAPACITY_ISOLATION_V1=true\n",
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\nFF_WORKER_CAPACITY_ISOLATION_V1=true\n",  # pragma: allowlist secret
         encoding="utf-8",
     )
     env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
@@ -311,7 +311,7 @@ def test_sync_regenerates_stale_auto_prompt_version_from_release_sha(tmp_path: P
     remote_dir.mkdir()
     (remote_dir / ".env").write_text(
         "SERVICE_ENV=production\nAPP_ENV=production\n"
-        "DEEPTUTOR_PROMPT_VERSION=git-4505e0c10c90\n",
+        "DEEPTUTOR_PROMPT_VERSION=git-4505e0c10c90\n",  # pragma: allowlist secret
         encoding="utf-8",
     )
     env, _call_log = _build_stub_env(tmp_path, execute_release_injection=True)
@@ -332,7 +332,7 @@ def test_sync_keeps_human_authored_prompt_version(tmp_path: Path) -> None:
     remote_dir.mkdir()
     (remote_dir / ".env").write_text(
         "SERVICE_ENV=production\nAPP_ENV=production\n"
-        "DEEPTUTOR_PROMPT_VERSION=construction-tutor-v9\n",
+        "DEEPTUTOR_PROMPT_VERSION=construction-tutor-v9\n",  # pragma: allowlist secret
         encoding="utf-8",
     )
     env, _call_log = _build_stub_env(tmp_path, execute_release_injection=True)
@@ -342,7 +342,7 @@ def test_sync_keeps_human_authored_prompt_version(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     env_content = (remote_dir / ".env").read_text(encoding="utf-8")
-    assert "DEEPTUTOR_PROMPT_VERSION=construction-tutor-v9\n" in env_content
+    assert "DEEPTUTOR_PROMPT_VERSION=construction-tutor-v9\n" in env_content  # pragma: allowlist secret
 
 
 def test_sync_marks_dirty_release_lineage_when_dirty_override_is_used(tmp_path: Path) -> None:
@@ -351,7 +351,7 @@ def test_sync_marks_dirty_release_lineage_when_dirty_override_is_used(tmp_path: 
     remote_dir = tmp_path / "remote"
     remote_dir.mkdir()
     (remote_dir / ".env").write_text(
-        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",  # pragma: allowlist secret
         encoding="utf-8",
     )
     env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
@@ -372,7 +372,7 @@ def test_sync_deploy_manifest_hash_excludes_env_and_report_artifacts(tmp_path: P
     remote_dir = tmp_path / "remote"
     remote_dir.mkdir()
     (remote_dir / ".env").write_text(
-        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",
+        "SERVICE_ENV=production\nAPP_ENV=production\nDEEPTUTOR_GIT_SHA=old\n",  # pragma: allowlist secret
         encoding="utf-8",
     )
     env, call_log = _build_stub_env(tmp_path, execute_release_injection=True)
