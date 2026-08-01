@@ -164,9 +164,32 @@
   二次过滤成 0 命中）。**键清单单一权威 = `case_output_policy.CASE_GRADING_AUTHORITY_EXPORT_KEYS`**
   （2026-07-30 收权完成）：summarizer lift、终态白名单、per-turn 元组三个消费面
   全部从该常量派生，禁止任何消费面再内联复制键名清单——增键只改常量一处。
-  域测试 `test_authority_export_keys_single_source_across_all_sinks` 钉三面一致。已知系统性缺口（另立战役，不许当作
-  本契约已覆盖）：Langfuse 终点 update 黑洞——全部 turn 的终点键从未落
-  Langfuse span/trace，root span 仅存 start 指纹；合成复现全过、真实 turn 全灭。
+  域测试 `test_authority_export_keys_single_source_across_all_sinks` 钉三面一致。
+- **Langfuse 终点黑洞已收口（task#19，2026-08-01）**：此前全部 turn 的终点键从未落
+  Langfuse，root span 仅存 start 指纹。根因**不是 SDK 缺能力**，是
+  `langfuse_adapter._sanitize_value` 对每一层 dict 只保留前 20 个键，而
+  `sanitize_metadata` 是所有出站 metadata 的唯一入口——真实 turn 终态 metadata 有
+  60~100+ 个键、合并顺序 `skill_metadata → usage 汇总 → trace_metadata` 让前两组正好
+  占满 20 位，判分权威族每轮被静默剥光（连 `user_id` 都因排第 21 位被砍）。
+  「合成复现全过、真实 turn 全灭」正是这条：合成用例的 metadata 不足 20 键，永远踩不到截断。
+  收口三条，构成本段的新硬约束：
+  (a) `sanitize_metadata` 顶层键上限 = `_METADATA_TOP_LEVEL_KEY_LIMIT`（受 OTel 默认
+      128 span 属性硬顶约束），嵌套层仍限 `_METADATA_NESTED_KEY_LIMIT`；**截断必须发声**
+      ——真被砍时写入 `metadata_truncated_key_count` / `metadata_truncated_keys`，
+      不得再出现「查不到 = 分不清没发生还是被砍了」的二义。
+  (b) 终态查询面 = **独立观测** `turn.terminal_state`（`observability
+      .record_turn_terminal_state`），由 `_langfuse_terminal_state_metadata` 投影
+      `_build_terminal_turn_observation_event` 的产物而来。**它不是第四张白名单**：
+      只 re-shape、不重新派生键清单，增键仍只改 `CASE_GRADING_AUTHORITY_EXPORT_KEYS`
+      一处。失败轮带 `level=ERROR`。ClickHouse 侧 `WHERE name='turn.terminal_state'`
+      一行即可拿到整轮终态。
+  (c) trace **级**终态在 langfuse 4.x 上结构性不存在（v4 已删 `update_current_trace`；
+      替代品 `propagate_attributes` 是 span 开始前进入的 context manager，拿不到终态）。
+      因此终态只落 observation 面；任何「trace 顶层属性终态更新」的接线都是假接线，
+      getattr 防御只会把断线吞成静默 no-op，禁止再引入。
+  (d) 终态 emit 位于 `finally` 中、排在唤醒订阅者与摘除 execution **之前**，必须整段
+      被异常吞掉——观测异常逃逸会让 `subscribe_turn` 的订阅者永久挂住。观测永远不得
+      绑架回合终结（域测试 `test_broken_langfuse_terminal_emit_cannot_strand_the_turn`）。
 - `turn_runtime` 的 terminal observer metadata 可以携带 `latency_stages_ms`，用于把单轮耗时拆成 `context_route_preview`、`observability_start`、`context_build`、`capability_selection`、`user_message_persist`、`capability_stream` 等内部阶段，并由 runtime metrics / observer snapshot 聚合。该字段是运维观测投影，不是公开 stream contract、capability route、评分、计费或 learner-state authority；客户端不得依赖它做业务状态判断。
 - `context_pack_trace.build_stage_timings_ms` 与 terminal observer metadata 的 `context_build_stage_timings_ms` 可以携带 context build 内部子阶段耗时（如 `route_resolver`、`session_history`、`learner_state`、`source_loader_*`、`context_pack`、`pack_render`），用于定位首屏与上下文构建性能瓶颈。它们只属于 trace/observability projection，不得改变 context route、候选选择、token budget、learner-state truth、评分或计费 authority。
 - terminal observer metadata 可以携带 `start_turn_setup_stage_timings_ms`，用于拆解首个 `session` 事件前的准备阶段，如 `payload_normalize`、`active_object_lookup`、`followup_resolution`、`public_config_validation`、`bot_runtime_defaults`、`ensure_session`、`update_session_preferences`、`recover_orphaned_turns`、`cancel_active_turn`、`create_turn`、`register_execution`、`publish_session_event`。该字段只用于定位 first-visible 前置耗时，不得改变 turn 创建、session 偏好、active object、billing 或 follow-up authority。

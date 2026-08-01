@@ -732,3 +732,75 @@ def test_authority_export_keys_single_source_across_all_sinks() -> None:
     )
     for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
         assert event["metadata"].get(key) == sentinel[key], key
+
+
+def test_langfuse_terminal_state_metadata_carries_the_whole_authority_family() -> None:
+    """task#19 终点黑洞：Langfuse 是终态事件的第二个消费面，白名单仍只有一张。
+
+    第四个 sink 不得再长出第四张名单——本投影函数只 re-shape
+    ``_build_terminal_turn_observation_event`` 的产物，因此增一个 marker 仍然只改
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS 一处。
+    """
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+    )
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    sentinel = {key: f"v::{key}" for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS}
+    sentinel["execution_path"] = "v::execution_path"
+    event = _build_terminal_turn_observation_event(
+        session_id="session-lf",
+        turn_id="turn-lf",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=2500.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "bot_id": "construction-exam-coach",
+            "context_route": "case_grading",
+            "source": "wechat_miniprogram",
+            "user_id": "user-lf",
+            "trace_id": "trace-lf",
+            **sentinel,
+        },
+        usage_summary={"total_tokens": 4096, "total_calls": 3},
+    )
+
+    metadata = _langfuse_terminal_state_metadata(event)
+
+    for key, value in sentinel.items():
+        assert metadata.get(key) == value, key
+    # 终态判别位：状态/身份/时延都必须在同一条观测上，否则 ClickHouse 侧还是要跨表 join。
+    assert metadata["turn_status"] == "completed"
+    assert metadata["turn_id"] == "turn-lf"
+    assert metadata["session_id"] == "session-lf"
+    assert metadata["trace_id"] == "trace-lf"
+    assert metadata["capability"] == "tutorbot"
+    assert metadata["latency_ms"] == 2500.0
+    assert metadata["token_total"] == 4096
+
+
+def test_langfuse_terminal_state_metadata_marks_failed_turns() -> None:
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-lf",
+        turn_id="turn-lf",
+        status="failed",
+        capability_name="tutorbot",
+        duration_ms=10.0,
+        trace_metadata={"execution_engine": "tutorbot_runtime", "source": "ws"},
+        usage_summary=None,
+    )
+
+    metadata = _langfuse_terminal_state_metadata(event)
+
+    assert metadata["turn_status"] == "failed"
+    assert metadata["error_type"] == "failed"
+
+
+def test_langfuse_terminal_state_metadata_tolerates_a_broken_event() -> None:
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    assert _langfuse_terminal_state_metadata({}) == {"turn_status": "unknown"}
+    assert _langfuse_terminal_state_metadata(None) == {}  # type: ignore[arg-type]
