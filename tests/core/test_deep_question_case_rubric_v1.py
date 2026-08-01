@@ -1968,3 +1968,87 @@ def test_canonical431_lookup_is_pure_and_fail_closed_without_provable_indexes() 
     ):
         assert _canonical_case_rubric_lookup(ctx, _Spy) == ([], {}, "")
     assert calls == [], f"不可证的索引集绝不许构键查库，实际查了 {calls}"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_emits_distinct_denominator_source_from_r2_ladder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """调和（#651 R2 × Lane 2）：tier-1 canonical 命中也发 `case_denominator_source`，
+    但取值是 **canonical_rubric**，与 R2 阶梯的 `canonical` 刻意不同名。
+
+    两者是不同级的权威：R2 的 `canonical` = 结构小问数（只读 nominal_table、不读
+    采分点、走 require_production_authorization=False 的逃生口）；这里的
+    `canonical_rubric` = 每问真实满分（读 records、需 production_authorized）。
+    同名会让它们在分组统计里被合并成一个 —— 那正是要防的。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank())
+    event = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+    assert event["case_denominator_source"] == "canonical_rubric"
+    assert event["case_denominator_source"] != "canonical", (
+        "不得与 R2 阶梯的结构小问数同名"
+    )
+
+
+def test_canonical431_lookup_consumes_the_single_case_group_id_reader() -> None:
+    """调和：组键读取吃 R2 的 `_case_group_id_from_ctx`，不自建第二读者。
+
+    可证伪：ctx 没有顶层 `case_group_id`、只把组键放在嵌套 bundle 里时，
+    R2 读者认得出来，裸读 `ctx["case_group_id"]` 认不出来。"""
+    from deeptutor.capabilities.deep_question import (
+        _canonical_case_rubric_lookup,
+        _case_group_id_from_ctx,
+    )
+
+    nested_ctx = {
+        "_prefetched_exact_question": {"case_group_id": "2024-case1"},
+        "case_canonical_subquestion_indexes": [1, 2],
+    }
+    assert _case_group_id_from_ctx(nested_ctx) == "2024-case1"
+
+    seen: list[str] = []
+
+    class _Spy:
+        @staticmethod
+        def load_rubric(qid: str) -> list[dict[str, Any]]:
+            seen.append(qid)
+            return []
+
+    _canonical_case_rubric_lookup(nested_ctx, _Spy)
+    assert seen == ["2024-case1::E1", "2024-case1::E2"], (
+        f"必须用 R2 读者认出的组键构键，实际查了 {seen}"
+    )
+
+
+def test_canonical431_scoring_content_never_bypasses_the_governance_gate() -> None:
+    """调和红线：判分内容（records）只许走**默认授权**的装载路径。
+
+    #651 给 `_load_bank_slot` 开了 `require_production_authorization=False` 的
+    逃生口，立法目的仅限「读结构事实、不读判分内容」的分母读者。采分点与分值
+    是治理闸要管的东西（佑森估分、NOT_official）—— 让它从逃生口进场，就是
+    pgo 未授权覆写服役六周那一族的病。
+
+    这条断言把边界钉成机器可证的：①默认值必须是 True；②默认路径下
+    canonical431 仍被拒；③`load_rubric` 走的就是默认路径（拿不到任何采分点）。"""
+    import inspect
+
+    from deeptutor.services.construction_grading import rubric_grader_v1 as RG
+
+    sig = inspect.signature(RG._load_bank_slot)
+    assert sig.parameters["require_production_authorization"].default is True
+
+    assert RG._load_bank_slot("canonical431")[1] == "unauthorized"
+    # 免授权逃生口只放行结构读者，且它拿到的是「几问」不是采分点。
+    bundle, reason = RG._load_bank_slot("canonical431", require_production_authorization=False)
+    assert reason == "ok" and isinstance(bundle, dict)
+    counts = RG.canonical_case_subquestion_counts()
+    assert counts.get("2024-case1") == 5
+    assert all(isinstance(v, int) for v in counts.values()), "结构读者只许吐整数计数"
+
+    RG._rubric_bank.cache_clear()
+    try:
+        # 判分内容路径：未授权 → 零采分点可达（不是「拿到了但不用」，是根本拿不到）。
+        assert RG.load_rubric("2024-case1::E1") == []
+    finally:
+        RG._rubric_bank.cache_clear()

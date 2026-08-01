@@ -2790,7 +2790,13 @@ def _canonical_case_rubric_lookup(
     4. 分母 ≤ 0 的小问剔除：没有可信分母就没有封顶依据，不许它的点混进封顶链
        （否则该问的点会被别的问的 cap 漏掉，等于无封顶）。
     """
-    group = str(ctx.get("case_group_id") or "").strip()
+    # 组键读取吃 R2 的单一读者（``_case_group_id_from_ctx``），不再自读
+    # ``ctx["case_group_id"]`` —— 「本轮的 case_group_id 是什么」只能有一个答案。
+    # 它比裸读多认两级来源（嵌套 bundle / question_id 前缀），但**不放松本函数的
+    # 索引可证性**：索引集仍只来自 `_build_v1_case_ctx` 的 `case_group_exact` 过滤，
+    # 而那条路径只在 eq 显式带组键时才写值 —— 组键读得更宽只会多认出「有组键但
+    # 没有可证索引」的轮次，那些轮次照样构不出键。
+    group = _case_group_id_from_ctx(ctx)
     raw_indexes = ctx.get("case_canonical_subquestion_indexes") or []
     indexes: list[int] = []
     for raw in raw_indexes if isinstance(raw_indexes, (list, tuple)) else []:
@@ -3169,6 +3175,12 @@ async def _grade_one_case_v1(
             scope_ratio=1.0,
             subquestion_caps=subquestion_caps,
         )
+        # 分母来源发声与 R2 阶梯同一个 marker（分析面不该有两套词汇），但取值
+        # **刻意不同名**：R2 的 "canonical" 是「结构小问数」（只读 nominal_table、
+        # 不读采分点、走免授权逃生口），这里的 "canonical_rubric" 是「每问真实
+        # 满分」（读 records、需 production_authorized）。同名会让两级权威在
+        # 分组统计里被合并成一个，那正是要防的。
+        denominator_source = "canonical_rubric"
     if per_subq_grading:
         event["case_per_subq_grading"] = per_subq_grading
     if denominator_source:
