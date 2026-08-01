@@ -117,6 +117,54 @@ def _set_cached_rubric_points(cache_key: str, points: list[dict[str, Any]]) -> N
     _RUBRIC_EXTRACTION_CACHE[cache_key] = (time.monotonic(), copy.deepcopy(points))
 
 
+def classify_mistake_type(
+    *,
+    policy: str,
+    status: str,
+    verdict: dict[str, Any],
+    student_answer: str,
+) -> str | None:
+    """非命中采分点的 mistake_type 归类**唯一权威**（legacy + PGO 两条判分路径共用）。
+
+    修复（2026-08-01 端侧取证）：此前两处各写一遍 ``MISTAKE_NEAR_SYNONYM if
+    policy == "exact_required"``——只要 exact_required 非 HIT 就**无条件**标
+    ``near_synonym_not_exact``，渲染成「❌ 术语不精确：本采分点要求规范术语，近义/
+    口语表述不得分」。学生对该问**零作答**时（整卷里没有这一问的任何文字，verdict
+    既无 evidence_span 也无 mistake_type，或干脆是 batch 缺省的 miss+low_confidence），
+    这句话是**凭空指控**：判分把 judge 自己给出的 ``omitted`` 丢掉，改口说学生"术语
+    不精确"。**"术语不精确"是有作答才成立的判定**——能说"你的术语不精确"，前提是能
+    指出你写的是什么；指不出来就只能是漏点。
+
+    归类阶梯（严格自上而下，第一条命中即返回）：
+
+    1. HIT → ``None``（没有 mistake）。
+    2. 整份作答为空 → 一律 ``omitted``。空作答不可能"术语不精确"，也不可能"答错"。
+    3. ``exact_required`` 非 HIT：
+       a. judge 自己判 ``omitted`` → ``omitted``（不覆盖 judge 的证据）；
+       b. 无 ``evidence_span``（含 batch 缺省 verdict）→ ``omitted``；
+       c. 有 ``evidence_span`` → ``near_synonym_not_exact``（能引学生原文才敢这么说）。
+    4. ``PARTIAL`` → ``list_incomplete``。
+    5. 其余 → judge 的 ``mistake_type``，缺省 ``omitted``。
+
+    宁可少挂一个"术语不精确"（降级成漏点，学生看到的还是"这一点没拿到"），也不能对
+    零作答的学生编造一句他没做过的事。
+    """
+    if status == HIT:
+        return None
+    if not str(student_answer or "").strip():
+        return MISTAKE_MISS
+    judge_mistake = str(verdict.get("mistake_type") or "").strip()
+    if policy == "exact_required":
+        if judge_mistake == MISTAKE_MISS:
+            return MISTAKE_MISS
+        if not str(verdict.get("evidence_span") or "").strip():
+            return MISTAKE_MISS
+        return MISTAKE_NEAR_SYNONYM
+    if status == PARTIAL:
+        return MISTAKE_PARTIAL_LIST
+    return judge_mistake or MISTAKE_MISS
+
+
 def grade_with_rubric(
     *,
     qid: str,
@@ -164,11 +212,9 @@ def grade_with_rubric(
         else:
             awarded = 0.0
         awarded_total += awarded
-        mistake = None
-        if status != HIT:
-            mistake = (MISTAKE_NEAR_SYNONYM if policy == "exact_required"
-                       else MISTAKE_PARTIAL_LIST if status == PARTIAL
-                       else str(verdict.get("mistake_type") or MISTAKE_MISS))
+        mistake = classify_mistake_type(
+            policy=policy, status=status, verdict=verdict, student_answer=answer,
+        )
         if verdict.get("low_confidence"):
             low_conf += 1
         point_out = {
@@ -251,11 +297,9 @@ def _grade_with_pgo_coverage(
         credited += credit
         if verdict.get("low_confidence"):
             low_conf += 1
-        mistake = None
-        if status != HIT:
-            mistake = (MISTAKE_NEAR_SYNONYM if policy == "exact_required"
-                       else MISTAKE_PARTIAL_LIST if status == PARTIAL
-                       else str(verdict.get("mistake_type") or MISTAKE_MISS))
+        mistake = classify_mistake_type(
+            policy=policy, status=status, verdict=verdict, student_answer=answer,
+        )
         point_out = {
             "point_id": p.get("point_id"),
             "knowledge_point": p.get("text"),
@@ -769,12 +813,47 @@ def _infer_question_label_from_title(point: dict[str, Any], question_titles: dic
     return f"问题{scored[0][0]}"
 
 
+_ANSWER_METHOD_TOPIC_NGRAM = 4
+
+
+def _stem_hits_unit_topic(unit: dict[str, Any], stem: str) -> bool:
+    """题面是否命中该 unit 的**考点身份词**（``topic``），而不只是采分内容词。
+
+    路由侧（lecture_answer_methods._tokenize_unit）把 ``question_patterns`` 整包升成
+    anchor 档，而编译时 472/524 个 unit 把 ``must_mentions`` 的**采分内容词**原样抄进了
+    ``question_patterns``——于是"隐蔽工程""关键部位"这种答案里的词也成了路由锚点，两个
+    ≥4 字内容词就能把无关 unit 顶到 high（实测 0.86）。判分侧不能只信 band。
+
+    身份词判据：``topic`` 的任一 ≥4 字连续片段出现在题面里。挂口诀的前提是**这一问确实
+    落在这个考点上**，而不是它的答案里恰好会出现某个词。实测（20 题金标全案例题面）：
+    36 个候选留 10、drop 26，drop 的全是"城市建设档案管理"配合同索赔题、"章节考情与大纲"
+    这类大纲 unit、"模板与脚手架安全控制"配基坑题；留下的 10 个题面都真在讲那个考点。
+    """
+    topic = re.sub(r"[\s\W_]+", "", str(unit.get("topic") or ""))
+    if not topic:
+        return False
+    normalized_stem = re.sub(r"[\s\W_]+", "", str(stem or ""))
+    if not normalized_stem:
+        return False
+    size = _ANSWER_METHOD_TOPIC_NGRAM
+    if len(topic) <= size:
+        return topic in normalized_stem
+    return any(topic[i:i + size] in normalized_stem for i in range(len(topic) - size + 1))
+
+
 def resolve_case_answer_method_for_render(question_stem: str) -> dict[str, Any] | None:
     """A1 真口诀（拍A 2026-07-30，宁缺勿错挂）：判分回复的「记忆口诀」段此前是漏点
     标题顿号拼接的假口诀；424 条真编译口诀（含陷阱/红线）在 lecture answer 包里
     零消费。本 helper 是判分侧唯一采纳权威：只接受解析器 **high** 置信带（medium
     也不挂——错挂口诀比不挂伤害大），且 unit 必须真带 mnemonics/trap/red_line
-    内容。返回 None → 渲染回落现模板，调用方必须打 case_mnemonic_source marker。"""
+    内容。返回 None → 渲染回落现模板，调用方必须打 case_mnemonic_source marker。
+
+    第二道闸（2026-08-01 补）：``band == high`` **不足以**证明这一问落在该考点上——
+    路由的 anchor 档被采分内容词污染（见 ``_stem_hits_unit_topic``），一道合同索赔题
+    能把"城市建设档案管理"顶到 1.0。所以再要求题面命中 unit 的 ``topic`` 身份词。
+    两道闸是"证据"关系不是"加固"关系：band 说的是"匹配得分高"，topic 说的是"匹配到
+    的是这个考点"，后者才是能不能把这条口诀写给学生的依据。
+    """
     stem = str(question_stem or "").strip()
     if not stem:
         return None
@@ -795,8 +874,11 @@ def resolve_case_answer_method_for_render(question_stem: str) -> dict[str, Any] 
         if not isinstance(unit, dict):
             continue
         method = unit.get("answer_method") if isinstance(unit.get("answer_method"), dict) else {}
-        if method.get("mnemonics") or method.get("trap_alerts") or method.get("red_lines"):
-            units.append(unit)
+        if not (method.get("mnemonics") or method.get("trap_alerts") or method.get("red_lines")):
+            continue
+        if not _stem_hits_unit_topic(unit, stem):
+            continue
+        units.append(unit)
     if not units:
         return None
     return {"units": units[:2], "activation": ctx.get("activation")}
@@ -1091,8 +1173,20 @@ def render_case_rubric_feedback(
         # A1 真口诀：编译资产（口诀/陷阱/红线）+ 出处引用；仅 high 置信带到达此处。
         for _unit in _am_units:
             _method = _unit.get("answer_method") if isinstance(_unit.get("answer_method"), dict) else {}
+            _topic = str(_unit.get("topic") or "").strip()
             for _m in (_method.get("mnemonics") or [])[:2]:
-                lines.append(f"- {_m}")
+                # 口诀必须带考点归属 + 要点展开。裸口诀"机具日检上交图"挂在质量计划管理
+                # 下面时，看起来像串了施工机具的题（2026-08-01 owner 端侧就是这么读的）；
+                # 资产自己的 answer_style 写的就是"先给口诀，再展开每个字对应的得分点"，
+                # 而渲染只印了口诀那一行。缩写不解释＝制造串题错觉。
+                lines.append(f"- {_topic}｜{_m}" if _topic else f"- {_m}")
+                _expand = [
+                    str(_x).strip()
+                    for _x in (_method.get("must_mentions") or [])[:6]
+                    if str(_x).strip() and str(_x).strip() not in str(_m)
+                ]
+                if _expand:
+                    lines.append("  展开：" + "、".join(_expand))
             for _t in (_method.get("trap_alerts") or [])[:2]:
                 lines.append(f"- ⚠️ 陷阱：{_t}")
             for _r in (_method.get("red_lines") or [])[:1]:
@@ -2548,7 +2642,8 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
     return judge
 
 
-__all__ = ["grade_with_rubric", "grade_artifact_shadow", "rubric_points_from_artifact",
+__all__ = ["grade_with_rubric", "classify_mistake_type", "grade_artifact_shadow",
+           "rubric_points_from_artifact",
            "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
            "extract_rubric_from_reference_async", "normalize_points_to_nominal",
