@@ -1557,12 +1557,26 @@ def test_r2_canonical_denominator_reader_never_touches_scoring_content() -> None
     _G2._rubric_bank()
     identity = _G2.active_bank_identity()
     assert identity["slot"] == "legacy" and identity["governance"] == "authorized", (
-        f"在服判分 bank 必须仍是授权的 legacy，实得 {identity}"
+        f"默认（无 env 显式切换）在服 bank 必须仍是授权的 legacy，实得 {identity}"
     )
 
-    # 治理闸仍拦得住把 canonical431 当判分 bank 装载（默认要求生产授权）。
+    # 2026-08-01 授权翻转（#654）后：canonical431 的 pointer 显式携带
+    # production_authorized=true，闸**咨询授权位后**合法放行——不变量不再是
+    # "恒被拒"，而是"放行必须有 pointer 授权依据"（撤权必拒见
+    # test_canonical431_scoring_content_never_bypasses_the_governance_gate）。
+    import json as _json
+    from pathlib import Path as _Path
+
     bank, reason = _G2._load_bank_slot("canonical431")
-    assert bank is None and reason == "unauthorized"
+    assert reason == "ok" and isinstance(bank, dict)
+    _slot_dir, _ = _G2._RUBRIC_BANK_SLOTS["canonical431"]
+    _pointer = _json.loads(
+        (_Path(_G2.__file__).parent / "runtime_supply" / _slot_dir / "canonical_pointer.json")
+        .read_text("utf-8")
+    )
+    assert _pointer.get("production_authorized") is True and _pointer.get("authorization_note"), (
+        "放行必须以 pointer 显式授权为依据，不是闸放水"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2021,7 +2035,9 @@ def test_canonical431_lookup_consumes_the_single_case_group_id_reader() -> None:
     )
 
 
-def test_canonical431_scoring_content_never_bypasses_the_governance_gate() -> None:
+def test_canonical431_scoring_content_never_bypasses_the_governance_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """调和红线：判分内容（records）只许走**默认授权**的装载路径。
 
     #651 给 `_load_bank_slot` 开了 `require_production_authorization=False` 的
@@ -2029,16 +2045,34 @@ def test_canonical431_scoring_content_never_bypasses_the_governance_gate() -> No
     是治理闸要管的东西（佑森估分、NOT_official）—— 让它从逃生口进场，就是
     pgo 未授权覆写服役六周那一族的病。
 
-    这条断言把边界钉成机器可证的：①默认值必须是 True；②默认路径下
-    canonical431 仍被拒；③`load_rubric` 走的就是默认路径（拿不到任何采分点）。"""
+    这条断言把边界钉成机器可证的：①默认值必须是 True；②闸咨询的是 pointer
+    授权位——同一份内容、pointer 撤权 → 默认路径必拒（fail-closed 不随
+    2026-08-01 授权翻转衰减）；③逃生口对撤权 slot 依旧只放行结构读者。"""
     import inspect
+    import json as _json
+    import shutil
+    from pathlib import Path as _Path
 
     from deeptutor.services.construction_grading import rubric_grader_v1 as RG
 
     sig = inspect.signature(RG._load_bank_slot)
     assert sig.parameters["require_production_authorization"].default is True
 
-    assert RG._load_bank_slot("canonical431")[1] == "unauthorized"
+    # 授权翻转（#654）后合法放行——但必须走闸，且撤权立刻拦住（见下）。
+    assert RG._load_bank_slot("canonical431")[1] == "ok"
+
+    # 同内容撤权夹具：整目录拷贝，仅把 pointer 的 production_authorized 翻 false。
+    slot_dir, bank_name = RG._RUBRIC_BANK_SLOTS["canonical431"]
+    real_dir = _Path(RG.__file__).parent / "runtime_supply" / slot_dir
+    tampered_dir = tmp_path / "tampered431"
+    shutil.copytree(real_dir, tampered_dir)
+    pointer_p = tampered_dir / "canonical_pointer.json"
+    pointer = _json.loads(pointer_p.read_text("utf-8"))
+    pointer["production_authorized"] = False
+    pointer_p.write_text(_json.dumps(pointer, ensure_ascii=False), "utf-8")
+    monkeypatch.setitem(RG._RUBRIC_BANK_SLOTS, "tampered431", (str(tampered_dir), bank_name))
+
+    assert RG._load_bank_slot("tampered431")[1] == "unauthorized"
     # 免授权逃生口只放行结构读者，且它拿到的是「几问」不是采分点。
     bundle, reason = RG._load_bank_slot("canonical431", require_production_authorization=False)
     assert reason == "ok" and isinstance(bundle, dict)

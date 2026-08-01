@@ -4321,16 +4321,6 @@ async def test_rag_adapter_tool_normalizes_legacy_tutor_alias_to_default(
 
 
 def test_rag_adapter_tool_preview_args_normalizes_alias() -> None:
-    fake_loguru = types.ModuleType("loguru")
-    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
-        info=lambda *args, **kwargs: None,
-        warning=lambda *args, **kwargs: None,
-        error=lambda *args, **kwargs: None,
-        debug=lambda *args, **kwargs: None,
-        exception=lambda *args, **kwargs: None,
-    )
-    sys.modules.setdefault("loguru", fake_loguru)
-
     from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
 
     tool = RAGAdapterTool()

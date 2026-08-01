@@ -155,18 +155,6 @@ async def _drive(loop, *, capture: list[str], stamps: list[float] | None = None)
     )
 
 
-@pytest.fixture(autouse=True)
-def _logger_pollution_shield(monkeypatch: pytest.MonkeyPatch) -> None:
-    """全量跑时 `tests/tutorbot/test_memory_consolidator.py` 在 **import 期**把 fake loguru
-    塞进 `sys.modules`，`loop_module.logger` 会退化成缺 `info` 的 SimpleNamespace（既有
-    隔离污染，本 PR 不动别人的文件）。这里只在本模块内补齐缺失方法，由 monkeypatch 还原，
-    不留任何全局副作用。"""
-    logger = loop_module.logger
-    for name in ("trace", "debug", "info", "success", "warning", "error", "exception"):
-        if not hasattr(logger, name):
-            monkeypatch.setattr(logger, name, lambda *a, **k: None, raising=False)
-
-
 @pytest.fixture()
 def fast_heartbeat(monkeypatch: pytest.MonkeyPatch) -> float:
     """把心跳间隔缩到测试量级——被测的是**机制**，生产量级由下面的常量断言单独钉。"""

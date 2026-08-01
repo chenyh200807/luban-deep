@@ -1,21 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import sys
 from datetime import datetime
 from types import SimpleNamespace
-from types import ModuleType
 
 import pytest
-
-if "loguru" not in sys.modules:
-    module = ModuleType("loguru")
-    module.logger = SimpleNamespace(warning=lambda *args, **kwargs: None)
-    sys.modules["loguru"] = module
-if "json_repair" not in sys.modules:
-    module = ModuleType("json_repair")
-    module.loads = lambda value: value
-    sys.modules["json_repair"] = module
 
 from deeptutor.tutorbot.providers.anthropic_provider import AnthropicProvider
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest

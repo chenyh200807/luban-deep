@@ -1,17 +1,5 @@
 from __future__ import annotations
 
-import sys
-from types import ModuleType, SimpleNamespace
-
-if "loguru" not in sys.modules:
-    module = ModuleType("loguru")
-    module.logger = SimpleNamespace(warning=lambda *args, **kwargs: None)
-    sys.modules["loguru"] = module
-if "json_repair" not in sys.modules:
-    module = ModuleType("json_repair")
-    module.loads = lambda value: value
-    sys.modules["json_repair"] = module
-
 from deeptutor.tutorbot.providers.openai_compat_provider import OpenAICompatProvider
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.providers.registry import find_by_name

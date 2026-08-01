@@ -681,6 +681,33 @@ We hope DeepTutor becomes a gift for the community. 🎁
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on setting up your development environment, code standards, and pull request workflow.
 
+### Pre-PR preflight
+
+Three CI gates fail most often, are easiest to miss locally, and are the most expensive to
+discover after pushing. `scripts/preflight_pr.sh` runs all three in one command:
+
+```bash
+scripts/preflight_pr.sh                # checks against the merge-base with origin/main
+scripts/preflight_pr.sh --base <ref>   # different base branch
+```
+
+| # | Check | Delegates to |
+|---|-------|--------------|
+| ① | **detect-secrets** — committed diff *and* uncommitted working-tree changes | `scripts/ci/tests_workflow_scope.py scan-secrets-changed` (the same command CI runs) |
+| ② | **contracts dual-copy** — `contracts/index.yaml` must equal `deeptutor/contracts/index.yaml` (the packaged runtime copy) | `diff` |
+| ③ | **env / schema registry** — register-before-use for new envs, feature flags, and schema ids | `scripts/check_env_registry.py --all`, `scripts/check_schema_registry.py --closure` |
+
+Exit `0` = all three passed; exit `1` = at least one failed, and each failure prints its own
+fix recipe (including how to read `detect-secrets-hook`'s exit codes: `3` just means the
+`.secrets.baseline` line numbers were refreshed and need `git add`, it is *not* a leak).
+
+The script is a thin runner, not a second authority — every check delegates to the existing
+canonical script, so its verdict matches CI's. It requires `detect-secrets`
+(`pip install detect-secrets`) and fails rather than silently skipping when a scanner is
+missing. **A green preflight does not mean green CI** — CI additionally runs the unit
+suites, the contract guard, and the db/provider/process registry gates. A red preflight,
+however, always means red CI.
+
 ## ⭐ Star History
 
 <div align="center">
