@@ -99,6 +99,14 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     #   满分的直接反证据面：没答的问命中为 0，答满的问也只能拿到自己那一份。
     "case_per_subq_grading",
     "case_subq_score_caps",
+    # R2 分母权威阶梯（task#26，2026-08-01）："canonical" | "bundle" | "stem" |
+    # "reference_fallback" —— 本轮的题面小问数（判分分母）到底出自哪一级权威。
+    # 治的病：自持案例路径（practice / 直调 capability）曾把分母塌成「参考侧计数」，
+    # 而参考侧是检索装配的产物，等于让检索运气决定「这道题有几问」，参考多一项
+    # 学生每一问就被稀释一份分。live 判据按它分组：canonical/bundle/stem 占比
+    # 应压倒 reference_fallback；reference_fallback 高发 = 题级组归属或题面缺位，
+    # 是供给问题不是判分问题。
+    "case_denominator_source",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (

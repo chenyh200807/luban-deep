@@ -1400,6 +1400,172 @@ async def test_od005_single_subquestion_reference_keeps_legacy_shape(
 
 
 # ---------------------------------------------------------------------------
+# R2（task#26 2026-08-01）：判分分母的权威阶梯（canonical > bundle > stem > 参考侧）
+# ---------------------------------------------------------------------------
+# 病灶：deep_question 自持案例路径（practice / 直调 capability）的 ctx **没有**
+# ``case_stem_subquestion_count``——那个键只有 TutorBot 侧的 ctx 构建器
+# （loop.py ``_build_v1_case_ctx``）会写。于是旧式
+# ``_sub_n = max(ctx.case_stem_subquestion_count, len(参考侧))`` 恒塌成
+# ``len(参考侧)``：纯参考侧计数、与题面零交叉核对。参考侧是检索装配的产物
+# （C3 取全成不成、兄弟行重复、答案冲突是否被 C2 裁决都会改变它），拿它当分母
+# = 让检索运气决定「这道题有几问」，参考多一项学生每一问就被稀释一份分。
+
+
+# 参考侧 5 项（第 5 项是幽灵：兄弟行重复 / 跨题串入），题面只有 4 问。
+_R2_PHANTOM_SUBQ_REFERENCES = [
+    {"index": str(i), "answer": f"官方答案{i}"} for i in range(1, 6)
+]
+
+
+def _r2_self_hosted_ctx(**overrides: Any) -> dict[str, Any]:
+    """自持路径 ctx 的真实形状：**没有** ``case_stem_subquestion_count``。"""
+    ctx: dict[str, Any] = {
+        "question_id": "",
+        "user_answer": _od005_answer(1),
+        "question_stem": _OD005_STEM,
+        "user_stem": _OD005_STEM,
+        "correct_answer": "\n".join(s["answer"] for s in _R2_PHANTOM_SUBQ_REFERENCES),
+        "case_reference_subquestions": [dict(s) for s in _R2_PHANTOM_SUBQ_REFERENCES],
+        "case_reference_covered_count": 5,
+        "construction_grading_result": {"type": "case", "max_score": 10},
+    }
+    ctx.update(overrides)
+    return ctx
+
+
+def test_r2_denominator_prefers_stem_over_reference_side_count() -> None:
+    """R2 主证伪测：**参考侧 5 项但题面 4 问 → 分母 4，不是 5**。
+
+    旧口径 ``max(ctx.case_stem_subquestion_count, len(refs))`` 在这个 ctx 上恒等于
+    ``max(0, 5) = 5``（该键自持路径不存在）——本用例的 5≠4 就是它的反例。
+    """
+    from deeptutor.capabilities.deep_question import _resolve_case_denominator
+
+    ctx = _r2_self_hosted_ctx()
+    assert "case_stem_subquestion_count" not in ctx, "自持路径 ctx 不带这个键（病灶前提）"
+
+    denominator, source = _resolve_case_denominator(ctx, reference_count=5)
+
+    assert (denominator, source) == (4, "stem"), (
+        f"题面 4 问必须压过参考侧 5 项，实得 {denominator}（来源 {source}）"
+    )
+    # 旧口径的同进程反证：它会给出 5。
+    assert max(int(ctx.get("case_stem_subquestion_count") or 0), 5) == 5
+
+
+def test_r2_denominator_canonical_bank_outranks_stem_and_reference() -> None:
+    """①canonical431：认出题级组时，分母出自编译期治理裁决过的题面结构。
+
+    只读 nominal 表的结构事实（每案例几问），不读采分点内容——那份 bank 的
+    ``production_authorized=false``，分值权威一分钱都不许进判分。
+    """
+    from deeptutor.capabilities.deep_question import _resolve_case_denominator
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        canonical_case_subquestion_counts,
+    )
+
+    counts = canonical_case_subquestion_counts()
+    assert counts, "canonical431 nominal 表必须可读（阶梯①的供给前提）"
+    group_id, expected = next(
+        (gid, n) for gid, n in sorted(counts.items()) if n not in (0, 4)
+    )
+
+    denominator, source = _resolve_case_denominator(
+        _r2_self_hosted_ctx(case_group_id=group_id), reference_count=5
+    )
+    assert (denominator, source) == (expected, "canonical")
+
+    # 题级组也可以从复合 qid 认出（``{year}-case{n}::E{k}``）。
+    denominator2, source2 = _resolve_case_denominator(
+        _r2_self_hosted_ctx(question_id=f"{group_id}::E1"), reference_count=5
+    )
+    assert (denominator2, source2) == (expected, "canonical")
+
+
+def test_r2_denominator_falls_to_bundle_surface_then_reference_with_marker() -> None:
+    """②C3 bundle surface 计数；④全不可得才退参考侧，**并且必须发声**。"""
+    from deeptutor.capabilities.deep_question import _resolve_case_denominator
+
+    bundle_ctx = _r2_self_hosted_ctx(
+        question_stem="", user_stem="", stem="",
+        case_bundle={
+            "covered_subquestions": [
+                {"display_index": str(i), "stem": f"【问题】{i}. …"} for i in range(1, 4)
+            ]
+        },
+    )
+    assert _resolve_case_denominator(bundle_ctx, reference_count=5) == (3, "bundle")
+
+    # 题面/组/bundle 全不可得 —— 分母只能数参考侧，这是降级，必须带 marker。
+    blind_ctx = _r2_self_hosted_ctx(question_stem="", user_stem="", stem="")
+    assert _resolve_case_denominator(blind_ctx, reference_count=5) == (
+        5, "reference_fallback",
+    )
+
+
+@pytest.mark.asyncio
+async def test_r2_phantom_reference_row_does_not_dilute_each_subquestion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """端到端：幽灵参考行不得稀释每一问的上限，且分母来源上事件。
+
+    同一份「只答问 1」的作答：题面 4 问 → 问 1 上限 10/4 = 2.5。旧口径分母 5 →
+    上限 10/5 = 2.0，学生凭空少 0.5 分，而且**看不出为什么**（无 marker）。
+    """
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _od005_install_fakes(monkeypatch)
+    event = await _grade_one_case_v1(
+        _r2_self_hosted_ctx(), student_id="s1", complete=None, key="k", _G=G
+    )
+
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_denominator_source"] == "stem"
+    assert event["case_per_subq_grading"].endswith("/4"), (
+        f"分母必须是题面的 4，实得 {event['case_per_subq_grading']}"
+    )
+    assert abs(event["awarded_score"] - 2.5) <= 0.02, (
+        f"答对的那一问按 10/4 足额给分，实得 {event['awarded_score']}（旧口径会给 2.0）"
+    )
+    assert event["max_score"] == 10.0, "对外分母恒为整题名义满分"
+
+
+def test_r2_denominator_source_marker_is_registered_on_the_export_whitelist() -> None:
+    """marker 必须进 CASE_GRADING_AUTHORITY_EXPORT_KEYS —— 漏一张名单 = 该 sink 永久 0 命中。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+    )
+
+    assert "case_denominator_source" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    assert "case_denominator_source" in CASE_GRADING_TURN_METADATA_KEYS
+
+
+def test_r2_canonical_denominator_reader_never_touches_scoring_content() -> None:
+    """治理边界：读分母不得让未授权 bank 变成判分权威。
+
+    - ``canonical_case_subquestion_counts`` 只吐 ``{case_group_id: 小问数}`` 整数；
+    - 在服判分 bank 仍是 legacy/authorized（登记 canonical431 slot 没有把它上服）。
+    """
+    from deeptutor.services.construction_grading import rubric_grader_v1 as _G2
+
+    counts = _G2.canonical_case_subquestion_counts()
+    assert counts and all(
+        isinstance(k, str) and isinstance(v, int) and v > 0 for k, v in counts.items()
+    ), "分母表只许是 {case_group_id: 小问数}"
+
+    _G2._rubric_bank()
+    identity = _G2.active_bank_identity()
+    assert identity["slot"] == "legacy" and identity["governance"] == "authorized", (
+        f"在服判分 bank 必须仍是授权的 legacy，实得 {identity}"
+    )
+
+    # 治理闸仍拦得住把 canonical431 当判分 bank 装载（默认要求生产授权）。
+    bank, reason = _G2._load_bank_slot("canonical431")
+    assert bank is None and reason == "unauthorized"
+
+
+# ---------------------------------------------------------------------------
 # OD-005 补刀：每问的**题面**也必须是自己那一问（live 22:09 轮取证）
 # ---------------------------------------------------------------------------
 

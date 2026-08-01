@@ -5321,7 +5321,19 @@ class AgentLoop:
         #   3. 闸吐 INTERNAL_INFO_REFUSAL_ZH，拒答又被回写进 working_memory，
         #      而拒答自身含「…发给我」同样命中 → 吸收态，该学员此后每一轮都被拒答。
         # 注入上下文的权威是 sanitize_untrusted_context（只消毒、绝不拦），不是入口闸。
-        guard = classify_tutorbot_user_input(persist_user_content)
+        #
+        # R1 补刀（task#26，2026-08-01）：主语从 persist_user_content 收严到
+        # ``_case_submission_surface``。persist_user_content 是**持久化**主语
+        # （`raw or current_message`），它对没有 raw 的通道（CLI / 直调 process_direct /
+        # 任何不写 metadata.raw_user_message 的入口）会**整条退回信封**——上面那条
+        # SEV 的吸收态在这些通道上理论可复现，只是 test2 走的是有 raw 的微信通道所以
+        # 先在那里爆。判分面早已用 ``_case_submission_surface`` 的三段回退把信封剥掉，
+        # 入口闸没跟上就是同一份「本轮学生真实提交」有两个口径。
+        # 这一改**只收严不放松**：三段回退里 raw 与信封剥离都比 persist_user_content
+        # 更接近学生原文；真的没有信封结构时第三段仍是 current_message 逐字（无 raw 的
+        # 裸消息通道行为不变，攻击照拦）。持久化主语不动，仍是 persist_user_content。
+        guard_subject = self._case_submission_surface(msg.metadata, current_message)
+        guard = classify_tutorbot_user_input(guard_subject)
         if guard.blocked:
             refusal = guard.content or ""
             session.add_message(
