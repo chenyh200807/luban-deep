@@ -9,6 +9,8 @@ import asyncio
 import json
 from pathlib import Path
 
+import pytest
+
 from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
 from deeptutor.services.construction_grading import rubric_grader_v1 as G
 
