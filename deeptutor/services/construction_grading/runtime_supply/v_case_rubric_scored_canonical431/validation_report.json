@@ -1,0 +1,1640 @@
+{
+ "all_green": true,
+ "builder": "scripts/build_luban_canonical431_case_rubric_bank.py",
+ "built_at": "2026-08-01",
+ "checks": [
+  {
+   "check": "V1_source_totals",
+   "detail": "源: 431点/117小问/25案例 (期望 431/117/25)",
+   "ok": true
+  },
+  {
+   "check": "V2_no_point_lost",
+   "detail": "records 321 + quarantined 110 = 431 vs 源 431",
+   "ok": true
+  },
+  {
+   "check": "V3_2022_quarantined",
+   "detail": "records 内 2022 点数=0 (必须 0)",
+   "ok": true
+  },
+  {
+   "check": "V4_pool_vs_nominal_recorded",
+   "detail": "exact=91 over=2 under=3; under 需人审(抽取可能漏点): ['2023-case4::E5', '2023-case5::E4', '2025-case5::E5']",
+   "ok": true
+  },
+  {
+   "check": "V5_every_point_carries_nominal",
+   "detail": "缺分母/分母<=0 的点: 0 []",
+   "ok": true
+  },
+  {
+   "check": "V6_key_shape_1based",
+   "detail": "键形制违规: 0 []",
+   "ok": true
+  },
+  {
+   "check": "V7_policy_legal",
+   "detail": "非法 policy: []",
+   "ok": true
+  },
+  {
+   "check": "V8_exact_required_has_terms",
+   "detail": "裸 exact_required: 0",
+   "ok": true
+  },
+  {
+   "check": "V9_point_id_unique",
+   "detail": "321 条 / 321 唯一",
+   "ok": true
+  },
+  {
+   "check": "V10_content_hash",
+   "detail": "9ce1e83016cfd1d2",
+   "ok": true
+  },
+  {
+   "check": "V11_not_production_authorized",
+   "detail": "pointer=False manifest=False",
+   "ok": true
+  },
+  {
+   "check": "V12_existing_slots_untouched",
+   "detail": "输出目录=v_case_rubric_scored_canonical431；legacy/pgo 仍在原处",
+   "ok": true
+  },
+  {
+   "check": "V13_textbook_traced_recorded",
+   "detail": "119/321 条采分点匹配到教材节点 (37.1%); strong=49",
+   "ok": true
+  },
+  {
+   "check": "V14_reachability_recorded",
+   "detail": "可达 50 / 不可达 46 / 非隔离共 96",
+   "ok": true
+  },
+  {
+   "check": "V15_gold_v2_crosscheck",
+   "detail": "逐点比对 43 条（3 题），差异 0 条 []；注：金标骨架同源于本 extractions，故为守恒校验、非独立信源",
+   "ok": true
+  },
+  {
+   "check": "V16_nominal_drift_all_flagged",
+   "detail": "20 组对卷面；实测偏离 ['2024-case3', '2025-case5']；manifest 声明 ['2024-case3', '2025-case5']；记录已打标 ['2024-case3', '2025-case5']。明细: {'2024-case3': 'Σnominal=22.0 vs 卷面 20.0 (差 +2.0)', '2025-case5': 'Σnominal=28.5 vs 卷面 30.0 (差 -1.5)'}",
+   "ok": true
+  },
+  {
+   "check": "V17_no_spurious_dispute_flag",
+   "detail": "误标组: []",
+   "ok": true
+  }
+ ],
+ "nominal_table": {
+  "2021-case1::E1": {
+   "case_group_id": "2021-case1",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2021-case1::E2": {
+   "case_group_id": "2021-case1",
+   "nominal": 2.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 2.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2021-case1::E3": {
+   "case_group_id": "2021-case1",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2021-case1::E4": {
+   "case_group_id": "2021-case1",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2021-case1::E5": {
+   "case_group_id": "2021-case1",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2021-case2::E1": {
+   "case_group_id": "2021-case2",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2021-case2::E2": {
+   "case_group_id": "2021-case2",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2021-case2::E3": {
+   "case_group_id": "2021-case2",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2021-case2::E4": {
+   "case_group_id": "2021-case2",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2021-case2::E5": {
+   "case_group_id": "2021-case2",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2021-case3::E1": {
+   "case_group_id": "2021-case3",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2021-case3::E2": {
+   "case_group_id": "2021-case3",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2021-case3::E3": {
+   "case_group_id": "2021-case3",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2021-case3::E4": {
+   "case_group_id": "2021-case3",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2021-case4::E1": {
+   "case_group_id": "2021-case4",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2021-case4::E2": {
+   "case_group_id": "2021-case4",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2021-case4::E3": {
+   "case_group_id": "2021-case4",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2021-case4::E4": {
+   "case_group_id": "2021-case4",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2021-case4::E5": {
+   "case_group_id": "2021-case4",
+   "nominal": 9.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 9.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2021-case4::E6": {
+   "case_group_id": "2021-case4",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 6
+  },
+  "2021-case5::E1": {
+   "case_group_id": "2021-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2021-case5::E2": {
+   "case_group_id": "2021-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2021-case5::E3": {
+   "case_group_id": "2021-case5",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2021-case5::E4": {
+   "case_group_id": "2021-case5",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2021-case5::E5": {
+   "case_group_id": "2021-case5",
+   "nominal": 9.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 9.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2022-case1::E1": {
+   "case_group_id": "2022-case1",
+   "nominal": 12.0,
+   "nominal_authority_disputed": false,
+   "point_count": 12,
+   "point_pool": 12.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 1
+  },
+  "2022-case1::E2": {
+   "case_group_id": "2022-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 8,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 2
+  },
+  "2022-case1::E3": {
+   "case_group_id": "2022-case1",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 3
+  },
+  "2022-case2::E1": {
+   "case_group_id": "2022-case2",
+   "nominal": 4.5,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 4.5,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 1
+  },
+  "2022-case2::E2": {
+   "case_group_id": "2022-case2",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 2
+  },
+  "2022-case2::E3": {
+   "case_group_id": "2022-case2",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 3
+  },
+  "2022-case2::E4": {
+   "case_group_id": "2022-case2",
+   "nominal": 7.5,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 7.5,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 4
+  },
+  "2022-case3::E1": {
+   "case_group_id": "2022-case3",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 1
+  },
+  "2022-case3::E2": {
+   "case_group_id": "2022-case3",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 2
+  },
+  "2022-case3::E3": {
+   "case_group_id": "2022-case3",
+   "nominal": 4.5,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "over",
+   "quarantined": true,
+   "subquestion_index": 3
+  },
+  "2022-case3::E4": {
+   "case_group_id": "2022-case3",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 4
+  },
+  "2022-case4::E1": {
+   "case_group_id": "2022-case4",
+   "nominal": 8.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 9.0,
+   "pool_vs_nominal": "over",
+   "quarantined": true,
+   "subquestion_index": 1
+  },
+  "2022-case4::E2": {
+   "case_group_id": "2022-case4",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 2
+  },
+  "2022-case4::E3": {
+   "case_group_id": "2022-case4",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 3
+  },
+  "2022-case4::E4": {
+   "case_group_id": "2022-case4",
+   "nominal": 10.0,
+   "nominal_authority_disputed": false,
+   "point_count": 12,
+   "point_pool": 12.0,
+   "pool_vs_nominal": "over",
+   "quarantined": true,
+   "subquestion_index": 4
+  },
+  "2022-case4::E5": {
+   "case_group_id": "2022-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 5
+  },
+  "2022-case5::E1": {
+   "case_group_id": "2022-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 1
+  },
+  "2022-case5::E2": {
+   "case_group_id": "2022-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 2
+  },
+  "2022-case5::E3": {
+   "case_group_id": "2022-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 3
+  },
+  "2022-case5::E4": {
+   "case_group_id": "2022-case5",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 4
+  },
+  "2022-case5::E5": {
+   "case_group_id": "2022-case5",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": true,
+   "subquestion_index": 5
+  },
+  "2023-case1::E1": {
+   "case_group_id": "2023-case1",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2023-case1::E2": {
+   "case_group_id": "2023-case1",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2023-case1::E3": {
+   "case_group_id": "2023-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2023-case1::E4": {
+   "case_group_id": "2023-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "over",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2023-case2::E1": {
+   "case_group_id": "2023-case2",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2023-case2::E2": {
+   "case_group_id": "2023-case2",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2023-case2::E3": {
+   "case_group_id": "2023-case2",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2023-case2::E4": {
+   "case_group_id": "2023-case2",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2023-case3::E1": {
+   "case_group_id": "2023-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2023-case3::E2": {
+   "case_group_id": "2023-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2023-case3::E3": {
+   "case_group_id": "2023-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2023-case3::E4": {
+   "case_group_id": "2023-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2023-case4::E1": {
+   "case_group_id": "2023-case4",
+   "nominal": 2.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 2.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2023-case4::E2": {
+   "case_group_id": "2023-case4",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2023-case4::E3": {
+   "case_group_id": "2023-case4",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2023-case4::E4": {
+   "case_group_id": "2023-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2023-case4::E5": {
+   "case_group_id": "2023-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "under",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2023-case4::E6": {
+   "case_group_id": "2023-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 6
+  },
+  "2023-case5::E1": {
+   "case_group_id": "2023-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2023-case5::E2": {
+   "case_group_id": "2023-case5",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2023-case5::E3": {
+   "case_group_id": "2023-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 7,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2023-case5::E4": {
+   "case_group_id": "2023-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "under",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2023-case5::E5": {
+   "case_group_id": "2023-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2024-case1::E1": {
+   "case_group_id": "2024-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2024-case1::E2": {
+   "case_group_id": "2024-case1",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2024-case1::E3": {
+   "case_group_id": "2024-case1",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2024-case1::E4": {
+   "case_group_id": "2024-case1",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2024-case1::E5": {
+   "case_group_id": "2024-case1",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2024-case2::E1": {
+   "case_group_id": "2024-case2",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2024-case2::E2": {
+   "case_group_id": "2024-case2",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2024-case2::E3": {
+   "case_group_id": "2024-case2",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2024-case2::E4": {
+   "case_group_id": "2024-case2",
+   "nominal": 2.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 2.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2024-case2::E5": {
+   "case_group_id": "2024-case2",
+   "nominal": 2.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 2.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2024-case3::E1": {
+   "case_group_id": "2024-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": true,
+   "point_count": 2,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2024-case3::E2": {
+   "case_group_id": "2024-case3",
+   "nominal": 4.0,
+   "nominal_authority_disputed": true,
+   "point_count": 1,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2024-case3::E3": {
+   "case_group_id": "2024-case3",
+   "nominal": 4.0,
+   "nominal_authority_disputed": true,
+   "point_count": 4,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2024-case3::E4": {
+   "case_group_id": "2024-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": true,
+   "point_count": 3,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2024-case3::E5": {
+   "case_group_id": "2024-case3",
+   "nominal": 4.0,
+   "nominal_authority_disputed": true,
+   "point_count": 1,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2024-case4::E1": {
+   "case_group_id": "2024-case4",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2024-case4::E2": {
+   "case_group_id": "2024-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2024-case4::E3": {
+   "case_group_id": "2024-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2024-case4::E4": {
+   "case_group_id": "2024-case4",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2024-case4::E5": {
+   "case_group_id": "2024-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2024-case5::E1": {
+   "case_group_id": "2024-case5",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2024-case5::E2": {
+   "case_group_id": "2024-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2024-case5::E3": {
+   "case_group_id": "2024-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2024-case5::E4": {
+   "case_group_id": "2024-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2024-case5::E5": {
+   "case_group_id": "2024-case5",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2025-case1::E1": {
+   "case_group_id": "2025-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2025-case1::E2": {
+   "case_group_id": "2025-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2025-case1::E3": {
+   "case_group_id": "2025-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2025-case1::E4": {
+   "case_group_id": "2025-case1",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2025-case2::E1": {
+   "case_group_id": "2025-case2",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2025-case2::E2": {
+   "case_group_id": "2025-case2",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2025-case2::E3": {
+   "case_group_id": "2025-case2",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2025-case2::E4": {
+   "case_group_id": "2025-case2",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 1,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2025-case2::E5": {
+   "case_group_id": "2025-case2",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2025-case3::E1": {
+   "case_group_id": "2025-case3",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2025-case3::E2": {
+   "case_group_id": "2025-case3",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2025-case3::E3": {
+   "case_group_id": "2025-case3",
+   "nominal": 3.0,
+   "nominal_authority_disputed": false,
+   "point_count": 3,
+   "point_pool": 3.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2025-case3::E4": {
+   "case_group_id": "2025-case3",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2025-case4::E1": {
+   "case_group_id": "2025-case4",
+   "nominal": 4.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 4.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2025-case4::E2": {
+   "case_group_id": "2025-case4",
+   "nominal": 8.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 8.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2025-case4::E3": {
+   "case_group_id": "2025-case4",
+   "nominal": 5.0,
+   "nominal_authority_disputed": false,
+   "point_count": 4,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2025-case4::E4": {
+   "case_group_id": "2025-case4",
+   "nominal": 7.0,
+   "nominal_authority_disputed": false,
+   "point_count": 2,
+   "point_pool": 7.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2025-case4::E5": {
+   "case_group_id": "2025-case4",
+   "nominal": 6.0,
+   "nominal_authority_disputed": false,
+   "point_count": 6,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 5
+  },
+  "2025-case5::E1": {
+   "case_group_id": "2025-case5",
+   "nominal": 5.5,
+   "nominal_authority_disputed": true,
+   "point_count": 8,
+   "point_pool": 5.5,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 1
+  },
+  "2025-case5::E2": {
+   "case_group_id": "2025-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": true,
+   "point_count": 2,
+   "point_pool": 6.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 2
+  },
+  "2025-case5::E3": {
+   "case_group_id": "2025-case5",
+   "nominal": 5.0,
+   "nominal_authority_disputed": true,
+   "point_count": 5,
+   "point_pool": 5.0,
+   "pool_vs_nominal": "exact",
+   "quarantined": false,
+   "subquestion_index": 3
+  },
+  "2025-case5::E4": {
+   "case_group_id": "2025-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": true,
+   "point_count": 5,
+   "point_pool": 8.0,
+   "pool_vs_nominal": "over",
+   "quarantined": false,
+   "subquestion_index": 4
+  },
+  "2025-case5::E5": {
+   "case_group_id": "2025-case5",
+   "nominal": 6.0,
+   "nominal_authority_disputed": true,
+   "point_count": 4,
+   "point_pool": 4.5,
+   "pool_vs_nominal": "under",
+   "quarantined": false,
+   "subquestion_index": 5
+  }
+ },
+ "reachability": {
+  "per_group": {
+   "2021-case1": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": []
+   },
+   "2021-case2": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "unreachable_E": [
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2021-case3": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      4
+     ]
+    ]
+   },
+   "2021-case4": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      6
+     ]
+    ]
+   },
+   "2021-case5": {
+    "db_subquestion_indexes": [
+     5
+    ],
+    "reachable_E": [
+     5
+    ],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2023-case1": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": [
+     [
+      1,
+      4
+     ]
+    ]
+   },
+   "2023-case2": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": []
+   },
+   "2023-case3": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": []
+   },
+   "2023-case4": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "unreachable_E": [
+     6
+    ],
+    "whole_case_spans": []
+   },
+   "2023-case5": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": []
+   },
+   "2024-case1": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2024-case2": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2024-case3": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2024-case4": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2024-case5": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2025-case1": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": [
+     [
+      1,
+      4
+     ]
+    ]
+   },
+   "2025-case2": {
+    "db_subquestion_indexes": [],
+    "reachable_E": [],
+    "unreachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "whole_case_spans": [
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   "2025-case3": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": [
+     [
+      1,
+      4
+     ]
+    ]
+   },
+   "2025-case4": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": []
+   },
+   "2025-case5": {
+    "db_subquestion_indexes": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "reachable_E": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "unreachable_E": [],
+    "whole_case_spans": []
+   }
+  },
+  "summary": {
+   "note": "unreachable = 该小问在 questions_bank 里只有整题行(whole_question)，case_subquestion_index 按 C2 契约留空，故 `{group}::E{n}` 键永不命中。解药是整题行 bundle 接线（见报告 §4.3），不是改键。",
+   "reachable_subquestions": 50,
+   "total_non_quarantined": 96,
+   "unreachable_subquestions": 46
+  }
+ }
+}
