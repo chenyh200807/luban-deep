@@ -1,0 +1,18 @@
+# 进度断点（增量落盘）
+- [x] schema 探针：questions_bank 42 列，**无 deleted_at / is_deleted / quarantine / status** → B1 只出方案不动数据
+- [x] 约束探针：check_qb_question_type_enum = 17 值白名单（见 constraints.txt）；qb_is_valid_objective_row 对非客观题恒 TRUE
+- [x] 案①目标集：question_type=eq.case_study & source_type=in.(4) → 1547 行，与 C1 unassignable.csv 非 REAL_EXAM 子集**完全一致**
+- [x] 备份 backup_task22_rows.jsonl.gz（1547 行 33 列）
+- [x] 抽样 40 行（每来源 10）已人读
+- [x] 全量形态分类 classify.py：0 行有 options / background_context / 案例标记 / parent_id
+- [ ] 消费者清单（subagent 进行中）
+- [ ] B1 id 集重建
+- [x] 下游引用扫描：1958 ref 行 / 1154 distinct qid；悬挂 72 个；7 张 active 试卷全部只被同一个 12865 毒化
+- [x] B1 id 集独立重建 = **319**（与 07-30 计划一致），B2=120 一致；关键：答案长度比较必须先解包单元素数组
+- [x] 消费者清单完成：question_type 判 case 走**子串** `"case" in type`（supabase.py:2572/2761/2786/2998）→ 新值绝不能含 "case"
+- [x] 关键发现：线上有 CHECK check_qb_question_type_enum（17 值白名单），仓库 migrations 里没有 → practice_case_variant 会被 DB 拒
+- [x] 分源答案形态实测 → GO 627（textbook_exercise 515 + TEXTBOOK 112，100% 真答案）/ SKIP 920（答案已丢失，B11 lane）
+- [x] 备份表 questions_bank_qtype_backup_20260801（627 行）
+- [x] canary 1 行 → 626 行分 7 批写完，question_type='essay'
+- [x] 17 条断言全绿（verify_task22.py）
+- [x] 回滚脚本 rollback_task22.py / rollback_task22.sql
