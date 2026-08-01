@@ -153,6 +153,10 @@ feature_flags:
   # RAG grounding 伤判分（distractor 抬分）；待学生军团 grounded vs ungrounded
   # 判分质量 A/B 非劣后翻 ON。
   - {name: LUBAN_STEM_RUBRIC_KB_GROUNDING, default: false, kind: rollout, read: hand_rolled}
+  # 同题同答判分结果缓存(codex 判分核不变量审计 §3.2, I-11/I-12)。唯一 seam 在
+  # rubric_grader_v1.grade_with_batch_judge_async; 默认 OFF(opt-in): 新缓存默认 ON 会在
+  # 配好 Valkey URL 之前就静默改判分重放语义(含 eval 与阶段观测)。翻 1 = 启用。
+  - {name: LUBAN_GRADING_RESULT_CACHE, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON, default: false, kind: dev, read: hand_rolled}
@@ -454,6 +458,10 @@ grandfathered_envs:
   - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT
   - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED
   - LUBAN_GENERAL_LANE_SEQUENCED_EMIT
+  - LUBAN_GRADING_RESULT_CACHE
+  - LUBAN_GRADING_RESULT_CACHE_MAX_ENTRIES
+  - LUBAN_GRADING_RESULT_CACHE_TTL_SECONDS
+  - LUBAN_GRADING_RESULT_CACHE_URL
   - LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED
   - LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED
   - LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED

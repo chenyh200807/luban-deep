@@ -781,6 +781,151 @@ def test_summarize_pgo_query_result_all_scorable_flags_no_unscorable():
     assert summary["has_unscorable_points"] is False
 
 
+def _cache_ctx(qid: str = "cache-1", answer: str = "编制专项方案并组织专家论证") -> dict:
+    return {
+        "question_id": qid,
+        "user_answer": answer,
+        "construction_grading_result": {"type": "case", "max_score": 2.0},
+    }
+
+
+def test_grade_one_case_v1_replays_same_question_same_answer_without_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Same question + same answer must cost ZERO adjudication calls the second time and produce a
+    field-equivalent event (codex 判分核不变量审计 §3.2, I-11). The seam lives in rubric_grader_v1;
+    this asserts the CAPABILITY caller actually reaches it and feeds it real authority material."""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")  # opt-in 合流裁决
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []},
+        {"point_id": "P2", "text": "点2", "score": 1.0, "policy": "list", "required_terms": []},
+    ])
+    calls = 0
+
+    async def _counting_batch(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        nonlocal calls
+        calls += 1
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _counting_batch)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    first = asyncio.run(dq._grade_one_case_v1(
+        _cache_ctx(), student_id="stu_a", complete=_noop_complete, key="k", _G=G,
+        provider_authority="deepseek:https://api.deepseek.com"))
+    second = asyncio.run(dq._grade_one_case_v1(
+        _cache_ctx(), student_id="stu_b", complete=_noop_complete, key="k", _G=G,
+        provider_authority="deepseek:https://api.deepseek.com"))
+
+    assert calls == 1, "the replayed grading must not re-adjudicate"
+    assert first["grading_cache"] == "miss" and second["grading_cache"] == "hit"
+    assert second["awarded_score"] == first["awarded_score"] == 1.0
+    assert second["student_id"] == "stu_b"  # cached fact is identity-free, rebound to THIS turn
+
+
+def test_grade_one_case_v1_cache_key_tracks_provider_and_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A different provider binding or a semantically different answer must NOT replay: the caller's
+    authority material is real key input, not decoration (audit §3.3 risk 2)."""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")  # opt-in 合流裁决
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+    calls = 0
+
+    async def _counting_batch(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        nonlocal calls
+        calls += 1
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _counting_batch)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    def _grade(*, provider: str, answer: str) -> dict:
+        return asyncio.run(dq._grade_one_case_v1(
+            _cache_ctx(answer=answer), student_id="stu", complete=_noop_complete, key="k", _G=G,
+            provider_authority=provider))
+
+    base = _grade(provider="deepseek:https://api.deepseek.com", answer="作答甲")
+    other_provider = _grade(provider="dashscope:https://dashscope.aliyuncs.com", answer="作答甲")
+    other_answer = _grade(provider="deepseek:https://api.deepseek.com", answer="作答乙")
+
+    assert calls == 3
+    for event in (base, other_provider, other_answer):
+        assert event["grading_cache"] == "miss"
+
+
+def test_grade_case_batch_v1_reports_bundle_cache_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The bundle is composed from FINALIZED children (audit §3.3 risk 9) and only counts as a hit
+    when EVERY child replayed; its key is the ordered hash of child keys, never the parent qid."""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")  # opt-in 合流裁决
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    graded_context = {
+        "construction_grading_result": {"type": "batch"},
+        "items": [
+            {"question_id": "b1", "user_answer": "a1",
+             "construction_grading_result": {"type": "case", "max_score": 1.0}},
+            {"question_id": "b2", "user_answer": "a2",
+             "construction_grading_result": {"type": "case", "max_score": 1.0}},
+        ],
+    }
+    first = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+    second = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+
+    assert first["grading_cache"] == "miss"
+    assert second["grading_cache"] == "hit"
+    assert second["awarded_score"] == first["awarded_score"]
+    assert len(second["grading_cache_key"]) == 16
+
+
+def test_grade_one_case_v1_kill_switch_bypasses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "0")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+    calls = 0
+
+    async def _counting_batch(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        nonlocal calls
+        calls += 1
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _counting_batch)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    for _ in range(2):
+        event = asyncio.run(dq._grade_one_case_v1(
+            _cache_ctx(), student_id="stu", complete=_noop_complete, key="k", _G=G))
+        assert event["grading_cache"] == "bypass"
+    assert calls == 2
+
+
 @pytest.mark.asyncio
 async def test_case_rubric_v1_score_total_mismatch_marker(monkeypatch: pytest.MonkeyPatch) -> None:
     """C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
