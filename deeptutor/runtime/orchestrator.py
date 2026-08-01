@@ -1032,7 +1032,13 @@ class ChatOrchestrator:
         )
         action_context = apply_followup_action_to_context(qctx, action)
         if action_context:
-            target_context, submission = resolve_submission_attempt(context.user_message, qctx)
+            # 提交面收权（2026-08-01 清剿）：作答解析的主语是「学生这轮交了什么」。
+            # 本类早有单一权威 _routing_user_message（优先 metadata.raw_user_message），
+            # lifecycle scene 入口已用它；这两处作答解析漏了。question_followup 全模块
+            # 无 metadata 入参，面的纪律只能由调用侧给。
+            target_context, submission = resolve_submission_attempt(
+                self._routing_user_message(context), qctx
+            )
             if target_context and submission and submission.get("kind") == "batch":
                 fallback_context = apply_followup_action_to_context(
                     target_context,
@@ -1059,7 +1065,11 @@ class ChatOrchestrator:
                 context.metadata["active_object"] = active_object
             return
 
-        target_context, submission = resolve_submission_attempt(context.user_message, qctx)
+        # 提交面收权（2026-08-01 清剿）：同上——组装信封里旧轮的「我选B」会被
+        # _extract_explicit_option_letter_submission 的**无锚 re.search** 采成本轮作答。
+        target_context, submission = resolve_submission_attempt(
+            self._routing_user_message(context), qctx
+        )
         if not target_context or not submission or submission.get("kind") == "ambiguous":
             return
         # object-continuity (E8 SEV-1, 2026-06-21): grade a numbered single submission

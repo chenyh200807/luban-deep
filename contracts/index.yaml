@@ -487,6 +487,11 @@ domains:
       - deeptutor/api/routers/mobile.py
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
+      # 2026-08-01 尺与面收权清剿: orchestrator 的作答解析与 deep_question 的
+      # topic/followup 判据不得直接吃 turn 信封(context.user_message);
+      # 单一 surface = _routing_user_message / _submission_surface
+      # (protected orchestrator.py / deep_question.py)。
+      - tests/tutorbot/test_surface_authority_registry.py
       - tests/runtime/test_orchestrator_preselect_canonical.py
       - tests/runtime/test_orchestrator_single_selection.py
       - tests/runtime/test_capability_routing_map_collapse.py
@@ -961,6 +966,13 @@ domains:
       # 不是 turn_runtime 组装出来的 current_message；否则注入的 `### 局部工作记忆投影`
       # 会让系统自证有罪，整卷案例提交被确定性拒答（protected loop.py）。
       - tests/tutorbot/test_guardrail_input_subject_authority.py
+      # 2026-08-01 尺与面收权清剿（contracts/turn.md §判分链学生提交单一来源）:
+      # 判分链上凡"学生这轮真实提交"语义的判据一律只许消费 submission surface;
+      # 同一事实只许一把尺子(小问计数权威数不出来时不报数,不许用更宽松的 fallback 正则)。
+      # 语义级可证伪用例(protected loop.py / question_followup.py 消费侧):
+      - tests/tutorbot/test_case_submission_surface_authority_sweep.py
+      # 止血带 scanner: 信封变量的判据形状消费点 ⊆ 白名单,新增必须显式登记。
+      - tests/tutorbot/test_surface_authority_registry.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn

@@ -117,6 +117,10 @@
 - session `preferences.runtime_state` 只允许作为内部 runtime 恢复态保存；对外 session detail/list payload 不得把它当成公开 preferences contract 暴露出去。
 - mobile conversation id 与 TutorBot internal session id 可能同时存在于历史数据中；adapter 只能把它们归一为同一个用户可见 conversation read-model，并在删除/归档等操作中覆盖同一 owner scope 下的 direct 与 mirror variants，不能让 mirror session 成为第二套会话真相。
 - TutorBot runtime 可以把 `context.user_message` 扩展成带上下文、参考证据、working memory projection 或 overlay 的 LLM prompt envelope，但 canonical session 与 TutorBot mirror session 的 `role=user` 持久内容只能写真实用户输入。`raw_user_message` 是 request-scoped 写入侧投影，不得进入 session preferences、learner-state、RAG 或 compiled truth authority；`参考证据`、`局部工作记忆投影` 等 prompt 标题不得被物化为用户消息正文。
+- **判分链学生提交单一来源（2026-08-01 尺与面收权清剿；扩展上一条的读取侧）**：上一条管的是"信封不得被写进持久层"，本条管的是"信封不得被**读**成学生的提交"。凡语义主语是「学生**这轮**真实提交」的判据——身份/切割/计数/分类/作答字母声明/出题意图/安全闸主语——一律只许消费 **submission surface**，禁止直接吃组装后的 `context.user_message` / `current_message`。surface 的唯一口径是三段回退 `metadata.raw_user_message` → `[User Question]` / `## 当前用户问题` 段剥离 → 原串，实现只有三处且必须复用同一剥离器：`AgentLoop._case_submission_surface`、`deep_question._submission_surface`、`ChatOrchestrator._routing_user_message`；**不得新增第四个 surface 解析器**。
+  - 语义主语确实是整段信封的消费点（注入上下文只消毒不拦的 `sanitize_untrusted_context`、纯观测标签、跨轮术语归一化、skill 预装）属于合法豁免，但必须在 `tests/tutorbot/test_surface_authority_registry.py` 显式登记并写明理由——豁免要具名，不许沉默。
+  - 同一事实只许一把尺子：小问计数=`rubric_grader_v1._extract_case_question_titles`（经 `_extract_case_question_titles_for_scope`）、作答标记=`CASE_ANSWER_MARKER_PATTERN`、分数写者=`finalize_case_score`。权威数不出来时**不报数**，禁止用"更宽松的 fallback 正则"兜底——报一个判分分母不会用的数字比不报数坏。
+  - 违反本条的代价是**离线复现不出来**的生产事故：信封随账号历史逐轮变化，用干净存档跑 eval 永远绿。2026-08-01 一天内五张脸（判分 ctx / 直批探针 / 入口安全闸吸收态 SEV / narration 尺 / narration 面）全部属于本条。
 
 ## Hosted Luban 教学卡上下文
 
