@@ -13523,3 +13523,123 @@ def test_summarize_assistant_events_lifts_case_grading_authority_markers():
     plain = _summarize_assistant_events([{"type": "result", "metadata": {"selected_mode": "fast"}}])
     assert "grading_rubric_provenance" not in plain
     assert "case_grading_prefetch_gate" not in plain
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_emits_langfuse_terminal_state_for_every_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """task#19：终态 marker 必须同时到达 TurnEventLog 和 Langfuse。
+
+    此前 Langfuse 侧只有 start 时刻指纹（root span 的 metadata 被清洗器静默砍到
+    前 20 个键），BI/排查只能读本地 jsonl/DB。这条断言锁死第二个 sink 真的在发，
+    且成功轮/失败轮都发。
+    """
+    from deeptutor.services.observability import reset_turn_event_log
+
+    reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    terminal_states: list[dict] = []
+
+    def _capture_terminal_state(observation, **kwargs):
+        terminal_states.append(kwargs)
+        return True
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class CompletedOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={
+                    "response": "ok",
+                    "metadata": {
+                        "execution_path": "case_grading_direct",
+                        "score_authority": "rubric_scored_v1",
+                        "v1_case_graded": True,
+                    },
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FailedOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            raise RuntimeError("boom")
+            yield  # pragma: no cover
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.record_turn_terminal_state",
+        _capture_terminal_state,
+    )
+
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", CompletedOrchestrator)
+    _session, completed_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(completed_turn["id"], after_seq=0):
+        pass
+
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FailedOrchestrator)
+    _session, failed_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello again",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(failed_turn["id"], after_seq=0):
+        pass
+
+    assert len(terminal_states) == 2
+    completed_metadata = terminal_states[0]["metadata"]
+    assert completed_metadata["turn_status"] == "completed"
+    assert completed_metadata["turn_id"] == completed_turn["id"]
+    assert completed_metadata["execution_path"] == "case_grading_direct"
+    assert completed_metadata["score_authority"] == "rubric_scored_v1"
+    assert completed_metadata["v1_case_graded"] is True
+    assert terminal_states[0]["level"] is None
+
+    failed_metadata = terminal_states[1]["metadata"]
+    assert failed_metadata["turn_status"] == "failed"
+    assert failed_metadata["turn_id"] == failed_turn["id"]
+    assert terminal_states[1]["level"] == "ERROR"
+    assert "failed" in terminal_states[1]["status_message"]

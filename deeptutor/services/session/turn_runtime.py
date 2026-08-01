@@ -1305,6 +1305,53 @@ def _build_terminal_turn_observation_event(
     )
 
 
+_LANGFUSE_TERMINAL_STATE_TOP_LEVEL_FIELDS: tuple[str, ...] = (
+    "session_id",
+    "turn_id",
+    "trace_id",
+    "capability",
+    "route",
+    "surface",
+    "user_id",
+    "latency_ms",
+    "token_total",
+    "error_type",
+    "observation_cohort",
+    "synthetic",
+    "test_only",
+)
+
+
+def _langfuse_terminal_state_metadata(event: dict[str, Any]) -> dict[str, Any]:
+    """Project the canonical terminal turn observation event onto Langfuse metadata.
+
+    Single authority: the marker family comes from
+    :func:`_build_terminal_turn_observation_event` (which already consumes
+    ``CASE_GRADING_AUTHORITY_EXPORT_KEYS``) — this function only re-shapes it,
+    it never re-derives or re-whitelists. Adding a marker stays a one-place edit.
+
+    ``status`` is exported as ``turn_status`` because Langfuse reserves nothing
+    named ``status`` but the observation surface already carries ``level``; a
+    distinct key keeps ClickHouse filters unambiguous.
+    """
+    if not isinstance(event, dict):
+        return {}
+    metadata = dict(event.get("metadata") or {})
+    metadata["turn_status"] = str(event.get("status") or "unknown").strip() or "unknown"
+    for field_name in _LANGFUSE_TERMINAL_STATE_TOP_LEVEL_FIELDS:
+        value = event.get(field_name)
+        if value in (None, "", [], {}):
+            continue
+        metadata.setdefault(field_name, value)
+    release = event.get("release")
+    if isinstance(release, dict):
+        for release_key in ("release_id", "git_sha", "service_version"):
+            release_value = release.get(release_key)
+            if release_value not in (None, "", [], {}):
+                metadata.setdefault(release_key, release_value)
+    return metadata
+
+
 def _usage_summary_float(summary: dict[str, Any], key: str) -> float:
     value = summary.get(key)
     if not isinstance(value, (int, float)):
@@ -6757,28 +6804,45 @@ class TurnRuntimeManager:
                 duration_ms=turn_duration_ms,
                 stage_timings_ms=trace_metadata.get("latency_stages_ms"),
             )
+            terminal_observation_event: dict[str, Any] | None = None
             with contextlib.suppress(Exception):
-                event_log = get_turn_event_log()
                 terminal_trace_metadata = _build_final_observation_metadata(
                     usage_summary=terminal_usage_summary,
                     terminal_status=terminal_status,
                 )
-                append_ok = event_log.append(
-                    _build_terminal_turn_observation_event(
-                        session_id=session_id,
-                        turn_id=turn_id,
-                        status=terminal_status,
-                        capability_name=capability_name,
-                        duration_ms=turn_duration_ms,
-                        trace_metadata=terminal_trace_metadata,
-                        usage_summary=terminal_usage_summary,
-                    )
+                terminal_observation_event = _build_terminal_turn_observation_event(
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    status=terminal_status,
+                    capability_name=capability_name,
+                    duration_ms=turn_duration_ms,
+                    trace_metadata=terminal_trace_metadata,
+                    usage_summary=terminal_usage_summary,
                 )
-                if not append_ok:
-                    logger.debug(
-                        "Turn observation event append failed: %s",
-                        event_log.stats().get("last_write_error"),
-                    )
+            if terminal_observation_event is not None:
+                with contextlib.suppress(Exception):
+                    event_log = get_turn_event_log()
+                    append_ok = event_log.append(terminal_observation_event)
+                    if not append_ok:
+                        logger.debug(
+                            "Turn observation event append failed: %s",
+                            event_log.stats().get("last_write_error"),
+                        )
+                # 终点黑洞（task#19）：TurnEventLog 之外的第二个终态消费面。同一个
+                # builder、同一张白名单，只是多一个 sink —— Langfuse 侧此前只有 start
+                # 指纹，终态 marker 一个都到不了（根因见 langfuse_adapter 的
+                # _METADATA_TOP_LEVEL_KEY_LIMIT 注释）。root chain 此刻已 __exit__，
+                # 但 OTel 允许以已结束的 span 作父级建子 span，事件仍挂在同一 trace 上。
+                observability.record_turn_terminal_state(
+                    turn_observation,
+                    metadata=_langfuse_terminal_state_metadata(terminal_observation_event),
+                    level="ERROR" if terminal_status not in {"completed", "unknown"} else None,
+                    status_message=(
+                        f"turn terminal status={terminal_status}"
+                        if terminal_status not in {"completed", "unknown"}
+                        else None
+                    ),
+                )
             if log_context_tokens:
                 reset_log_context(log_context_tokens)
             async with self._lock:

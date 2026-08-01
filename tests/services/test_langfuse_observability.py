@@ -7,8 +7,14 @@ from types import ModuleType
 
 import pytest
 
+from deeptutor.services.construction_grading.case_output_policy import (
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+)
 from deeptutor.services.observability.langfuse_adapter import (
+    _METADATA_NESTED_KEY_LIMIT,
+    _METADATA_TOP_LEVEL_KEY_LIMIT,
     LangfuseObservability,
+    _NoopObservation,
     _normalize_langfuse_host,
 )
 
@@ -17,9 +23,28 @@ class _FakeObservation:
     def __init__(self, trace_id: str = "") -> None:
         self.trace_id = trace_id
         self.updates: list[dict] = []
+        self.events: list[dict] = []
 
     def update(self, **kwargs) -> None:
         self.updates.append(kwargs)
+        return None
+
+    def create_event(
+        self,
+        *,
+        name: str,
+        metadata=None,
+        level=None,
+        status_message=None,
+    ) -> None:
+        self.events.append(
+            {
+                "name": name,
+                "metadata": metadata,
+                "level": level,
+                "status_message": status_message,
+            }
+        )
         return None
 
 
@@ -824,3 +849,234 @@ def test_get_client_normalizes_langfuse_host_before_sdk_init(
     assert adapter._get_client() is not None
     assert captured["host"] == "http://localhost:3001"
     assert captured["base_url"] == "http://localhost:3001"
+
+
+# --- task#19 终点黑洞：终态 marker 必须真的到达 Langfuse ------------------------
+
+
+def _terminal_marker_family() -> dict[str, str]:
+    """判分权威族 + 两个终态判别位，取值带哨兵前缀便于断言。"""
+    family = {key: f"v::{key}" for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS}
+    family["execution_path"] = "v::execution_path"
+    family["score_authority"] = "v::score_authority"
+    return family
+
+
+def test_sanitize_metadata_keeps_terminal_markers_past_the_first_twenty_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """终点黑洞根因回归：顶层 metadata 曾被静默砍成前 20 个键。
+
+    真实的 turn 终态 metadata 里，skill_metadata + usage 汇总先占满 20 个位置，
+    判分权威族排在它们之后 —— 于是每一轮都被剥光，Langfuse 只剩 start 指纹。
+    这个断言就是那条线：前置 20 个填充键之后的整族 marker 必须一个不少。
+    """
+    monkeypatch.setenv("LANGFUSE_MASK_PII", "0")
+    adapter = LangfuseObservability()
+
+    family = _terminal_marker_family()
+    metadata = {f"usage_filler_{index:02d}": index for index in range(20)}
+    metadata.update(family)
+    assert len(metadata) > 20
+
+    sanitized = adapter.sanitize_metadata(metadata)
+
+    assert sanitized is not None
+    missing = [key for key in family if key not in sanitized]
+    assert missing == []
+    for key, value in family.items():
+        assert sanitized[key] == value
+    assert "metadata_truncated_key_count" not in sanitized
+
+
+def test_sanitize_metadata_declares_truncation_instead_of_dropping_silently(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """截断仍然可能发生（OTel 128 属性硬顶），但绝不允许再静默。"""
+    monkeypatch.setenv("LANGFUSE_MASK_PII", "0")
+    adapter = LangfuseObservability()
+
+    over_limit = _METADATA_TOP_LEVEL_KEY_LIMIT + 7
+    metadata = {f"k{index:04d}": index for index in range(over_limit)}
+
+    sanitized = adapter.sanitize_metadata(metadata)
+
+    assert sanitized is not None
+    kept = [key for key in sanitized if key.startswith("k")]
+    assert len(kept) == _METADATA_TOP_LEVEL_KEY_LIMIT
+    assert sanitized["metadata_truncated_key_count"] == 7
+    assert sanitized["metadata_truncated_keys"] == [
+        f"k{index:04d}" for index in range(_METADATA_TOP_LEVEL_KEY_LIMIT, over_limit)
+    ]
+
+
+def test_sanitize_metadata_still_bounds_nested_containers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """顶层放宽不等于嵌套放宽：单个大 payload 不能把 span 属性预算撑爆。"""
+    monkeypatch.setenv("LANGFUSE_MASK_PII", "0")
+    adapter = LangfuseObservability()
+
+    sanitized = adapter.sanitize_metadata(
+        {"nested": {f"n{index:03d}": index for index in range(60)}}
+    )
+
+    assert sanitized is not None
+    assert len(sanitized["nested"]) == _METADATA_NESTED_KEY_LIMIT
+
+
+def test_record_turn_terminal_state_emits_event_carrying_full_marker_family(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """终态 marker 族要能在 Langfuse 上按 name='turn.terminal_state' 一行查到。"""
+    monkeypatch.setenv("LANGFUSE_ENABLED", "1")
+    monkeypatch.setenv("LANGFUSE_MASK_PII", "0")
+    adapter = LangfuseObservability()
+    client = _FakeClient()
+    adapter._client = client
+    adapter._init_attempted = True
+    observation = _FakeObservation(trace_id="trace-terminal-1")
+
+    family = _terminal_marker_family()
+    emitted = adapter.record_turn_terminal_state(
+        observation,
+        metadata={"turn_status": "completed", **family},
+    )
+
+    assert emitted is True
+    assert len(observation.events) == 1
+    event = observation.events[0]
+    assert event["name"] == "turn.terminal_state"
+    assert event["metadata"]["turn_status"] == "completed"
+    for key, value in family.items():
+        assert event["metadata"][key] == value
+
+
+def test_record_turn_terminal_state_forwards_error_level_for_failed_turns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LANGFUSE_ENABLED", "1")
+    adapter = LangfuseObservability()
+    client = _FakeClient()
+    adapter._client = client
+    adapter._init_attempted = True
+    observation = _FakeObservation()
+
+    adapter.record_turn_terminal_state(
+        observation,
+        metadata={"turn_status": "failed"},
+        level="ERROR",
+        status_message="turn terminal status=failed",
+    )
+
+    assert observation.events[0]["level"] == "ERROR"
+    assert observation.events[0]["status_message"] == "turn terminal status=failed"
+
+
+def test_record_turn_terminal_state_is_a_safe_noop_without_langfuse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """best-effort：关闭/未接通/观测缺失时静默返回 False，永不抛。"""
+    monkeypatch.setenv("LANGFUSE_ENABLED", "0")
+    adapter = LangfuseObservability()
+    adapter._client = _FakeClient()
+    adapter._init_attempted = True
+
+    assert adapter.record_turn_terminal_state(_FakeObservation(), metadata={"a": 1}) is False
+
+    monkeypatch.setenv("LANGFUSE_ENABLED", "1")
+    assert adapter.record_turn_terminal_state(None, metadata={"a": 1}) is False
+    assert (
+        adapter.record_turn_terminal_state(_NoopObservation(), metadata={"a": 1}) is False
+    )
+
+    class _ObservationWithoutEvents:
+        pass
+
+    assert (
+        adapter.record_turn_terminal_state(_ObservationWithoutEvents(), metadata={"a": 1})
+        is False
+    )
+
+
+def test_record_turn_terminal_state_swallows_sdk_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LANGFUSE_ENABLED", "1")
+    adapter = LangfuseObservability()
+    adapter._client = _FakeClient()
+    adapter._init_attempted = True
+
+    class _ExplodingObservation:
+        def create_event(self, *, name: str, metadata=None, level=None, status_message=None):
+            raise RuntimeError("langfuse exporter down")
+
+    assert (
+        adapter.record_turn_terminal_state(_ExplodingObservation(), metadata={"a": 1}) is False
+    )
+
+
+def test_record_usage_stamps_call_site_from_enclosing_observation_name() -> None:
+    """效率画像 §6 插桩缺口：llm_usage_events 的 call_site 此前 683 条全空。"""
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+    client = _FakeClient()
+    adapter._client = client
+    adapter._init_attempted = True
+
+    with adapter.start_observation(name="llm.complete", as_type="generation") as observation:
+        adapter.update_observation(
+            observation,
+            usage_details={"input": 10.0, "output": 5.0, "total": 15.0},
+            usage_source="provider",
+            model="deepseek-v3.2",
+            metadata={"provider_name": "dashscope"},
+        )
+
+    assert fake_ledger.calls
+    assert fake_ledger.calls[-1]["metadata"]["call_site"] == "llm.complete"
+
+
+def test_explicit_call_site_overrides_the_observation_name() -> None:
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+    client = _FakeClient()
+    adapter._client = client
+    adapter._init_attempted = True
+
+    with adapter.start_observation(
+        name="llm.complete",
+        as_type="generation",
+        call_site="case_rubric_batch_judge",
+    ) as observation:
+        adapter.update_observation(
+            observation,
+            usage_details={"input": 10.0, "output": 5.0, "total": 15.0},
+            usage_source="provider",
+            model="deepseek-v3.2",
+        )
+
+    assert fake_ledger.calls[-1]["metadata"]["call_site"] == "case_rubric_batch_judge"
+
+
+def test_call_site_does_not_leak_outside_the_observation_scope() -> None:
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+    client = _FakeClient()
+    adapter._client = client
+    adapter._init_attempted = True
+
+    with adapter.start_observation(name="llm.complete", as_type="generation"):
+        pass
+
+    adapter.record_usage(
+        usage_details={"input": 1.0, "output": 1.0, "total": 2.0},
+        source="provider",
+        model="deepseek-v3.2",
+        metadata={"provider_name": "dashscope"},
+    )
+
+    assert "call_site" not in fake_ledger.calls[-1]["metadata"]

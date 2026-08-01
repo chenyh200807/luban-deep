@@ -33,6 +33,19 @@ _TRACE_IDENTITY_KEYS = {
     "source_turn_id",
     "source_session_id",
 }
+# 终点黑洞根因（task#19，2026-08-01）：metadata 的清洗器对 **每一层** dict 都只保留
+# 前 20 个键。turn 终态 metadata 有 60~100+ 个键，且判分权威族（score_authority /
+# execution_path / CASE_GRADING_AUTHORITY_EXPORT_KEYS 全族）在合并顺序里排在
+# skill_metadata + usage summary 之后 —— 于是每一轮都被静默砍掉，Langfuse 的 root
+# span 只剩 start 时刻指纹。ClickHouse 实证：每条 turn.runtime 观测恰好多出 19~20 个
+# 键，一个不多。
+#
+# 顶层放宽到 110：langfuse 把 metadata 逐键写成 OTel span 属性
+# （`langfuse.observation.metadata.<key>`），而 OTel SDK 的默认 SpanLimits
+# .max_attributes=128 会**静默**丢弃超出部分。110 给 langfuse 自身的非 metadata 属性
+# 和下面两个 truncation 声明键留出余量。嵌套层仍限 20，避免单个大 payload 撑爆。
+_METADATA_TOP_LEVEL_KEY_LIMIT = 110
+_METADATA_NESTED_KEY_LIMIT = 20
 _DEFAULT_MODEL_PRICING = {
     "gpt-4o": {
         "input_per_1m": 2.5,
@@ -370,6 +383,14 @@ _current_usage_scope: ContextVar[_UsageScopeState | None] = ContextVar(
     "langfuse_usage_scope",
     default=None,
 )
+# 效率画像 §6 插桩缺口（task#19 顺手）：llm_usage_events.metadata_json.call_site
+# 683 条全空 —— 账本里分不清修复轮/主循环/judge/推导。单一来源=当前 observation 的
+# name（start_observation 进入时压栈、退出时还原），调用方要更细的粒度就传
+# call_site= 覆盖，不新开第二条命名链。
+_current_llm_call_site: ContextVar[str] = ContextVar(
+    "langfuse_llm_call_site",
+    default="",
+)
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -422,8 +443,10 @@ def _sanitize_value(
     text_limit: int = 4000,
     list_limit: int = 20,
     dict_limit: int = 20,
+    nested_dict_limit: int | None = None,
     depth: int = 0,
 ) -> Any:
+    child_dict_limit = dict_limit if nested_dict_limit is None else nested_dict_limit
     if value is None:
         return None
     if depth >= 4:
@@ -432,29 +455,18 @@ def _sanitize_value(
         return value
     if isinstance(value, str):
         return _truncate_text(_mask_text(value, mask_pii), limit=text_limit)
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [
             _sanitize_value(
                 item,
                 mask_pii=mask_pii,
                 text_limit=text_limit,
                 list_limit=list_limit,
-                dict_limit=dict_limit,
+                dict_limit=child_dict_limit,
+                nested_dict_limit=child_dict_limit,
                 depth=depth + 1,
             )
-            for item in value[:list_limit]
-        ]
-    if isinstance(value, tuple):
-        return [
-            _sanitize_value(
-                item,
-                mask_pii=mask_pii,
-                text_limit=text_limit,
-                list_limit=list_limit,
-                dict_limit=dict_limit,
-                depth=depth + 1,
-            )
-            for item in value[:list_limit]
+            for item in list(value)[:list_limit]
         ]
     if isinstance(value, dict):
         sanitized: dict[str, Any] = {}
@@ -467,7 +479,8 @@ def _sanitize_value(
                 mask_pii=mask_pii and key_text not in _TRACE_IDENTITY_KEYS,
                 text_limit=text_limit,
                 list_limit=list_limit,
-                dict_limit=dict_limit,
+                dict_limit=child_dict_limit,
+                nested_dict_limit=child_dict_limit,
                 depth=depth + 1,
             )
         return sanitized
@@ -612,9 +625,27 @@ class LangfuseObservability:
         )
 
     def sanitize_metadata(self, metadata: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Sanitize turn/observation metadata for export.
+
+        单一权威：所有写往 Langfuse 的 metadata 都走这里。顶层键上限
+        =_METADATA_TOP_LEVEL_KEY_LIMIT（见常量注释：终点黑洞根因就是这里的 20），
+        且**截断必须发声** —— 一旦真的砍了键，就把丢弃数量与键名写进 metadata 自身，
+        绝不再出现「Langfuse 里查不到 = 不知道是没发生还是被砍了」的二义。
+        """
         if not metadata:
             return None
-        return _sanitize_value(metadata, mask_pii=_env_flag("LANGFUSE_MASK_PII", True))
+        sanitized = _sanitize_value(
+            metadata,
+            mask_pii=_env_flag("LANGFUSE_MASK_PII", True),
+            dict_limit=_METADATA_TOP_LEVEL_KEY_LIMIT,
+            nested_dict_limit=_METADATA_NESTED_KEY_LIMIT,
+        )
+        if isinstance(metadata, dict) and isinstance(sanitized, dict):
+            dropped = list(metadata.keys())[len(sanitized) :]
+            if dropped:
+                sanitized["metadata_truncated_key_count"] = len(dropped)
+                sanitized["metadata_truncated_keys"] = [str(key) for key in dropped[:20]]
+        return sanitized
 
     @contextmanager
     def usage_scope(
@@ -686,13 +717,20 @@ class LangfuseObservability:
                 source=source_key,
                 model=model,
             )
+        ledger_metadata = dict(metadata or {})
+        call_site = (
+            str(ledger_metadata.get("call_site") or "").strip()
+            or _current_llm_call_site.get("")
+        )
+        if call_site:
+            ledger_metadata["call_site"] = call_site
         try:
             self._usage_ledger.record_usage_event(
                 usage_source=source_key,
                 usage_details=usage_details,
                 cost_details=cost_details,
                 model=model,
-                metadata=metadata,
+                metadata=ledger_metadata,
                 session_id=scope.session_id if scope is not None else "",
                 turn_id=scope.turn_id if scope is not None else "",
                 capability=scope.capability if scope is not None else "",
@@ -1044,6 +1082,47 @@ class LangfuseObservability:
         usage_details: dict[str, float] | None = None,
         cost_details: dict[str, float] | None = None,
         usage_source: str | None = None,
+        call_site: str | None = None,
+    ) -> Iterator[Any]:
+        """Start an observation and bind the ambient LLM ``call_site``.
+
+        Thin wrapper over :meth:`_start_observation_scope`: its only added job is
+        pushing the call-site label so every usage-ledger row written *inside* this
+        observation can be attributed. Default label = the observation name; pass
+        ``call_site=`` when a caller needs a finer split than its span name.
+        """
+        token: Token[str] = _current_llm_call_site.set(
+            str(call_site or name or "").strip() or _current_llm_call_site.get("")
+        )
+        try:
+            with self._start_observation_scope(
+                name=name,
+                as_type=as_type,
+                input_payload=input_payload,
+                metadata=metadata,
+                model=model,
+                model_parameters=model_parameters,
+                usage_details=usage_details,
+                cost_details=cost_details,
+                usage_source=usage_source,
+            ) as observation:
+                yield observation
+        finally:
+            _current_llm_call_site.reset(token)
+
+    @contextmanager
+    def _start_observation_scope(
+        self,
+        *,
+        name: str,
+        as_type: str = "span",
+        input_payload: Any = None,
+        metadata: dict[str, Any] | None = None,
+        model: str | None = None,
+        model_parameters: dict[str, Any] | None = None,
+        usage_details: dict[str, float] | None = None,
+        cost_details: dict[str, float] | None = None,
+        usage_source: str | None = None,
     ) -> Iterator[Any]:
         client = self._get_client()
         source_key = self.normalize_usage_source(usage_source)
@@ -1166,6 +1245,60 @@ class LangfuseObservability:
             )
         except Exception as exc:
             logger.debug(f"Langfuse observation update skipped: {exc}", exc_info=True)
+
+    def record_turn_terminal_state(
+        self,
+        observation: Any,
+        *,
+        metadata: dict[str, Any] | None,
+        name: str = "turn.terminal_state",
+        level: str | None = None,
+        status_message: str | None = None,
+    ) -> bool:
+        """Emit the turn's TERMINAL marker family as its own Langfuse observation.
+
+        Why a dedicated observation instead of only updating the root chain:
+
+        1. **Trace 级终态在 langfuse 4.x 上结构性不存在。** v3 的
+           ``update_current_trace`` 已被删除（4.7.1 实测无此方法），替代品
+           ``langfuse.propagate_attributes`` 是在 span **开始前**进入的 context
+           manager —— 拿不到只有回合结束才知道的终态。所以「trace 行按终态查」这条
+           路在 SDK 层面走不通，终态只能落到 observation 面。
+        2. **root span 的属性预算是有上限的。** langfuse 逐键写 OTel 属性，OTel
+           默认 128 条封顶且**静默**丢弃；root chain 的 start 指纹 + usage 汇总
+           已占掉一大半。把终态白名单独立成一条 EVENT 观测，键数受
+           ``_build_terminal_turn_observation_event`` 的白名单约束，不与 start
+           指纹抢预算。
+
+        ClickHouse 侧因此可以直接 ``WHERE name = 'turn.terminal_state'`` 一行拿到
+        整轮终态。best-effort：永不抛出，返回是否真的发出去了（可测）。
+        """
+        if not self.is_enabled():
+            return False
+        if observation is None or isinstance(observation, _NoopObservation):
+            return False
+        if self._get_client() is None:
+            return False
+        create_event = getattr(observation, "create_event", None)
+        if not callable(create_event):
+            logger.debug("Langfuse terminal-state event skipped: observation has no create_event")
+            return False
+        try:
+            create_event(
+                **self._filter_supported_kwargs(
+                    create_event,
+                    {
+                        "name": name,
+                        "metadata": self.sanitize_metadata(metadata),
+                        "level": level,
+                        "status_message": status_message,
+                    },
+                )
+            )
+            return True
+        except Exception as exc:
+            logger.debug(f"Langfuse terminal-state event skipped: {exc}", exc_info=True)
+            return False
 
     def flush(self) -> None:
         client = self._get_client()
