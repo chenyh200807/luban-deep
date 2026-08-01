@@ -113,6 +113,10 @@
   - `fast` 是 `kb_first + single_shot_with_prefetch`，允许模型 fallback 和已启用的 `web_search` 预取，但不得进入完整 deep agent loop。
   - `deep` 是 `kb_first + full_agent_loop`，保留 TutorBot 原有多轮工具执行能力。
   - 常规 `execution_path` 使用 `tutorbot_kb_first_fast_policy` 或 `tutorbot_kb_first_full_agent_policy`；exact authority shortcut 可继续记录为 `tutorbot_exact_fast_path`。
+- **口诀单一权威 / 无出处不得自称口诀（2026-08-01，r6 宣传门 A3 收权）**：学生可见回答里任何以「口诀」名义出现的内容，必须来自编译讲义资产（唯一解析器 `rubric_grader_v1.resolve_case_answer_method_for_render`，high 置信带 + topic≥4 字二闸），并由唯一渲染器 `rubric_grader_v1.render_answer_method_mnemonic_lines` 输出（自带出处引用与「展开：」要点行）。判分直批链与由模型自己写正文的 `tutorbot_exact_fast_path` / agent loop 道共用这同一对函数，**不得各自长出第二套口诀权威**。
+  - 命中不了编译资产时，回答**不得**以「口诀」名义输出顿号拼接的漏点标题列表（live 实证：`每个字对应：取样、制样、标识、封志、送检、现场检测`——非资产、无出处、学生照背即背错）。自由作文道由 `_finalize_visible_answer` 链上的 `_case_mnemonic_authority_guard` 把措辞降级为「记忆提示」：只降名号，不删改内容，不新增模板句。
+  - 该守卫的门只看结构化事实（正文含「口诀」+ `case_mnemonic_source` 未发声 + `_build_v1_case_ctx` 给得出题面），`finalize_path` 仍只是观测标签不得门控；判分轮由 V1 自己按同一权威决定，本层不得改二遍。
+  - 升降必发声：`mnemonic_authority_source`（`lecture_pack:<unit_ids>` | `demoted_no_authority`）是 observe-only turn metadata，沿 content-truth 那条 **scene 无关**的载体上 result 事件与 turn summary（判分侧的 `case_mnemonic_source` 被 `scene==case_grading` 门控，非判分轮会被 strip，不得复用）。
 - `llm_selection` 只允许携带 catalog 内的 `profile_id` / `model_id`，用于本次 turn 的 request-scoped LLM 解析；provider secret、endpoint、binding 仍由服务端 model catalog 唯一持有。它可以进入 request snapshot 和 session preferences 作为审计/恢复提示，但不得改写全局 catalog，也不得成为第二套 LLM authority。
 - session `preferences.runtime_state` 只允许作为内部 runtime 恢复态保存；对外 session detail/list payload 不得把它当成公开 preferences contract 暴露出去。
 - mobile conversation id 与 TutorBot internal session id 可能同时存在于历史数据中；adapter 只能把它们归一为同一个用户可见 conversation read-model，并在删除/归档等操作中覆盖同一 owner scope 下的 direct 与 mirror variants，不能让 mirror session 成为第二套会话真相。

@@ -1005,6 +1005,12 @@ class AgentLoop:
         for metadata_key in (
             "content_truth_guard_applied",
             "content_truth_low_confidence_claims",
+            # 口诀权威收权（2026-08-01，observe-only）：值形如 "lecture_pack:<unit_ids>"
+            # 或 "demoted_no_authority"，挂载率/降级率的观测基础。这里不复用判分侧的
+            # ``case_mnemonic_source`` —— 那个键被 copy_current_case_grading_turn_metadata
+            # 按 scene==case_grading 门控并在非判分轮 strip 掉，而本守卫恰恰只在
+            # **非判分轮**（exact_fast_path / agent_loop 自由作文道）动手。
+            "mnemonic_authority_source",
         ):
             if metadata_key in runtime_metadata:
                 target_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1569,6 +1575,11 @@ class AgentLoop:
             runtime_metadata=runtime_metadata,
             user_message=user_message,
         ) or final_content
+        final_content = self._case_mnemonic_authority_guard(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=user_message,
+        ) or final_content
         final_content = self._degraded_exact_answer_claim_response(
             user_message=user_message,
             final_content=final_content,
@@ -1903,6 +1914,69 @@ class AgentLoop:
         if all(number in compact_response for number in required_numbers):
             return ""
         return self._build_exact_authority_response_sync(exact_question)
+
+    @staticmethod
+    def _case_mnemonic_authority_guard(
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+        user_message: str,
+    ) -> str:
+        """自由作文道的「口诀」段收权（r6 宣传门 A3 唯一红点，2026-08-01）。
+
+        判分直批链早已接 A1 真口诀资产（``resolve_case_answer_method_for_render``），
+        但 exact_fast_path / agent_loop 这两条**由模型自己写正文**的道没接：live 实证
+        模型在「## 记忆口诀」下顿号拼接漏点标题冒充口诀（无出处、非编译资产）。
+
+        这里不新增第二套口诀权威——命中就调判分链同一个解析器 + 同一个渲染器
+        （自带出处与「展开：」行，#646 的 topic≥4 二闸在解析器内部已吃上）；没命中
+        就把「口诀」措辞降格为「记忆提示」。
+
+        门只看**结构化事实**（finalize_path 仅是观测标签，不得门控）：
+        1. 正文里真出现「口诀」二字（否则零成本 no-op）；
+        2. ``case_mnemonic_source`` 未被写过——写过=V1 判分链已用同一权威决定过口诀
+           形态，本层不得改二遍；
+        3. ``_build_v1_case_ctx``（判分面题面的既有唯一映射）能给出非空 question_stem，
+           即本轮真有案例题面。纯学习支持问句（"给我整理记忆口诀"）题面为空 → no-op。
+
+        升降必发声：``mnemonic_authority_source``（"lecture_pack:<ids>" | "demoted_no_authority"）
+        随 ``_export_content_truth_metadata`` 这条 scene 无关的载体上 result 事件——判分侧的
+        ``case_mnemonic_source`` 被 scene==case_grading 门控，非判分轮会被 strip 掉，
+        而本守卫只在非判分轮动手，所以不能挂在那个键上。
+        """
+        md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        text = str(final_content or "")
+        if "口诀" not in text:
+            return ""
+        if str(md.get("case_mnemonic_source") or "").strip():
+            return ""
+        try:
+            from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                apply_case_mnemonic_authority,
+                resolve_case_answer_method_for_render,
+            )
+
+            # 影子副本：_build_v1_case_ctx 会往 md 上盖 case_user_stem_* 等判分 marker，
+            # 非判分轮不得被它染色，所以只给它一份浅拷贝。
+            stem = str(
+                AgentLoop._build_v1_case_ctx(dict(md), user_message).get("question_stem") or ""
+            ).strip()
+            if not stem:
+                return ""
+            context = resolve_case_answer_method_for_render(stem)
+            replaced = apply_case_mnemonic_authority(text, answer_method_context=context)
+            if not replaced:
+                return ""
+        except Exception:  # noqa: BLE001 — 表达层守卫永不破坏 tutorbot 轮次
+            logger.warning("case mnemonic authority guard failed; answer unchanged", exc_info=True)
+            return ""
+        md["mnemonic_authority_source"] = (
+            "lecture_pack:"
+            + ",".join(str(u.get("unit_id") or "?") for u in (context or {}).get("units") or [])
+            if context
+            else "demoted_no_authority"
+        )
+        return replaced
 
     @staticmethod
     def _split_case_grading_submission(user_message: str) -> tuple[str, str]:

@@ -1222,6 +1222,9 @@ class TutorBotManager:
                         # keys above) so the result event + offline review agent can see them.
                         "content_truth_guard_applied",
                         "content_truth_low_confidence_claims",
+                        # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）：
+                        # "lecture_pack:<unit_ids>" | "demoted_no_authority"。
+                        "mnemonic_authority_source",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1354,6 +1357,8 @@ class TutorBotManager:
                             # result_payload allow-list can export the low-confidence claims.
                             "content_truth_guard_applied",
                             "content_truth_low_confidence_claims",
+                            # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+                            "mnemonic_authority_source",
                             # 律4 typed failure marker → capability result_payload.
                             "turn_failure",
                         ):

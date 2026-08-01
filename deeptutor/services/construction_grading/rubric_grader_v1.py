@@ -904,6 +904,107 @@ def resolve_case_answer_method_for_render(question_stem: str) -> dict[str, Any] 
     return {"units": units[:2], "activation": ctx.get("activation")}
 
 
+def render_answer_method_mnemonic_lines(
+    answer_method_context: dict[str, Any] | None,
+) -> list[str]:
+    """真口诀渲染的**唯一实现**（判分链与 tutorbot 自由作文链共用）。
+
+    A1 真口诀：编译资产（口诀/陷阱/红线）+ 出处引用；只有 ``resolve_case_answer_method_for_render``
+    放行的 high 置信带能到这里。返回空 list = 无资产可挂，调用方自己决定回落形态
+    （判分链回落现模板；LLM 链把「口诀」措辞降格为「记忆提示」）。
+    """
+    lines: list[str] = []
+    for _unit in (answer_method_context or {}).get("units") or []:
+        if not isinstance(_unit, dict):
+            continue
+        _method = _unit.get("answer_method") if isinstance(_unit.get("answer_method"), dict) else {}
+        _topic = str(_unit.get("topic") or "").strip()
+        for _m in (_method.get("mnemonics") or [])[:2]:
+            # 口诀必须带考点归属 + 要点展开。裸口诀"机具日检上交图"挂在质量计划管理
+            # 下面时，看起来像串了施工机具的题（2026-08-01 owner 端侧就是这么读的）；
+            # 资产自己的 answer_style 写的就是"先给口诀，再展开每个字对应的得分点"，
+            # 而渲染只印了口诀那一行。缩写不解释＝制造串题错觉。
+            lines.append(f"- {_topic}｜{_m}" if _topic else f"- {_m}")
+            _expand = [
+                str(_x).strip()
+                for _x in (_method.get("must_mentions") or [])[:6]
+                if str(_x).strip() and str(_x).strip() not in str(_m)
+            ]
+            if _expand:
+                lines.append("  展开：" + "、".join(_expand))
+        for _t in (_method.get("trap_alerts") or [])[:2]:
+            lines.append(f"- ⚠️ 陷阱：{_t}")
+        for _r in (_method.get("red_lines") or [])[:1]:
+            lines.append(f"- ⛔ 红线：{_r}")
+        _src = _unit.get("source_ref") if isinstance(_unit.get("source_ref"), dict) else {}
+        _origin = "·".join(x for x in (str(_unit.get("lecture") or ""), str(_unit.get("topic") or "")) if x)
+        if _origin or _src.get("chunk_id"):
+            _cite = f"（出处：{_origin}" + (f"，{_src.get('chunk_id')}" if _src.get("chunk_id") else "") + "）"
+            lines.append(f"  {_cite}")
+    return lines
+
+
+# 「口诀」标题行：任意标题级别，标题文字里含「口诀」二字即算口诀段。
+_MNEMONIC_HEADING_RE = re.compile(r"(?m)^(#{1,6})[ \t]*([^\n]*口诀[^\n]*?)[ \t]*$")
+
+
+def _mnemonic_section_end(text: str, body_start: int, level: int) -> int:
+    """口诀段的终点：下一个同级或更高级标题，或水平分隔线，否则到文末。"""
+    tail = text[body_start:]
+    match = re.search(r"(?m)^(?:#{1,%d}[ \t]|---[ \t]*$)" % max(1, level), tail)
+    return body_start + (match.start() if match else len(tail))
+
+
+def _demote_mnemonic_wording(text: str) -> str:
+    """无出处 ⇒ 不得自称「口诀」。纯措辞降级，不改内容、不新增模板句。"""
+    return (
+        text.replace("记忆口诀", "记忆提示")
+        .replace("答题口诀", "答题提示")
+        .replace("口诀", "记忆提示")
+    )
+
+
+def apply_case_mnemonic_authority(
+    response_text: str,
+    *,
+    answer_method_context: dict[str, Any] | None,
+) -> str:
+    """把 LLM 自由作文里的「口诀」段收权到判分链**同一个**权威上。
+
+    根因（r6 宣传门 A3，2026-08-01）：判分直批链早已接 A1 真口诀资产，但 tutorbot 的
+    exact/agent 自由作文道没接——模型在「## 记忆口诀」下即兴顿号拼接一串漏点标题
+    （「每个字对应：取样、制样、标识、封志、送检、现场检测」），既不是编译口诀也没有
+    出处，学生按它背就是背了个假东西。这里不新起模板权威：
+
+    * ``answer_method_context`` 必须来自 ``resolve_case_answer_method_for_render``
+      （high 置信带 + #646 topic≥4 二闸都在那个解析器里），命中就用
+      ``render_answer_method_mnemonic_lines``——与判分链**同一个渲染器**——整段替换，
+      自带出处与「展开：」行；
+    * 没命中 → **只降措辞**：全文「口诀」→「记忆提示」。宁可少一个名号，也不让无出处的
+      拼接列表冒充口诀。
+
+    返回 "" 表示不改（沿用 tutorbot 修正器 ``X(...) or final_content`` 的约定）。
+    """
+    text = str(response_text or "")
+    if "口诀" not in text:
+        return ""
+    authority_lines = render_answer_method_mnemonic_lines(answer_method_context)
+    match = _MNEMONIC_HEADING_RE.search(text)
+    if authority_lines and match:
+        level = match.group(1)
+        end = _mnemonic_section_end(text, match.end(), len(level))
+        block = f"{level} 记忆口诀\n" + "\n".join(authority_lines) + "\n"
+        out = (
+            _demote_mnemonic_wording(text[: match.start()])
+            + block
+            + _demote_mnemonic_wording(text[end:])
+        )
+    else:
+        # 有资产但模型没写口诀段：不硬塞新段落（那才是新模板权威），只降措辞。
+        out = _demote_mnemonic_wording(text)
+    return out if out != text else ""
+
+
 def render_case_rubric_feedback(
     event: dict[str, Any],
     *,
@@ -1187,36 +1288,14 @@ def render_case_rubric_feedback(
             else "本评分为 AI 阅卷草稿，非正式成绩。"
     lines.append(f"- {note}")
     lines.append("")
-    lines.append("## 记忆口诀")
-    _am_units = (answer_method_context or {}).get("units") or []
-    if _am_units:
-        # A1 真口诀：编译资产（口诀/陷阱/红线）+ 出处引用；仅 high 置信带到达此处。
-        for _unit in _am_units:
-            _method = _unit.get("answer_method") if isinstance(_unit.get("answer_method"), dict) else {}
-            _topic = str(_unit.get("topic") or "").strip()
-            for _m in (_method.get("mnemonics") or [])[:2]:
-                # 口诀必须带考点归属 + 要点展开。裸口诀"机具日检上交图"挂在质量计划管理
-                # 下面时，看起来像串了施工机具的题（2026-08-01 owner 端侧就是这么读的）；
-                # 资产自己的 answer_style 写的就是"先给口诀，再展开每个字对应的得分点"，
-                # 而渲染只印了口诀那一行。缩写不解释＝制造串题错觉。
-                lines.append(f"- {_topic}｜{_m}" if _topic else f"- {_m}")
-                _expand = [
-                    str(_x).strip()
-                    for _x in (_method.get("must_mentions") or [])[:6]
-                    if str(_x).strip() and str(_x).strip() not in str(_m)
-                ]
-                if _expand:
-                    lines.append("  展开：" + "、".join(_expand))
-            for _t in (_method.get("trap_alerts") or [])[:2]:
-                lines.append(f"- ⚠️ 陷阱：{_t}")
-            for _r in (_method.get("red_lines") or [])[:1]:
-                lines.append(f"- ⛔ 红线：{_r}")
-            _src = _unit.get("source_ref") if isinstance(_unit.get("source_ref"), dict) else {}
-            _origin = "·".join(x for x in (str(_unit.get("lecture") or ""), str(_unit.get("topic") or "")) if x)
-            if _origin or _src.get("chunk_id"):
-                _cite = f"（出处：{_origin}" + (f"，{_src.get('chunk_id')}" if _src.get("chunk_id") else "") + "）"
-                lines.append(f"  {_cite}")
+    _am_lines = render_answer_method_mnemonic_lines(answer_method_context)
+    if _am_lines:
+        lines.append("## 记忆口诀")
+        lines.extend(_am_lines)
     else:
+        # 同病同治（2026-08-01 F1 附带裁决）：无编译资产时的顿号拼接不得自称
+        # "口诀"（与 A3 击落的快答假口诀同形态），降格为"记忆提示"。
+        lines.append("## 记忆提示")
         mnemonic = _mnemonic_from_weak(weak)
         if mnemonic:
             lines.append(mnemonic)
@@ -1417,7 +1496,7 @@ def build_case_rubric_score_first_stream(
     score_first = "\n".join(score_lines).strip()
 
     heading_pattern = re.compile(
-        r"(?m)^## (问题\d+[^\n]*|总体评价|判分|记忆口诀|下一步建议)\s*$"
+        r"(?m)^## (问题\d+[^\n]*|总体评价|判分|记忆口诀|记忆提示|下一步建议)\s*$"
     )
     matches = list(heading_pattern.finditer(rendered))
     sealed_blocks: list[dict[str, Any]] = []
