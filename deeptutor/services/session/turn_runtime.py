@@ -6833,16 +6833,21 @@ class TurnRuntimeManager:
                 # 指纹，终态 marker 一个都到不了（根因见 langfuse_adapter 的
                 # _METADATA_TOP_LEVEL_KEY_LIMIT 注释）。root chain 此刻已 __exit__，
                 # 但 OTel 允许以已结束的 span 作父级建子 span，事件仍挂在同一 trace 上。
-                observability.record_turn_terminal_state(
-                    turn_observation,
-                    metadata=_langfuse_terminal_state_metadata(terminal_observation_event),
-                    level="ERROR" if terminal_status not in {"completed", "unknown"} else None,
-                    status_message=(
-                        f"turn terminal status={terminal_status}"
-                        if terminal_status not in {"completed", "unknown"}
-                        else None
-                    ),
-                )
+                #
+                # suppress 不是装饰性的：这一段之后才轮到唤醒订阅者、摘除 execution，
+                # 观测侧任何异常逃逸都会让整个 turn 的订阅者永久挂住（本改动的第一版
+                # 就是这么把一条 ws 测试挂死的）。观测永远不许绑架回合终结。
+                with contextlib.suppress(Exception):
+                    observability.record_turn_terminal_state(
+                        turn_observation,
+                        metadata=_langfuse_terminal_state_metadata(terminal_observation_event),
+                        level="ERROR" if terminal_status not in {"completed", "unknown"} else None,
+                        status_message=(
+                            f"turn terminal status={terminal_status}"
+                            if terminal_status not in {"completed", "unknown"}
+                            else None
+                        ),
+                    )
             if log_context_tokens:
                 reset_log_context(log_context_tokens)
             async with self._lock:

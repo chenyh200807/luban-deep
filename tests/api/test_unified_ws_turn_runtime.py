@@ -4649,6 +4649,7 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
             self.started: list[dict[str, object]] = []
             self.scopes: list[SimpleNamespace] = []
             self.updated: list[dict[str, object]] = []
+            self.terminal_states: list[dict[str, object]] = []
 
         def usage_scope(self, **kwargs):
             outer = self
@@ -4692,6 +4693,10 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
 
         def update_observation(self, _observation, **kwargs):
             self.updated.append(kwargs)
+
+        def record_turn_terminal_state(self, _observation, **kwargs):
+            self.terminal_states.append(kwargs)
+            return True
 
         def get_current_usage_summary(self):
             return {}
@@ -4877,6 +4882,9 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
 
         def update_observation(self, _observation, **_kwargs):
             return None
+
+        def record_turn_terminal_state(self, _observation, **_kwargs):
+            return True
 
         def get_current_usage_summary(self):
             return {}
@@ -10970,6 +10978,9 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
         def update_observation(self, _observation, **_kwargs):
             return None
 
+        def record_turn_terminal_state(self, _observation, **_kwargs):
+            return True
+
         def get_current_usage_summary(self):
             return {}
 
@@ -13643,3 +13654,83 @@ async def test_turn_runtime_emits_langfuse_terminal_state_for_every_turn(
     assert failed_metadata["turn_id"] == failed_turn["id"]
     assert terminal_states[1]["level"] == "ERROR"
     assert "failed" in terminal_states[1]["status_message"]
+
+
+@pytest.mark.asyncio
+async def test_broken_langfuse_terminal_emit_cannot_strand_the_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """观测永远不许绑架回合终结。
+
+    终态 emit 位于 finally 里、且排在「唤醒订阅者 + 摘除 execution」之前——一个
+    未捕获的观测异常会让 subscribe_turn 永久挂住（本改动的第一版就是这么挂死
+    一条 ws 测试的）。这条断言把「观测炸了、回合照样收尾」钉死。
+    """
+    from deeptutor.services.observability import reset_turn_event_log
+
+    reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    def _explode(_observation, **_kwargs):
+        raise RuntimeError("langfuse exporter exploded")
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class CompletedOrchestrator:
+        async def handle(self, _context, **_kwargs):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "ok", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", CompletedOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.record_turn_terminal_state",
+        _explode,
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+
+    # 订阅必须自然终止（挂住就是 asyncio.TimeoutError），且 execution 已被摘除。
+    async def _drain() -> None:
+        async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+            pass
+
+    await asyncio.wait_for(_drain(), timeout=20)
+    assert turn["id"] not in runtime._executions
