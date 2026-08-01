@@ -1,0 +1,6 @@
+check_qb_core_sources_objective_quality: CHECK (((source_type <> ALL (ARRAY['REAL_EXAM'::text, 'TEXTBOOK_ASSESSMENT'::text])) OR qb_is_valid_objective_row(question_type, options, correct_answer)))
+check_qb_question_type_enum: CHECK ((lower(COALESCE(question_type, ''::text)) = ANY (ARRAY['single_choice'::text, 'multiple_choice'::text, 'multi_choice'::text, 'true_false'::text, 'judgment'::text, 'case_study'::text, 'case_analysis'::text, 'case_background'::text, 'case_sub_question'::text, 'calculation'::text, 'numerical_calculation'::text, 'formula_calculation'::text, 'formula_application'::text, 'fill_in_blank'::text, 'diagram_interpretation'::text, 'recall'::text, 'essay'::text])))
+check_qb_real_exam_objective_quality: CHECK (((source_type IS DISTINCT FROM 'REAL_EXAM'::text) OR qb_is_valid_objective_row(question_type, options, correct_answer)))
+questions_bank_original_id_key: UNIQUE (original_id)
+questions_bank_parent_id_fkey: FOREIGN KEY (parent_id) REFERENCES questions_bank(id)
+questions_bank_pkey: PRIMARY KEY (id)

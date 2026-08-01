@@ -1,0 +1,82 @@
+[
+ {
+  "question_type": "calculation",
+  "source_type": "TEXTBOOK_ASSESSMENT",
+  "n": 15
+ },
+ {
+  "question_type": "case_study",
+  "source_type": "LECTURE_NOTE_ASSESSMENT",
+  "n": 258
+ },
+ {
+  "question_type": "case_study",
+  "source_type": "REAL_EXAM",
+  "n": 412
+ },
+ {
+  "question_type": "case_study",
+  "source_type": "TEXTBOOK",
+  "n": 112
+ },
+ {
+  "question_type": "case_study",
+  "source_type": "TEXTBOOK_ASSESSMENT",
+  "n": 662
+ },
+ {
+  "question_type": "case_study",
+  "source_type": "textbook_exercise",
+  "n": 515
+ },
+ {
+  "question_type": "diagram_interpretation",
+  "source_type": "TEXTBOOK_ASSESSMENT",
+  "n": 1
+ },
+ {
+  "question_type": "fill_in_blank",
+  "source_type": "TEXTBOOK_ASSESSMENT",
+  "n": 1
+ },
+ {
+  "question_type": "judgment",
+  "source_type": "TEXTBOOK_ASSESSMENT",
+  "n": 7
+ },
+ {
+  "question_type": "multi_choice",
+  "source_type": "REAL_EXAM",
+  "n": 193
+ },
+ {
+  "question_type": "multi_choice",
+  "source_type": "TEXTBOOK",
+  "n": 565
+ },
+ {
+  "question_type": "multi_choice",
+  "source_type": "textbook_exercise",
+  "n": 220
+ },
+ {
+  "question_type": "recall",
+  "source_type": "TEXTBOOK_ASSESSMENT",
+  "n": 1
+ },
+ {
+  "question_type": "single_choice",
+  "source_type": "REAL_EXAM",
+  "n": 442
+ },
+ {
+  "question_type": "single_choice",
+  "source_type": "TEXTBOOK",
+  "n": 924
+ },
+ {
+  "question_type": "single_choice",
+  "source_type": "textbook_exercise",
+  "n": 307
+ }
+]
