@@ -2303,3 +2303,122 @@ def test_live_lecture_pack_does_not_attach_quality_plan_mnemonic_to_unrelated_st
         return
     assert any(str(u.get("topic")) == "质量计划管理" for u in on_topic_ctx["units"])
     assert G.resolve_case_answer_method_for_render(unrelated) is None
+
+
+# ---------------------------------------------------------------------------
+# canonical431 slot 治理（Lane 2, 2026-08-01）
+# 注册 slot ≠ 授权 slot。本组守住「Lane 2 不翻授权」这条边界是**机器可证**的，
+# 不是口头承诺：即便有人把 LUBAN_CASE_RUBRIC_BANK_SLOT=canonical431 设上去，
+# 治理闸也必须拒装并回落 legacy，全程发声。
+# ---------------------------------------------------------------------------
+
+def test_canonical431_slot_is_registered_and_points_at_lane1_artifacts() -> None:
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    assert G._RUBRIC_BANK_SLOTS["canonical431"] == (
+        "v_case_rubric_scored_canonical431",
+        "case_rubric_scored_canonical431.json",
+    )
+    # 既有两个 slot 一字不动（注册是加法，不是改写）。
+    assert G._RUBRIC_BANK_SLOTS["legacy"] == ("v_case_rubric_scored", "case_rubric_scored.json")
+    assert G._RUBRIC_BANK_SLOTS["pgo"] == ("v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json")
+
+
+def test_canonical431_slot_refused_by_governance_gate_until_owner_authorizes() -> None:
+    """三道闸的前两道（manifest hash / pointer hash）已满足，第三道故意不满足。
+
+    ``production_authorized`` 是主控在 live 回归后才翻的开关；Lane 2 只接线。
+    这条断言在主控翻 true 那天会**红**——那正是它的作用：授权是一次显式动作，
+    必须有人来改这行测试并写下理由，而不是某个 PR 顺手把它带过去。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    bundle, reason = G._load_bank_slot("canonical431")
+    assert bundle is None
+    assert reason == "unauthorized", (
+        f"canonical431 必须卡在治理闸而不是完整性闸（reason={reason}）——"
+        "hash/pointer 类失败说明 Lane 1 的产物被改坏了"
+    )
+
+
+def test_canonical431_env_slot_falls_back_to_legacy_and_announces(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """未授权 slot 请求 → 回落 legacy + 身份发声 ``fallback_from:canonical431``。
+
+    这就是 slot 切换 runbook 里「翻 slot 但没翻授权」那一步的预期行为：判分不
+    中断、权威不静默替换、trace 上看得见。"""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "canonical431")
+    G._rubric_bank.cache_clear()
+    try:
+        bank = G._rubric_bank()
+        identity = G.active_bank_identity()
+        assert identity["slot"] == "legacy", "未授权 slot 必须回落到授权默认 slot"
+        assert identity["governance"] == "fallback_from:canonical431"
+        # 回落后 canonical 键在 legacy 库里恒不命中 → 接线面零命中（行为不变）。
+        assert bank.get("2024-case1::E1") is None
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_canonical431_bank_whitelist_carries_capping_fields() -> None:
+    """``official_total_score`` / ``nominal_authority_disputed`` / ``case_group_id``
+    必须穿过 ``_rubric_bank`` 的 by_q 白名单——白名单外的字段是**静默丢弃**的，
+    丢了这三个，逐问真实满分封顶与走样分母 fail-closed 就整线解除武装。"""
+    import json
+    from pathlib import Path
+
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    bank_path = (
+        Path(G.__file__).parent
+        / "runtime_supply"
+        / "v_case_rubric_scored_canonical431"
+        / "case_rubric_scored_canonical431.json"
+    )
+    records = json.loads(bank_path.read_text("utf-8"))["records"]
+    disputed = [r for r in records if r.get("nominal_authority_disputed")]
+    assert disputed, "Lane 1 声明的 2 组分母走样必须在记录上打了标"
+
+    # 直接跑 by_q 的投影逻辑（与 _rubric_bank 同一段代码路径，不复制断言）。
+    projected = G._project_bank_records_to_points(records[:1] + disputed[:1])
+    sample = projected[str(records[0]["qid"])][0]
+    assert sample["official_total_score"] == records[0]["official_total_score"]
+    assert sample["case_group_id"] == records[0]["case_group_id"]
+    assert sample["subquestion_index"] == records[0]["subquestion_index"]
+    disputed_point = projected[str(disputed[0]["qid"])][0]
+    assert disputed_point["nominal_authority_disputed"] is True
+
+
+def test_canonical431_bank_has_no_2022_records_and_keys_are_group_scoped() -> None:
+    """2022 全年隔离（佑森=补考卷、questions_bank=正考卷）+ 键形制 1-based。
+
+    这两条在编译期由 Lane 1 的 V3/V6 断言守住；这里是**运行时侧**的同一条不变量，
+    因为运行时才是真正会拿错卷答案去判分的地方。"""
+    import json
+    from pathlib import Path
+
+    from deeptutor.services.construction_grading import rubric_grader_v1 as G
+
+    bank_path = (
+        Path(G.__file__).parent
+        / "runtime_supply"
+        / "v_case_rubric_scored_canonical431"
+        / "case_rubric_scored_canonical431.json"
+    )
+    bundle = json.loads(bank_path.read_text("utf-8"))
+    records = bundle["records"]
+    assert records, "bank 不得为空"
+    assert not [r for r in records if str(r.get("case_group_id") or "").startswith("2022-")]
+    assert not [r for r in records if str(r.get("qid") or "").startswith("2022-")]
+    assert bundle["quarantined"], "2022 的点必须还在（隔离不是删除）"
+
+    for record in records:
+        qid = str(record["qid"])
+        assert qid == f"{record['case_group_id']}::E{record['subquestion_index']}"
+        assert int(record["subquestion_index"]) >= 1, "E 号必须 1-based（与 DB 同权威）"
+        # _question_group_key 必须走显式字段，不掉进 ::E(\d+) 正则兜底
+        assert G._question_group_key(
+            {"question_no": record["question_no"], "source_qid": qid}
+        ) == f"q{record['subquestion_index']}"

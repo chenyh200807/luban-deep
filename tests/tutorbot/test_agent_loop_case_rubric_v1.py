@@ -2388,3 +2388,129 @@ def test_narration_count_immune_to_cross_turn_wrapper() -> None:
     # 兜底路径（无 raw）也必须剥包装
     surface2 = AgentLoop._case_submission_surface({}, wrapped)
     assert "4 个小问" in AgentLoop._case_grading_live_preview_text(surface2)
+
+
+# ---------------------------------------------------------------------------
+# canonical431 tier-1 键原料的 ctx 导出（Lane 2, 2026-08-01）
+#
+# 判分核要构 ``{case_group_id}::E{n}``，原料只能从这里出。**索引来源必须可证**：
+# 只认 `_assemble_case_group_bundle` 从 DB 列 `case_subquestion_index` 投出来的
+# 那一族（`coverage="case_group_exact"`）。历史教训是硬的：拿题干正则解析出的
+# index 去对编译期 E 号，模拟建键命中 23/354、语义正确 **0** 条，全部错绑到相邻
+# 小问的 rubric —— 拿错采分点判分**且不报错**。
+# ---------------------------------------------------------------------------
+
+def _c431_group_paste_and_items(group_size: int = 4) -> tuple[str, list[dict]]:
+    bg = "【背景资料】某施工企业中标新建一办公楼工程，" + "施工过程描述。" * 30
+    items = [
+        {
+            "prompt": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+            "surface": bg + f"\n【问题】{i}. 第{i}问的完整提问内容是什么？",
+            "authoritative_answer": f"官方答案{i}",
+            "display_index": str(i),
+            "coverage": "case_group_exact",
+            "question_id": str(17370 + i),
+        }
+        for i in range(1, group_size + 1)
+    ]
+    paste = (
+        bg
+        + "".join(f"\n【问题】{i}. 第{i}问的完整提问内容是什么？" for i in range(1, group_size + 1))
+        + "\n我的答案：作答内容若干。"
+    )
+    return paste, items
+
+
+def test_build_v1_case_ctx_exports_canonical431_group_key_and_db_indexes() -> None:
+    """治理组取全 → 组键 + 全部 1-based DB 索引进 ctx，判分核据此逐问构键。"""
+    paste, items = _c431_group_paste_and_items()
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": items[0]["prompt"],
+            "correct_answer": "官方答案1",
+            "case_bundle_source": "group_query",
+            "case_group_id": "2023-case2",
+            "covered_subquestions": items,
+            "covered_indexes": ["1", "2", "3", "4"],
+        }
+    }
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_group_id"] == "2023-case2"
+    assert ctx["case_canonical_subquestion_indexes"] == [1, 2, 3, 4]
+
+
+def test_build_v1_case_ctx_canonical_indexes_reject_unprovable_index_provenance() -> None:
+    """`coverage != "case_group_exact"` 的条目**不许**构键。
+
+    这些条目的 display_index 出自题干正则解析 / `index+1` 序数，与编译期 E 号
+    没有共享权威。fail-closed：索引来源不可证 → 整条留空 → 判分核回落既有平查，
+    行为零变化。"""
+    paste, items = _c431_group_paste_and_items()
+    # 问 2、问 4 的索引来源不可证（模拟非组取全路径的 display_index）
+    for item in items:
+        if item["display_index"] in ("2", "4"):
+            item["coverage"] = "similarity_sibling"
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": items[0]["prompt"],
+            "correct_answer": "官方答案1",
+            "case_bundle_source": "group_query",
+            "case_group_id": "2023-case2",
+            "covered_subquestions": items,
+            "covered_indexes": ["1", "2", "3", "4"],
+        }
+    }
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_canonical_subquestion_indexes"] == [1, 3], (
+        "只有 DB case_subquestion_index 投出来的索引才许构键"
+    )
+    # 但参考答案覆盖面不受影响（本 lane 不改采纳逻辑，只加一条只读导出）。
+    assert ctx["case_reference_covered_count"] == 4
+
+
+def test_build_v1_case_ctx_canonical_keys_empty_without_group_id() -> None:
+    """无 case_group_id（库外题 / 整题行 / 老数据）→ 组键与索引集双空。
+
+    这是「接线对未覆盖场景零影响」的可证伪面：没有组键就没有 canonical 键，
+    判分核走的还是原来那条 ``ctx["question_id"]`` 平查。"""
+    paste, items = _c431_group_paste_and_items()
+    md = {
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "stem": items[0]["prompt"],
+            "correct_answer": "官方答案1",
+            "case_bundle_source": "single_row_fallback",
+            "covered_subquestions": items,
+        }
+    }
+    ctx = AgentLoop._build_v1_case_ctx(md, paste)
+    assert ctx["case_group_id"] == ""
+    assert ctx["case_canonical_subquestion_indexes"] == []
+
+    # 完全没有 exact_question 的自由粘贴轮同样双空。
+    ctx_free = AgentLoop._build_v1_case_ctx({}, paste)
+    assert ctx_free["case_group_id"] == ""
+    assert ctx_free["case_canonical_subquestion_indexes"] == []
+
+
+def test_canonical_key_hit_marker_is_registered_in_the_single_export_whitelist() -> None:
+    """``case_canonical_key_hit`` 必须进 CASE_GRADING_AUTHORITY_EXPORT_KEYS。
+
+    这组键此前散在三张互不同步的白名单里，live 实证「漏一张名单 = 该 sink 永久
+    0 命中」。marker 不上 sink，就没法回答「slot 切了到底有没有命中」。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+        copy_current_case_grading_turn_metadata,
+    )
+
+    assert "case_canonical_key_hit" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    assert "case_canonical_key_hit" in CASE_GRADING_TURN_METADATA_KEYS
+
+    target: dict = {}
+    copy_current_case_grading_turn_metadata(
+        {"question_lifecycle_scene": "case_grading", "case_canonical_key_hit": "4/4"}, target
+    )
+    assert target["case_canonical_key_hit"] == "4/4"

@@ -1712,3 +1712,259 @@ async def test_od005b_missing_own_stem_falls_back_to_slicing_then_to_no_stem(
         f"退化档不得顶替兄弟问题面：{[x[:30] for x in stems_seen[1:]]}"
     )
     assert event["awarded_score"] <= 2.51
+
+
+# ---------------------------------------------------------------------------
+# canonical431 tier-1 键接线（Lane 2, 2026-08-01）
+#
+# 治的病：tier-1 只按 ``ctx["question_id"]`` 平查一个字符串，而 canonical431 bank
+# 的键是 ``{case_group_id}::E{n}``——不接这条路径，库装上去命中率是 0
+# （Lane 1 §4.1 实证）。本组断言守住三件事：
+#   ①命中时逐问按**真实** nominal 封顶（不是「整题满分 ÷ 小问数」的均分）；
+#   ②未命中/未授权 slot 时**行为零变化**（可证伪：同一 ctx 两跑分数逐字段相等）；
+#   ③分母走样组（nominal_authority_disputed）fail-closed 剔除。
+# ---------------------------------------------------------------------------
+
+# 2024-case1 的真实分值分布（Lane 1 §3.2 实证）：5/4/4/3/4 —— 均分会给每问 4.0，
+# E1 少 1 分、E4 多 1 分。q4 的点池 6.0 > 满分 3.0，用来把「按真实满分封顶」
+# 与「按均分封顶」拉开可证伪的距离（3.0 vs 4.0）。
+_C431_NOMINALS = {1: 5.0, 2: 4.0, 3: 4.0, 4: 3.0, 5: 4.0}
+_C431_POOLS = {1: [2.5, 2.5], 2: [2.0, 2.0], 3: [2.0, 2.0], 4: [3.0, 3.0], 5: [2.0, 2.0]}
+
+
+def _c431_bank(group: str = "2024-case1", *, disputed: bool = False) -> dict[str, list[dict[str, Any]]]:
+    """按 canonical431 的记录形制造库（字段名与 by_q 白名单透传后的运行时 point 一致）。"""
+    bank: dict[str, list[dict[str, Any]]] = {}
+    for index, scores in _C431_POOLS.items():
+        bank[f"{group}::E{index}"] = [
+            {
+                "point_id": f"{group}::E{index}::p{seq}",
+                "text": f"{group} 问{index} 采分点{seq}",
+                "score": score,
+                "policy": "list",
+                "required_terms": [],
+                "question_no": index,
+                "subquestion_index": index,
+                "official_total_score": _C431_NOMINALS[index],
+                "official_total_score_authority": "training_org_analysis_yousen",
+                "case_group_id": group,
+                "source_schema": "luban_case_rubric_canonical431.v1",
+                **({"nominal_authority_disputed": True} if disputed else {}),
+            }
+            for seq, score in enumerate(scores, 1)
+        ]
+    return bank
+
+
+def _install_c431_fakes(
+    monkeypatch: pytest.MonkeyPatch,
+    bank: dict[str, list[dict[str, Any]]],
+    *,
+    hit_point_ids: set[str] | None = None,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [dict(p) for p in bank.get(str(qid), [])])
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {
+            str(p.get("point_id")): {
+                "status": (
+                    G.HIT
+                    if hit_point_ids is None or str(p.get("point_id")) in hit_point_ids
+                    else G.MISS
+                )
+            }
+            for p in points
+        }
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+
+def _c431_ctx(**overrides: Any) -> dict[str, Any]:
+    ctx: dict[str, Any] = {
+        "question_id": "17371",  # 平查键：canonical 命中时它必须**不被使用**
+        "user_answer": "问题1：…… 问题2：…… 问题3：…… 问题4：…… 问题5：……",
+        "question_stem": "【背景资料】某工程。\n问题1：A？",
+        "user_stem": "【背景资料】某工程。\n问题1：A？\n问题2：B？\n问题3：C？\n问题4：D？\n问题5：E？",
+        "correct_answer": "",
+        "case_group_id": "2024-case1",
+        "case_canonical_subquestion_indexes": [1, 2, 3, 4, 5],
+        "construction_grading_result": {"type": "case", "max_score": 20},
+    }
+    ctx.update(overrides)
+    return ctx
+
+
+@pytest.mark.asyncio
+async def test_canonical431_key_hit_caps_by_real_per_subquestion_nominal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """canonical 键命中 → 逐问按**真实** nominal 封顶（5/4/4/3/4，不是均分 4）。
+
+    可证伪判据：只命中问 4（点池 6.0）时，按真实满分封顶得 **3.0**；若代码退回
+    「整题 20 ÷ 5 问 = 4.0」的均分，同一输入会得 4.0。分母是**实际采纳小问的
+    真实满分之和** = 20.0（不是整题满分 × 覆盖比，那是双重缩放）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    bank = _c431_bank()
+    _install_c431_fakes(
+        monkeypatch, bank,
+        hit_point_ids={"2024-case1::E4::p1", "2024-case1::E4::p2"},
+    )
+    event = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+
+    assert event["event_type"] == "case_grading_completed"
+    assert event["rubric_provenance"] == "compiled_rubric"
+    # 命中发声：5 个小问全部按 canonical 键命中。
+    assert event["case_canonical_key_hit"] == "5/5"
+    # 逐问上限是真实值，不是均分 4.0 —— 这一行就是本 lane 的全部意义。
+    assert event["case_subq_score_caps"] == "q1:5.0,q2:4.0,q3:4.0,q4:3.0,q5:4.0"
+    assert "q4" in str(event.get("case_subq_score_capped") or ""), "问4 点池 6.0 必须被 3.0 封顶"
+    assert event["awarded_score"] == 3.0, (
+        f"只答对问4：真实满分封顶=3.0，均分封顶会给 4.0；实得 {event['awarded_score']}"
+    )
+    assert event["max_score"] == 20.0, "分母=Σ实际采纳小问的真实满分"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_full_hit_never_exceeds_paper_structure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """全中 = 20/20（卷面结构：2024 案例一 20 分），逐问封顶把 22.0 的点池压回 20.0。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank())
+    event = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+    assert event["awarded_score"] == 20.0
+    assert event["max_score"] == 20.0
+    assert event["case_canonical_key_hit"] == "5/5"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_partial_index_set_denominator_is_adopted_subquestions_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """只采纳 2 个小问时，分母 = 这 2 问的真实满分之和（4.0+3.0），不是整题 20。
+
+    scope_ratio 必须是 1.0：分母已经只算采纳的小问了，再乘一次覆盖比 = 双重缩放。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank())
+    event = await _grade_one_case_v1(
+        _c431_ctx(case_canonical_subquestion_indexes=[2, 4]),
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["case_canonical_key_hit"] == "2/2"
+    assert event["case_subq_score_caps"] == "q2:4.0,q4:3.0"
+    assert event["max_score"] == 7.0
+    assert event["awarded_score"] == 7.0
+    assert event["scoring_scope_max"] == 7.0, "scope_ratio 必须是 1.0，不得二次缩放"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_disputed_nominal_is_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """分母走样组（2024-case3 Σ=22 vs 卷面 20；2025-case5 Σ=28.5 vs 30）必须整问剔除。
+
+    走样的满分去封顶比不封顶更危险 —— fail-closed 退回旧路径，并把剔除量发声
+    （``0/5:disputed5``），否则「拒用」和「没这个库」长得一模一样。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank(disputed=True))
+    event = await _grade_one_case_v1(
+        _c431_ctx(question_id=""),  # 平查也查不到 → 走 tier2/3
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event.get("case_canonical_key_hit") == "0/5:disputed5"
+    assert event.get("case_subq_score_caps") is None or "q1:5.0" not in str(
+        event.get("case_subq_score_caps")
+    ), "被拒的分母不得进封顶表"
+    assert event.get("rubric_provenance") != "compiled_rubric", "拒用后必须退回非 tier-1"
+    # 拒用 marker 必须在**降级返回**上也带出来（没有 marker 的降级等于没发生过）。
+    assert event.get("status") in ("unavailable", "no_reference", "degraded")
+
+    # 纯函数层同一条不变量：走样组一个点都不许进封顶链。
+    from deeptutor.capabilities.deep_question import _canonical_case_rubric_lookup
+
+    points, caps, marker = _canonical_case_rubric_lookup(_c431_ctx(), G)
+    assert (points, caps, marker) == ([], {}, "0/5:disputed5")
+
+
+@pytest.mark.asyncio
+async def test_canonical431_unauthorized_slot_is_byte_identical_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """未授权 slot（legacy/pgo 在服）下行为**逐字节不变**。
+
+    可证伪构造：同一份 ctx 跑两次，一次带 canonical 组键与索引集，一次完全不带；
+    库里只有平查键 ``17371``（模拟 legacy bank——canonical 键在它里面恒不命中）。
+    两次的分数三字段必须逐字段相等，且不得出现 canonical marker。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    legacy_bank = {
+        "17371": [
+            {"point_id": "L1", "text": "legacy 采分点1", "score": 5.0, "policy": "list",
+             "required_terms": []},
+            {"point_id": "L2", "text": "legacy 采分点2", "score": 5.0, "policy": "list",
+             "required_terms": []},
+        ]
+    }
+    _install_c431_fakes(monkeypatch, legacy_bank)
+
+    with_keys = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+    without = await _grade_one_case_v1(
+        _c431_ctx(case_group_id="", case_canonical_subquestion_indexes=[]),
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+
+    assert "case_canonical_key_hit" not in without
+    # 组键在场但 canonical 键在 legacy 库里零命中 → marker 记 0/5（可观测的失败信号），
+    # 但**分数一个字节都不许动**。
+    assert with_keys.get("case_canonical_key_hit") == "0/5"
+    for field in ("awarded_score", "max_score", "rubric_provenance"):
+        assert with_keys.get(field) == without.get(field), (
+            f"未命中时 {field} 必须与不带组键的旧路径逐字相等："
+            f"{with_keys.get(field)} != {without.get(field)}"
+        )
+    # tier-1 未走 canonical 分母时，仍然不进 finalize（既有法条不变）。
+    assert "scoring_scope_max" not in without
+
+
+@pytest.mark.asyncio
+async def test_canonical431_2022_group_is_unreachable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """2022 组不可命中：佑森抽的是**补考卷**、questions_bank 是**正考卷**，
+    110 点已在编译期隔离。这里守的是运行时侧的同一条不变量——即便 ctx 带着
+    2022 组键，逐问查库也必须查不到，绝不能拿错卷答案判分。"""
+    from deeptutor.capabilities.deep_question import _canonical_case_rubric_lookup
+
+    bank = _c431_bank()  # 2024-case1；2022 键一个都没有（编译期隔离的运行时体现）
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [dict(p) for p in bank.get(str(qid), [])])
+    points, caps, marker = _canonical_case_rubric_lookup(
+        {"case_group_id": "2022-case1", "case_canonical_subquestion_indexes": [1, 2, 3]}, G
+    )
+    assert points == [] and caps == {}
+    assert marker == "0/3", "零命中必须发声，不能静默"
+
+
+def test_canonical431_lookup_is_pure_and_fail_closed_without_provable_indexes() -> None:
+    """无组键 / 无索引集 / 索引不可解析 → 一次库都不查，返回空（调用方回落平查）。"""
+    from deeptutor.capabilities.deep_question import _canonical_case_rubric_lookup
+
+    calls: list[str] = []
+
+    class _Spy:
+        @staticmethod
+        def load_rubric(qid: str) -> list[dict[str, Any]]:
+            calls.append(qid)
+            return []
+
+    for ctx in (
+        {},
+        {"case_group_id": "2024-case1"},
+        {"case_group_id": "", "case_canonical_subquestion_indexes": [1, 2]},
+        {"case_group_id": "2024-case1", "case_canonical_subquestion_indexes": []},
+        {"case_group_id": "2024-case1", "case_canonical_subquestion_indexes": ["", "x", "0", "-1"]},
+    ):
+        assert _canonical_case_rubric_lookup(ctx, _Spy) == ([], {}, "")
+    assert calls == [], f"不可证的索引集绝不许构键查库，实际查了 {calls}"
