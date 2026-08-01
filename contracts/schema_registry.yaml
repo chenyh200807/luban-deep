@@ -681,11 +681,11 @@ tier2_canonical_contracts:
     needs_field_canonicalization: true   # FIELD TODO: candidate bank record fields are validated by validate_pgo_runtime_supply; full canonical field pinning can follow once PGO lane is promoted
 
   - name: luban_case_rubric_canonical431.v1
-    status: release_candidate
+    status: runtime_canonical
     owner: construction_grading
-    canonical_for: canonical-431 case-rubric bank (per-point real scores + per-subquestion nominal, keyed case_group_id::E{n}; production_authorized=false until tier-1 wiring + live regression)
+    canonical_for: canonical-431 case-rubric runtime supply bank (per-point real scores + per-subquestion nominal, keyed case_group_id::E{n}); hash-pinned by canonical_pointer, production_authorized=false until Lane-2 tier-1 wiring passes live regression
     module: scripts/build_luban_canonical431_bank.py
-    consumed_by: pending (Lane-2 tier-1 wiring; pointer draft only, no runtime reader yet)
+    consumed_by: deeptutor/services/construction_grading/rubric_grader_v1.py::_load_bank_slot (existing slot loader; slot not yet selected/authorized — same gating precedent as luban_case_rubric_scored_pgo.v1)
     needs_field_canonicalization: true
 
   - name: luban_lecture_answer_skill_pack.v1
