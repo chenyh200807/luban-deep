@@ -467,7 +467,7 @@ def test_record_usage_keeps_charged_provider_and_api_base() -> None:
             "requested_provider_name": "deepseek",
             "api_base": "https://api.deepseek.com",
             "effective_url": "https://api.deepseek.com",
-            "api_key_fingerprint": "sha256:synthetic",
+            "api_key_fingerprint": "sha256:synthetic",  # pragma: allowlist secret
             "runtime_environment": "production",
             "cost_center": "prod_user_chat",
             "billable_unit": "conversation_turn",
