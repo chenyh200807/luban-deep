@@ -1132,6 +1132,11 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> tuple[bool, str]:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # 提交面收权（2026-08-01 清剿）：本闸的语义主语是「学生**这轮**声明的答案字母」。
+        # finalize 链四个调用点一律传组装后的 current_message，包装里旧轮的「我选ABC」
+        # 会被抽成本轮 claim → 对着上一题的字母吐「我不能确认或否定 A、B、C」。
+        # 收在闸内部而不是调用侧：新增调用点不会再漏。
+        user_message = cls._case_submission_surface(metadata, user_message)
         if not metadata.get("rag_retrieval_degraded"):
             return False, ""
         if cls._has_authoritative_exact_question(metadata):
@@ -1184,6 +1189,9 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> str:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        # 提交面收权（2026-08-01 清剿）：同 _should_guard_degraded_exact_answer_claim，
+        # 主语=学生这轮真实提交，不是 turn_runtime 组装出来的 current_message。
+        user_message = cls._case_submission_surface(metadata, user_message)
         if not metadata.get("rag_retrieval_degraded"):
             return ""
         if cls._has_authoritative_exact_question(metadata):
@@ -1430,9 +1438,12 @@ class AgentLoop:
             return False
         if cls._has_authoritative_exact_question(metadata):
             return False
+        # 提交面收权（2026-08-01 清剿）：抑制流式与否的主语=学生这轮真实提交。
+        # 面错了会让纯案例轮因包装里的旧字母声明被误抑制（用户看不到吐字）。
+        surface = cls._case_submission_surface(metadata, user_message)
         return bool(
-            cls._extract_answer_letter_claim(user_message)
-            or looks_like_free_text_mcq_grading_request(user_message)
+            cls._extract_answer_letter_claim(surface)
+            or looks_like_free_text_mcq_grading_request(surface)
         )
 
     @classmethod
@@ -2619,13 +2630,13 @@ class AgentLoop:
                 f"这道案例题我已经进入逐采分点批改，会按 {count} 个小问逐一核对。\n\n"
                 "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
             )
-        question_titles = re.findall(r"(?:^|\n)\s*(\d+)\s*[.．、]\s*([^\n？?]{2,40}[？?]?)", user_stem)
-        if question_titles:
-            count = min(len(question_titles), 8)
-            return (
-                f"这道案例题我已经进入逐采分点批改，会按 {count} 个小问逐一核对。\n\n"
-                "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
-            )
+        # #641 收权后残留的**第二把尺子**已删除（2026-08-01 清剿）。
+        # 实测分叉（非推断）：权威 `_extract_case_question_titles` 的序号闸是
+        # `[1-9]\d{0,1}` 且 idx<=30，删掉的 fallback 用的是裸 `\d+` —— 题面为
+        # `31./32./33.` 时权威返回 0、fallback 返回 3；`01./02.` 时权威 0、fallback 2。
+        # 即开场白会报一个**判分分母根本不会用**的数字，正是 #641 要治的"同一事实
+        # 两把尺子"从 fallback 分支复发。
+        # 权威数不出来时**不报数**：报一个错数比不报数坏，也绝不用一把更宽松的尺子兜底。
         return (
             "这道案例题我已经进入逐采分点批改。\n\n"
             "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
@@ -2651,7 +2662,13 @@ class AgentLoop:
         # pinned case_grading, fall through to the generation path instead of emitting the
         # no-authority "把标准答案/采分点发来" template — which a student can never satisfy for
         # a case the bot itself authored, deadlocking "出新题". (S4 forward-reachability.)
-        if looks_like_practice_generation_request(current_message) and not (
+        # 提交面收权（2026-08-01 清剿，task#23）：这个判据的主语是「学生**这轮**在要新题」，
+        # 而 looks_like_practice_generation_request 是纯子串测试（"下一题"/"出题"/"再来一道"…）。
+        # 拿组装后的 current_message 去测，包装里注入的旧题干/解析/工作记忆投影只要出现任一
+        # marker，整卷提交就被踢出直批判分链——今天在杀的同一张脸。
+        if looks_like_practice_generation_request(
+            self._case_submission_surface(runtime_metadata, current_message)
+        ) and not (
             case_grading_score_authority_available(runtime_metadata)
         ):
             return None
@@ -2713,8 +2730,11 @@ class AgentLoop:
                     # 身份检索只喂题干：live 实证整段粘贴（题干+作答）会让 shape 分类
                     # 与文本匹配被作答噪声污染（作答里的①②/字母行像选项）。作答不参与
                     # 「这是哪道题」的裁决——身份匹配的 original_query 也用题干。
+                    _probe_surface = self._case_submission_surface(
+                        runtime_metadata, current_message
+                    )
                     _probe_stem, _probe_answer = self._split_case_grading_submission(
-                        self._case_submission_surface(runtime_metadata, current_message)
+                        _probe_surface
                     )
                     # 逐跳 surface 插桩（2026-08-01，codex 兄弟行方案 §5.4 最小先手）：
                     # 定位「同题面不同作答走不同判分通道」与「幽灵小问」两条未解病。
@@ -2725,10 +2745,13 @@ class AgentLoop:
                     ).hexdigest()[:12]
                     runtime_metadata["case_probe_stem_len"] = len((_probe_stem or "").strip())
                     runtime_metadata["case_probe_answer_len"] = len((_probe_answer or "").strip())
+                    # 提交面收权（2026-08-01 清剿）：同函数的 stem/answer 探针已在 #642 收到
+                    # surface，唯独 marker 计数还在数组装面——探针是「同题面不同作答走不同
+                    # 通道」的判别位，面不对＝观测说谎（把包装里旧作答的标记数进本轮）。
                     runtime_metadata["case_probe_marker_count"] = len(
                         re.findall(
                             CASE_ANSWER_MARKER_PATTERN,
-                            str(current_message or ""),
+                            _probe_surface,
                             flags=re.IGNORECASE,
                         )
                     )
@@ -2840,6 +2863,10 @@ class AgentLoop:
         # Defensive: when V1 already produced the authoritative grade, never demote it.
         if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
             return ""
+        # 提交面收权（2026-08-01 清剿）：本函数两个消费点（出题意图判据、诊断兜底文案）
+        # 的主语都是「学生这轮真实提交」。finalize 链四个调用点一律传组装后的
+        # current_message —— 包装里的"下一题/出题"会让判分降级模板被静默跳过（B1 的镜像）。
+        user_message = AgentLoop._case_submission_surface(runtime_metadata, user_message)
         # A practice-generation turn produces a NEW question, never a grade. The no-authority
         # case template must not clobber it — otherwise "再出一道新题" gets overwritten with a
         # demand for ground truth the bot itself authored (deadlock). Fall through to whatever

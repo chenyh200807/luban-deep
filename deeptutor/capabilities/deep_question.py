@@ -139,6 +139,33 @@ def _compact_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
+def _submission_surface(context: Any) -> str:
+    """本能力的「学生这轮真实提交」单一来源（2026-08-01 尺与面收权清剿）。
+
+    ``context.user_message`` 是 turn_runtime 组装出来的信封（
+    ``[Attached Documents]`` / ``[Notebook Context]`` / ``[History Context]`` /
+    ``[User Question]``，见 services/session/turn_runtime.py:5891-5907），随账号历史
+    逐轮变化；``context.metadata['raw_user_message']`` 才是本轮学生真的发了什么。
+
+    口径与 ``AgentLoop._case_submission_surface`` **逐字一致**，剥离器直接复用同一实现
+    （懒导入，避免 tutorbot↔capabilities 顶层环；不再造第二个剥离器）：
+    raw_user_message → ``[User Question]`` 段 → 原串兜底。
+    """
+    metadata = getattr(context, "metadata", None)
+    metadata = metadata if isinstance(metadata, dict) else {}
+    raw = str(metadata.get("raw_user_message") or "").strip()
+    if raw:
+        return raw
+    assembled = str(getattr(context, "user_message", "") or "")
+    try:
+        from deeptutor.tutorbot.agent.loop import AgentLoop  # noqa: WPS433
+
+        extracted = AgentLoop._extract_current_user_question_section(assembled)
+    except Exception:  # noqa: BLE001 — 剥离器不可用时按"拿不到更干净的面"处理
+        extracted = ""
+    return (extracted or assembled).strip()
+
+
 def _requests_current_question_exclusion(topic: str) -> bool:
     normalized = _compact_text(topic).lower()
     return bool(normalized and _CURRENT_QUESTION_EXCLUSION_RE.search(normalized))
@@ -3902,8 +3929,10 @@ def _maybe_attach_general_knowledge_context(
             "student_id": student_id,
             "weak_codes": _learner_weak_canonical_codes({}),
         }
+        # 提交面收权（2026-08-01 清剿）：教学包解析的主语是「学生这轮问了什么」，
+        # 不是组装信封——跨轮 [History Context] 会把上一轮的话题解析成本轮教学包。
         pack = resolve_general_knowledge_context(
-            str(getattr(context, "user_message", "") or ""),
+            _submission_surface(context),
             learner_context=learner_context,
         )
         if pack is not None:
@@ -4416,9 +4445,10 @@ class DeepQuestionCapability(BaseCapability):
         selected_mode = str(context.metadata.get("selected_mode") or "").strip().lower()
         allow_legacy_followup_fallback = semantic_router_mode != "primary"
         next_action = str(turn_semantic_decision.get("next_action") or "").strip()
-        raw_user_message = str(
-            context.metadata.get("raw_user_message") or context.user_message or ""
-        ).strip()
+        # 提交面收权（2026-08-01 清剿）：旧写法缺 `[User Question]` 剥离器这一跳——
+        # metadata 缺 raw_user_message 的入口（非 turn_runtime 通道）会静默退回组装信封。
+        # 收敛到与 AgentLoop._case_submission_surface 同一口径的三段回退。
+        raw_user_message = _submission_surface(context)
         if next_action == "ask_clarifying_question":
             await self._emit_turn_semantic_clarification(
                 stream=stream,
@@ -4684,7 +4714,10 @@ class DeepQuestionCapability(BaseCapability):
                 turn_semantic_decision=turn_semantic_decision,
                 followup_action=followup_action,
                 question_context=followup_question_context,
-                user_message=context.user_message,
+                # 提交面收权（2026-08-01 清剿）：同一分支的兄弟调用（上下各一处）早已用
+                # raw_user_message，唯独这行还喂组装信封。该判据的 marker 集含裸 "?" 与
+                # "为什么"——挂了 [History Context] 之后它实际恒真。
+                user_message=raw_user_message,
             ):
                 await self._emit_followup_result(
                     stream=stream,
@@ -4750,7 +4783,11 @@ class DeepQuestionCapability(BaseCapability):
                 return
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
-        raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
+        # 提交面收权（2026-08-01 清剿）：raw_topic 下游喂 8 个判据（域门、锚点排除、
+        # 出题意图、轻量 topic 门…）。contract §出题考点单一 decider 明写「`考(...)` 标签
+        # 提取器只许喂**单条用户消息**，禁喂 transcript / history 拼接文本」——旧写法
+        # 退回 context.user_message 时喂的正是拼接文本，与该条款字面冲突。
+        raw_topic = str(overrides.get("topic") or "").strip() or _submission_surface(context)
         current_question_exclusion = _requests_current_question_exclusion(raw_topic)
         # WP4：唯一 topic decider。join 顺序=旧→新（memory→跨能力上下文→对话尾部），
         # 配合 anchor 的尾部截取，锚点永远落在最新对话上。
