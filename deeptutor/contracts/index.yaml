@@ -685,6 +685,10 @@ domains:
       # 方案 C / C3 题级组取全（contracts/rag.md 45）：seed 不变量 + 冲突洞
       # fail-closed + whole_question 零组查询 + 无组键零回归 + lean 共存。
       - tests/services/rag/test_case_group_bundle.py
+      # 供给层软删收权（contracts/rag.md 47）：questions_bank REST 单一谓词
+      # 构造点(_select 注入 retired_at=is.null，可证伪) + RPC/库内读者 9 对象
+      # migration 穷举钉子 + 组卷通道谓词。
+      - tests/services/rag/test_questions_bank_soft_delete_filter.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 

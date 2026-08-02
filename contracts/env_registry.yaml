@@ -167,6 +167,14 @@ feature_flags:
   # rubric_grader_v1.grade_with_batch_judge_async; 默认 OFF(opt-in): 新缓存默认 ON 会在
   # 配好 Valkey URL 之前就静默改判分重放语义(含 eval 与阶段观测)。翻 1 = 启用。
   - {name: LUBAN_GRADING_RESULT_CACHE, default: false, kind: rollout, read: hand_rolled}
+  # questions_bank 软删读侧过滤(task#31, contracts/rag.md §47)。开 = 全部生产读者
+  # 的 PostgREST 查询注入 retired_at=is.null; 关(默认) = 不注入, 逐字节现行为。
+  # **默认 OFF 是立法不是疏忽**: 本轮无 writer, retired_at 上线后全表恒 NULL,
+  # 过滤与不过滤结果集相同 → OFF 无损, 且让代码可以先于 DDL 安全上线(谓词打在
+  # 尚未存在的列上 PostgREST 整条返 400 = 题库检索全断)。翻 ON 的正确窗口 =
+  # migration 20260802000100 执行之后、首个退役批写入之前。fail-closed(拒绝
+  # 覆写谓词读退役行)与旗标无关, 始终生效。
+  - {name: LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER, default: false, kind: rollout, read: env_flag}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON, default: false, kind: dev, read: hand_rolled}
