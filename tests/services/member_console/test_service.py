@@ -3272,6 +3272,72 @@ def test_member_console_overlay_promotion_apply_uses_real_services_and_audits_sk
     assert audit["after"]["skipped"][0]["reasons"] == ["missing_promotion_basis"]
 
 
+def _member_console_with_real_overlay(tmp_path: Path):
+    """真 overlay service + 真 member console（不 mock 掉出处强制这一层）。"""
+    from deeptutor.services.learner_state.overlay_service import BotLearnerOverlayService
+
+    class PathServiceStub:
+        @property
+        def project_root(self):
+            return tmp_path
+
+        def get_learner_state_root(self):
+            path = tmp_path / "learner_state"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+        def get_learner_state_outbox_db(self):
+            return tmp_path / "runtime" / "outbox.db"
+
+    overlay_service = BotLearnerOverlayService(path_service=PathServiceStub())
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._get_overlay_service = lambda: overlay_service  # type: ignore[method-assign]
+    return service, overlay_service
+
+
+def test_member_console_overlay_stamps_admin_working_memory_provenance(tmp_path: Path) -> None:
+    """task#32：member console（member.py / bi.py 两条路由的同一入口）也必须盖章。"""
+    service, overlay_service = _member_console_with_real_overlay(tmp_path)
+
+    service.patch_member_overlay(
+        "student_demo",
+        "review-bot",
+        [{"op": "set", "field": "working_memory_projection", "value": "运营手工修正的记忆"}],
+        operator="ops_admin",
+    )
+
+    effective = overlay_service.read_overlay("review-bot", "student_demo")["effective_overlay"]
+    assert effective["working_memory_projection"] == "运营手工修正的记忆"
+    provenance = effective["working_memory_provenance"]
+    assert provenance["source_kind"] == "admin_override"
+    assert provenance["actor"] == "ops_admin"
+    assert provenance["source_event_type"] == "member_console_overlay"
+    # 反向断言：写入没有被静默丢弃（原假成功形态）
+    rejected = overlay_service.list_overlay_events(
+        "review-bot", "student_demo", event_type="overlay_working_memory_rejected"
+    )
+    assert rejected == []
+
+
+def test_member_console_overlay_rejects_working_memory_without_operator(tmp_path: Path) -> None:
+    """拿不到操作者身份 → ValueError（member.py / bi.py 均转 400），不静默丢弃。"""
+    service, overlay_service = _member_console_with_real_overlay(tmp_path)
+
+    with pytest.raises(ValueError) as excinfo:
+        service.patch_member_overlay(
+            "student_demo",
+            "review-bot",
+            [{"op": "set", "field": "working_memory_projection", "value": "无主写入"}],
+            operator="",
+        )
+
+    assert "authenticated actor" in str(excinfo.value)
+    # 整条 patch 未落地：既没写记忆，也没留半截状态
+    effective = overlay_service.read_overlay("review-bot", "student_demo")["effective_overlay"]
+    assert effective["working_memory_projection"] == ""
+
+
 @pytest.mark.asyncio
 async def test_bind_phone_for_wechat_does_not_merge_financial_balance(tmp_path: Path) -> None:
     service = MemberConsoleService()

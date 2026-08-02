@@ -3,7 +3,12 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
-from deeptutor.services.learner_state.overlay_service import BotLearnerOverlayService
+import pytest
+
+from deeptutor.services.learner_state.overlay_service import (
+    BotLearnerOverlayService,
+    stamp_admin_working_memory_provenance,
+)
 
 
 class _PathServiceStub:
@@ -715,3 +720,113 @@ def test_record_working_memory_rejection_is_visible_in_events_and_audit(tmp_path
     assert events[0]["turn_id"] == "turn-77"
     audit = service.list_overlay_audit("bot_alpha", "student_demo")
     assert any(item["event_type"] == "overlay_working_memory_rejected" for item in audit)
+
+
+# --- admin 边界盖章（出处强制不是"禁止 admin 写"，是"admin 写也要可回溯"）---
+
+
+def test_stamp_admin_provenance_only_touches_nonempty_working_memory_sets() -> None:
+    operations = [
+        {"op": "set", "field": "working_memory_projection", "value": "运营手工修正的记忆"},
+        {"op": "set", "field": "working_memory_projection", "value": "   "},
+        {"op": "clear", "field": "working_memory_projection"},
+        {"op": "merge", "field": "local_focus", "value": {"topic": "foundation"}},
+    ]
+
+    stamped = stamp_admin_working_memory_provenance(
+        operations, actor="admin_zhang", surface="tutor_state_admin_overlay"
+    )
+
+    assert stamped[0]["provenance"] == {
+        "turn_id": "admin:admin_zhang",
+        "source_kind": "admin_override",
+        "source_event_type": "tutor_state_admin_overlay",
+        "actor": "admin_zhang",
+    }
+    # 空写 / clear / 其它字段一律原样透传，不被盖章
+    assert "provenance" not in stamped[1]
+    assert "provenance" not in stamped[2]
+    assert stamped[3] == {"op": "merge", "field": "local_focus", "value": {"topic": "foundation"}}
+    # 不得就地改调用方的 list
+    assert "provenance" not in operations[0]
+
+
+def test_stamp_admin_provenance_raises_when_actor_is_unresolved() -> None:
+    """拿不到身份宁可显式报错（各入口转 4xx），也不静默丢弃——静默 + 200 = 假成功。"""
+    for actor in ("", "   ", None):
+        with pytest.raises(ValueError) as excinfo:
+            stamp_admin_working_memory_provenance(
+                [{"op": "set", "field": "working_memory_projection", "value": "无主写入"}],
+                actor=actor,
+                surface="member_console_overlay",
+            )
+        assert "authenticated actor" in str(excinfo.value)
+        assert "member_console_overlay" in str(excinfo.value)
+
+
+def test_stamp_admin_provenance_allows_other_ops_without_actor() -> None:
+    """只有 working_memory 写需要 actor：其余 admin 运维 op 不受影响。"""
+    stamped = stamp_admin_working_memory_provenance(
+        [{"op": "clear", "field": "local_focus"}], actor="", surface="admin"
+    )
+    assert stamped == [{"op": "clear", "field": "local_focus"}]
+
+
+def test_admin_stamped_write_lands_with_admin_override_provenance(tmp_path) -> None:
+    """端到端：admin 盖章后的写入真的入记，且出处能查到是谁改的。"""
+    service = _make_service(tmp_path)
+    operations = stamp_admin_working_memory_provenance(
+        [{"op": "set", "field": "working_memory_projection", "value": "运营手工修正的记忆"}],
+        actor="admin_zhang",
+        surface="tutor_state_admin_overlay",
+    )
+
+    overlay = service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {"operations": operations},
+        source_feature="admin_overlay",
+        source_id="admin_zhang",
+    )
+
+    assert overlay["effective_overlay"]["working_memory_projection"] == "运营手工修正的记忆"
+    provenance = overlay["effective_overlay"]["working_memory_provenance"]
+    assert provenance["source_kind"] == "admin_override"
+    assert provenance["actor"] == "admin_zhang"
+    assert provenance["turn_id"] == "admin:admin_zhang"
+    assert provenance["written_at"]
+    # 关键反向断言：admin 写不再被静默丢弃（原假成功形态）
+    assert not [
+        item
+        for item in _wm_events(tmp_path)
+        if item["event_type"] == "overlay_working_memory_rejected"
+    ]
+
+
+def test_admin_stamped_write_is_visible_to_audit_script(tmp_path) -> None:
+    """审计通道可见性（owner 纪律：交付必须可感知）。"""
+    from scripts.audit_working_memory import collect_rows
+
+    service = _make_service(tmp_path)
+    service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {
+            "operations": stamp_admin_working_memory_provenance(
+                [{"op": "set", "field": "working_memory_projection", "value": "运营手工修正的记忆"}],
+                actor="admin_zhang",
+                surface="member_console_overlay",
+            )
+        },
+        source_feature="member_console_overlay",
+        source_id="admin_zhang",
+    )
+
+    rows = collect_rows(tmp_path / "learner_state" / "bot_overlays")
+
+    assert len(rows) == 1
+    assert rows[0]["provenance_source_kind"] == "admin_override"
+    assert rows[0]["provenance_turn_id"] == "admin:admin_zhang"
+    assert rows[0]["provenance_actor"] == "admin_zhang"
+    assert rows[0]["legacy_no_provenance"] is False
+    assert rows[0]["rejected_count"] == 0

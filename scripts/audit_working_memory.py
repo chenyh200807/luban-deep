@@ -91,6 +91,8 @@ def collect_rows(root: Path) -> list[dict[str, Any]]:
                 "provenance_turn_id": str(provenance.get("turn_id") or ""),
                 "provenance_source_kind": str(provenance.get("source_kind") or ""),
                 "provenance_written_at": str(provenance.get("written_at") or ""),
+                # admin 边界盖章的写入带 actor：能查到是**谁**改的（比 turn_id 更有审计价值）
+                "provenance_actor": str(provenance.get("actor") or ""),
                 "legacy_no_provenance": legacy,
                 "rejected_count": len(rejections),
                 "last_rejection_reason": str(last_rejection.get("reason") or ""),
@@ -158,6 +160,9 @@ def main() -> int:
         f"overlays={total}  有记忆={len(with_memory)}  带出处={len(with_provenance)}  "
         f"LEGACY无出处={len(legacy)}  拒入事件={rejected_total}"
     )
+    admin_writes = [r for r in with_memory if r["provenance_source_kind"] == "admin_override"]
+    if admin_writes:
+        print(f"其中 admin 手工写入={len(admin_writes)}（source_kind=admin_override，actor 可查）")
     print("-" * 118)
     header = f"{'user':<20} {'bot':<14} {'出处turn_id':<28} {'写入时间':<26} {'拒入':>4}  内容摘要"
     print(header)

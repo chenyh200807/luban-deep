@@ -78,8 +78,10 @@ _WM_PROVENANCE_PASSTHROUGH_KEYS = (
     "session_id",
     "capability",
     "source_bot_id",
+    "actor",
 )
 _WM_REJECTED_EVENT_TYPE = "overlay_working_memory_rejected"
+_WM_ADMIN_SOURCE_KIND = "admin_override"
 _DEFAULT_OVERLAY_MAX_AGE_HOURS = 72
 _PROMOTION_BASIS_VALUES = {
     "structured_result",
@@ -120,6 +122,52 @@ def _coerce_datetime(value: Any) -> datetime | None:
 def _normalize_key(value: str) -> str:
     normalized = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(value or "").strip())
     return normalized.strip("._") or "unknown"
+
+
+def stamp_admin_working_memory_provenance(
+    operations: list[dict[str, Any]],
+    *,
+    actor: str,
+    surface: str,
+) -> list[dict[str, Any]]:
+    """Admin 边界盖章：把出处补在**入口**，而不是要求调用方记得带。
+
+    出处强制的立法目的是「每条记忆可回溯」，不是「禁止 admin 写」——admin 写入是
+    合法业务动作，边界盖章同时满足两者，且出处质量更高（能查到是**谁**改的）。
+
+    - 只对非空 ``working_memory_projection`` set 盖章，其余 op 原样透传。
+    - 拿不到 actor 身份时 **显式 ValueError**（各入口已统一转 4xx），绝不静默丢弃：
+      静默丢弃 + HTTP 200 = 假成功，是本项目反复吃亏的形态。
+    - 该函数是 admin 面盖章的唯一实现，两个 admin 入口（tutor_state PATCH /
+      member_console patch_member_overlay，后者覆盖 member.py 与 bi.py 两条路由）
+      必须复用它，不得各写一份。
+    """
+    normalized_actor = str(actor or "").strip()
+    normalized_surface = str(surface or "").strip() or "admin"
+    stamped: list[dict[str, Any]] = []
+    for operation in list(operations or []):
+        item = dict(operation) if isinstance(operation, dict) else {}
+        field = str(item.get("field", "") or "").strip()
+        op = str(item.get("op", "") or "").strip()
+        if field != _WORKING_MEMORY_FIELD or op != "set":
+            stamped.append(item)
+            continue
+        if not str(item.get("value") or "").strip():
+            stamped.append(item)
+            continue
+        if not normalized_actor:
+            raise ValueError(
+                "working_memory_projection write requires an authenticated actor: "
+                f"{normalized_surface} could not resolve one"
+            )
+        item["provenance"] = {
+            "turn_id": f"admin:{normalized_actor}",
+            "source_kind": _WM_ADMIN_SOURCE_KIND,
+            "source_event_type": normalized_surface,
+            "actor": normalized_actor,
+        }
+        stamped.append(item)
+    return stamped
 
 
 def _empty_overlay(bot_id: str, user_id: str) -> dict[str, Any]:
@@ -1135,4 +1183,5 @@ def get_bot_learner_overlay_service() -> BotLearnerOverlayService:
 __all__ = [
     "BotLearnerOverlayService",
     "get_bot_learner_overlay_service",
+    "stamp_admin_working_memory_provenance",
 ]
