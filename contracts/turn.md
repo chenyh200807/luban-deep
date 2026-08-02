@@ -125,7 +125,8 @@
   - 语义主语确实是整段信封的消费点（注入上下文只消毒不拦的 `sanitize_untrusted_context`、纯观测标签、跨轮术语归一化、skill 预装）属于合法豁免，但必须在 `tests/tutorbot/test_surface_authority_registry.py` 显式登记并写明理由——豁免要具名，不许沉默。
   - 同一事实只许一把尺子：小问计数=`rubric_grader_v1._extract_case_question_titles`（经 `_extract_case_question_titles_for_scope`）、作答标记=`CASE_ANSWER_MARKER_PATTERN`、分数写者=`finalize_case_score`。权威数不出来时**不报数**，禁止用"更宽松的 fallback 正则"兜底——报一个判分分母不会用的数字比不报数坏。
   - 违反本条的代价是**离线复现不出来**的生产事故：信封随账号历史逐轮变化，用干净存档跑 eval 永远绿。2026-08-01 一天内五张脸（判分 ctx / 直批探针 / 入口安全闸吸收态 SEV / narration 尺 / narration 面）全部属于本条。
-- **working_memory 投影必须带出处（task#32，2026-08-02）**：turn_runtime post-turn 把助教回答投影进 `overlay.working_memory_projection` 时，op 必须携带 `provenance`（`turn_id` + `source_kind`，以及 session/capability/bot 指针）；出处强制与拒入发声的单一权威是 `BotLearnerOverlayService.patch_overlay`（fail-closed，无出处不入记，拒入落 `overlay_working_memory_rejected` 事件），turn_runtime 不得另建第二道闸。安全模板拒入（#638）不再静默，必须经 `record_working_memory_rejection` 发声。详细条款见 `contracts/learner-state.md` §working_memory 出处链化。
+- **working_memory 投影必须带出处（task#32，2026-08-02）**：turn_runtime post-turn 把助教回答投影进 `overlay.working_memory_projection` 时，op 必须携带 `provenance`（`turn_id` + `source_kind`，以及 session/capability/bot 指针）；出处强制与拒入发声的单一权威是 `BotLearnerOverlayService.patch_overlay`（fail-closed，无出处不入记，拒入落 `overlay_working_memory_rejected` 事件），turn_runtime 不得另建第二道闸。安全模板拒入（#638）不再静默，必须经 `record_working_memory_rejection` 发声。admin 面写入由入口 `stamp_admin_working_memory_provenance` 盖章（拿不到 actor 显式 4xx，绝不静默丢弃）。详细条款见 `contracts/learner-state.md` §working_memory 出处链化。
+  - **已知缺口（有意暂缓，别当没这回事）**：注入面（turn_runtime 把 `working_memory_projection` 组装成 `### 局部工作记忆投影` EVIDENCE candidate 处）目前不携带出处 trace，因此无法从 turn 侧回答"本轮注入的是哪条记忆、它来自哪一轮"。需要时的正确做法是给该 context candidate 加 metadata（与既有 observe-only turn metadata 同性质），**不得把出处渲染进 prompt 正文**——出处是审计元数据，进 prompt 只会扩大注入面。
 
 ## Hosted Luban 教学卡上下文
 

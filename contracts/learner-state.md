@@ -327,6 +327,24 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 3. **出处是审计元数据，不是 prompt 内容**：`build_context_fragment` 与
    turn_runtime 的 overlay 注入面都不得把 `working_memory_provenance` 渲染进
    LLM prompt（进 prompt 反而新增注入面）。
+   - 已知缺口（有意暂缓）：注入面目前**不带**出处 trace，即无法从 turn 侧回答
+     "本轮注入的是哪条记忆"。需要时的正确做法是给 context candidate 加
+     metadata（`deeptutor/services/session/turn_runtime.py` 的 overlay candidate
+     构造处），**勿渲染进 prompt**。别当没这回事。
+3b. **admin 写入由边界盖章，不得静默丢弃**：admin 手工写 working_memory 是**合法**
+   业务动作，出处强制的立法目的是"可回溯"而非"禁止 admin 写"。因此两个 admin
+   入口——`api/routers/tutor_state.py` 的 PATCH overlay 与
+   `member_console.patch_member_overlay`（覆盖 `api/routers/member.py` 与
+   `api/routers/bi.py` 两条路由）——必须调用唯一实现
+   `stamp_admin_working_memory_provenance(...)` 在**入口**补
+   `provenance={source_kind:"admin_override", actor:<已认证操作者>,
+   turn_id:"admin:<actor>", source_event_type:<入口名>}`，不得要求调用方自带、
+   也不得各写一份盖章逻辑。
+   - **拿不到 actor 身份时必须显式 4xx**（stamper 抛 ValueError，三条路由均已转
+     400），**绝不静默丢弃**：静默丢弃 + HTTP 200 = 假成功，是本项目反复吃亏的
+     形态；写入方会以为写成功了，事故要到下一次读记忆才暴露。
+   - 新增任何 admin/运维写 working_memory 的入口，必须复用同一 stamper 并登记
+     在此条款下。
 4. **存量宽限读**：出处强制上线前的无出处记忆读取时合成
    `working_memory_provenance = {"legacy_no_provenance": true}`，内容照常可用，
    禁止一刀切清空；72h decay + 每轮整体覆盖使 legacy 存量自愈。
