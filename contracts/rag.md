@@ -112,6 +112,15 @@
     - **(f) 非治理路径不变**：`case_reference_subquestions` 少于 2 问（单行兄弟行 / 库外 tier-3 / 学生自带参考）一律回落既有整段抽取 + `scope_ratio` 整题封顶路径，逐字节旧行为。
     - 观测：`case_per_subq_grading`（"有点位的小问数/题面小问数"，空 = 走了旧整段链）、`case_subq_score_caps`（`q1:2.5,...`）、`case_subq_score_capped` / `case_subq_capped_from`（封顶真的咬到时）；判决面 `adjudication_strategy=dynamic_parallel_subquestion_groups`（一组 = 一问，逐组发射即「问 k 判完」）。kill switch `LUBAN_CASE_PER_SUBQ_GRADING`（默认 ON，off 逐字回旧形状）。
 
+47. **`questions_bank.retired_at` 是题库行生命周期的唯一判据，软删行不可达任何生产读者**（task#31 供给层软删，2026-08-02）。
+
+    - **(a) 单一谓词权威**：应用侧过滤谓词（`retired_at=is.null`）只定义在 `deeptutor/services/questions_bank_liveness.py`；PostgREST 直读 questions_bank 的查询构造必须经 `apply_live_row_filter`（RAG 侧汇聚点 = `SupabasePipeline._select` 按表名注入；组卷侧 = `blueprint_service._query` / `question_bank_size`）。**调用点不得各自手写 WHERE**——那是第 N+1 个 decider。
+    - **(b) RPC 通道在 DB 函数体内收权**：`search_questions_bank_text` / `search_questions_bank_vector` 等 RPC 的返回列由函数签名固定、应用侧改不了，谓词落在 `supabase/migrations/20260802000200_questions_bank_reader_soft_delete_filter.sql`（8 函数 + 1 视图穷举，清单常量 = `SOFT_DELETE_FILTERED_DB_READERS`，静态测试逐一核对，漏一个即红）。
+    - **(c) 生产读者没有读退役行的权利**：对生命周期列写其他谓词（如 `not.is.null`）必须抛错不静默；治理/审计工具要读全量就不走 `apply_live_row_filter`。
+    - **(d) retire 是状态翻转不是删除**：下游快照（assessment_forms / 会话 / 错题本）与 `user_logs` FK 继续可解析；回滚 = 按 `retired_batch` 一条 UPDATE。破坏性 DELETE 仍受删行三查协议约束。
+    - **(e) 退役写操作走 manifest 授权**（canonical431 pointer 模式）：批量 retire 必须有 `production_authorized=true` 的 retirement manifest（完整性链与治理链分离），执行器未见授权必须拒跑并发声。
+    - 设计与测绘：`docs/原始数据/数据盘点/2026-08-02-questions_bank软删版本化读者测绘与设计.md`；域测试：`tests/services/rag/test_questions_bank_soft_delete_filter.py`。
+
 ## 当前统一语义
 
 - `exact_question`
@@ -183,3 +192,4 @@
 - `tests/services/rag/test_supabase_strategy.py`
 - `tests/agents/chat/test_agentic_parallel_tools.py`
 - `tests/services/citations/test_normalizer.py`
+- `tests/services/rag/test_questions_bank_soft_delete_filter.py`

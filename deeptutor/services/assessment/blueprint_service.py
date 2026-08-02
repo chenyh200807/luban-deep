@@ -19,6 +19,11 @@ from deeptutor.services.assessment.blueprint import (
     get_assessment_blueprint,
 )
 from deeptutor.services.assessment.profile_probes import ProfileProbe, get_profile_probes
+from deeptutor.services.questions_bank_liveness import (
+    LIVE_ROW_FILTER_COLUMN,
+    LIVE_ROW_FILTER_OPERATOR,
+    apply_live_row_filter,
+)
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 from deeptutor.services.taxonomy.learning_topic_resolver import (
     normalize_learning_topic_text,
@@ -254,7 +259,12 @@ class SupabaseAssessmentQuestionProvider:
         return _stable_shuffle_candidates(candidates, selection_seed)
 
     def _query(self, base_url: str, api_key: str, filters: dict[str, str]) -> list[dict[str, Any]]:
-        return self._rest_get(base_url, api_key, "questions_bank", filters)
+        # 软删收权（task#31 2026-08-02）：组卷候选查询唯一入口，注入
+        # retired_at=is.null——软删行不得进正式测评卷。谓词权威在
+        # deeptutor/services/questions_bank_liveness.py，不在本文件手写。
+        return self._rest_get(
+            base_url, api_key, "questions_bank", apply_live_row_filter(dict(filters))
+        )
 
     def _rest_get(
         self,
@@ -371,8 +381,10 @@ class SupabaseAssessmentQuestionProvider:
 
     def question_bank_size(self) -> int:
         base_url, api_key = self._supabase_config()
+        # 软删收权（task#31）：题库规模只算在服行（口径裁决见设计稿 §2.5）。
         req = request.Request(
-            f"{base_url}/rest/v1/questions_bank?select=id&limit=1",
+            f"{base_url}/rest/v1/questions_bank?select=id&limit=1"
+            f"&{LIVE_ROW_FILTER_COLUMN}={LIVE_ROW_FILTER_OPERATOR}",
             headers={
                 "apikey": api_key,
                 "Authorization": f"Bearer {api_key}",
