@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 _WM_REJECTED_EVENT_TYPE = "overlay_working_memory_rejected"
