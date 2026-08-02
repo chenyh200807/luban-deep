@@ -502,7 +502,7 @@ def test_apply_preserves_the_real_key_when_env_carries_it(tmp_path: Path, monkey
     rendered = store.render_from_catalog(reloaded)
 
     # Real key survives the redact -> reload -> render round trip...
-    assert rendered["LLM_API_KEY"] == "sk-real-env-key-424242"
+    assert rendered["LLM_API_KEY"] == "sk-real-env-key-424242"  # pragma: allowlist secret
     # ...while the file on disk still holds no plaintext.
     assert not re.search(
         r"sk-[A-Za-z0-9_-]{10,}", (tmp_path / "model_catalog.json").read_text(encoding="utf-8")
