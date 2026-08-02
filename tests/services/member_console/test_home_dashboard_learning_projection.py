@@ -16,6 +16,7 @@ from deeptutor.services.member_console.service import MemberConsoleService
 
 
 _TZ = timezone(timedelta(hours=8))
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _canonical_home_projection_source_status(**overrides: object) -> dict[str, object]:
@@ -127,7 +128,7 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
-            "concept": {"label": "主体结构验收"},
+            "concept": {"label": "主体结构工程施工"},
             "error": {"label": "验收程序混淆"},
             "training_intent_id": "intent-1",
             "event_id": "evt-home-1",
@@ -149,7 +150,7 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
 
 
 def test_home_focus_topic_helper_accepts_only_canonical_members() -> None:
-    assert canonical_home_focus_topic_label("防水工程") == "防水工程"
+    assert canonical_home_focus_topic_label("防水工程") == "屋面与防水工程施工"
     assert canonical_home_focus_topic_label("屋面与防水工程施工") == "屋面与防水工程施工"
     assert canonical_home_focus_topic_label("出三道屋面防水的") == ""
     assert canonical_home_focus_topic_label("今日推进") == ""
@@ -202,7 +203,11 @@ def test_recent_learning_event_recovery_rejects_free_text_practice_request_topic
     rendered = json.dumps(dashboard, ensure_ascii=False)
     assert "出三道屋面防水的" not in rendered
     assert dashboard["source_status"]["fallback_used"] is True
-    assert "home_projection_contract" not in dashboard["source_status"]
+    assert dashboard["source_status"]["home_projection_contract"] == "canonical_taxonomy_v1"
+    assert (
+        dashboard["source_status"]["topic_authority"]
+        == "learner_state.home_personalization.canonical_taxonomy"
+    )
 
 
 def test_learning_signal_projection_rejects_deictic_focus_labels() -> None:
@@ -370,7 +375,7 @@ def test_home_personalization_write_rejects_markerless_projection() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
-            "concept": {"label": "主体结构验收"},
+            "concept": {"label": "主体结构工程施工"},
             "error": {"label": "验收程序混淆"},
             "event_id": "evt-markerless",
         },
@@ -388,7 +393,7 @@ def test_home_personalization_write_rejects_markerless_projection() -> None:
     assert learner_state.patches == []
 
 
-def test_markerless_legacy_three_prompt_projection_does_not_upgrade_to_canonical() -> None:
+def test_markerless_legacy_three_prompt_projection_falls_back_to_canonical_seed() -> None:
     generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
     projection = {
         "generated_at": generated_at,
@@ -435,7 +440,11 @@ def test_markerless_legacy_three_prompt_projection_does_not_upgrade_to_canonical
 
     assert dashboard["source_status"]["fallback_used"] is True
     assert dashboard["source_status"]["fallback_reason"] == "stale"
-    assert "home_projection_contract" not in dashboard["source_status"]
+    assert dashboard["source_status"]["home_projection_contract"] == "canonical_taxonomy_v1"
+    assert (
+        dashboard["source_status"]["topic_authority"]
+        == "learner_state.home_personalization.canonical_taxonomy"
+    )
 
 
 def test_home_personalization_write_persists_only_canonical_projection() -> None:
@@ -449,7 +458,7 @@ def test_home_personalization_write_persists_only_canonical_projection() -> None
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
-            "concept": {"label": "主体结构验收"},
+            "concept": {"label": "主体结构工程施工"},
             "error": {"label": "验收程序混淆"},
             "event_id": "evt-canonical-write",
         },
@@ -747,7 +756,7 @@ def test_malformed_projection_falls_back_instead_of_leaking_bad_shape() -> None:
 
 
 def test_seed_starter_files_exist_and_are_used() -> None:
-    base = Path("data/seed")
+    base = _REPO_ROOT / "data" / "seed"
     for subject_id in ["construction_exam_1", "construction_exam_2"]:
         seed_path = base / subject_id / "starter_prompts.json"
         payload = json.loads(seed_path.read_text(encoding="utf-8"))
@@ -1019,7 +1028,9 @@ def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(
     service._data_path = tmp_path / "member_console.json"
     service.get_profile("subject_user")
     seed_payload = json.loads(
-        Path("data/seed/construction_exam_2/starter_prompts.json").read_text(encoding="utf-8")
+        (_REPO_ROOT / "data" / "seed" / "construction_exam_2" / "starter_prompts.json").read_text(
+            encoding="utf-8"
+        )
     )
 
     class _FakeLearnerStateService:
@@ -1092,8 +1103,8 @@ def test_member_console_today_focus_skips_deictic_topics() -> None:
         study_plan={"focus_topic": "这题"},
     )
 
-    assert focus["topic"] == "防水工程"
-    assert focus["title"] == "推进防水工程下一步学习"
+    assert focus["topic"] == "屋面与防水工程施工"
+    assert focus["title"] == "推进屋面与防水工程施工下一步学习"
     assert "这题" not in json.dumps(focus, ensure_ascii=False)
 
 
