@@ -225,10 +225,25 @@ def test_refusal_projected_into_working_memory_would_self_reinforce() -> None:
 class _RecordingOverlayService:
     def __init__(self) -> None:
         self.patches: list[dict] = []
+        self.rejections: list[dict] = []
 
     def patch_overlay(self, bot_id, user_id, patch, *, source_feature="", source_id=""):
         self.patches.append({"bot_id": bot_id, "user_id": user_id, "patch": patch})
         return {}
+
+    def record_working_memory_rejection(
+        self, bot_id, user_id, *, reason, turn_id="", source_feature="", source_id="", detail=None
+    ):
+        self.rejections.append(
+            {
+                "bot_id": bot_id,
+                "user_id": user_id,
+                "reason": reason,
+                "turn_id": turn_id,
+                "source_feature": source_feature,
+                "source_id": source_id,
+            }
+        )
 
 
 class _StubLearnerStateService:
@@ -236,7 +251,9 @@ class _StubLearnerStateService:
         return None
 
 
-async def _run_post_turn_refresh(monkeypatch, assistant_content: str) -> list[dict]:
+async def _run_post_turn_refresh(
+    monkeypatch, assistant_content: str
+) -> tuple[list[dict], "_RecordingOverlayService"]:
     from deeptutor.services.session.turn_runtime import TurnRuntimeManager
 
     overlay = _RecordingOverlayService()
@@ -264,28 +281,40 @@ async def _run_post_turn_refresh(monkeypatch, assistant_content: str) -> list[di
     pending = [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
     if pending:
         await asyncio.gather(*pending, return_exceptions=True)
-    return [
+    operations = [
         op
         for entry in overlay.patches
         for op in entry["patch"].get("operations", [])
     ]
+    return operations, overlay
 
 
 @pytest.mark.asyncio
 async def test_post_turn_refresh_projects_a_real_answer_into_working_memory(monkeypatch) -> None:
-    operations = await _run_post_turn_refresh(monkeypatch, "## 批改结论\n命中 7 个采分点。")
+    operations, overlay = await _run_post_turn_refresh(monkeypatch, "## 批改结论\n命中 7 个采分点。")
     fields = [op["field"] for op in operations]
     assert "working_memory_projection" in fields
     assert "engagement_state" in fields
     assert "local_focus" in fields
+    # task#32 出处链化：投影必须携带来源指针（无出处会被 overlay service 拒入）。
+    wm_op = next(op for op in operations if op["field"] == "working_memory_projection")
+    provenance = wm_op.get("provenance") or {}
+    assert provenance.get("turn_id") == "turn_sev_regression"
+    assert provenance.get("source_kind") == "assistant_response"
+    assert provenance.get("session_id") == "tb_sev_regression"
+    assert overlay.rejections == []
 
 
 @pytest.mark.asyncio
 async def test_post_turn_refresh_never_projects_the_security_template(monkeypatch) -> None:
     """治本第二刀：闸的输出不是学习事实，不得进 overlay —— 否则形成吸收态。"""
-    operations = await _run_post_turn_refresh(monkeypatch, INTERNAL_INFO_REFUSAL_ZH)
+    operations, overlay = await _run_post_turn_refresh(monkeypatch, INTERNAL_INFO_REFUSAL_ZH)
     fields = [op["field"] for op in operations]
     assert "working_memory_projection" not in fields
     # 其余投影不受影响（只摘掉有毒的那一条，不是整块 fail-closed）。
     assert "engagement_state" in fields
     assert "local_focus" in fields
+    # task#32：模板拒入不再静默——必须落 rejection 审计标记（发声）。
+    assert len(overlay.rejections) == 1
+    assert overlay.rejections[0]["reason"] == "security_template_response"
+    assert overlay.rejections[0]["turn_id"] == "turn_sev_regression"
