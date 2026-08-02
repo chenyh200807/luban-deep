@@ -5492,6 +5492,16 @@ class MemberConsoleService:
     ) -> dict[str, Any]:
         self._find_member(self._load(), user_id)
         overlay_service = self._get_overlay_service()
+        # task#32：admin 边界盖章（覆盖 member.py 与 bi.py 两条路由的同一入口）。
+        # 出处 actor = 已认证操作者；拿不到身份则 ValueError（两条路由均已转 400），
+        # 绝不静默丢弃——静默丢弃 + 200 = 假成功。
+        from deeptutor.services.learner_state import stamp_admin_working_memory_provenance
+
+        operations = stamp_admin_working_memory_provenance(
+            list(operations or []),
+            actor=operator,
+            surface="member_console_overlay",
+        )
         patched = overlay_service.patch_overlay(
             bot_id,
             user_id,

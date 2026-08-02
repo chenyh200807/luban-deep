@@ -3003,14 +3003,35 @@ class TurnRuntimeManager:
                                 # 被当成 `### 局部工作记忆投影` 证据注回上下文，闸再次命中自己
                                 # 吐出的文案 → 吸收态（2026-07-31 test2 SEV，该学员被永久拒答）。
                                 # 单一判据由安全 skill 自己给（不新建第二套模板清单）。
+                                # task#32 出处链化：投影必须携带来源指针（turn_id +
+                                # source_kind），由 overlay service 在写入点 fail-closed
+                                # 强制；模板拒入不再静默——落 rejection 审计事件发声。
                                 if not is_security_template_response(assistant_content):
                                     operations.append(
                                         {
                                             "op": "set",
                                             "field": "working_memory_projection",
                                             "value": assistant_content.strip()[:500],
+                                            "provenance": {
+                                                "turn_id": turn_id,
+                                                "source_kind": "assistant_response",
+                                                "source_event_type": "post_turn_refresh",
+                                                "session_id": session_id,
+                                                "capability": capability_name or "chat",
+                                                "source_bot_id": source_bot_id,
+                                            },
                                         }
                                     )
+                                else:
+                                    with contextlib.suppress(Exception):
+                                        get_bot_learner_overlay_service().record_working_memory_rejection(
+                                            source_bot_id,
+                                            user_id,
+                                            reason="security_template_response",
+                                            turn_id=turn_id,
+                                            source_feature="turn",
+                                            source_id=session_id,
+                                        )
                                 operations.append(
                                     {
                                         "op": "merge",

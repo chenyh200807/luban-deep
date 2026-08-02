@@ -6,7 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import AuthContext, require_admin, require_self_or_admin
-from deeptutor.services.learner_state import get_bot_learner_overlay_service, get_learner_state_service
+from deeptutor.services.learner_state import (
+    get_bot_learner_overlay_service,
+    get_learner_state_service,
+    stamp_admin_working_memory_provenance,
+)
 from deeptutor.services.tutor_state import get_user_tutor_state_service
 
 router = APIRouter()
@@ -174,6 +178,14 @@ async def patch_tutor_state_overlay(
     if not operations:
         raise HTTPException(status_code=400, detail="Overlay patch operations are required")
     try:
+        # task#32：admin 写 working_memory 是合法业务动作，但出处必须在**边界**盖章
+        # （actor = 已认证管理员），不能指望调用方记得带；拿不到身份则 400 显式报错，
+        # 绝不静默丢弃（静默丢弃 + 200 = 假成功）。
+        operations = stamp_admin_working_memory_provenance(
+            operations,
+            actor=current_user.user_id,
+            surface="tutor_state_admin_overlay",
+        )
         return get_bot_learner_overlay_service().patch_overlay(
             bot_id,
             user_id,
