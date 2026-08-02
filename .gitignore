@@ -331,6 +331,42 @@ celerybeat.pid
 .env.bak.*
 .env.backup.*
 
+# Environment-suffixed dotenvs. `*.env` only matches names ENDING in `.env`, and
+# the bare `.env` rule only matches that exact name, so `.env.production` and
+# friends were slipping through. These are listed explicitly rather than as
+# `.env.*` so the `!.env.example` un-ignore above keeps working untouched.
+.env.production
+.env.prod
+.env.staging
+.env.development
+.env.dev
+.env.test
+
+# Private key material must never be committed. The WeChat Pay merchant key in
+# particular lives at `secrets/wechat-pay/apiclient_key.pem` — docker-compose.yml
+# bind-mounts `./secrets/wechat-pay` into the container, so on any checkout that
+# runs compose locally the merchant private key sits INSIDE the work tree.
+secrets/
+*.pem
+*.p12
+*.pfx
+*.p8
+*.key
+*.jks
+*.keystore
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*_rsa
+credentials.json
+*serviceAccount*.json
+.deeptutor_eval_key
+
+# No negations here on purpose. A `!*_cert.pem`-style re-allow would also reopen
+# merchant/CA cert paths outside `secrets/`, and nothing in the tree needs it.
+# If a public cert ever must be tracked, force it explicitly with `git add -f`.
+
 # Local runtime workspace (logs, cached envs, scratch state)
 .local-runs/
 
