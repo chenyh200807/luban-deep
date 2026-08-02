@@ -726,6 +726,9 @@ domains:
       # Battle2 S3-T2: factory.stream Langfuse export (usage + completion_start_time
       # first-chunk wall-clock, observe-only fail-open).
       - tests/services/llm/test_factory_langfuse_usage.py
+      # task#33 凭证隔离：model_catalog 落盘脱敏 fail-safe（默认脱敏 + 读侧
+      # [REDACTED] 视同未配置 + 0600 落盘），protected 面的 domain 测试。
+      - tests/services/test_model_catalog.py
     schema_files: []
 
   product_behavior_playback:
