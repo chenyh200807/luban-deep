@@ -13,7 +13,29 @@ from .env_store import get_env_store
 
 CATALOG_PATH = get_path_service().get_settings_file("model_catalog")
 REDACTED_SECRET = "[REDACTED]"
+
+# Legacy opt-IN switch. Redaction at rest used to be off by default, which meant
+# an unset variable silently persisted provider API keys in plaintext — that is
+# exactly how a live key ended up on disk in production. Redaction is now the
+# default, so this name is kept only so existing callers/tests that set it to a
+# truthy value keep working. It can no longer turn redaction OFF.
 REDACT_MODEL_CATALOG_AT_REST_ENV = "DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST"
+
+# Explicit opt-OUT. Setting this to a truthy value restores the old plaintext
+# behaviour. It exists for local debugging and for recovering a catalog whose
+# keys are not reproducible from `.env` (see `_should_redact_catalog_at_rest`).
+PLAINTEXT_MODEL_CATALOG_AT_REST_ENV = "DEEPTUTOR_MODEL_CATALOG_PLAINTEXT_API_KEYS_AT_REST"
+
+# Mode for the on-disk catalog: owner read/write only. The catalog carries API
+# keys whenever the plaintext opt-out is active, and it is bind-mounted onto the
+# host in production, so it must never be group/world readable.
+CATALOG_FILE_MODE = 0o600
+
+_TRUTHY = frozenset({"1", "true", "yes", "on"})
+
+
+def _env_is_truthy(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in _TRUTHY
 
 
 def _service_shell() -> dict[str, Any]:
@@ -56,8 +78,53 @@ def _redact_api_keys_for_persistence(value: Any) -> Any:
     return value
 
 
+def _strip_redacted_secrets(value: Any) -> bool:
+    """Turn persisted ``[REDACTED]`` placeholders back into "" (absent), in place.
+
+    THE SINGLE READ-SIDE HANDLING POINT for the redaction placeholder. Everything
+    downstream — hydration, env sync, `render_from_catalog`, the settings API —
+    then sees an ordinary empty key and does the right thing, so no consumer has
+    to know the placeholder exists.
+
+    Why this is load-bearing rather than cosmetic: `apply()` feeds the loaded
+    catalog through `render_from_catalog()` into `env_store.write()`, which
+    assigns straight into `.env` AND `os.environ`. Without this strip, a catalog
+    whose key is not reproducible from `.env` round-trips as the literal string
+    "[REDACTED]" and that literal becomes the live API key for every provider
+    call. Empty means "not configured" and fails loudly; "[REDACTED]" is a bogus
+    credential that fails as an auth error far from its cause.
+    """
+
+    changed = False
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key == "api_key" and isinstance(item, str) and item.strip() == REDACTED_SECRET:
+                value[key] = ""
+                changed = True
+            elif _strip_redacted_secrets(item):
+                changed = True
+    elif isinstance(value, list):
+        for item in value:
+            if _strip_redacted_secrets(item):
+                changed = True
+    return changed
+
+
 def _should_redact_catalog_at_rest() -> bool:
-    return os.getenv(REDACT_MODEL_CATALOG_AT_REST_ENV, "").strip().lower() in {"1", "true", "yes"}
+    """Redact API keys before persisting. Fail-safe: ON unless explicitly opted out.
+
+    The active profiles are re-hydrated from `.env` on every load
+    (`_sync_active_services_from_env`), so redacting them at rest loses nothing —
+    `.env` is the source of truth for them.
+
+    The one case that DOES lose data is a profile whose key exists only in this
+    file (e.g. a second profile added through the settings UI with no matching
+    `.env` variable): once redacted it cannot be recovered, and the key must be
+    re-entered. Set ``DEEPTUTOR_MODEL_CATALOG_PLAINTEXT_API_KEYS_AT_REST=1`` if
+    you need that behaviour, and accept plaintext keys on disk as the price.
+    """
+
+    return not _env_is_truthy(PLAINTEXT_MODEL_CATALOG_AT_REST_ENV)
 
 
 class ModelCatalogService:
@@ -79,6 +146,9 @@ class ModelCatalogService:
             catalog = _default_catalog()
             catalog.update({k: v for k, v in loaded.items() if k != "services"})
             catalog["services"].update(loaded.get("services", {}))
+            # Must run BEFORE hydrate/sync: those treat "" as "needs a value from
+            # env" but would happily carry "[REDACTED]" through as a real key.
+            _strip_redacted_secrets(catalog)
             hydrated = self._hydrate_missing_services_from_env(catalog)
             synced = self._sync_active_services_from_env(catalog)
             self._normalize(catalog)
@@ -100,10 +170,31 @@ class ModelCatalogService:
             self._preserve_existing_secrets(normalized, existing)
         self._normalize(normalized)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        persisted = _redact_api_keys_for_persistence(normalized) if _should_redact_catalog_at_rest() else normalized
-        with open(self.path, "w", encoding="utf-8") as handle:
-            json.dump(persisted, handle, indent=2, ensure_ascii=False)
+        persisted = (
+            _redact_api_keys_for_persistence(normalized)
+            if _should_redact_catalog_at_rest()
+            else normalized
+        )
+        self._write_catalog_file(persisted)
         return normalized
+
+    def _write_catalog_file(self, persisted: dict[str, Any]) -> None:
+        """Write the catalog with owner-only permissions.
+
+        ``os.open`` carries the mode only when it CREATES the file, and it is
+        further masked by umask, so an already-existing file (or a tight umask)
+        would keep whatever mode it had. The explicit ``os.chmod`` after the
+        write is what actually pins it to 0600 in both cases.
+        """
+
+        fd = os.open(
+            self.path,
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+            CATALOG_FILE_MODE,
+        )
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(persisted, handle, indent=2, ensure_ascii=False)
+        os.chmod(self.path, CATALOG_FILE_MODE)
 
     def apply(self, catalog: dict[str, Any] | None = None) -> dict[str, str]:
         current = self.save(catalog or self.load())
