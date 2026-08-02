@@ -20,6 +20,10 @@ from deeptutor.logging import get_logger
 from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.questions_bank_liveness import (
+    QUESTIONS_BANK_TABLE,
+    apply_live_row_filter,
+)
 from deeptutor.services.rag.compiled_truth_source import materialize_compiled_truth_documents
 from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
@@ -3710,6 +3714,13 @@ class SupabasePipeline:
         query: dict[str, str],
         config: SupabaseSearchConfig,
     ) -> list[dict[str, Any]]:
+        # 软删收权（task#31 2026-08-02）：questions_bank 的全部 REST 直读
+        # （exact ilike ×2 / case-group meta / case-group rows）都汇聚在本方法，
+        # 在这里按表名注入 retired_at=is.null 是唯一构造点——调用点各自加
+        # WHERE 就是第 N+1 个 decider。RPC 通道的收权在 DB 函数体内
+        # （migration 20260802000200），应用侧改不了返回列。
+        if table == QUESTIONS_BANK_TABLE:
+            query = apply_live_row_filter(dict(query))
         url = f"{config.url}/rest/v1/{table}"
         headers = {
             "apikey": config.service_key,
