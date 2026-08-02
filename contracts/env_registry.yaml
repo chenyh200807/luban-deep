@@ -102,6 +102,16 @@ feature_flags:
   # 赎罪条款: 上线14天 Langfuse 复测(mcq_grading主生成p50≤700tok/section_miss率无恶化/无质量投诉)达标后删flag转正。
   - {name: DEEPTUTOR_MCQ_FEEDBACK_COMPACT, default: false, kind: rollout, read: env_flag}
   - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}
+  # security: model_catalog.json at-rest redaction. Redaction used to be opt-IN
+  # via DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST, so an unset variable
+  # persisted provider API keys in PLAINTEXT — that is how a live key ended up on
+  # disk in production (0777, bind-mounted to the host). Redaction is now the
+  # default; this flag is the explicit opt-OUT that restores plaintext at rest.
+  # Only set it when a profile's key is not reproducible from .env, and accept
+  # plaintext keys on disk as the price. The legacy name below can no longer turn
+  # redaction off and is kept only for callers that set it truthy.
+  - {name: DEEPTUTOR_MODEL_CATALOG_PLAINTEXT_API_KEYS_AT_REST, default: false, kind: killswitch}
+  - {name: DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST, default: true, kind: config}  # deprecated no-op: redaction is now default-on
   - {name: DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS, default: "1782097380", kind: config}
   - {name: DEEPTUTOR_ROUTING_LLM_TIMEOUT_S, default: "6", kind: config}  # Battle1 W3-T2: 路由LLM硬超时(秒), fail-open降scene=None
   - {name: DEEPTUTOR_SEMANTIC_ROUTER_ENABLED, default: true, kind: killswitch}
