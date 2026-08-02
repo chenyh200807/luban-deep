@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import logging
 import re
 import uuid
 from copy import deepcopy
@@ -11,12 +13,15 @@ from typing import Any
 from deeptutor.services.learner_state.outbox import LearnerStateOutbox
 from deeptutor.services.path_service import PathService, get_path_service
 
+logger = logging.getLogger(__name__)
+
 _ALLOWED_FIELDS: tuple[str, ...] = (
     "local_focus",
     "active_plan_binding",
     "teaching_policy_override",
     "heartbeat_override",
     "working_memory_projection",
+    "working_memory_provenance",
     "channel_presence_override",
     "local_notebook_scope_refs",
     "engagement_state",
@@ -41,6 +46,7 @@ _DICT_FIELDS = {
     "heartbeat_override",
     "channel_presence_override",
     "engagement_state",
+    "working_memory_provenance",
 }
 _LIST_FIELDS = {"local_notebook_scope_refs", "promotion_candidates"}
 _TEXT_FIELDS = {"working_memory_projection"}
@@ -50,10 +56,30 @@ _EPHEMERAL_FIELDS = {
     "teaching_policy_override",
     "heartbeat_override",
     "working_memory_projection",
+    "working_memory_provenance",
     "channel_presence_override",
     "local_notebook_scope_refs",
     "engagement_state",
 }
+# --- working_memory 出处链化（task#32，2026-08-02）---
+# 2026-08-01 吸收态 SEV 的结构病因：working_memory_projection 无出处、无审计。
+# 纪律对齐上游 DeepTutor "L2 必须引用 L1"：每条投影必须携带来源指针
+# （turn_id + source_kind），无出处不入记（fail-closed 且发声——落
+# `overlay_working_memory_rejected` 审计事件 + logger.warning，不静默）。
+# 出处由本服务在写入点原子伴生落盘为 working_memory_provenance；该字段
+# service-managed，外部 op 直接 set/merge/clear 一律 ValueError。
+_WORKING_MEMORY_FIELD = "working_memory_projection"
+_WORKING_MEMORY_PROVENANCE_FIELD = "working_memory_provenance"
+_WM_PROVENANCE_REQUIRED_KEYS = ("turn_id", "source_kind")
+_WM_PROVENANCE_PASSTHROUGH_KEYS = (
+    "turn_id",
+    "source_kind",
+    "source_event_type",
+    "session_id",
+    "capability",
+    "source_bot_id",
+)
+_WM_REJECTED_EVENT_TYPE = "overlay_working_memory_rejected"
 _DEFAULT_OVERLAY_MAX_AGE_HOURS = 72
 _PROMOTION_BASIS_VALUES = {
     "structured_result",
@@ -109,6 +135,7 @@ def _empty_overlay(bot_id: str, user_id: str) -> dict[str, Any]:
             "teaching_policy_override": {},
             "heartbeat_override": {},
             "working_memory_projection": "",
+            "working_memory_provenance": {},
             "channel_presence_override": {},
             "local_notebook_scope_refs": [],
             "engagement_state": {},
@@ -341,6 +368,61 @@ class BotLearnerOverlayService:
         if field not in _ALLOWED_FIELDS:
             raise ValueError(f"overlay field is not allowed: {field}")
 
+    @staticmethod
+    def _normalize_wm_provenance(raw: Any) -> tuple[dict[str, Any], list[str]]:
+        """Normalize a writer-supplied provenance payload; return (provenance, missing_keys)."""
+        provenance_in = dict(raw) if isinstance(raw, dict) else {}
+        provenance = {
+            key: str(provenance_in.get(key) or "").strip()
+            for key in _WM_PROVENANCE_PASSTHROUGH_KEYS
+            if str(provenance_in.get(key) or "").strip()
+        }
+        missing = [key for key in _WM_PROVENANCE_REQUIRED_KEYS if not provenance.get(key)]
+        return provenance, missing
+
+    def record_working_memory_rejection(
+        self,
+        bot_id: str,
+        user_id: str,
+        *,
+        reason: str,
+        turn_id: str = "",
+        source_feature: str = "",
+        source_id: str = "",
+        detail: dict[str, Any] | None = None,
+    ) -> None:
+        """Loud fail-closed marker: a working_memory write was refused.
+
+        「无出处不入记」与「安全模板不入记」(#638) 都必须发声：本地 events.jsonl
+        落一条 `overlay_working_memory_rejected`（经 /tutor-state overlay
+        events|audit API 与 scripts/audit_working_memory.py 可见）+
+        logger.warning。绝不静默。
+        """
+        event_payload: dict[str, Any] = {
+            "reason": str(reason or "").strip() or "unspecified",
+            "turn_id": str(turn_id or "").strip(),
+            "source_feature": str(source_feature or "").strip(),
+            "source_id": str(source_id or "").strip(),
+        }
+        if detail:
+            event_payload["detail"] = dict(detail)
+        try:
+            self._append_event(
+                bot_id,
+                user_id,
+                event_type=_WM_REJECTED_EVENT_TYPE,
+                payload=event_payload,
+            )
+        except Exception:
+            logger.warning("failed to persist working_memory rejection event", exc_info=True)
+        logger.warning(
+            "working_memory_write_rejected bot_id=%s user_id=%s reason=%s turn_id=%s",
+            bot_id,
+            user_id,
+            event_payload["reason"],
+            event_payload["turn_id"] or "-",
+        )
+
     def _filtered_overlay(
         self,
         payload: dict[str, Any],
@@ -367,6 +449,15 @@ class BotLearnerOverlayService:
     def read_overlay(self, bot_id: str, user_id: str) -> dict[str, Any]:
         payload = self._read_raw(bot_id, user_id)
         effective_overlay, expired_fields = self._filtered_overlay(payload)
+        # 存量兼容（宽限读）：出处强制上线前写入的记忆无 provenance——继续可用
+        # （不惩罚存量学员的记忆连续性），但显式标记 legacy，审计面可见、可计数。
+        # 该字段本就 72h decay + 每个正常 turn 整体覆盖，legacy 存量是自愈的。
+        if effective_overlay.get(_WORKING_MEMORY_FIELD) and not dict(
+            effective_overlay.get(_WORKING_MEMORY_PROVENANCE_FIELD) or {}
+        ):
+            effective_overlay[_WORKING_MEMORY_PROVENANCE_FIELD] = {
+                "legacy_no_provenance": True
+            }
         return {
             "bot_id": bot_id,
             "user_id": user_id,
@@ -410,6 +501,7 @@ class BotLearnerOverlayService:
             "overlay_promotion_queue_update",
             "overlay_promotion_apply",
             "overlay_decay",
+            _WM_REJECTED_EVENT_TYPE,
         }
         events = [
             item
@@ -478,10 +570,55 @@ class BotLearnerOverlayService:
         payload["updated_at"] = now
         payload["version"] = int(payload.get("version", 1) or 1) + 1
 
+        rejected_wm_ops: list[dict[str, Any]] = []
         for operation in operations:
             op = str(operation.get("op", "") or "").strip()
             field = str(operation.get("field", "") or "").strip()
             self._validate_field(field)
+            if field == _WORKING_MEMORY_PROVENANCE_FIELD:
+                # 出处字段 service-managed：只能由本服务在写 projection 时伴生落盘，
+                # 外部直接操作一律拒绝（admin API 上表现为 400，可见不静默）。
+                raise ValueError(
+                    "working_memory_provenance is service-managed; "
+                    "set working_memory_projection with a `provenance` payload instead"
+                )
+            if field == _WORKING_MEMORY_FIELD and op in {"set", "clear"}:
+                normalized_value = (
+                    str(operation.get("value") or "").strip() if op == "set" else ""
+                )
+                if not normalized_value:
+                    # 清空（或写空）＝记忆与出处同生同灭。
+                    payload["overlay"][_WORKING_MEMORY_FIELD] = ""
+                    payload["overlay"][_WORKING_MEMORY_PROVENANCE_FIELD] = {}
+                    continue
+                provenance, missing_keys = self._normalize_wm_provenance(
+                    operation.get("provenance")
+                )
+                if missing_keys:
+                    # fail-closed：无出处不入记。丢弃本 op（同批其余 op 照常生效，
+                    # 避免 engagement_state 等被连坐），写入后统一发声。
+                    rejected_wm_ops.append(
+                        {
+                            "reason": "missing_provenance",
+                            "turn_id": provenance.get("turn_id", ""),
+                            "detail": {
+                                "missing_keys": missing_keys,
+                                "content_preview": normalized_value[:80],
+                                "content_chars": len(normalized_value),
+                            },
+                        }
+                    )
+                    continue
+                provenance["written_at"] = now
+                provenance["source_feature"] = source_feature
+                provenance["source_id"] = source_id
+                provenance["content_sha256"] = hashlib.sha256(
+                    normalized_value.encode("utf-8")
+                ).hexdigest()[:16]
+                provenance["content_chars"] = len(normalized_value)
+                payload["overlay"][_WORKING_MEMORY_FIELD] = normalized_value
+                payload["overlay"][_WORKING_MEMORY_PROVENANCE_FIELD] = provenance
+                continue
             if op == "set":
                 payload["overlay"][field] = self._normalize_field_value(field, operation.get("value"))
             elif op == "merge":
@@ -533,6 +670,16 @@ class BotLearnerOverlayService:
             event_type="overlay_patch",
             payload=outbox_payload,
         )
+        for rejected in rejected_wm_ops:
+            self.record_working_memory_rejection(
+                bot_id,
+                user_id,
+                reason=str(rejected.get("reason") or "unspecified"),
+                turn_id=str(rejected.get("turn_id") or ""),
+                source_feature=source_feature,
+                source_id=source_id,
+                detail=dict(rejected.get("detail") or {}),
+            )
         return self.read_overlay(bot_id, user_id)
 
     def build_context_fragment(

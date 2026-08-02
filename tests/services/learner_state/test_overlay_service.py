@@ -27,6 +27,10 @@ def _make_service(tmp_path) -> BotLearnerOverlayService:
     return BotLearnerOverlayService(path_service=_PathServiceStub(tmp_path))
 
 
+# task#32 出处链化：working_memory_projection 的非空 set 必须携带来源指针。
+_WM_PROVENANCE = {"turn_id": "turn-0001", "source_kind": "assistant_response"}
+
+
 class _FakeLearnerStateService:
     def __init__(self) -> None:
         self.goals: list[dict[str, object]] = []
@@ -111,7 +115,7 @@ def test_patch_overlay_supports_set_merge_clear_and_append_candidate(tmp_path) -
         "student_demo",
         {
             "operations": [
-                {"op": "set", "field": "working_memory_projection", "value": "先盯住承载力与沉降控制的区分。"},
+                {"op": "set", "field": "working_memory_projection", "value": "先盯住承载力与沉降控制的区分。", "provenance": dict(_WM_PROVENANCE)},
                 {"op": "set", "field": "local_notebook_scope_refs", "value": ["nb-1", "rec-2"]},
                 {"op": "merge", "field": "local_focus", "value": {"topic": "foundation", "status": "active"}},
                 {"op": "append_candidate", "field": "promotion_candidates", "value": {"candidate_kind": "stable_preference"}},
@@ -151,7 +155,7 @@ def test_build_context_fragment_renders_local_overlay_only(tmp_path) -> None:
         {
             "operations": [
                 {"op": "merge", "field": "local_focus", "value": {"topic": "network_plan"}},
-                {"op": "set", "field": "working_memory_projection", "value": "当前 Bot 正在带用户复习关键线路。"},
+                {"op": "set", "field": "working_memory_projection", "value": "当前 Bot 正在带用户复习关键线路。", "provenance": dict(_WM_PROVENANCE)},
             ]
         },
         source_feature="chat",
@@ -335,7 +339,7 @@ def test_decay_overlay_clears_expired_ephemeral_fields_on_read_and_persist(tmp_p
         {
             "operations": [
                 {"op": "merge", "field": "local_focus", "value": {"topic": "foundation"}},
-                {"op": "set", "field": "working_memory_projection", "value": "先做第 2 问。"},
+                {"op": "set", "field": "working_memory_projection", "value": "先做第 2 问。", "provenance": dict(_WM_PROVENANCE)},
             ]
         },
         source_feature="chat",
@@ -484,3 +488,230 @@ def test_list_user_overlays_returns_per_bot_view_sorted_by_updated_at(tmp_path) 
     assert [item["bot_id"] for item in items] == ["bot_beta", "bot_alpha"]
     assert items[0]["effective_overlay"]["local_focus"]["topic"] == "fire_distance"
     assert items[0]["event_count"] >= 1
+
+
+# =========================================================================
+# task#32 working_memory 出处链化（2026-08-01 吸收态 SEV 的结构免疫）
+# =========================================================================
+
+
+def _wm_events(tmp_path, name="student_demo__bot_alpha"):
+    events_path = tmp_path / "learner_state" / "bot_overlays" / f"{name}.events.jsonl"
+    if not events_path.exists():
+        return []
+    return [
+        json.loads(line)
+        for line in events_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+
+def test_wm_set_without_provenance_is_fail_closed_and_loud(tmp_path) -> None:
+    """无出处不入记：投影被拒，同批其余 op 照常，拒绝落审计事件（不静默）。"""
+    service = _make_service(tmp_path)
+
+    overlay = service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {
+            "operations": [
+                {"op": "set", "field": "working_memory_projection", "value": "裸写内容不应入记"},
+                {"op": "merge", "field": "engagement_state", "value": {"last_capability": "chat"}},
+            ]
+        },
+        source_feature="turn",
+        source_id="session-1",
+    )
+
+    assert overlay["effective_overlay"]["working_memory_projection"] == ""
+    assert overlay["effective_overlay"]["working_memory_provenance"] == {}
+    assert overlay["effective_overlay"]["engagement_state"]["last_capability"] == "chat"
+
+    rejected = [
+        item
+        for item in _wm_events(tmp_path)
+        if item["event_type"] == "overlay_working_memory_rejected"
+    ]
+    assert len(rejected) == 1
+    assert rejected[0]["reason"] == "missing_provenance"
+    assert rejected[0]["detail"]["missing_keys"] == ["turn_id", "source_kind"]
+    assert "裸写内容" in rejected[0]["detail"]["content_preview"]
+    # 拒入事件必须进既有审计 API
+    audit_events = service.list_overlay_audit("bot_alpha", "student_demo")
+    assert any(
+        item["event_type"] == "overlay_working_memory_rejected" for item in audit_events
+    )
+
+
+def test_wm_set_with_provenance_persists_and_roundtrips(tmp_path) -> None:
+    """带出处写入：service 补章（written_at/hash），且落盘后重读不被白名单剥掉。"""
+    service = _make_service(tmp_path)
+    service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {
+            "op": "set",
+            "field": "working_memory_projection",
+            "value": "刚讲完承载力，下一步对比沉降控制。",
+            "provenance": {
+                "turn_id": "turn-42",
+                "source_kind": "assistant_response",
+                "session_id": "sess-9",
+                "capability": "chat",
+                "ignored_junk": "should_be_dropped",
+            },
+        },
+        source_feature="turn",
+        source_id="sess-9",
+    )
+
+    # 新实例重读 = 证明 _ALLOWED_FIELDS 回读名单包含 provenance（漏名单=永久0命中）
+    reread = _make_service(tmp_path).read_overlay("bot_alpha", "student_demo")
+    provenance = reread["effective_overlay"]["working_memory_provenance"]
+    assert provenance["turn_id"] == "turn-42"
+    assert provenance["source_kind"] == "assistant_response"
+    assert provenance["session_id"] == "sess-9"
+    assert provenance["source_feature"] == "turn"
+    assert provenance["written_at"]
+    assert provenance["content_sha256"]
+    assert provenance["content_chars"] > 0
+    assert "ignored_junk" not in provenance
+    assert "legacy_no_provenance" not in provenance
+    assert not [
+        item
+        for item in _wm_events(tmp_path)
+        if item["event_type"] == "overlay_working_memory_rejected"
+    ]
+
+
+def test_wm_provenance_field_is_service_managed(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    try:
+        service.patch_overlay(
+            "bot_alpha",
+            "student_demo",
+            {"op": "set", "field": "working_memory_provenance", "value": {"turn_id": "forged"}},
+            source_feature="admin_overlay",
+            source_id="admin-1",
+        )
+    except ValueError as exc:
+        assert "service-managed" in str(exc)
+    else:
+        raise AssertionError("expected direct working_memory_provenance write to be rejected")
+
+
+def test_wm_clear_and_empty_set_clear_provenance_together(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {
+            "op": "set",
+            "field": "working_memory_projection",
+            "value": "有内容",
+            "provenance": dict(_WM_PROVENANCE),
+        },
+        source_feature="turn",
+        source_id="s-1",
+    )
+    cleared = service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {"op": "clear", "field": "working_memory_projection"},
+        source_feature="turn",
+        source_id="s-2",
+    )
+    assert cleared["effective_overlay"]["working_memory_projection"] == ""
+    assert cleared["effective_overlay"]["working_memory_provenance"] == {}
+    # 空 set 等价 clear，且不需要出处、不算拒入
+    emptied = service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {"op": "set", "field": "working_memory_projection", "value": "  "},
+        source_feature="turn",
+        source_id="s-3",
+    )
+    assert emptied["effective_overlay"]["working_memory_projection"] == ""
+    assert not [
+        item
+        for item in _wm_events(tmp_path)
+        if item["event_type"] == "overlay_working_memory_rejected"
+    ]
+
+
+def test_wm_legacy_record_without_provenance_reads_with_grace_tag(tmp_path) -> None:
+    """生产存量（477 条）兼容：宽限读 + legacy 标记，禁一刀切清空。"""
+    service = _make_service(tmp_path)
+    stored_dir = tmp_path / "learner_state" / "bot_overlays"
+    stored_dir.mkdir(parents=True, exist_ok=True)
+    legacy_payload = {
+        "bot_id": "bot_alpha",
+        "user_id": "student_demo",
+        "version": 7,
+        "created_at": datetime.now(timezone.utc).astimezone().isoformat(),
+        "updated_at": datetime.now(timezone.utc).astimezone().isoformat(),
+        "overlay": {
+            "working_memory_projection": "出处强制上线前写入的旧记忆",
+        },
+    }
+    (stored_dir / "student_demo__bot_alpha.json").write_text(
+        json.dumps(legacy_payload, ensure_ascii=False), encoding="utf-8"
+    )
+
+    overlay = service.read_overlay("bot_alpha", "student_demo")
+
+    # 内容照常可用（不惩罚存量学员），但审计面显式标 legacy
+    assert overlay["effective_overlay"]["working_memory_projection"] == "出处强制上线前写入的旧记忆"
+    assert overlay["effective_overlay"]["working_memory_provenance"] == {
+        "legacy_no_provenance": True
+    }
+
+
+def test_wm_decay_expires_projection_and_provenance_together(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.patch_overlay(
+        "bot_alpha",
+        "student_demo",
+        {
+            "op": "set",
+            "field": "working_memory_projection",
+            "value": "会过期的记忆",
+            "provenance": dict(_WM_PROVENANCE),
+        },
+        source_feature="turn",
+        source_id="s-1",
+    )
+    stored_path = tmp_path / "learner_state" / "bot_overlays" / "student_demo__bot_alpha.json"
+    stored = json.loads(stored_path.read_text(encoding="utf-8"))
+    stored["updated_at"] = (datetime.now(timezone.utc) - timedelta(hours=96)).astimezone().isoformat()
+    stored_path.write_text(json.dumps(stored, ensure_ascii=False), encoding="utf-8")
+
+    decayed = service.decay_overlay("bot_alpha", "student_demo", max_age_hours=72)
+
+    assert decayed["overlay_decay_applied"] is True
+    persisted = json.loads(stored_path.read_text(encoding="utf-8"))
+    assert persisted["overlay"]["working_memory_projection"] == ""
+    assert persisted["overlay"]["working_memory_provenance"] == {}
+
+
+def test_record_working_memory_rejection_is_visible_in_events_and_audit(tmp_path) -> None:
+    """#638 安全模板拒入从静默升级为发声：事件可见、审计可见。"""
+    service = _make_service(tmp_path)
+
+    service.record_working_memory_rejection(
+        "bot_alpha",
+        "student_demo",
+        reason="security_template_response",
+        turn_id="turn-77",
+        source_feature="turn",
+        source_id="sess-3",
+    )
+
+    events = service.list_overlay_events(
+        "bot_alpha", "student_demo", event_type="overlay_working_memory_rejected"
+    )
+    assert len(events) == 1
+    assert events[0]["reason"] == "security_template_response"
+    assert events[0]["turn_id"] == "turn-77"
+    audit = service.list_overlay_audit("bot_alpha", "student_demo")
+    assert any(item["event_type"] == "overlay_working_memory_rejected" for item in audit)
