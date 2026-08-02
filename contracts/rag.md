@@ -116,7 +116,8 @@
 
     - **(a) 单一谓词权威**：应用侧过滤谓词（`retired_at=is.null`）只定义在 `deeptutor/services/questions_bank_liveness.py`；PostgREST 直读 questions_bank 的查询构造必须经 `apply_live_row_filter`（RAG 侧汇聚点 = `SupabasePipeline._select` 按表名注入；组卷侧 = `blueprint_service._query` / `question_bank_size`）。**调用点不得各自手写 WHERE**——那是第 N+1 个 decider。
     - **(b) RPC 通道在 DB 函数体内收权**：`search_questions_bank_text` / `search_questions_bank_vector` 等 RPC 的返回列由函数签名固定、应用侧改不了，谓词落在 `supabase/migrations/20260802000200_questions_bank_reader_soft_delete_filter.sql`（8 函数 + 1 视图穷举，清单常量 = `SOFT_DELETE_FILTERED_DB_READERS`，静态测试逐一核对，漏一个即红）。
-    - **(c) 生产读者没有读退役行的权利**：对生命周期列写其他谓词（如 `not.is.null`）必须抛错不静默；治理/审计工具要读全量就不走 `apply_live_row_filter`。
+    - **(c) 生产读者没有读退役行的权利**：对生命周期列写其他谓词（如 `not.is.null`）必须抛错不静默；治理/审计工具要读全量就不走 `apply_live_row_filter`。这条 fail-closed **与灰度旗标无关，OFF 期间同样生效**——"开关没开"不得变成绕过收权的后门。
+    - **(c2) 灰度旗标 `LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER`（默认 OFF）解耦部署序**：OFF = 不注入谓词、逐字节现行为，因为本轮无 writer（`retired_at` 全表恒 NULL，过滤与不过滤同结果集）——这是**立法不是疏忽**，让代码可以先于 DDL 安全上线（谓词打在尚未存在的列上 PostgREST 整条返 400 = 题库检索全断）。翻 ON 的正确窗口 = migration Part A 执行之后、首个退役批写入之前。上线四步各自独立可回滚，见 APPROVAL_SHEET。
     - **(d) retire 是状态翻转不是删除**：下游快照（assessment_forms / 会话 / 错题本）与 `user_logs` FK 继续可解析；回滚 = 按 `retired_batch` 一条 UPDATE。破坏性 DELETE 仍受删行三查协议约束。
     - **(e) 退役写操作走 manifest 授权**（canonical431 pointer 模式）：批量 retire 必须有 `production_authorized=true` 的 retirement manifest（完整性链与治理链分离），执行器未见授权必须拒跑并发声。
     - 设计与测绘：`docs/原始数据/数据盘点/2026-08-02-questions_bank软删版本化读者测绘与设计.md`；域测试：`tests/services/rag/test_questions_bank_soft_delete_filter.py`。

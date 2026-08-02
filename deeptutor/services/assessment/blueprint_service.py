@@ -23,6 +23,7 @@ from deeptutor.services.questions_bank_liveness import (
     LIVE_ROW_FILTER_COLUMN,
     LIVE_ROW_FILTER_OPERATOR,
     apply_live_row_filter,
+    soft_delete_filter_enabled,
 )
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 from deeptutor.services.taxonomy.learning_topic_resolver import (
@@ -382,9 +383,14 @@ class SupabaseAssessmentQuestionProvider:
     def question_bank_size(self) -> int:
         base_url, api_key = self._supabase_config()
         # 软删收权（task#31）：题库规模只算在服行（口径裁决见设计稿 §2.5）。
+        # 与 _query 同一旗标（默认 OFF = 现行为），OFF 期间列可能尚未上线。
+        live_filter = (
+            f"&{LIVE_ROW_FILTER_COLUMN}={LIVE_ROW_FILTER_OPERATOR}"
+            if soft_delete_filter_enabled()
+            else ""
+        )
         req = request.Request(
-            f"{base_url}/rest/v1/questions_bank?select=id&limit=1"
-            f"&{LIVE_ROW_FILTER_COLUMN}={LIVE_ROW_FILTER_OPERATOR}",
+            f"{base_url}/rest/v1/questions_bank?select=id&limit=1{live_filter}",
             headers={
                 "apikey": api_key,
                 "Authorization": f"Bearer {api_key}",

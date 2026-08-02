@@ -88,9 +88,28 @@ select count(*) from (
 --    此步骤属于 B1 批执行任务，须走 retirement manifest 授权（production_authorized=true），本审批单不涵盖。
 ```
 
-## 与应用代码的部署顺序（硬约束）
+## 上线顺序（三步 + 一步，每步独立可回滚）
 
-1. owner 审批 → 执行 Part A → REST 可见性确认；
-2. 执行 Part B → 执行后验证 1/2；
-3. 合并部署本分支应用代码（读侧 `retired_at=is.null` 过滤；**先合代码后跑 DDL 会让 PostgREST 对含过滤参数的查询返 400 → 题库检索全断**，见设计稿 §2.3）；
-4. 之后 B1 批退役才允许开始（另行审批，走 manifest 授权位）。
+原设计要求"代码必须晚于 DDL"，等于让分支挂起等审批（分支腐化 + main 持续前进）。
+改用灰度旗标 **`LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER`（默认 OFF）** 解耦部署序——
+"新开关默认位=部署序即语义"。**默认 OFF 之所以安全，是因为本轮无 writer**：
+Part A 落地后 `retired_at` 全表恒 NULL，过滤与不过滤是同一个结果集，OFF 期间不过滤无损。
+
+| 步 | 动作 | 行为变化 | 回滚 |
+|---|---|---|---|
+| **1** | 合并部署本分支应用代码（旗标 OFF） | **零**（谓词不注入，逐字节现行为；测试钉死） | 回滚部署 / 无需——OFF 本就是现行为 |
+| **2** | owner 审批 → 执行 **Part A**（加可空列，向后兼容）→ REST 可见性确认（`select=retired_at&limit=1` 返 200） | 零（列全 NULL，无人读） | A-R 逐条（本单 Part A 回滚段） |
+| **3** | 执行 **Part B**（库内 9 读者收权，**依赖 Part A 已 apply**，否则函数编译失败）→ 执行后验证 1/2 | 零（0 行 retired 时结果集守恒） | `rollback_20260802000200.sql` |
+| **4** | 翻旗标 **ON** + 重启 → live 三通道回归（exact-ilike / text RPC / vector RPC） | 应用侧开始注入谓词 | 翻回 OFF + 重启（秒级，无需回滚 DDL） |
+
+**翻 ON 的正确窗口 = Part A 执行之后、首个退役批写入之前**：早于 DDL 会 400（列不存在），
+晚于首个 writer 会漏读退役行。Part B 与旗标相互独立（DB 侧收权对客户端透明），
+但两者都必须在第一次 retire 之前就位。
+
+之后 B1 批退役才允许开始（另行审批，走 manifest `production_authorized` 授权位）。
+
+## 后续项（不在本轮，登记备查）
+
+- **库内函数漂移周期哨兵**：本次实测的 8 RPC + 1 视图此前只活在已部署项目里（仓库零 `CREATE FUNCTION`）。
+  建议把 `readonly_schema_probe.py` 的 `pg_get_functiondef` 抓取做成周期 drift 检查，
+  对仓库版本 diff，发现第三方静默改库内函数即告警。本轮只做一次性抓取入仓（回滚基线），不建哨兵。

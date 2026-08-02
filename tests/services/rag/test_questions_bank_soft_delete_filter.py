@@ -4,6 +4,10 @@
 
 断言面全部可证伪：
 
+0. **灰度旗标 `LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER` 默认 OFF = 零行为变化**
+   （部署序解耦）：OFF 时谓词一概不注入（列尚未上线时注入会让 PostgREST 整条
+   返 400）；ON 时注入。fail-closed（拒绝覆写谓词读退役行）与旗标无关，
+   OFF 期间同样生效——"开关没开"不得变成绕过收权的后门；
 1. REST 通道单一构造点：`_select` 对 table=questions_bank 必注入
    `retired_at=is.null` —— 删掉 `_select` 里的注入即红；
 2. 其他表（kb_chunks）零污染：谓词绝不外溢；
@@ -28,9 +32,22 @@ from deeptutor.services.questions_bank_liveness import (
     LIVE_ROW_FILTER_COLUMN,
     LIVE_ROW_FILTER_OPERATOR,
     QUESTIONS_BANK_TABLE,
+    SOFT_DELETE_FILTER_FLAG,
     SOFT_DELETE_FILTERED_DB_READERS,
     apply_live_row_filter,
+    soft_delete_filter_enabled,
 )
+
+
+@pytest.fixture
+def flag_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    """翻开灰度旗标（生产默认 OFF；见模块 docstring 的默认位立法理由）。"""
+    monkeypatch.setenv(SOFT_DELETE_FILTER_FLAG, "1")
+
+
+@pytest.fixture
+def flag_off(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(SOFT_DELETE_FILTER_FLAG, "0")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _PART_A = REPO_ROOT / "supabase/migrations/20260802000100_questions_bank_soft_delete.sql"
@@ -40,25 +57,67 @@ _PART_B = (
 
 
 # ---------------------------------------------------------------------------
-# 谓词权威模块（单元）
+# 灰度旗标：默认位 = 零行为变化（部署序解耦）
 # ---------------------------------------------------------------------------
 
 
-def test_apply_live_row_filter_injects_predicate() -> None:
+def test_soft_delete_filter_flag_defaults_off(monkeypatch: pytest.MonkeyPatch) -> None:
+    """未设置旗标时必须 OFF —— 默认 ON 会让代码不能先于 DDL 上线。"""
+    monkeypatch.delenv(SOFT_DELETE_FILTER_FLAG, raising=False)
+    assert soft_delete_filter_enabled() is False
+
+
+def test_apply_live_row_filter_noop_when_flag_off(flag_off: None) -> None:
+    """OFF = 逐字节现行为：谓词一概不注入（列可能尚未上线，注入即 400）。"""
+    query = {"question_stem": "ilike.*混凝土*", "limit": "3"}
+    out = apply_live_row_filter(query)
+    assert LIVE_ROW_FILTER_COLUMN not in out
+    assert out == {"question_stem": "ilike.*混凝土*", "limit": "3"}
+
+
+def test_override_refused_even_when_flag_off(flag_off: None) -> None:
+    """fail-closed 与旗标无关——"开关没开"不得变成绕过收权的后门。"""
+    with pytest.raises(ValueError, match="不得覆写生命周期谓词"):
+        apply_live_row_filter({LIVE_ROW_FILTER_COLUMN: "not.is.null"})
+
+
+@pytest.mark.asyncio
+async def test_select_does_not_inject_when_flag_off(flag_off: None) -> None:
+    """端到端 OFF：REST 查询参数与收权前逐字节相同。"""
+    pipeline, config = _pipeline_and_config()
+    client = _FakeClient()
+    await pipeline._select(
+        client,
+        table=QUESTIONS_BANK_TABLE,
+        select="id",
+        query={"question_stem": "ilike.*基坑*", "limit": "3"},
+        config=config,
+    )
+    sent = client.captured[0]["params"]
+    assert LIVE_ROW_FILTER_COLUMN not in sent
+    assert sent == {"select": "id", "question_stem": "ilike.*基坑*", "limit": "3"}
+
+
+# ---------------------------------------------------------------------------
+# 谓词权威模块（单元，旗标 ON）
+# ---------------------------------------------------------------------------
+
+
+def test_apply_live_row_filter_injects_predicate(flag_on: None) -> None:
     query = {"limit": "3"}
     out = apply_live_row_filter(query)
     assert out is query  # 原地修改，同一对象
     assert out[LIVE_ROW_FILTER_COLUMN] == LIVE_ROW_FILTER_OPERATOR
 
 
-def test_apply_live_row_filter_is_idempotent() -> None:
+def test_apply_live_row_filter_is_idempotent(flag_on: None) -> None:
     query = {LIVE_ROW_FILTER_COLUMN: LIVE_ROW_FILTER_OPERATOR, "limit": "3"}
     out = apply_live_row_filter(query)
     assert out[LIVE_ROW_FILTER_COLUMN] == LIVE_ROW_FILTER_OPERATOR
     assert len(out) == 2
 
 
-def test_apply_live_row_filter_refuses_override() -> None:
+def test_apply_live_row_filter_refuses_override(flag_on: None) -> None:
     """生产读者没有读退役行的权利——覆写谓词必须炸，不静默。"""
     with pytest.raises(ValueError, match="不得覆写生命周期谓词"):
         apply_live_row_filter({LIVE_ROW_FILTER_COLUMN: "not.is.null"})
@@ -97,7 +156,7 @@ def _pipeline_and_config():
 
 
 @pytest.mark.asyncio
-async def test_select_injects_live_filter_for_questions_bank() -> None:
+async def test_select_injects_live_filter_for_questions_bank(flag_on: None) -> None:
     pipeline, config = _pipeline_and_config()
     client = _FakeClient()
     original_query = {"question_stem": "ilike.*混凝土*", "limit": "3"}
@@ -116,7 +175,7 @@ async def test_select_injects_live_filter_for_questions_bank() -> None:
 
 
 @pytest.mark.asyncio
-async def test_select_does_not_leak_filter_to_other_tables() -> None:
+async def test_select_does_not_leak_filter_to_other_tables(flag_on: None) -> None:
     pipeline, config = _pipeline_and_config()
     client = _FakeClient()
     await pipeline._select(
@@ -130,7 +189,7 @@ async def test_select_does_not_leak_filter_to_other_tables() -> None:
 
 
 @pytest.mark.asyncio
-async def test_exact_text_probes_carry_live_filter_end_to_end() -> None:
+async def test_exact_text_probes_carry_live_filter_end_to_end(flag_on: None) -> None:
     """S1/S2：exact-ilike 双探针走真实 `_select`，两发请求都必须带谓词。"""
     pipeline, config = _pipeline_and_config()
     client = _FakeClient()
@@ -212,7 +271,9 @@ def test_migration_part_b_refresh_syllabus_stats_filters_both_sites() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_blueprint_query_injects_live_filter(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_blueprint_query_injects_live_filter(
+    flag_on: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
     from deeptutor.services.assessment.blueprint_service import (
         SupabaseAssessmentQuestionProvider,
     )
@@ -231,7 +292,7 @@ def test_blueprint_query_injects_live_filter(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_blueprint_question_bank_size_counts_live_rows_only(
-    monkeypatch: pytest.MonkeyPatch,
+    flag_on: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from deeptutor.services.assessment import blueprint_service as bp_module
 

@@ -16,14 +16,29 @@ docs/原始数据/数据盘点/2026-08-02-questions_bank软删版本化读者测
   :data:`SOFT_DELETE_FILTERED_DB_READERS` 是那 9 个库内读者的穷举清单，
   静态测试用它对 migration 文件逐一核对——**漏一个即红**。
 
-部署顺序硬约束：migration Part A（加列）必须先于本模块所在代码部署，
-否则 PostgREST 对含未知列过滤参数的查询返 400（题库检索全断）。
+灰度旗标 ``LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER``（默认 **OFF**）解耦部署顺序。
+"新开关默认位=部署序即语义"：谓词若无条件注入，代码就必须晚于 DDL 上线——
+早一步 PostgREST 对未知列的过滤参数整条返 400，等于题库检索全断。加旗标后
+三步各自独立可回滚：**代码合并部署（OFF，零行为变化）→ 执行 Part A DDL
+（加可空列，向后兼容）→ 翻 ON 重启 → live 三通道回归**。
+
+**默认 OFF 为什么是安全的（默认位的立法理由，不是疏忽）**：本轮**没有任何
+writer**——四列上线后 ``retired_at`` 全表恒为 NULL，一行退役数据都不存在。
+"过滤掉退役行"与"不过滤"在零退役行时是**同一个结果集**，所以 OFF 期间不过滤
+无损；等 Part A 落地、第一个退役批（走 manifest 授权）真的写入之前翻 ON，
+过滤才开始有语义。翻 ON 早于 DDL 会 400，晚于首个 writer 会漏读退役行——
+**正确窗口 = DDL 之后、首个 retire 写入之前**。
 见 extractions/supply_soft_delete_20260802/APPROVAL_SHEET.md。
 """
 
 from __future__ import annotations
 
+from deeptutor.services.runtime_env import env_flag
+
 QUESTIONS_BANK_TABLE = "questions_bank"
+
+#: 灰度旗标名。默认 OFF = 逐字节保持收权前行为（论证见模块 docstring）。
+SOFT_DELETE_FILTER_FLAG = "LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER"
 
 #: 生命周期列与 PostgREST 谓词（先例：notebook_card/store.py 的 archived_at is.null）
 LIVE_ROW_FILTER_COLUMN = "retired_at"
@@ -44,12 +59,27 @@ SOFT_DELETE_FILTERED_DB_READERS: tuple[str, ...] = (
 )
 
 
+def soft_delete_filter_enabled() -> bool:
+    """灰度旗标读取点（默认 OFF）。
+
+    默认 OFF 的立法理由见模块 docstring：本轮无 writer，``retired_at`` 全表恒
+    NULL，过滤与不过滤结果集相同 → OFF 无损，且让代码可以先于 DDL 安全上线。
+    """
+    return env_flag(SOFT_DELETE_FILTER_FLAG, default=False)
+
+
 def apply_live_row_filter(query: dict[str, str]) -> dict[str, str]:
     """向 PostgREST 查询参数注入在服行谓词（原地修改并返回同一 dict）。
 
-    幂等：重复调用无害。fail-closed：若调用方已经对生命周期列写了**别的**
-    谓词（例如 ``not.is.null`` 想读退役行），拒绝静默覆写、直接抛错——
-    生产读者没有读退役行的权利；治理/审计工具想读全量，就不要走本函数。
+    旗标 OFF（默认）时**不注入**，逐字节保持收权前行为——列还没上线时注入
+    会让 PostgREST 整条查询返 400。
+
+    fail-closed 的两条与旗标无关、始终生效：
+    - 覆写检查：若调用方对生命周期列写了**别的**谓词（例如 ``not.is.null``
+      想读退役行），拒绝静默覆写、直接抛错。生产读者没有读退役行的权利；
+      治理/审计工具想读全量，就不要走本函数。旗标 OFF 时同样拒绝——
+      "开关没开"绝不能变成"绕过收权的后门"。
+    - 幂等：重复调用无害。
     """
     existing = query.get(LIVE_ROW_FILTER_COLUMN)
     if existing is not None and existing != LIVE_ROW_FILTER_OPERATOR:
@@ -57,5 +87,7 @@ def apply_live_row_filter(query: dict[str, str]) -> dict[str, str]:
             "questions_bank 生产读取不得覆写生命周期谓词: "
             f"{LIVE_ROW_FILTER_COLUMN}={existing!r} (期望 {LIVE_ROW_FILTER_OPERATOR!r})"
         )
+    if not soft_delete_filter_enabled():
+        return query
     query[LIVE_ROW_FILTER_COLUMN] = LIVE_ROW_FILTER_OPERATOR
     return query

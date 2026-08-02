@@ -139,7 +139,15 @@ audit_2026_compiler_supabase_coverage / audit_assessment_testset_p0a / audit_con
 - `SOFT_DELETE_FILTERED_DB_READERS`：8 RPC + 1 视图清单常量，锚定 DB 侧收权面，静态测试用它对 migration 文件做穷举核对。
 - RPC 通道（S3/S4/S5）在 **DB 函数体内**收权（migration Part B 对 8 函数 + 1 视图 CREATE OR REPLACE 加 `retired_at IS NULL`）——签名不变，客户端零改动即生效。**不给 RPC 返回列加 retired_at**（TABLE 签名一动，PostgREST schema cache 与所有调用方联动，违背最小移植）。
 
-**部署顺序命门**（supabase.py:63-67 教训的镜像）：`retired_at=is.null` 过滤参数打在不存在的列上，PostgREST 对整条查询返 400 → "题库检索全断"。因此**硬顺序**：migration Part A（纯加列，零行为变化）先在生产 apply，本分支代码后合并部署。本分支保持未合状态直到 owner 执行 Part A（与"阿里云里程碑一次性合"工作流一致）。备选的运行时列探测方案（availability-probe 同款）因引入第二判据 + fail-open 窗口被否。
+**部署顺序命门**（supabase.py:63-67 教训的镜像）：`retired_at=is.null` 过滤参数打在不存在的列上，PostgREST 对整条查询返 400 → "题库检索全断"。
+
+**处置：灰度旗标解耦，不用"分支挂起等 DDL"**（owner 改判 2026-08-02；分支悬空会腐化且 main 持续前进）。旗标 `LUBAN_QUESTIONS_BANK_SOFT_DELETE_FILTER`，**默认 OFF**（= 不注入谓词 = 逐字节现行为），登记 `contracts/env_registry.yaml`（kind: rollout, read: env_flag）。
+
+**默认 OFF 的立法理由（不是疏忽）**：本轮**无 writer**——Part A 落地后 `retired_at` 全表恒 NULL，"过滤退役行"与"不过滤"在零退役行时是同一个结果集，故 OFF 期间不过滤无损。该论证同时写进模块 docstring 与 env 注释，防后人误读为遗漏。
+
+上线序因此变成四步、每步独立可回滚：**① 代码合并部署（OFF，零行为变化）→ ② owner 批准执行 Part A DDL（加可空列，向后兼容）→ ③ 执行 Part B（依赖 Part A）→ ④ 翻 ON 重启 → live 三通道回归**。翻 ON 的正确窗口 = Part A 之后、首个退役批写入之前（早于 DDL 会 400，晚于首个 writer 会漏读退役行）；回滚 = 翻回 OFF 重启，秒级，不必回滚 DDL。
+
+fail-closed（拒绝覆写谓词读退役行）**与旗标无关，OFF 期间同样生效**——"开关没开"不得变成绕过收权的后门。备选的运行时列探测方案（availability-probe 同款）因引入第二判据 + fail-open 窗口被否。
 
 ### 2.4 版本化语义
 
