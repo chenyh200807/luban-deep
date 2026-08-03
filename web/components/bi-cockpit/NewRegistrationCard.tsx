@@ -168,31 +168,88 @@ export function NewRegistrationCard({
 }
 
 function MiniBars({ bars, peak }: { bars: Array<{ label: string; count: number }>; peak: number }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+
   if (bars.length === 0) {
     return <div className="mt-2 h-10" />
   }
+
+  const activeBar = activeIndex === null ? null : bars[activeIndex] ?? null
+  const activePosition =
+    activeIndex === null ? 50 : ((activeIndex + 0.5) / Math.max(bars.length, 1)) * 100
+
   return (
-    <div className="mt-2 flex h-12 items-end gap-[2px]" aria-hidden>
-      {bars.map((bar, index) => {
-        // 高度线性映射（不做 sqrt 之类的美化缩放，免得把 3 人看成接近 100 人），
-        // 但非零最低给 18% 高度：单个爆发日不该把其它有注册的日子压成看不见。
-        // 0 只画一条 2px 底线 —— "那天真的没人注册"和"没有那天"要能分辨。
-        const ratio = peak > 0 ? bar.count / peak : 0
-        return (
-          <span
-            key={`${bar.label}-${index}`}
-            title={`${bar.label}：${bar.count} 人`}
-            className="min-w-[2px] flex-1 rounded-sm"
-            style={{
-              height: bar.count > 0 ? `${Math.max(ratio * 100, 18)}%` : '2px',
-              background:
-                bar.count > 0
-                  ? `linear-gradient(180deg, ${SERIES_COLORS[0]}, ${alpha(SERIES_COLORS[0], 0.35)})`
-                  : 'rgba(255,255,255,0.12)',
-            }}
-          />
-        )
-      })}
+    <div
+      className="relative mt-2 h-16"
+      onMouseLeave={() => setActiveIndex(null)}
+      aria-label="每日新增注册趋势"
+    >
+      <div className="absolute inset-x-0 bottom-0 flex h-10 items-end gap-[2px]">
+        {bars.map((bar, index) => {
+          // 高度线性映射（不做 sqrt 之类的美化缩放，免得把 3 人看成接近 100 人），
+          // 但非零最低给 18% 高度：单个爆发日不该把其它有注册的日子压成看不见。
+          // 0 只画一条 2px 底线 —— "那天真的没人注册"和"没有那天"要能分辨。
+          const ratio = peak > 0 ? bar.count / peak : 0
+          const isActive = activeIndex === index
+          return (
+            <span
+              key={`${bar.label}-${index}`}
+              data-testid={`bi-member-new-registration-bar-${index}`}
+              role="img"
+              tabIndex={0}
+              aria-label={`${formatBarLabel(bar.label)}，${bar.count} 人`}
+              aria-describedby={isActive ? 'bi-member-new-registration-tooltip' : undefined}
+              onMouseEnter={() => setActiveIndex(index)}
+              onFocus={() => setActiveIndex(index)}
+              onBlur={() => setActiveIndex(null)}
+              className={`group flex h-full min-w-[2px] flex-1 cursor-crosshair items-end outline-none transition-opacity duration-200 ${
+                activeIndex !== null && !isActive ? 'opacity-45' : 'opacity-100'
+              }`}
+            >
+              <span
+                aria-hidden
+                className="w-full origin-bottom rounded-sm transition-[height,transform,filter,box-shadow] duration-300 ease-out group-hover:scale-y-110 group-hover:brightness-125 group-hover:drop-shadow-[0_0_6px_rgba(240,168,120,0.7)] group-focus-visible:scale-y-110 group-focus-visible:brightness-125 group-focus-visible:drop-shadow-[0_0_6px_rgba(240,168,120,0.7)]"
+                style={{
+                  height: bar.count > 0 ? `${Math.max(ratio * 100, 18)}%` : '2px',
+                  background:
+                    bar.count > 0
+                      ? `linear-gradient(180deg, ${SERIES_COLORS[0]}, ${alpha(SERIES_COLORS[0], 0.35)})`
+                      : 'rgba(255,255,255,0.12)',
+                }}
+              />
+            </span>
+          )
+        })}
+      </div>
+
+      <div
+        id="bi-member-new-registration-tooltip"
+        data-testid="bi-member-new-registration-tooltip"
+        role="tooltip"
+        aria-hidden={!activeBar}
+        className={`pointer-events-none absolute top-0 z-20 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[#F0A878]/55 bg-[#0d0907] px-2.5 py-1.5 text-xs font-bold shadow-[0_8px_24px_rgba(0,0,0,0.55)] transition-[left,opacity,transform] duration-150 ease-out ${
+          activeBar
+            ? 'translate-y-0 scale-100 opacity-100'
+            : 'translate-y-1 scale-95 opacity-0'
+        }`}
+        style={{ left: `clamp(4.75rem, ${activePosition}%, calc(100% - 4.75rem))` }}
+      >
+        <span className="text-slate-50">{activeBar ? formatBarLabel(activeBar.label) : '—'}</span>
+        <span className="mx-1.5 text-slate-500">·</span>
+        <span className="text-sm font-black tabular-nums text-[#F0A878]">
+          {activeBar?.count.toLocaleString() ?? 0} 人
+        </span>
+      </div>
     </div>
   )
+}
+
+function formatBarLabel(label: string): string {
+  return label
+    .split(' ~ ')
+    .map(value => {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+      return match ? `${match[1]}年${Number(match[2])}月${Number(match[3])}日` : value
+    })
+    .join(' 至 ')
 }

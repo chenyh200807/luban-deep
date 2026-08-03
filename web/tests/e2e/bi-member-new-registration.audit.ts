@@ -137,6 +137,24 @@ test("新增注册卡：1/3/7/30 天可点击切换并改变屏幕数字", async
   await windowSelect.selectOption("7");
   await expect(total).toHaveText(EXPECTED_7D.toLocaleString());
 
+  // 鼠标移到具体日期：即时显示完整日期 + 当日人数，不能只依赖浏览器延迟 title。
+  const firstDailyBar = page.getByTestId("bi-member-new-registration-bar-0");
+  const tooltip = page.getByTestId("bi-member-new-registration-tooltip");
+  await firstDailyBar.hover();
+  await expect(tooltip).toHaveAttribute("aria-hidden", "false");
+  await expect(tooltip).toContainText("2026年6月24日");
+  await expect(tooltip).toContainText("1 人");
+  await expect(tooltip).toHaveCSS("opacity", "1");
+  await page.screenshot({
+    path: "playwright-report/new-registration-hover.png",
+    fullPage: false,
+  });
+
+  // 键盘用户聚焦同一柱时获得同样的具体数字。
+  await firstDailyBar.focus();
+  await expect(firstDailyBar).toHaveAttribute("aria-label", "2026年6月24日，1 人");
+  await expect(tooltip).toHaveAttribute("aria-hidden", "false");
+
   // 切近 3 天
   await windowSelect.selectOption("3");
   await expect(total).toHaveText(EXPECTED_3D.toLocaleString());
