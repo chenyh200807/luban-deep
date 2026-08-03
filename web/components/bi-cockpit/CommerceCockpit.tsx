@@ -75,7 +75,11 @@ export function CommerceCockpit({
     )
   }
   const s = data?.summary
-  const revenueConfirmed = s?.revenueStatus === 'confirmed_manual_partial'
+  const revenueDisplayable = [
+    'confirmed_manual_partial',
+    'confirmed_settlement_partial',
+    'empty',
+  ].includes(s?.revenueStatus ?? '')
   const ledger: ReadonlyArray<BiCommerceLedgerRow> = data?.ledger ?? []
   const packages: ReadonlyArray<BiCommercePackage> = data?.packages ?? []
   const recharges: ReadonlyArray<BiCommerceRechargeRecord> = data?.rechargeRecords ?? []
@@ -103,12 +107,14 @@ export function CommerceCockpit({
       <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-3">
         <CockpitKpi
           label="已确认近期实收"
-          value={revenueConfirmed ? money(num(s?.recentRevenueCny)) : '待确认'}
+          value={revenueDisplayable ? money(num(s?.recentRevenueCny)) : '待确认'}
           tone="emerald"
           icon={<CreditCard className="h-4 w-4" />}
           sub={
-            revenueConfirmed
-              ? `${fmt(num(s?.revenueCount))} 笔钱包账本已确认`
+            revenueDisplayable
+              ? s?.revenueStatus === 'empty'
+                ? '当前证据窗口无已确认实收'
+                : `${fmt(num(s?.revenueCount))} 笔钱包账本已确认`
               : s?.revenueStatus === 'authority_unavailable'
                 ? '钱包账本暂不可用'
                 : '存在充值事件，但缺少可核验金额'
@@ -116,17 +122,17 @@ export function CommerceCockpit({
         />
         <CockpitKpi
           label="今日已确认实收"
-          value={revenueConfirmed ? money(num(s?.todayRevenueCny)) : '待确认'}
+          value={revenueDisplayable ? money(num(s?.todayRevenueCny)) : '待确认'}
           tone="cyan"
           icon={<Wallet className="h-4 w-4" />}
         />
         <CockpitKpi
           label="最新已确认实收"
-          value={revenueConfirmed ? money(num(s?.latestRevenueAmountCny)) : '待确认'}
+          value={revenueDisplayable ? money(num(s?.latestRevenueAmountCny)) : '待确认'}
           tone="gold"
           icon={<CreditCard className="h-4 w-4" />}
           sub={
-            !revenueConfirmed
+            !revenueDisplayable
               ? '线上支付订单 authority 尚未接入'
               : s?.latestRevenueMemberId
                 ? `会员 ${s.latestRevenueMemberId}`
