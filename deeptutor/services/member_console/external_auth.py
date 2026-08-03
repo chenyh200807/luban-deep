@@ -88,16 +88,14 @@ def _allow_legacy_external_auth_default() -> bool:
 def _store_lock_path() -> Path:
     """external_auth 存储的跨进程锁文件路径。
 
-    **必须不依赖文件是否已存在**:`get_external_auth_users_file()` 与
-    `_default_users_file()` 在文件不存在时都返回 None,而锁要在 users.json
-    首次创建之前就能拿到。所以这里解析的是「配置声明的位置」而非「已存在的位置」。
+    路径必须复用 writer 的有效 users store 决策：显式 env → 已存在且允许的
+    primary/legacy default → 首次创建的 primary。否则 writer 落 legacy、锁却落
+    primary 时，锁目录权限会让本可写的 legacy store 整体不可用。
 
-    锁的正确性只要求**所有 worker 进程算出同一个路径**,不要求锁与数据同目录——
-    即使运行时落在 legacy 路径,所有进程走的仍是这同一条解析逻辑。
+    ``_resolve_users_file_for_write`` 在文件尚不存在时仍确定性返回 primary，因此
+    首次创建不依赖 exists；所有 worker 走同一个 resolver，不另造路径 authority。
     """
-    raw = str(os.getenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE") or "").strip()
-    base = Path(raw) if raw else _PRIMARY_USERS_FILE
-    return base.with_name(".external_auth.lock")
+    return _resolve_users_file_for_write().with_name(".external_auth.lock")
 
 
 class _CrossProcessStoreLock:
