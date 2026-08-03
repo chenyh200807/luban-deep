@@ -248,7 +248,7 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.equal(panel.includes('运营授予权益'), false)
 })
 
-test('commerce cockpit shows only confirmed manual revenue and fails closed on unknown amount', async () => {
+test('commerce cockpit shows displayable revenue states and fails closed on unknown amount', async () => {
   const cockpit = await readWeb('components/bi-cockpit/CommerceCockpit.tsx')
   const api = await readWeb('lib/bi-api.ts')
   const service = await readWeb('../deeptutor/services/bi_service.py')
@@ -263,7 +263,10 @@ test('commerce cockpit shows only confirmed manual revenue and fails closed on u
   assert.ok(cockpit.includes('已确认近期实收'))
   assert.ok(cockpit.includes('今日已确认实收'))
   assert.ok(cockpit.includes('最新已确认实收'))
-  assert.ok(cockpit.includes("s?.revenueStatus === 'confirmed_manual_partial'"))
+  assert.ok(cockpit.includes("'confirmed_manual_partial'"))
+  assert.ok(cockpit.includes("'confirmed_settlement_partial'"))
+  assert.ok(cockpit.includes("'empty'"))
+  assert.ok(cockpit.includes('revenueDisplayable'))
   assert.ok(cockpit.includes('存在充值事件，但缺少可核验金额'))
   assert.ok(cockpit.includes('正在读取账务快照'))
   assert.ok(cockpit.includes('账务口径暂不可确认'))

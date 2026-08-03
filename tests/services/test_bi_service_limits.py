@@ -543,9 +543,57 @@ def test_commerce_does_not_present_unknown_recharge_amount_as_zero(
     assert payload["summary"]["revenue_status"] == "insufficient_evidence"
     assert payload["summary"]["revenue_count"] == 0
     assert payload["summary"]["revenue_cny"] == 0
+    assert payload["summary"]["member_count"] == 0
+    assert payload["summary"]["recharge_count"] == 0
 
 
-def test_commerce_empty_and_truncated_revenue_evidence_fail_closed(
+def test_commerce_zero_amount_manual_grants_are_not_paid_recharges(
+    store: SQLiteSessionStore,
+) -> None:
+    zero_amount_grants = [
+        {
+            "id": f"manual-grant-{index}",
+            "user_id": f"member_free_vip_{index}",
+            "kind": "credit",
+            "amount": 9000,
+            "event_type": "grant",
+            "reference_type": "purchase",
+            "reference_id": f"manual-membership-{index}",
+            "idempotency_key": f"purchase:manual-membership:{index}",
+            "effective_at": f"2026-07-08T0{index}:30:00+08:00",
+            "metadata": {
+                "source": "bi_manual_membership",
+                "channel": "manual_membership",
+                "amount_cny": 0,
+                "reason": "BI 会员设置",
+            },
+            "authority": "wallet_ledger",
+        }
+        for index in (1, 2)
+    ]
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_SignupBonusWalletService(),
+    )
+    service._load_commerce_wallet_ledger_rows = (  # type: ignore[method-assign]
+        lambda *, limit: ("ok", zero_amount_grants, "", True)
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["summary"]["revenue_status"] == "empty"
+    assert payload["summary"]["revenue_cny"] == 0
+    assert payload["summary"]["today_revenue_cny"] == 0
+    assert payload["summary"]["latest_revenue_amount_cny"] == 0
+    assert payload["summary"]["evidence_truncated"] is True
+    assert payload["summary"]["member_count"] == 0
+    assert payload["summary"]["recharge_count"] == 0
+    assert payload["recharge_records"] == []
+    assert any("¥0 人工授权" in warning for warning in payload["warnings"])
+
+
+def test_commerce_truncated_evidence_keeps_confirmed_slice_visible(
     store: SQLiteSessionStore,
 ) -> None:
     assert BIService._build_commerce_revenue_summary([])["revenue_status"] == "empty"
@@ -577,7 +625,7 @@ def test_commerce_empty_and_truncated_revenue_evidence_fail_closed(
 
     payload = asyncio.run(service.get_commerce(limit=10))
 
-    assert payload["summary"]["revenue_status"] == "insufficient_evidence"
+    assert payload["summary"]["revenue_status"] == "confirmed_manual_partial"
     assert payload["summary"]["evidence_truncated"] is True
     assert payload["summary"]["evidence_scope"] == "latest_wallet_ledger_slice"
     assert any("禁止解释为全量收入" in warning for warning in payload["warnings"])
