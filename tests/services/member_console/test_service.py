@@ -1802,6 +1802,60 @@ def test_register_with_external_auth_persists_channel_attribution(
     assert persisted["identity_metadata"] == {"reg_channel": "test1", "reg_scene": "1047"}
 
 
+def test_identity_metadata_field_table_is_single_authority() -> None:
+    """读侧投影表与写侧归一化表必须同源。
+
+    2026-07-26 `0a0387983` 只删了写侧的 reg_channel/reg_scene 分支,读侧字段表
+    毫不知情,注册渠道归因静默落 None 而 BI 全绿。此断言让"读侧认得、写侧不认"
+    这一整类分裂在 CI 里立即可见,而不是等 BI 空桶被人肉发现。
+    """
+    write_side = tuple(
+        field for field, _mode in external_auth_module._IDENTITY_METADATA_FIELD_MODES
+    )
+    assert tuple(member_service_module._EXPLICIT_IDENTITY_METADATA_FIELDS) == write_side
+    assert tuple(external_auth_module.IDENTITY_METADATA_FIELDS) == write_side
+    # 渠道归因字段必须走保真通道,不能被划进会改写大小写的 marker 一族。
+    modes = dict(external_auth_module._IDENTITY_METADATA_FIELD_MODES)
+    assert modes["reg_channel"] == "token"
+    assert modes["reg_scene"] == "digits"
+
+
+def test_register_channel_attribution_preserves_case_and_hyphen(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """渠道值是与投放侧对账的键——大小写与连字符必须原样落盘。
+
+    身份标记字段(account_kind 等)走 lower + `-`→`_` 的规整;渠道字段若也走那条
+    通道,`Campaign-7` 会被静默改写成 `campaign_7`,BI 里的渠道名和投放侧配置对不
+    上账——那是把一个丢失病换成一个改名病。
+    """
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    service.register_with_external_auth(
+        "case_student", "StrongPass123", "13812345679", channel="Campaign-7", scene="1047"
+    )
+
+    # 落盘到 external auth 用户档案(耐久 first-touch 权威)
+    first_touch = external_auth_module.get_external_auth_user_by_phone("13812345679")
+    assert first_touch is not None
+    assert first_touch["reg_channel"] == "Campaign-7"
+    # 投影到 DB alias metadata(BI 渠道归因的读取源)
+    assert persisted["identity_metadata"] == {
+        "reg_channel": "Campaign-7",
+        "reg_scene": "1047",
+    }
+
+
 def test_register_first_touch_survives_missing_phone_alias_projection(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

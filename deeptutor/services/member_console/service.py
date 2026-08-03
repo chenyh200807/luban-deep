@@ -95,7 +95,9 @@ from deeptutor.services.member_console.external_auth import (
     get_external_auth_identity_metadata,
     get_external_auth_user,
     get_external_auth_user_by_phone,
+    IDENTITY_METADATA_FIELDS,
     load_external_auth_users,
+    normalize_identity_metadata,
     reset_external_auth_password,
     validate_external_auth_password,
     verify_external_auth_user,
@@ -160,20 +162,10 @@ _MACHINE_ACTOR_TYPES = {"machine", "bot", "eval_runner", "synthetic"}
 _EVAL_RUNNER_CREATORS = {"eval_runner", "deeptutor_eval_runner", "system_eval"}
 _EXPLICIT_TEST_FLAG_FIELDS = ("is_internal_test", "is_test_account")
 _EXPLICIT_ACCOUNT_KIND_FIELDS = ("account_kind", "member_account_kind")
-_EXPLICIT_IDENTITY_METADATA_FIELDS = (
-    "account_kind",
-    "member_account_kind",
-    "actor_type",
-    "created_by",
-    "is_internal_test",
-    "is_test_account",
-    "runner",
-    "agent_tool",
-    "eval_run_id",
-    "phone_binding_method",
-    "reg_channel",
-    "reg_scene",
-)
+# 读侧字段表不再自持一份副本:字段权威是 external_auth 的
+# `_IDENTITY_METADATA_FIELD_MODES`,写侧归一化与读侧投影同源。
+# 两张表分裂正是 2026-07-26 注册渠道归因静默丢失的成因。
+_EXPLICIT_IDENTITY_METADATA_FIELDS = IDENTITY_METADATA_FIELDS
 _EVAL_RUNNER_IDENTITY_METADATA = {
     "account_kind": "eval_runner",
     "actor_type": "machine",
@@ -181,23 +173,19 @@ _EVAL_RUNNER_IDENTITY_METADATA = {
     "is_internal_test": True,
 }
 # 注册渠道归因（推广二维码/链接 ?ch=xxx + 微信场景值）→ user_identity_aliases.metadata。
-_CHANNEL_SANITIZE_RE = re.compile(r"[^0-9A-Za-z_\-]")
 
 
 def _channel_attribution_metadata(channel: Any, scene: Any) -> dict[str, Any]:
     """把客户端透传的渠道参数收敛成 reg_channel / reg_scene 两个 metadata 键。
 
-    channel 只保留 [0-9A-Za-z_-]（防注入/防脏值），scene 只保留数字（微信场景值）。
-    两者皆空时返回空 dict，不产生任何写入。
+    清洗规则不在这里自持一份:直接复用 external_auth 的
+    `normalize_identity_metadata`——它就是这两个字段落盘时要过的那道关。
+    同一个实现同时服务于本地 member 存储、DB alias 投影与 external_auth 用户档案,
+    因此不可能出现"构造时留下、落盘时被过滤"的分裂。
+    channel 保留 [0-9A-Za-z_-] 且**大小写/连字符原样保真**（要与投放侧对账），
+    scene 只保留数字（微信场景值）。两者皆空时返回空 dict，不产生任何写入。
     """
-    metadata: dict[str, Any] = {}
-    normalized_channel = _CHANNEL_SANITIZE_RE.sub("", str(channel or "").strip())[:64]
-    if normalized_channel:
-        metadata["reg_channel"] = normalized_channel
-    normalized_scene = "".join(ch for ch in str(scene or "").strip() if ch.isdigit())[:8]
-    if normalized_scene:
-        metadata["reg_scene"] = normalized_scene
-    return metadata
+    return normalize_identity_metadata({"reg_channel": channel, "reg_scene": scene})
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
