@@ -762,6 +762,15 @@ domains:
 
   learner_state:
     summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
+    # 身份 metadata 字段表是单一权威:唯一定义源是
+    # deeptutor/services/member_console/external_auth.py 的 _IDENTITY_METADATA_FIELD_MODES。
+    # 写侧(normalize_identity_metadata)由它驱动,读侧(service._EXPLICIT_IDENTITY_METADATA_FIELDS)
+    # 从它派生,禁止任一侧自持副本 —— 2026-07-26 的注册渠道归因静默丢失
+    # (0a0387983 删了写侧的 reg_channel/reg_scene,读侧表毫不知情)正是两表分裂造成的,
+    # 且 BI 消费端 fail-open,空桶不报错。归因字段(reg_channel/reg_scene)必须走
+    # token/digits 保真通道,不得并入会改写大小写与连字符的 marker 一族:
+    # 渠道值是与外部投放系统对账的键。不变量由
+    # tests/services/member_console/test_service.py::test_identity_metadata_field_table_is_single_authority 钉住。
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
