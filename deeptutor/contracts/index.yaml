@@ -410,6 +410,9 @@ domains:
       - tests/api/test_rate_limit.py
       - tests/api/test_unified_ws_connection_cap.py
       - tests/services/citations/test_quality.py
+      # 引用公开面的唯一防线由 CitationPolicy.surface 把守(见该测试模块 docstring):
+      # 新增任何 reviewer/internal 装配调用点、或把 surface 参数化,即红。
+      - tests/services/citations/test_surface_authority_gate.py
       - tests/api/test_mobile_router.py
       - tests/api/test_mobile_first_run.py
       - tests/api/test_mobile_event_loop_discipline.py
