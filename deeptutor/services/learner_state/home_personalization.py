@@ -75,14 +75,21 @@ def build_home_personalization_projection_from_learning_signal(
     llm_topic_inferer: TopicInferer | None = infer_learning_topic_with_llm,
 ) -> dict[str, Any] | None:
     error = payload.get("error") if isinstance(payload.get("error"), dict) else {}
-    topic = resolve_learning_topic_from_payload(
-        payload,
-        llm_topic_inferer=llm_topic_inferer,
-    )
     explicit_label = _explicit_concept_label(payload)
     fallback_label = _fallback_concept_label_from_payload(payload)
+    topic = resolve_learning_topic_from_payload(
+        payload,
+        llm_topic_inferer=None,
+    )
     concept_label = topic.label if topic is not None else explicit_label or fallback_label
     canonical_topic = _resolve_canonical_home_topic(concept_label, topic=topic)
+    if canonical_topic is None and llm_topic_inferer is not None:
+        topic = resolve_learning_topic_from_payload(
+            payload,
+            llm_topic_inferer=llm_topic_inferer,
+        )
+        concept_label = topic.label if topic is not None else concept_label
+        canonical_topic = _resolve_canonical_home_topic(concept_label, topic=topic)
     if canonical_topic is None:
         return None
     concept_label = canonical_topic.label
