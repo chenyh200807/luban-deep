@@ -3,8 +3,8 @@
 #302 上线了 post-gen 规范核验闸(抽 GB/JGJ 编号 → 核本轮 standard 召回)。owner 复盘后
 把它从"软 caveat(否定感、可能让学员觉得系统没用)"改造成三层 owner 设计：
 
-  L1 永远输出 + 诚实 hedge —— 绝不抑制/拒答。LLM 该说规范条文就说，配大方诚实声明
-     ("以上内容由 AI 生成，请以教材/官方规范原文为准核对，不保证 100% 准确")。
+  L1 永远输出 + 简短 hedge —— 绝不抑制/拒答。LLM 该说规范条文就说，仅追加一句
+     ("AI 生成内容不能保证 100% 准确")。
   L2 低置信内部记录 —— 核不到本轮召回(或 degraded)的编号静默记进 review queue(学员看不到)。
   L3 评审 agent 异步纠错 —— 离线评审(教材仲裁 + 异源)把低置信 claim 判 accurate/fabricated
      /uncertain，攒成纠错数据集喂内容升级(产品飞轮燃料)。
@@ -15,7 +15,7 @@ owner 原则：信当下 LLM 能力，宁可大方输出 + 诚实声明，也不
 本测试钉死 L1 的**确定性行为**(eval-design：判官/异源不可信，确定性断言作主 ground truth)：
 - 永不抑制：非空输入永远有输出，正文逐字保留(append hedge，绝不 nuke)。
 - 单一计算：``assess_unverifiable_standard_codes`` 是唯一"核不到"判定点(regex 只抽，召回裁决)。
-- 诚实 hedge：核不到时 append 大方声明(AI 生成 + 以教材/官方规范为准 + 不保证 100%)，命名编号。
+- 诚实 hedge：核不到时仅 append 一句 AI 准确性提示；具体编号与检索状态只留在后台记录。
 - review record：核不到的编号产出结构化低置信记录(claim + confidence_signal + context_excerpt)。
 - 防过矫正：无规范编号的普通内容零影响。
 """
@@ -36,15 +36,12 @@ RECALL_WITH_GB50016 = (
     "《建筑设计防火规范》GB 50016-2014（2018年版）第6.7.3条规定，防火墙的耐火极限不应"
     "低于3.00h。民用建筑栏杆临空高度的规定见 GB 50352-2019。"
 )
+EXPECTED_HEDGE = "ℹ️ AI 生成内容不能保证 100% 准确。"
 
 
-def _is_honest_hedge(text: str) -> bool:
-    """owner hedge 形态：AI 生成 + 以教材/官方规范为准 + 不保证 100%。"""
-    return (
-        "AI" in text
-        and ("教材" in text or "官方规范" in text)
-        and "100%" in text
-    )
+def _expected_guarded(response: str) -> str:
+    """正文后只能追加这一句，防止未来重新拼接推责话术。"""
+    return f"{response.rstrip()}\n\n{EXPECTED_HEDGE}"
 
 
 # ---- extraction: regex ONLY extracts, normalizes; truth decided elsewhere ----
@@ -139,12 +136,8 @@ def test_unverifiable_code_keeps_full_output_and_appends_honest_hedge():
         standard_evidence_text=RECALL_WITH_GB50016,  # GB50500 NOT in recall
         rag_degraded=False,
     )
-    # NEVER suppressed: original content preserved verbatim at the head
-    assert out.startswith(resp.rstrip())
-    assert len(out) > len(resp)
-    # honest, generous hedge (owner framing), names the code
-    assert _is_honest_hedge(out)
-    assert "GB50500-2013" in out
+    # 正文逐字保留，且只能追加一句简短提示；具体低置信编号只进入后台 review record。
+    assert out == _expected_guarded(resp)
 
 
 def test_rag_degraded_keeps_output_and_hedges_every_code():
@@ -155,9 +148,7 @@ def test_rag_degraded_keeps_output_and_hedges_every_code():
         standard_evidence_text="",
         rag_degraded=True,
     )
-    assert out.startswith(resp.rstrip())
-    assert _is_honest_hedge(out)
-    assert "GB50016-2014" in out
+    assert out == _expected_guarded(resp)
 
 
 def test_empty_response_is_noop():
@@ -257,10 +248,8 @@ def test_metric_self_test_clean_passes_and_fabricated_caught():
     )
     # clean claim 放行(不动) —— no hedge appended
     assert clean.endswith("GB 50016-2014。")
-    # fabricated claim 不抑制但 hedge —— output preserved + honest disclaimer + named
-    assert fabricated.startswith("依据 JGJ 999-2099 第99条，必须如此。")
-    assert _is_honest_hedge(fabricated)
-    assert "JGJ999-2099" in fabricated
+    # fabricated claim 不抑制但 hedge —— output preserved + 简短 disclaimer
+    assert fabricated == _expected_guarded("依据 JGJ 999-2099 第99条，必须如此。")
 
 
 # ---- ② 具名法规《》盲点补齐 (2026-07-01 封板复现: 《法规名》第N条 无 GB 码时漏 hedge) ----
@@ -296,9 +285,7 @@ def test_named_regulation_citation_without_gb_code_gets_hedge():
         standard_evidence_text="一些无关的教材召回正文，未直接给出各分部具体年限。",
         rag_degraded=False,
     )
-    assert out.startswith(resp.rstrip())  # 正文逐字保留，绝不抑制
-    assert _is_honest_hedge(out)
-    assert "《建设工程质量管理条例》" in out
+    assert out == _expected_guarded(resp)  # 正文逐字保留，且只追加一句提示
 
 
 def test_review_record_marks_named_regulation_kind():

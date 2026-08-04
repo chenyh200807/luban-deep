@@ -1489,8 +1489,8 @@ class AgentLoop:
         """② content-truth review loop (owner 三层)：bot 写出的规范条文号/版本去本轮 standard
         召回核一遍。owner 设计 = **永不抑制输出**——
 
-        - L1：核不到(RAG miss)或检索退化 → 保留全文 + append 大方诚实 hedge(AI 生成 / 以教材或
-          官方规范为准 / 不保证 100%)，绝不沉默/拒答。
+        - L1：核不到(RAG miss)或检索退化 → 保留全文 + append 一句简短 AI 准确性提示，
+          绝不沉默/拒答；具体低置信依据不暴露给学员。
         - L2：把核不到的编号静默记进 ``content_truth_low_confidence_claims``(runtime 只 flag，
           不裁决不抑制)，经 turn_runtime allow-list 流进单一事件 sink(TurnEventLog)供离线评审(L3)。
 
