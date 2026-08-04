@@ -1,6 +1,6 @@
 """② content-truth review loop — L3 离线评审纠错管道(owner 三层的最后一层).
 
-runtime(L1/L2)只**永远输出 + 大方 hedge + flag**：bot 写出但本轮 standard 召回核不到的规范
+runtime(L1/L2)只**永远输出 + 简短 hedge + flag**：bot 写出但本轮 standard 召回核不到的规范
 编号，被静默记进单一事件 sink ``TurnEventLog``(键 ``content_truth_low_confidence_claims``)。
 
 本模块是**离线**消费者(不在请求路径、不裁决学员当下体验)，镜像 ``failed_turn_promotion``：

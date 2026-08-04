@@ -36,11 +36,12 @@ RECALL_WITH_GB50016 = (
     "《建筑设计防火规范》GB 50016-2014（2018年版）第6.7.3条规定，防火墙的耐火极限不应"
     "低于3.00h。民用建筑栏杆临空高度的规定见 GB 50352-2019。"
 )
+EXPECTED_HEDGE = "ℹ️ AI 生成内容不能保证 100% 准确。"
 
 
-def _is_honest_hedge(text: str) -> bool:
-    """owner hedge 形态：一句简短的 AI 准确性提示。"""
-    return "ℹ️ AI 生成内容不能保证 100% 准确。" in text
+def _expected_guarded(response: str) -> str:
+    """正文后只能追加这一句，防止未来重新拼接推责话术。"""
+    return f"{response.rstrip()}\n\n{EXPECTED_HEDGE}"
 
 
 # ---- extraction: regex ONLY extracts, normalizes; truth decided elsewhere ----
@@ -135,14 +136,8 @@ def test_unverifiable_code_keeps_full_output_and_appends_honest_hedge():
         standard_evidence_text=RECALL_WITH_GB50016,  # GB50500 NOT in recall
         rag_degraded=False,
     )
-    # NEVER suppressed: original content preserved verbatim at the head
-    assert out.startswith(resp.rstrip())
-    assert len(out) > len(resp)
-    # 简短用户提示；具体低置信编号只进入后台 review record
-    assert _is_honest_hedge(out)
-    assert "教材" not in out
-    assert "官方规范" not in out
-    assert "GB50500-2013" not in out[len(resp):]
+    # 正文逐字保留，且只能追加一句简短提示；具体低置信编号只进入后台 review record。
+    assert out == _expected_guarded(resp)
 
 
 def test_rag_degraded_keeps_output_and_hedges_every_code():
@@ -153,9 +148,7 @@ def test_rag_degraded_keeps_output_and_hedges_every_code():
         standard_evidence_text="",
         rag_degraded=True,
     )
-    assert out.startswith(resp.rstrip())
-    assert _is_honest_hedge(out)
-    assert "题库检索暂不可用" not in out
+    assert out == _expected_guarded(resp)
 
 
 def test_empty_response_is_noop():
@@ -256,9 +249,7 @@ def test_metric_self_test_clean_passes_and_fabricated_caught():
     # clean claim 放行(不动) —— no hedge appended
     assert clean.endswith("GB 50016-2014。")
     # fabricated claim 不抑制但 hedge —— output preserved + 简短 disclaimer
-    assert fabricated.startswith("依据 JGJ 999-2099 第99条，必须如此。")
-    assert _is_honest_hedge(fabricated)
-    assert "JGJ999-2099" not in fabricated
+    assert fabricated == _expected_guarded("依据 JGJ 999-2099 第99条，必须如此。")
 
 
 # ---- ② 具名法规《》盲点补齐 (2026-07-01 封板复现: 《法规名》第N条 无 GB 码时漏 hedge) ----
@@ -294,9 +285,7 @@ def test_named_regulation_citation_without_gb_code_gets_hedge():
         standard_evidence_text="一些无关的教材召回正文，未直接给出各分部具体年限。",
         rag_degraded=False,
     )
-    assert out.startswith(resp.rstrip())  # 正文逐字保留，绝不抑制
-    assert _is_honest_hedge(out)
-    assert "《建设工程质量管理条例》" not in out[len(resp):]
+    assert out == _expected_guarded(resp)  # 正文逐字保留，且只追加一句提示
 
 
 def test_review_record_marks_named_regulation_kind():
