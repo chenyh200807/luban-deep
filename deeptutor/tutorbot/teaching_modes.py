@@ -313,21 +313,13 @@ def assess_unverifiable_standard_codes(
 def render_content_truth_hedge(
     unverifiable_codes: list[str], *, rag_degraded: bool
 ) -> str:
-    """渲染 owner 的**大方诚实 hedge**(L1)：不否定、不抑制，承认 AI 生成 + 指向权威核对。
+    """渲染简短的用户可见 AI 准确性提示；具体低置信依据只留在后台 review record。
 
     owner 拍板：闭嘴/否定让学员觉得系统没用；宁可大方输出 + 诚实声明，准确性靠后台 review loop
-    收敛。这里命名核不到的编号(更诚实、更有用)，并提示以教材/官方规范原文为准、不保证 100%。"""
+    收敛。用户侧不展开规范名、检索状态或核对建议，避免把内部风控过程写成推责文案。"""
 
-    codes = "、".join(unverifiable_codes)
-    if rag_degraded:
-        return (
-            f"ℹ️ 小提示：本轮题库检索暂不可用，以上内容由 AI 生成（含规范/条文依据「{codes}」），"
-            "建议你以教材或官方规范原文核对，我不保证 100% 准确；题面思路与判断方向仍可参考。"
-        )
-    return (
-        f"ℹ️ 小提示：以上内容由 AI 生成，其中规范/条文依据「{codes}」建议你以教材或官方规范原文核对，"
-        "我不保证 100% 准确；题面思路与判断方向仍可参考。"
-    )
+    del unverifiable_codes, rag_degraded
+    return "ℹ️ AI 生成内容不能保证 100% 准确。"
 
 
 # 兼容旧调用名：#302 曾叫 render_content_truth_caveat，owner 改造后语义=大方 hedge。
@@ -388,8 +380,8 @@ def content_truth_guard_response(
     standard_evidence_text: str | None,
     rag_degraded: bool,
 ) -> str | None:
-    """L1 永远输出 + 诚实 hedge：bot 写出的规范编号若核不到本轮 standard 召回，**不抑制**，
-    保留全文并 append 大方诚实声明(AI 生成 / 以教材或官方规范为准 / 不保证 100%)。
+    """L1 永远输出 + 简短 hedge：bot 写出的规范编号若核不到本轮 standard 召回，**不抑制**，
+    保留全文并 append 一句 AI 准确性提示。
 
     返回值约定（finalize 修正器通用）：无需改动时返回原 ``response``；有核不到编号时
     返回追加 hedge 的新文本(正文逐字保留，绝不 nuke)。
