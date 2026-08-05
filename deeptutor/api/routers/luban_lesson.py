@@ -567,6 +567,29 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
 
 
 @router.get(
+    "/exam-prep-plan",
+    dependencies=[
+        Depends(route_rate_limit("luban_exam_prep_plan", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def exam_prep_plan(current_user: AuthContext = Depends(get_current_user)) -> dict:
+    """备考计划投影（计划页/跑道视图）——薄包装，零业务逻辑进 router。
+
+    组装唯一入口 = MemberConsoleService composition root
+    （``_assemble_home_plan_inputs`` → ``build_exam_prep_plan_projection``），
+    本端点只做鉴权 + 线程池转发 + 投影原样透传；flag off 返回
+    ``{"enabled": false}``（前端隐藏入口，不 404）。
+    """
+    from fastapi.concurrency import run_in_threadpool
+
+    from deeptutor.services.member_console import get_member_console_service
+
+    return await run_in_threadpool(
+        get_member_console_service().get_exam_prep_plan, current_user.user_id
+    )
+
+
+@router.get(
     "/concept-cards",
     dependencies=[
         Depends(route_rate_limit("luban_concept_card_library", default_max_requests=30, default_window_seconds=60.0))

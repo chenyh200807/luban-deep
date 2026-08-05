@@ -196,6 +196,31 @@ _HOME_NEXT_STEP_ENABLED = "DEEPTUTOR_HOME_NEXT_STEP_ENABLED"
 # AI 学习计划体系 P0(计划 §3.1 权威点 1): on = composition root 内 shadow 双算,
 # 对外 serve exam_prep_plan 今日首任务(差异打点); off(默认) = 旧四臂,逐字节现行为。
 _EXAM_PREP_PLAN_ENABLED = "LUBAN_EXAM_PREP_PLAN_ENABLED"
+
+
+def _exam_countdown_days(exam_date_iso: str, *, now_iso: str = "") -> int | None:
+    """距考天数（读侧派生，唯一真值 = member profile exam_date）。
+
+    未设置/不可解析 = None（合法空态，前端不显示，禁造数）;已过考期返回负数
+    （如实透传，展示语义归前端）。now 固定注入保证同输入同输出（确定性验收）。
+    """
+    text = str(exam_date_iso or "").strip()
+    if not text:
+        return None
+    from datetime import datetime, timedelta, timezone
+
+    tz = timezone(timedelta(hours=8))
+    try:
+        exam_day = datetime.fromisoformat(text[:10]).date()
+    except ValueError:
+        return None
+    try:
+        now = datetime.fromisoformat(str(now_iso).replace("Z", "+00:00"))
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=tz)
+    except ValueError:
+        now = datetime.now(tz)
+    return (exam_day - now.astimezone(tz).date()).days
 # 首页/雷达/章节盘共用的 learner 事件读窗(病C:窗口粒度)。容量推理:
 # lesson_viewed 按(pack,幕,日)折叠,40 pack × 2 幕 = 一天最多 ~80 条;
 # 判分/测评证据必须在同一窗内存活,100 = 80 条 lesson_viewed + 20 条判分
@@ -8070,6 +8095,80 @@ class MemberConsoleService:
             "plan_preferences": plan_preferences,
             "daily_target_minutes": max(1, int(daily_target_minutes or 30)),
         }
+
+    def get_exam_prep_plan(self, user_id: str) -> dict[str, Any]:
+        """计划页（跑道视图）读面——GET /luban/exam-prep-plan 的唯一服务入口。
+
+        薄包装（计划体系 §3.1 权威点 1）：组装只走 ``_assemble_home_plan_inputs``
+        （唯一 composition root），投影只走 ``build_exam_prep_plan_projection``，
+        本方法零新状态、零新排序、零业务逻辑——只透传投影输出并附收敛条数据：
+
+        - ``pass_readiness``：最近一次过线体检报告的 {estimated_score_band,
+          pass_line, risk_band, generated_at}（既有 assessment report 读模型提取；
+          无报告 = None，前端显示「先做一次过线体检」引导。诚实红线：带子只显示
+          报告值，禁日级重估）；
+        - ``exam_countdown_days``：距考天数（唯一读源 = member profile exam_date，
+          未设置 = None）。
+
+        Flag ``LUBAN_EXAM_PREP_PLAN_ENABLED`` off → ``{"enabled": False}``
+        （前端隐藏入口，不 404）。
+        """
+        if not env_flag(_EXAM_PREP_PLAN_ENABLED):
+            return {"enabled": False}
+        from deeptutor.services.learner_state.exam_prep_plan import (
+            build_exam_prep_plan_projection,
+        )
+
+        member = self._load_member_snapshot(user_id)["member"]
+        learner_user_id = str(member.get("user_id") or user_id or "").strip()
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=_HOME_LEARNER_EVENT_LIMIT)
+        exam_date_iso = str(member.get("exam_date") or "").strip()
+        inputs = self._assemble_home_plan_inputs(
+            learner_user_id=learner_user_id,
+            snapshot=snapshot,
+            exam_date_iso=exam_date_iso,
+            daily_target_minutes=max(1, int(member.get("daily_target") or 30)),
+        )
+        plan = build_exam_prep_plan_projection(
+            now_iso=inputs["now_iso"],
+            days=7,
+            review_due_items=inputs["review_due_items"],
+            review_horizon=inputs["review_horizon"],
+            active_training_intents=inputs["active_training_intents"],
+            pack_lifecycle=inputs["pack_lifecycle"],
+            green_lessons=inputs["green_lessons"],
+            plan_preferences=inputs["plan_preferences"],
+            daily_target_minutes=inputs["daily_target_minutes"],
+            review_due_unavailable=inputs["review_due_unavailable"],
+        )
+        return {
+            "enabled": True,
+            **plan,
+            "pass_readiness": self._latest_pass_readiness_summary(user_id),
+            "exam_date": exam_date_iso,
+            "exam_countdown_days": _exam_countdown_days(exam_date_iso, now_iso=inputs["now_iso"]),
+        }
+
+    def _latest_pass_readiness_summary(self, user_id: str) -> dict[str, Any] | None:
+        """最近一次过线体检摘要（既有 assessment report 读模型；无 = None）。
+
+        读侧只提取，不改判、不重估；仓库不可用/未配置一律如实降级为 None
+        （收敛条走「先做一次过线体检」引导，禁造数）。
+        """
+        from deeptutor.services.assessment.report_read_model import (
+            extract_pass_readiness_summary,
+        )
+
+        try:
+            rows = self._assessment_session_repository.list_report_sessions(user_id, limit=20)
+        except Exception:
+            logger.warning("Failed to list assessment reports for pass readiness", exc_info=True)
+            return None
+        for row in rows:
+            summary = extract_pass_readiness_summary(row.get("result_report_json"))
+            if summary is not None:
+                return summary
+        return None
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:

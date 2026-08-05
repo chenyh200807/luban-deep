@@ -877,6 +877,7 @@ domains:
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_home_event_window.py
       - tests/services/member_console/test_home_next_step_composition_root.py
+      - tests/services/member_console/test_exam_prep_plan_read.py
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
       - tests/services/member_console/test_rbac.py

@@ -233,6 +233,16 @@ class InMemoryAssessmentSessionRepository:
         row = self._owned_row(user_id, quiz_id)
         return copy.deepcopy(row)
 
+    def list_report_sessions(self, user_id: str, *, limit: int = 20) -> list[dict[str, Any]]:
+        """最近的已出报告 session（新→旧）。只读列举，零状态迁移。"""
+        rows = [
+            row
+            for row in self._rows.values()
+            if str(row.get("user_id")) == str(user_id) and row.get("result_report_json")
+        ]
+        rows.sort(key=lambda row: str(row.get("updated_at") or ""), reverse=True)
+        return [copy.deepcopy(row) for row in rows[: max(1, int(limit))]]
+
     def mark_submitted_once(
         self,
         user_id: str,
@@ -608,6 +618,18 @@ class SupabaseAssessmentSessionRepository:
 
     def private_session(self, user_id: str, quiz_id: str) -> dict[str, Any]:
         return self._owned_row(user_id, quiz_id)
+
+    def list_report_sessions(self, user_id: str, *, limit: int = 20) -> list[dict[str, Any]]:
+        """最近的已出报告 session（新→旧）。PostgREST order 参数与 filter 同走 params。"""
+        rows = self._select(
+            {
+                "user_id": f"eq.{user_id}",
+                "result_report_json": "not.is.null",
+                "order": "updated_at.desc",
+            },
+            limit=max(1, int(limit)),
+        )
+        return [copy.deepcopy(row) for row in rows]
 
     def mark_submitted_once(
         self,

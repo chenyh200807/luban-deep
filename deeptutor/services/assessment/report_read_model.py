@@ -217,6 +217,28 @@ def build_pass_readiness_report(
     return base
 
 
+# 过线体检（pass_readiness）收敛条字段。诊断线报告在 result_report_json 的
+# ``pass_readiness`` 块携带这些字段（build_pass_readiness_report 的 §7.2 envelope）；
+# 旧专题报告没有该块 → 非体检报告，提取返回 None（前端显示体检引导）。
+# 本函数是纯提取器：不推算带子、不改口径——带子真值只来自报告本身（诚实红线：
+# 计划页收敛条只显示报告值，禁日级重估）。
+PASS_READINESS_FIELDS = ("estimated_score_band", "pass_line", "risk_band")
+
+
+def extract_pass_readiness_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
+    data = dict(report or {})
+    block = data.get("pass_readiness")
+    source = dict(block) if isinstance(block, dict) else data
+    if not any(source.get(field) not in (None, "", {}) for field in PASS_READINESS_FIELDS):
+        return None
+    return {
+        "estimated_score_band": source.get("estimated_score_band"),
+        "pass_line": source.get("pass_line"),
+        "risk_band": source.get("risk_band"),
+        "generated_at": source.get("generated_at") or data.get("generated_at"),
+    }
+
+
 def assert_supported_report(report: dict[str, Any]) -> None:
     version = str(dict(report or {}).get("schema_version") or "").strip()
     if version not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
