@@ -79,6 +79,24 @@ def build_revalidation_queue_projection(
 
     # 日容量 owner 拍板 2026-07-11: 1→5("做1实在太少了")。
     # 复习页三层信息架构(汇总gauge/约定卡/到期清单)自此名副其实。
+    emitted_items, suppressed_count = _apply_daily_capacity(due_items)
+
+    return {
+        "items": emitted_items,
+        "source_status": {
+            "authority": "learner_memory_events.learning_evidence -> mastery_estimator -> training_intent",
+            "model": "rule_based_arrs_v1",
+            "daily_capacity": _DAILY_MAX_ACTIVE,
+            "candidate_count": len(rows),
+            "due_count": len(due_items),
+            "suppressed_due_count": suppressed_count,
+            "blocked_reasons": sorted(blocked_reasons),
+        },
+    }
+
+
+def _apply_daily_capacity(due_items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
+    """每日容量语义唯一实现（当日队列与 7 天窗投影共用，禁复制第二份）。"""
     prioritized = prioritize_training_intents(
         [item["intent"] for item in due_items],
         max_active=_DAILY_MAX_ACTIVE,
@@ -100,16 +118,115 @@ def build_revalidation_queue_projection(
             item["intent"] = prioritized_intent
             if item["status"] != "deferred":
                 item["status"] = prioritized_intent.get("status") or "queued"
+    return emitted_items, max(len(due_items) - len(emitted_items), 0)
+
+
+def build_review_horizon_projection(
+    *,
+    user_id: str,
+    candidates: Iterable[dict[str, Any]] | None = None,
+    events: Iterable[Any] | None = None,
+    scoring_point_map: dict[str, Any] | None = None,
+    learning_state: dict[str, Any] | None = None,
+    dispute_candidates: Iterable[dict[str, Any]] | None = None,
+    prescription_outcomes: Iterable[dict[str, Any]] | None = None,
+    declined_probe_ids: Iterable[str] | None = None,
+    now_iso: str = "",
+    exam_date_iso: str = "",
+    days: int = 7,
+) -> dict[str, Any]:
+    """7 天到期预报——revalidation_queue 的新读面（AI 学习计划体系计划 §3.1 权威点 2）。
+
+    当日队列只回答「今天到期什么」（``_is_due`` 过滤）；本读面把当日过滤换成
+    ``[今天, 今天+days)`` 的日历日窗投影：候选仍来自 ``_candidate_rows``，到期时刻
+    仍只由 ``derive_review_due_at`` 派生（间隔/到期真值唯一归本模块——计划投影、
+    诊断报告「X 天后复验」的日期都**只准消费本读面**，在任何别处拿 due_at 自行
+    外推 = 第二调度器）。每日容量语义保留：逐日 ``_apply_daily_capacity``
+    （与当日队列同一实现）。
+
+    口径说明：
+    - 逾期项（due < 今天）折算进 day 0（与 ``_is_due`` 的「已到期」语义一致）；
+    - day 0 桶 ⊇ 当日已到期集合：还含「今天晚些时候才到期」的预报项
+      （窗投影语义，当日队列在该时刻到来前不发它）；
+    - ``verified`` / ``declined`` 语义与当日队列一致（排除 / deferred 标记）。
+    零写入、纯确定性：同输入同 ``now_iso`` 重放产生同一投影。
+    """
+    now = _parse_iso(now_iso) or datetime.now(_TZ)
+    horizon_days = max(1, _safe_int(days) or 1)
+    today = now.astimezone(_TZ).date()
+    rows = _candidate_rows(
+        candidates=candidates,
+        events=events,
+        scoring_point_map=scoring_point_map,
+        learning_state=learning_state,
+        dispute_candidates=dispute_candidates,
+    )
+    declined = {str(item or "").strip() for item in list(declined_probe_ids or [])}
+    verified = {
+        str(item.get("training_intent_id") or "").strip()
+        for item in list(prescription_outcomes or [])
+        if isinstance(item, dict) and item.get("status") == "verified"
+    }
+    blocked_reasons: set[str] = set()
+    buckets: list[list[dict[str, Any]]] = [[] for _ in range(horizon_days)]
+
+    for row in rows:
+        probe_id = _probe_id(user_id=user_id, row=row)
+        if probe_id in verified:
+            blocked_reasons.add("already_verified")
+            continue
+        due_iso = derive_review_due_at(
+            last_observed_at=str(
+                row.get("last_observed_at") or row.get("last_practiced_at") or ""
+            ),
+            state=str(row.get("state") or "").strip(),
+            ability_dimension=str(row.get("ability_dimension") or "").strip(),
+            successful_review_streak=_safe_int(row.get("successful_review_streak")),
+            now_iso=now.isoformat(),
+            exam_date_iso=exam_date_iso,
+        )
+        # 空观测 = 立即到期候选（与 ``_is_due`` 的 observed_at is None → True 一致）。
+        due_at = _parse_iso(due_iso) or now
+        offset = (due_at.astimezone(_TZ).date() - today).days
+        if offset < 0:
+            offset = 0
+        if offset >= horizon_days:
+            blocked_reasons.add("beyond_horizon")
+            continue
+        item = _queue_item(
+            user_id=user_id,
+            row=row,
+            probe_id=probe_id,
+            now=now,
+            declined=probe_id in declined,
+            due_at=due_at,
+        )
+        buckets[offset].append(item)
+
+    day_projections: list[dict[str, Any]] = []
+    total_due = 0
+    for offset, bucket in enumerate(buckets):
+        emitted_items, suppressed_count = _apply_daily_capacity(bucket)
+        total_due += len(bucket)
+        day_projections.append(
+            {
+                "date": (today + timedelta(days=offset)).isoformat(),
+                "day_offset": offset,
+                "items": emitted_items,
+                "due_count": len(bucket),
+                "suppressed_due_count": suppressed_count,
+            }
+        )
 
     return {
-        "items": emitted_items,
+        "horizon_days": horizon_days,
+        "days": day_projections,
         "source_status": {
             "authority": "learner_memory_events.learning_evidence -> mastery_estimator -> training_intent",
             "model": "rule_based_arrs_v1",
             "daily_capacity": _DAILY_MAX_ACTIVE,
             "candidate_count": len(rows),
-            "due_count": len(due_items),
-            "suppressed_due_count": max(len(due_items) - len(emitted_items), 0),
+            "due_count": total_due,
             "blocked_reasons": sorted(blocked_reasons),
         },
     }
@@ -250,6 +367,7 @@ def _queue_item(
     probe_id: str,
     now: datetime,
     declined: bool,
+    due_at: datetime | None = None,
 ) -> dict[str, Any]:
     evidence_refs = _refs(row.get("evidence_refs"))
     ability_dimension = str(row.get("ability_dimension") or "code_application").strip()
@@ -270,7 +388,7 @@ def _queue_item(
         "probe_id": probe_id,
         "kind": "revalidation_probe",
         "status": "deferred" if declined else "queued",
-        "due_at": now.isoformat(),
+        "due_at": (due_at or now).isoformat(),
         "next_available_at": next_available_at,
         "evidence_refs": evidence_refs,
         "intent": intent,
@@ -340,6 +458,7 @@ def derive_review_due_at(
     last_observed_at: str,
     state: str = "weak",
     ability_dimension: str = "",
+    successful_review_streak: int = 0,
     now_iso: str = "",
     exam_date_iso: str = "",
 ) -> str:
@@ -353,7 +472,13 @@ def derive_review_due_at(
     if observed is None:
         return ""
     now = _parse_iso(now_iso) or datetime.now(_TZ)
-    row = {"state": str(state or "").strip(), "ability_dimension": str(ability_dimension or "").strip()}
+    row = {
+        "state": str(state or "").strip(),
+        "ability_dimension": str(ability_dimension or "").strip(),
+        # streak=0（默认）与旧签名等价（`0 or 1` → 首档间隔）；stable 相带 streak
+        # 时走既有 DECAY_PROFILES schedule 档位（真值仍只在 _first_interval_days）。
+        "successful_review_streak": _safe_int(successful_review_streak),
+    }
     if row["state"] == "fresh":
         next_day = observed.astimezone(_TZ).date() + timedelta(days=1)
         return datetime(next_day.year, next_day.month, next_day.day, tzinfo=_TZ).isoformat()
@@ -415,6 +540,7 @@ def _safe_dict(value: Any) -> dict[str, Any]:
 
 __all__ = [
     "build_revalidation_queue_projection",
+    "build_review_horizon_projection",
     "derive_review_due_at",
     "dispute_candidates_from_events",
     "effective_interval_days",

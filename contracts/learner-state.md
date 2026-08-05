@@ -726,6 +726,12 @@ Overlay 必须支持：
    `exam_date` 唯一读源 = member profile，读侧透传、不复制。profile 成功且日期为空是合法的
    “未设置”；profile 读取异常是 horizon unknown，必须 fail-closed，不得伪装成空日期或回退
    `home_dashboard.learner_settings` / learner profile 镜像。
+   **7 天到期预报读面**（AI 学习计划体系计划 §3.1 权威点 2，2026-08-05 登记）：
+   `build_review_horizon_projection(days=7)` 同居本模块——候选=`_candidate_rows`、
+   到期时刻只由 `derive_review_due_at` 派生、逐日容量与当日队列同一实现
+   （`_apply_daily_capacity`）。exam_prep_plan 投影与诊断报告「这个点 X 天后会安排
+   复验」的日期**只准消费该读面**；在任何别处拿 due_at 自行外推 = 第二调度器，禁止。
+   day 0 桶 ⊇ 当日已到期集合（窗投影含当日晚些到期的预报项）；零写入、确定性重放。
 4. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
    只消费 `pack_lifecycle_projection` 的 terminal facts、做粒度桥接与绿灯 join，零调度
    逻辑（禁第二调度器）；`probe_id` 必须包含当前 cycle anchor，避免旧 verified outcome

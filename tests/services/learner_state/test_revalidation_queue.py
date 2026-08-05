@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
+    build_review_horizon_projection,
 )
 
 
@@ -237,3 +238,131 @@ def test_stable_review_uses_existing_decay_profile_schedule() -> None:
     assert _due(1, "2026-07-01T09:00:00+08:00", "2026-07-04T09:00:00+08:00") == 1
     assert _due(2, "2026-07-01T09:00:00+08:00", "2026-07-08T09:00:00+08:00") == 1
     assert _due(3, "2026-07-01T09:00:00+08:00", "2026-07-15T09:00:00+08:00") == 1
+
+
+# ── 7 天到期预报读面（计划体系 §3.1 权威点 2：horizon 只准住本模块）──────────
+
+
+def _horizon_candidate(label: str, state: str, observed: str, **overrides) -> dict:
+    row = {
+        "node_id": label,
+        "label": label,
+        "state": state,
+        "ability_dimension": "code_application",
+        "error_code": "E02",
+        "evidence_refs": [f"evt_{label}"],
+        "last_observed_at": observed,
+    }
+    row.update(overrides)
+    return row
+
+
+def _horizon_candidates() -> list[dict]:
+    return [
+        # A: weak, 观测 4 天前 → 间隔 3 → 已逾期 → day 0
+        _horizon_candidate("A_overdue", "weak", "2026-08-01T08:00:00+08:00"),
+        # B: weak, 观测昨天 → due 8-07 → day 2
+        _horizon_candidate("B_day2", "weak", "2026-08-04T10:00:00+08:00"),
+        # C: fresh, 今晨学 → 日历日次日零点 → day 1
+        _horizon_candidate("C_fresh", "fresh", "2026-08-05T01:00:00+08:00"),
+        # D: stable streak=3 → 14 天档 → 8-15 → 窗外
+        _horizon_candidate(
+            "D_beyond", "stable", "2026-08-01T09:00:00+08:00",
+            successful_review_streak=3,
+        ),
+    ]
+
+
+def test_review_horizon_buckets_by_calendar_due_day() -> None:
+    horizon = build_review_horizon_projection(
+        user_id="u1",
+        candidates=_horizon_candidates(),
+        now_iso="2026-08-05T09:00:00+08:00",
+        days=7,
+    )
+    assert horizon["horizon_days"] == 7
+    assert len(horizon["days"]) == 7
+    assert [d["date"] for d in horizon["days"]][:3] == ["2026-08-05", "2026-08-06", "2026-08-07"]
+    by_day = {
+        d["day_offset"]: [i["intent"]["concept_id"] for i in d["items"]]
+        for d in horizon["days"]
+    }
+    assert by_day[0] == ["A_overdue"]
+    assert by_day[1] == ["C_fresh"]
+    assert by_day[2] == ["B_day2"]
+    assert all(not by_day[i] for i in range(3, 7))
+    assert "beyond_horizon" in horizon["source_status"]["blocked_reasons"]
+    assert horizon["source_status"]["due_count"] == 3
+    # day0 桶与当日队列的到期集合一致（同输入同 now）
+    daily = build_revalidation_queue_projection(
+        user_id="u1", candidates=_horizon_candidates(), now_iso="2026-08-05T09:00:00+08:00",
+    )
+    assert [i["intent"]["concept_id"] for i in daily["items"]] == by_day[0]
+    # 预报项 due_at = 派生到期时刻（非 now）
+    day2_item = horizon["days"][2]["items"][0]
+    assert day2_item["due_at"] == "2026-08-07T10:00:00+08:00"
+
+
+def test_review_horizon_is_deterministic_replay() -> None:
+    kwargs = dict(
+        user_id="u1", candidates=_horizon_candidates(),
+        now_iso="2026-08-05T09:00:00+08:00", exam_date_iso="2026-11-01", days=7,
+    )
+    assert build_review_horizon_projection(**kwargs) == build_review_horizon_projection(**kwargs)
+
+
+def test_review_horizon_keeps_daily_capacity_semantics() -> None:
+    many = [
+        _horizon_candidate(f"N{i}", "weak", "2026-08-03T10:00:00+08:00")  # due 8-06 → day 1
+        for i in range(7)
+    ]
+    horizon = build_review_horizon_projection(
+        user_id="u1", candidates=many, now_iso="2026-08-05T09:00:00+08:00", days=7,
+    )
+    day1 = horizon["days"][1]
+    assert day1["due_count"] == 7
+    assert len(day1["items"]) == 5
+    assert day1["suppressed_due_count"] == 2
+
+
+def test_review_horizon_verified_excluded_and_declined_deferred() -> None:
+    horizon = build_review_horizon_projection(
+        user_id="student_demo",
+        candidates=[_state_item()],
+        prescription_outcomes=[{
+            "training_intent_id": "rvp_student_demo_1A412010_code_application_E02",
+            "status": "verified",
+        }],
+        now_iso="2026-05-22T09:00:00+08:00",
+    )
+    assert all(not d["items"] for d in horizon["days"])
+    assert "already_verified" in horizon["source_status"]["blocked_reasons"]
+
+    declined = build_review_horizon_projection(
+        user_id="student_demo",
+        candidates=[_state_item()],
+        declined_probe_ids=["rvp_student_demo_1A412010_code_application_E02"],
+        now_iso="2026-05-22T09:00:00+08:00",
+    )
+    item = declined["days"][0]["items"][0]
+    assert item["status"] == "deferred"
+    assert item["next_available_at"] == "2026-05-23T09:00:00+08:00"
+
+
+def test_derive_review_due_at_accepts_streak_and_defaults_unchanged() -> None:
+    from deeptutor.services.learner_state.revalidation_queue import derive_review_due_at
+
+    # stable streak=3 → 14 天档（DECAY_PROFILES schedule，真值仍归本模块）
+    assert derive_review_due_at(
+        last_observed_at="2026-07-01T09:00:00+08:00",
+        state="stable",
+        ability_dimension="code_application",
+        successful_review_streak=3,
+        now_iso="2026-07-02T09:00:00+08:00",
+    ) == "2026-07-15T09:00:00+08:00"
+    # 不带 streak（旧签名）行为不变：weak 观测+3 天
+    assert derive_review_due_at(
+        last_observed_at="2026-07-01T10:00:00+08:00",
+        state="weak",
+        now_iso="2026-07-02T09:00:00+08:00",
+    ) == "2026-07-04T10:00:00+08:00"
