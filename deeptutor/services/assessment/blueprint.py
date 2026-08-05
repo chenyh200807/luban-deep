@@ -29,6 +29,9 @@ class AssessmentBlueprint:
     sections: tuple[AssessmentSection, ...]
     assessment_type: str = "diagnostic"
     subject_id: str = "construction_exam"
+    # Midpoint hard checkpoint (过线体检 §6.2): after this many scored tasks the
+    # journey may surface a coarse band. 0 = no checkpoint.
+    checkpoint_after: int = 0
 
     @property
     def scored_count(self) -> int:
@@ -233,10 +236,96 @@ REAL_EXAM_SIMULATION_MINI_V1 = AssessmentBlueprint(
 )
 
 
+# 过线体检 acquisition diagnostic (plan 2026-08-04 §6.2/§11 Phase 2).
+# Pure-tap constraint is binding: every scored task is single_choice or
+# multi_choice option-tap — no free text, no drag-sort, no new answer-wire
+# format. 12 scored tasks + 3 non-scored preparation-context probes, with the
+# 6-task coarse-band checkpoint expressed as blueprint metadata.
+PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
+    version="pass_readiness_architecture_v1",
+    requested_count=15,
+    assessment_type="pass_readiness",
+    subject_id="construction_exam",
+    checkpoint_after=6,
+    sections=(
+        AssessmentSection(
+            id="pr_objective_single",
+            label="真题客观 · 主体结构/混凝土/钢筋",
+            count=2,
+            scored=True,
+            question_types=("single_choice",),
+            fallback_question_types=("single_choice", "multi_choice"),
+            topics=("主体结构", "混凝土", "钢筋"),
+        ),
+        AssessmentSection(
+            id="pr_objective_multi",
+            label="真题客观 · 多选/条件判断",
+            count=2,
+            scored=True,
+            question_types=("multi_choice",),
+            fallback_question_types=("single_choice", "multi_choice"),
+            topics=("主体结构", "安全", "质量验收"),
+        ),
+        AssessmentSection(
+            id="pr_case_safety",
+            label="案例点选 · 安全/危大工程",
+            count=2,
+            scored=True,
+            question_types=("single_choice", "multi_choice"),
+            topics=("安全", "脚手架", "模板", "危大工程"),
+        ),
+        AssessmentSection(
+            id="pr_case_schedule",
+            label="案例点选 · 进度/网络计划(选出正确顺序)",
+            count=2,
+            scored=True,
+            question_types=("single_choice", "multi_choice"),
+            topics=("进度计划", "网络计划", "施工组织"),
+        ),
+        AssessmentSection(
+            id="pr_case_quality",
+            label="案例点选 · 质量/验收(选出错误项)",
+            count=2,
+            scored=True,
+            question_types=("single_choice", "multi_choice"),
+            topics=("质量验收", "检验批", "质量"),
+        ),
+        AssessmentSection(
+            id="pr_answer_discrimination",
+            label="得分表述辨析 · 防水(轮换槽)",
+            count=1,
+            scored=True,
+            question_types=("single_choice",),
+            fallback_question_types=("single_choice", "multi_choice"),
+            topics=("防水", "屋面", "渗漏"),
+        ),
+        AssessmentSection(
+            id="pr_scoring_point_recognition",
+            label="采分点识别(点选)",
+            count=1,
+            scored=True,
+            question_types=("multi_choice",),
+            fallback_question_types=("single_choice", "multi_choice"),
+            topics=("质量验收", "防水", "综合案例"),
+        ),
+        AssessmentSection(
+            id="pr_prep_context",
+            label="备考背景",
+            count=3,
+            scored=False,
+            question_types=("profile_probe",),
+            source_types=("PROFILE_PROBE",),
+            topics=("attempt_history", "recent_score_band", "weekly_study_hours"),
+        ),
+    ),
+)
+
+
 _BLUEPRINTS = {
     DIAGNOSTIC_V1.version: DIAGNOSTIC_V1,
     TOPIC_WATERPROOF_V1.version: TOPIC_WATERPROOF_V1,
     REAL_EXAM_SIMULATION_MINI_V1.version: REAL_EXAM_SIMULATION_MINI_V1,
+    PASS_READINESS_ARCHITECTURE_V1.version: PASS_READINESS_ARCHITECTURE_V1,
 }
 
 

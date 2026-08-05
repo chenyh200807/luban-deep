@@ -640,6 +640,7 @@ class AssessmentBlueprintService:
             "questions": client_questions,
             "session_questions": session_questions,
             "blueprint_version": self._blueprint.version,
+            "checkpoint_after": int(self._blueprint.checkpoint_after or 0),
             "sections": sections,
             "requested_count": requested_count,
             "delivered_count": delivered_count,

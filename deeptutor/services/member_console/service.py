@@ -8555,6 +8555,13 @@ class MemberConsoleService:
                 subject_id=subject_id,
                 device_id=device_id,
             )
+        if normalized_assessment_type == "pass_readiness":
+            return self._create_pass_readiness_assessment(
+                user_id,
+                count=count,
+                subject_id=subject_id,
+                device_id=device_id,
+            )
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             try:
@@ -8753,6 +8760,61 @@ class MemberConsoleService:
             "form_count": int(payload.get("form_count") or 0),
         }
 
+    def _create_pass_readiness_assessment(
+        self,
+        user_id: str,
+        *,
+        count: int,
+        subject_id: str,
+        device_id: str = "",
+    ) -> dict[str, Any]:
+        blueprint_version = "pass_readiness_architecture_v1"
+        blueprint = get_assessment_blueprint(blueprint_version)
+        payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
+            user_id=user_id,
+            count=count,
+            assessment_type="pass_readiness",
+            subject_id=subject_id,
+            topic_ids=[],
+        )
+        session = self._assessment_session_repository.create_session(
+            user_id=user_id,
+            assessment_type="pass_readiness",
+            subject_id=subject_id,
+            topic_ids=[],
+            blueprint_version=payload["blueprint_version"],
+            form_id=str(payload.get("form_id") or ""),
+            client_questions_public=list(payload.get("questions") or []),
+            session_questions_private=list(payload.get("session_questions") or []),
+            device_id=device_id,
+        )
+        return {
+            "quiz_id": session["quiz_id"],
+            "assessment_type": "pass_readiness",
+            "subject_id": subject_id,
+            "topic_ids": [],
+            "topic_label": "一建过线体检",
+            "checkpoint_after": int(payload.get("checkpoint_after") or blueprint.checkpoint_after or 0),
+            "status": session["status"],
+            "reuse_reason": session.get("reuse_reason", ""),
+            "questions": deepcopy(session["client_questions_public"]),
+            "blueprint_version": session["blueprint_version"],
+            "form_id": session["form_id"],
+            "sections": payload["sections"],
+            "requested_count": payload["requested_count"],
+            "delivered_count": payload["delivered_count"],
+            "scored_count": payload["scored_count"],
+            "profile_count": payload["profile_count"],
+            "available_count": payload["available_count"],
+            "question_bank_size": payload["question_bank_size"],
+            "unique_source_question_count": payload["unique_source_question_count"],
+            "shortfall_count": payload["shortfall_count"],
+            "fallback_used": bool(payload.get("fallback_used")),
+            "form_source": str(payload.get("form_source") or "unknown"),
+            "form_index": int(payload.get("form_index") or 0),
+            "form_count": int(payload.get("form_count") or 0),
+        }
+
     def submit_assessment(
         self,
         user_id: str,
@@ -8766,7 +8828,11 @@ class MemberConsoleService:
             p0a_session = self._assessment_session_repository.private_session(user_id, quiz_id)
         except AssessmentSessionNotFound:
             p0a_session = None
-        if p0a_session and p0a_session.get("assessment_type") in {"topic_diagnostic", "real_exam_simulation"}:
+        if p0a_session and p0a_session.get("assessment_type") in {
+            "topic_diagnostic",
+            "real_exam_simulation",
+            "pass_readiness",
+        }:
             return self._submit_durable_assessment(
                 user_id,
                 quiz_id,
@@ -8979,6 +9045,9 @@ class MemberConsoleService:
         if assessment_type == "real_exam_simulation":
             topic_ids = []
             topic_label = str(real_exam_source_policy(real_exam_share=0.0).get("label") or "综合模拟测评")
+        elif assessment_type == "pass_readiness":
+            topic_ids = []
+            topic_label = "一建过线体检"
         else:
             try:
                 topic_spec = resolve_topic_testset_spec(topic_ids)
@@ -9089,7 +9158,7 @@ class MemberConsoleService:
     def retry_assessment_writeback(self, user_id: str, quiz_id: str) -> dict[str, Any]:
         self._require_durable_assessment_sessions()
         session = self._assessment_session_repository.private_session(user_id, quiz_id)
-        if session.get("assessment_type") not in {"topic_diagnostic", "real_exam_simulation"}:
+        if session.get("assessment_type") not in {"topic_diagnostic", "real_exam_simulation", "pass_readiness"}:
             raise KeyError(f"Unknown quiz: {quiz_id}")
         if not session.get("submitted_answer_snapshot"):
             raise KeyError(f"Assessment not submitted: {quiz_id}")

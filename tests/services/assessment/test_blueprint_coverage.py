@@ -39,6 +39,33 @@ def test_real_exam_simulation_mini_has_20_scored_items_and_safe_identity() -> No
     assert all(section.scored for section in blueprint.sections)
 
 
+def test_pass_readiness_v1_is_pure_tap_with_12_scored_3_probes_and_midpoint_checkpoint() -> None:
+    blueprint = get_assessment_blueprint("pass_readiness_architecture_v1")
+
+    assert blueprint.version == "pass_readiness_architecture_v1"
+    assert blueprint.assessment_type == "pass_readiness"
+    assert blueprint.subject_id == "construction_exam"
+    assert blueprint.requested_count == 15
+    assert blueprint.scored_count == 12
+    assert blueprint.profile_count == 3
+    # §6.2 midpoint checkpoint lives in blueprint metadata, not frontend rules.
+    assert blueprint.checkpoint_after == 6
+    # Binding pure-tap constraint: every scored task is an option-tap
+    # interaction; no free text, drag-sort, case_study, or calculation types.
+    allowed = {"single_choice", "multi_choice"}
+    for section in blueprint.sections:
+        if not section.scored:
+            assert section.question_types == ("profile_probe",)
+            continue
+        assert set(section.question_types) <= allowed, section.id
+        assert set(section.fallback_question_types) <= allowed, section.id
+    # Preparation context: 3 non-scored probes, structurally outside scoring.
+    prep = next(section for section in blueprint.sections if not section.scored)
+    assert prep.id == "pr_prep_context"
+    assert prep.count == 3
+    assert prep.topics == ("attempt_history", "recent_score_band", "weekly_study_hours")
+
+
 def test_calculation_is_optional_and_structured_judgment_is_fallback() -> None:
     blueprint = get_assessment_blueprint("diagnostic_v1")
     comprehensive = next(section for section in blueprint.sections if section.id == "comprehensive_application")
