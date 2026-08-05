@@ -1165,11 +1165,6 @@ function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
 }
 
-/** 学习计划投影(G 线): 过线体检三优先屏与计划页共用的只读投影 */
-function getLubanExamPrepPlan(opts) {
-  return requestStateGet("/api/v1/luban/exam-prep-plan", opts);
-}
-
 /** 摸底测试 — 获取专题目录 */
 function getAssessmentTopics(opts) {
   return requestStateGet("/api/v1/assessment/topics", opts);
@@ -1290,7 +1285,6 @@ module.exports = {
   postStationCompleted: postStationCompleted,
   postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,
-  getLubanExamPrepPlan: getLubanExamPrepPlan,
   getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,
   getAssessmentSession: getAssessmentSession,
