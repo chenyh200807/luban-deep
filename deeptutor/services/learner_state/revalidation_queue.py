@@ -299,6 +299,40 @@ def dispute_candidates_from_events(events: Iterable[Any] | None) -> list[dict[st
     return rows
 
 
+def declined_probe_ids_from_events(
+    events: Iterable[Any] | None,
+    *,
+    now_iso: str = "",
+) -> list[str]:
+    """defer 意志信号 → 既有 declined 机制的唯一接线（计划体系 §3.3 意志通道收敛）。
+
+    只认**当日**（UTC+8 日历日）``learning_signal_type == "defer"`` 且带
+    ``probe_id`` 的 plan_preference 事件——defer 语义 =「今天不想练这个」，
+    次日自然失效（与 declined → deferred 的 ``next_available_at``=+1 天口径一致，
+    不另记状态）。非复习任务的 defer（无 probe_id）不进本机制，由 exam_prep_plan
+    读面承载。对 dict 与对象事件(payload_json)均鲁棒。
+    """
+    now = _parse_iso(now_iso) or datetime.now(_TZ)
+    today = now.astimezone(_TZ).date()
+    result: list[str] = []
+    for ev in list(events or []):
+        payload = ev.get("payload_json") if isinstance(ev, dict) else getattr(ev, "payload_json", None)
+        if not isinstance(payload, dict):
+            payload = ev if isinstance(ev, dict) else {}
+        if str(payload.get("learning_signal_type") or "").strip() != "defer":
+            continue
+        probe_id = str(payload.get("probe_id") or "").strip()
+        if not probe_id:
+            continue
+        created_raw = ev.get("created_at") if isinstance(ev, dict) else getattr(ev, "created_at", "")
+        created = _parse_iso(str(created_raw or ""))
+        if created is None or created.astimezone(_TZ).date() != today:
+            continue
+        if probe_id not in result:
+            result.append(probe_id)
+    return result
+
+
 def _base_candidate_rows(
     *,
     candidates: Iterable[dict[str, Any]] | None,
@@ -541,6 +575,7 @@ def _safe_dict(value: Any) -> dict[str, Any]:
 __all__ = [
     "build_revalidation_queue_projection",
     "build_review_horizon_projection",
+    "declined_probe_ids_from_events",
     "derive_review_due_at",
     "dispute_candidates_from_events",
     "effective_interval_days",

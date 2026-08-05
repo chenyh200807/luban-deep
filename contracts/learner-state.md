@@ -529,6 +529,17 @@ Overlay 必须支持：
   `home_personalization` 的最近事件选择器必须过滤 `lesson_viewed`（不顶替
   today_focus）；`learning_state_projection` 以 `lesson_view_count` 显式分类（不计入
   legacy_count）。
+- plan_preference 意志族（AI 学习计划体系计划 §3.1/§3.3，2026-08-05 登记，意志通道
+  收敛——禁四通道并存）：`pin` / `defer` / `time_budget` 三类 `learning_signal_type`
+  走既有唯一意志写器 `record_learner_signal`（同 `source_feature="learner_signal"`
+  通道），受 `LUBAN_EXAM_PREP_PLAN_ENABLED` 灰度（旗标关 = 三类被拒，逐字节旧行为）。
+  硬不变量：这些事件被 `evidence_lifecycle.is_learning_evidence_record` 排除——学员
+  意志只作用于排序与日程，**绝不进学习证据编译器 / 掌握度 / 得分**（出现此类读路径
+  = stop condition，立即收权）。复习任务的 defer（payload 带 `probe_id`）唯一落点 =
+  `revalidation_queue` 既有 declined 机制（读侧 `declined_probe_ids_from_events`，
+  当日 UTC+8 生效、次日自然失效），不得在 plan 层另记复习推迟状态；`deferred` 是
+  展示侧过滤（不进首页/计划 CTA），兑付资格（`resolve_due_review_probe`）不受影响。
+  命名纪律：禁 `learning_plan_*` 前缀（Guided Learning 已占）。
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。

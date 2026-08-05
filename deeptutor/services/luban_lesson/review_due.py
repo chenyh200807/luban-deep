@@ -69,6 +69,7 @@ def build_review_due_projection(
     now_iso: str = "",
     exam_date_iso: str = "",
     pack_lifecycle: dict[str, Any] | None = None,
+    declined_probe_ids: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     events = list(events or [])
     green = {row["pack_id"]: row for row in list_green_lessons()}
@@ -102,8 +103,15 @@ def build_review_due_projection(
         str(candidate["node_id"]).strip().upper(): str(candidate.get("state") or "")
         for candidate in candidates
     }
+    # declined = 学员当日 defer 意志(计划 §3.3, revalidation_queue 既有机制,
+    # 不另记状态)。caller 从含 learner_signal 行的事件流派生
+    # (revalidation_queue.declined_probe_ids_from_events)后注入; 不注入 = 现行为。
     queue = build_revalidation_queue_projection(
-        user_id=user_id, candidates=candidates, now_iso=now_iso, exam_date_iso=exam_date_iso
+        user_id=user_id,
+        candidates=candidates,
+        now_iso=now_iso,
+        exam_date_iso=exam_date_iso,
+        declined_probe_ids=declined_probe_ids,
     )
     due_items: list[dict[str, Any]] = []
     for item in list(queue.get("items") or []):
@@ -130,6 +138,11 @@ def build_review_due_projection(
                 # False = 该站变体池未产(现状仅 2 池)——客户端必须 fail-closed
                 # 隐藏"换皮"承诺句(禁对无池站承诺换皮复测)。
                 "retest_available": bool(vm["variant_retest"]["available"]),
+                # declined 机制透传(deferred=学员今日 defer): 展示层可见后果,
+                # 兑付资格(resolve_due_review_probe)不受影响——defer 后当日回头
+                # 补做仍可兑付,禁 fail-closed 藏卡。
+                "probe_status": str(item.get("status") or ""),
+                "next_available_at": str(item.get("next_available_at") or ""),
             }
         )
     return {
@@ -182,10 +195,16 @@ def list_redeemable_due_items(projection: dict[str, Any]) -> list[dict[str, Any]
     pack_id+probe_id+retest_available+cycle_anchor）——本函数逐条委托它过滤，
     不复制口径。首页 next_step 的 review_due 臂只许消费本列表：发出的每个
     probe 必然能被复习入口原样兑付（禁发死 CTA）。
+
+    附加一条**展示侧**过滤（非兑付资格）：``probe_status == "deferred"``
+    （学员今日 defer 意志，declined 机制）不进首页/计划 CTA——意志被尊重，
+    不再当天顶回学员脸上；复习入口兑付不受影响（defer 后回头补做仍可完成）。
     """
     redeemable: list[dict[str, Any]] = []
     for item in list(projection.get("due") or []):
         if not isinstance(item, dict):
+            continue
+        if str(item.get("probe_status") or "") == "deferred":
             continue
         resolved = resolve_due_review_probe(
             projection,

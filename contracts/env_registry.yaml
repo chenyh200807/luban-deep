@@ -184,6 +184,11 @@ feature_flags:
   # 复习模块(双轮 §6 回炉屏)灰度: review-due 投影 / station_completed 信号 /
   # mistake_book review_due_at 读侧派生, 三处同旗标; 关 = 与收权前行为一致。
   - {name: LUBAN_REVIEW_MODULE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # AI 学习计划体系(exam_prep_plan) P0 灰度(计划 §3.1 权威点 1 + §7): 开 =
+  # plan_preference 意志信号(pin/defer/time_budget)入 record_learner_signal 白名单
+  # + composition root 内 shadow 双算后对外 serve 计划首任务(差异打点)。
+  # 关(默认) = 三类信号被拒 + 首页 next_step 走旧四臂, 逐字节现行为。
+  - {name: LUBAN_EXAM_PREP_PLAN_ENABLED, default: false, kind: rollout, read: env_flag}
   # PRD v1.3 §0.0 头牌: 2 分钟 per-考点 MCQ 轻练(判断题投影自签发变体池)。灰度:
   # /light-practice 取题 + /light-practice/submit 交卷判分+写 learning_evidence;
   # 关 = 取题空集/交卷不写(诚实 disabled 态), 与上线前行为一致。
