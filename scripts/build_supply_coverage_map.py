@@ -471,6 +471,28 @@ def render_markdown(rep: dict) -> str:
         )
     a("")
 
+    a("### 逐包明细(五族 + 排除族)")
+    a("")
+    a("| 族 | 槽 | pack | 学员标题 | 讲解页 | eligible/登记 | 作答层 | 考试实证 | 对齐 | 复测变体 |")
+    a("| --- | ---: | --- | --- | :---: | ---: | :---: | :---: | --- | ---: |")
+    by_id = {p["pack_id"]: p for p in rep["packs"]}
+    for name in list(FAMILY_MAP) + [EXCLUDED_FAMILY[0]]:
+        f = rep["excluded_family"] if name == EXCLUDED_FAMILY[0] else rep["families"][name]
+        for pid in f["pack_ids"]:
+            p = by_id[pid]
+            vb = p["variant_bank"]
+            a(
+                f"| {name} | {p['slot']} | {pid} | {p['student_title']} | "
+                f"{'✅' if p['lesson']['hosted'] else '❌'} | "
+                f"{p['eligible_question_count'] if p['eligible_question_count'] is not None else '—'}/"
+                f"{p['question_count'] if p['question_count'] is not None else '—'} | "
+                f"{'✅' if p['has_answer_layer'] else '❌'} | "
+                f"{'✅' if p['has_exam_evidence'] else '❌'} | "
+                f"`{p['alignment_status']}` | "
+                f"{vb['variant_count'] if vb['present'] else '—'} |"
+            )
+    a("")
+
     v = rep["verdict"]
     a(f"### 判定:五族 lesson 绑定率 ≥{int(v['threshold'] * 100)}%")
     a("")
