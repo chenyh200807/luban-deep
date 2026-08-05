@@ -507,6 +507,19 @@ function wxLogin(code) {
   });
 }
 
+/** openid-only 登录(过线体检拒绝车道, §5.1)
+ * 用户在微信手机号弹窗点「拒绝」后, 同一 handler 内直接走本端点继续进测评。
+ * 请求契约冻结为 {"code": "<wx.login code>"}; 响应=标准 auth 响应(token/user_id/openid)。 */
+function wxLoginBasic(code) {
+  return request({
+    url: "/api/v1/wechat/mp/login-basic",
+    method: "POST",
+    data: { code: code },
+    useGateway: true,
+    noAuth: true,
+  });
+}
+
 /** 手机号授权快速登录 */
 function wxLoginWithPhone(code, phoneCode) {
   var attribution = regAttribution();
@@ -1189,6 +1202,7 @@ module.exports = {
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
   wxLogin: wxLogin,
+  wxLoginBasic: wxLoginBasic,
   wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
   regAttribution: regAttribution,
