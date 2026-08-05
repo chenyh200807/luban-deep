@@ -190,6 +190,9 @@ def _channel_attribution_metadata(channel: Any, scene: Any) -> dict[str, Any]:
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
 _HOME_NEXT_STEP_ENABLED = "DEEPTUTOR_HOME_NEXT_STEP_ENABLED"
+# AI 学习计划体系 P0(计划 §3.1 权威点 1): on = composition root 内 shadow 双算,
+# 对外 serve exam_prep_plan 今日首任务(差异打点); off(默认) = 旧四臂,逐字节现行为。
+_EXAM_PREP_PLAN_ENABLED = "LUBAN_EXAM_PREP_PLAN_ENABLED"
 # 首页/雷达/章节盘共用的 learner 事件读窗(病C:窗口粒度)。容量推理:
 # lesson_viewed 按(pack,幕,日)折叠,40 pack × 2 幕 = 一天最多 ~80 条;
 # 判分/测评证据必须在同一窗内存活,100 = 80 条 lesson_viewed + 20 条判分
@@ -7766,6 +7769,7 @@ class MemberConsoleService:
                 learner_user_id=learner_user_id,
                 snapshot=snapshot,
                 exam_date_iso=str(member.get("exam_date") or ""),
+                daily_target_minutes=max(1, int(member.get("daily_target") or 30)),
             )
             from deeptutor.services.learner_state.home_next_step_projection import (
                 MODE_UNAVAILABLE,
@@ -7782,79 +7786,72 @@ class MemberConsoleService:
         learner_user_id: str,
         snapshot: Any | None,
         exam_date_iso: str = "",
+        daily_target_minutes: int = 30,
     ) -> dict[str, Any]:
-        """融合计划 §3：跨模式「下一步」= home_next_step_projection 单一仲裁。
+        """融合计划 §3 + AI 学习计划体系 §3.1：跨模式「下一步」唯一 composition root。
 
         本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
-        输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
-        - 到期复 = 复习页同一 pack 级投影（build_review_due_projection，调度真值
-          归 revalidation_queue）经 list_redeemable_due_items 过滤的可兑付条目
-          （2026-07-20 收权：弱点节点 queue 不再是首页 review_due 臂的 decider——
-          两源 probe 铸造不同，弱点 probe 在复习入口 exact-match 永远兑付不了）。
-          与 /review-due 路由同门（review_module_enabled）、同一全量证据事件读法；
-          投影异常 → 臂空 + 诊断，不遮蔽 learn_next（fail-closed）。
-        - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
-          只接受 outcome authority 判定的未完成 workflow。
-        - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
-          生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
-          对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
-        - exam_date_iso = caller 已加载的 member profile（同一 authority 读侧
-          透传，免二次载入；空 = 合法「未设置」）。
+        计划体系收权（§3.1 权威点 1）：``_assemble_home_plan_inputs`` 是**唯一**
+        输入组装，旧四臂（``home_next_step_projection``）与新计划展开
+        （``exam_prep_plan_projection`` 取 day0 首任务）在**同一次组装内 shadow
+        双算**；``LUBAN_EXAM_PREP_PLAN_ENABLED``（默认 off）决定对外 serve 哪个，
+        差异打点（parity 采样）。没有第二套组装——共享内核 + 两套组装必然产出
+        两套答案。
         """
         try:
             from deeptutor.services.learner_state import home_next_step_projection as _hns
-            from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
-            from deeptutor.services.learner_state.prescription_outcome_read_model import (
-                build_prescription_outcomes_read_projection,
-                requires_active_practice,
+            from deeptutor.services.learner_state.exam_prep_plan import (
+                build_exam_prep_plan_projection,
             )
-            from deeptutor.services.luban_lesson import list_green_lessons
-            from deeptutor.services.luban_lesson import review_due as _review_due
 
-            learner_state_service = self._get_learner_state_service()
-            events = self._snapshot_memory_events(snapshot)
-            outcomes = build_prescription_outcomes_read_projection(events=events)
-            active_intents = [
-                outcome
-                for outcome in outcomes
-                if str(outcome.get("training_intent_id") or "").strip()
-                and requires_active_practice(outcome)
-            ]
-            try:
-                compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)
-            except Exception:
-                logger.warning("Failed to read compiled truth for home next step", exc_info=True)
-                compiled = {}
-            claims = list((compiled or {}).get("weak_points") or [])
-            review_due_items: list[dict[str, Any]] = []
-            review_due_unavailable = False
-            if _review_due.review_module_enabled():
-                try:
-                    # 与 /review-due 路由同一读法（全量证据事件，非 ≤100 snapshot
-                    # 窗）——窗口差会重新制造「复习页有货、首页无提示」的分歧。
-                    review_events = learner_state_service.list_learning_evidence_events(
-                        learner_user_id, limit=None, since=None
-                    )
-                    review_due_items = _review_due.list_redeemable_due_items(
-                        _review_due.build_review_due_projection(
-                            user_id=learner_user_id,
-                            events=review_events,
-                            exam_date_iso=str(exam_date_iso or "").strip(),
-                        )
-                    )
-                except Exception:
-                    logger.warning(
-                        "Failed to build review due projection for home next step",
-                        exc_info=True,
-                    )
-                    review_due_unavailable = True
-            return _hns.build_home_next_step_projection(
-                review_due_items=review_due_items,
-                active_training_intents=active_intents,
-                pack_lifecycle=_plp.project_pack_lifecycle(events=events, claims=claims),
-                green_lessons=list_green_lessons(),
-                review_due_unavailable=review_due_unavailable,
+            inputs = self._assemble_home_plan_inputs(
+                learner_user_id=learner_user_id,
+                snapshot=snapshot,
+                exam_date_iso=exam_date_iso,
+                daily_target_minutes=daily_target_minutes,
             )
+            legacy_next_step = _hns.build_home_next_step_projection(
+                review_due_items=inputs["review_due_items"],
+                active_training_intents=inputs["active_training_intents"],
+                pack_lifecycle=inputs["pack_lifecycle"],
+                green_lessons=inputs["green_lessons"],
+                review_due_unavailable=inputs["review_due_unavailable"],
+            )
+            if not env_flag(_EXAM_PREP_PLAN_ENABLED):
+                # off = 逐字节现行为（新计划不算不 serve）。
+                return legacy_next_step
+            plan = build_exam_prep_plan_projection(
+                now_iso=inputs["now_iso"],
+                days=7,
+                review_due_items=inputs["review_due_items"],
+                review_horizon=inputs["review_horizon"],
+                active_training_intents=inputs["active_training_intents"],
+                pack_lifecycle=inputs["pack_lifecycle"],
+                green_lessons=inputs["green_lessons"],
+                plan_preferences=inputs["plan_preferences"],
+                daily_target_minutes=inputs["daily_target_minutes"],
+                review_due_unavailable=inputs["review_due_unavailable"],
+            )
+            day0_tasks = list((plan.get("days") or [{}])[0].get("tasks") or [])
+            plan_head = day0_tasks[0] if day0_tasks else None
+            # shadow parity 差异打点（上线首周观察差异率；异常且无法解释 = stop
+            # condition，flag 不得转正）。
+            diff_fields = [
+                field
+                for field in ("mode", "source_authority", "source_ref", "target_pack_id", "reason")
+                if (plan_head or {}).get(field) != legacy_next_step.get(field)
+            ]
+            logger.info(
+                "exam_prep_plan_shadow_parity user=%s match=%s diff_fields=%s policy=%s",
+                learner_user_id,
+                not diff_fields,
+                diff_fields,
+                plan.get("plan_policy_version"),
+            )
+            if plan_head is None:
+                # 计划空 → fail-closed 回旧仲裁，不 serve 空卡。
+                return legacy_next_step
+            return plan_head
         except Exception:
             logger.warning("Failed to build home next step projection", exc_info=True)
             from deeptutor.services.learner_state.home_next_step_projection import (
@@ -7862,6 +7859,121 @@ class MemberConsoleService:
             )
 
             return unavailable_next_step()
+
+    def _assemble_home_plan_inputs(
+        self,
+        *,
+        learner_user_id: str,
+        snapshot: Any | None,
+        exam_date_iso: str = "",
+        daily_target_minutes: int = 30,
+    ) -> dict[str, Any]:
+        """唯一 composition root 的输入组装（计划体系 §3.1 权威点 1）。
+
+        输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
+        - 到期复 = 复习页同一 pack 级投影（build_review_due_projection，调度真值
+          归 revalidation_queue）经 list_redeemable_due_items 过滤的可兑付条目
+          （2026-07-20 收权：弱点节点 queue 不再是首页 review_due 臂的 decider——
+          两源 probe 铸造不同，弱点 probe 在复习入口 exact-match 永远兑付不了）。
+          与 /review-due 路由同门（review_module_enabled）、同一全量证据事件读法；
+          投影异常 → 臂空 + 诊断，不遮蔽 learn_next（fail-closed）。
+        - 7 天到期预报 = 同一 pack 候选桥接的 horizon 读面
+          （review_due.build_review_horizon → revalidation_queue，禁自算到期）。
+        - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
+          只接受 outcome authority 判定的未完成 workflow。
+          （已知债，刻意保留：outcomes/lifecycle 用 ≤100 snapshot 窗、review 用
+          全量证据读——parity 灰度期内不动老臂读口径，防污染 parity 基线；
+          口径收敛登记为 flag 转正后的独立工单。）
+        - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
+          生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
+          对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
+        - 学员意志 = 同一份 snapshot events 提取的 plan_preferences（唯一写器
+          record_learner_signal 的 pin/defer/time_budget）；复习任务的当日 defer
+          经 declined_probe_ids_from_events 落 revalidation_queue declined 机制。
+        - exam_date_iso / daily_target = caller 已加载的 member profile（同一
+          authority 读侧透传，免二次载入；空 = 合法「未设置」）。
+        """
+        from datetime import datetime, timedelta, timezone
+
+        from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
+        from deeptutor.services.learner_state.exam_prep_plan import (
+            plan_preferences_from_events,
+        )
+        from deeptutor.services.learner_state.prescription_outcome_read_model import (
+            build_prescription_outcomes_read_projection,
+            requires_active_practice,
+        )
+        from deeptutor.services.learner_state.revalidation_queue import (
+            declined_probe_ids_from_events,
+        )
+        from deeptutor.services.luban_lesson import list_green_lessons
+        from deeptutor.services.luban_lesson import review_due as _review_due
+
+        now_iso = datetime.now(timezone(timedelta(hours=8))).isoformat()
+        learner_state_service = self._get_learner_state_service()
+        events = self._snapshot_memory_events(snapshot)
+        outcomes = build_prescription_outcomes_read_projection(events=events)
+        active_intents = [
+            outcome
+            for outcome in outcomes
+            if str(outcome.get("training_intent_id") or "").strip()
+            and requires_active_practice(outcome)
+        ]
+        try:
+            compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)
+        except Exception:
+            logger.warning("Failed to read compiled truth for home next step", exc_info=True)
+            compiled = {}
+        claims = list((compiled or {}).get("weak_points") or [])
+        # 意志信号住 snapshot 原始事件流（list_learning_evidence_events 会把
+        # learner_signal 行过滤掉——declined/preferences 必须从这里取）。
+        declined_probe_ids = declined_probe_ids_from_events(events, now_iso=now_iso)
+        plan_preferences = plan_preferences_from_events(events, now_iso=now_iso)
+        review_due_items: list[dict[str, Any]] = []
+        review_due_unavailable = False
+        review_horizon: dict[str, Any] | None = None
+        if _review_due.review_module_enabled():
+            try:
+                # 与 /review-due 路由同一读法（全量证据事件，非 ≤100 snapshot
+                # 窗）——窗口差会重新制造「复习页有货、首页无提示」的分歧。
+                review_events = learner_state_service.list_learning_evidence_events(
+                    learner_user_id, limit=None, since=None
+                )
+                review_due_items = _review_due.list_redeemable_due_items(
+                    _review_due.build_review_due_projection(
+                        user_id=learner_user_id,
+                        events=review_events,
+                        now_iso=now_iso,
+                        exam_date_iso=str(exam_date_iso or "").strip(),
+                        declined_probe_ids=declined_probe_ids,
+                    )
+                )
+                review_horizon = _review_due.build_review_horizon(
+                    user_id=learner_user_id,
+                    events=review_events,
+                    now_iso=now_iso,
+                    exam_date_iso=str(exam_date_iso or "").strip(),
+                    declined_probe_ids=declined_probe_ids,
+                    days=7,
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to build review due projection for home next step",
+                    exc_info=True,
+                )
+                review_due_unavailable = True
+                review_horizon = None
+        return {
+            "now_iso": now_iso,
+            "review_due_items": review_due_items,
+            "review_due_unavailable": review_due_unavailable,
+            "review_horizon": review_horizon,
+            "active_training_intents": active_intents,
+            "pack_lifecycle": _plp.project_pack_lifecycle(events=events, claims=claims),
+            "green_lessons": list_green_lessons(),
+            "plan_preferences": plan_preferences,
+            "daily_target_minutes": max(1, int(daily_target_minutes or 30)),
+        }
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:

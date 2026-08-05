@@ -642,8 +642,15 @@ Overlay 必须支持：
 4. 供给硬过滤：无 published/retest 供给的 intent 进 `supply_gaps`（教研缺口输出），
    不排假任务。每任务必带 `{task, source_authority, evidence_refs, expected_time,
    completion_condition, retest_condition, why}` + 四臂兼容四字段（可审计）。
-5. 计划内容不落库为死文档（投影现算）；接入面与 serve 开关见下一节
-   `LUBAN_EXAM_PREP_PLAN_ENABLED` 条款。
+5. 计划内容不落库为死文档（投影现算）。接入面与 serve 开关（composition root
+   收权，§3.1 权威点 1）：`member_console._build_home_next_step` 内的
+   `_assemble_home_plan_inputs` 是**唯一 composition root**——旧四臂与计划展开
+   在同一次组装内 shadow 双算，`LUBAN_EXAM_PREP_PLAN_ENABLED`（默认 off，已登记
+   `contracts/env_registry.yaml`）决定对外 serve 哪个，差异打点
+   （`exam_prep_plan_shadow_parity` 日志行）。禁止在该 root 之外组装计划/
+   next_step 输入；计划空 → fail-closed 回旧仲裁，不 serve 空卡。已知债（刻意
+   保留，flag 转正后独立工单收敛）：outcomes/lifecycle 读 ≤100 snapshot 窗、
+   review 读全量证据——parity 灰度期内不动老臂读口径，防污染 parity 基线。
 
 ### Home Next-Step Projection（融合计划 §3，2026-07-03 登记）
 

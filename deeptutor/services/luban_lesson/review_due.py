@@ -20,6 +20,7 @@ from deeptutor.services.learner_state.pack_lifecycle_projection import (
 )
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
+    build_review_horizon_projection,
 )
 from deeptutor.services.luban_lesson.read_model import (
     LessonNotAvailable,
@@ -73,32 +74,8 @@ def build_review_due_projection(
 ) -> dict[str, Any]:
     events = list(events or [])
     green = {row["pack_id"]: row for row in list_green_lessons()}
-    lifecycle = (
-        pack_lifecycle
-        if isinstance(pack_lifecycle, dict)
-        else project_pack_lifecycle(events=events, claims=[])
-    )
-    packs = lifecycle.get("packs") if isinstance(lifecycle.get("packs"), dict) else {}
-    candidates = [
-        {
-            "node_id": pack_id,
-            "label": green[pack_id]["title"],
-            "state": (
-                "stable"
-                if str(entry.get("last_review_status") or "") == "verified"
-                else "weak"
-                if str(entry.get("last_review_status") or "") == "not_verified"
-                else "fresh"
-            ),
-            "ability_dimension": "code_application",
-            "last_observed_at": str(entry.get("last_review_at") or entry.get("last_completion_at") or ""),
-            "successful_review_streak": int(entry.get("successful_review_streak") or 0),
-            "cycle_anchor": str(entry.get("review_cycle_anchor") or ""),
-            "evidence_refs": list(entry.get("terminal_evidence_refs") or []),
-        }
-        for pack_id, entry in sorted(packs.items())
-        if pack_id in green and str(entry.get("last_completion_at") or "")
-    ]
+    packs = _lifecycle_packs(events=events, pack_lifecycle=pack_lifecycle)
+    candidates = _pack_review_candidates(packs=packs, green=green)
     state_by_pack = {
         str(candidate["node_id"]).strip().upper(): str(candidate.get("state") or "")
         for candidate in candidates
@@ -157,6 +134,75 @@ def build_review_due_projection(
         # 诚实旗标: 结论完整(读到了全部事件), 区别于旧探测的降级语义
         "authority": "revalidation_queue",
     }
+
+
+def _lifecycle_packs(
+    *,
+    events: list[Any],
+    pack_lifecycle: dict[str, Any] | None,
+) -> dict[str, Any]:
+    lifecycle = (
+        pack_lifecycle
+        if isinstance(pack_lifecycle, dict)
+        else project_pack_lifecycle(events=events, claims=[])
+    )
+    packs = lifecycle.get("packs")
+    return packs if isinstance(packs, dict) else {}
+
+
+def _pack_review_candidates(
+    *,
+    packs: dict[str, Any],
+    green: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """pack 级复习候选桥接的唯一实现（当日投影与 7 天预报共用，禁复制第二份）。"""
+    return [
+        {
+            "node_id": pack_id,
+            "label": green[pack_id]["title"],
+            "state": (
+                "stable"
+                if str(entry.get("last_review_status") or "") == "verified"
+                else "weak"
+                if str(entry.get("last_review_status") or "") == "not_verified"
+                else "fresh"
+            ),
+            "ability_dimension": "code_application",
+            "last_observed_at": str(entry.get("last_review_at") or entry.get("last_completion_at") or ""),
+            "successful_review_streak": int(entry.get("successful_review_streak") or 0),
+            "cycle_anchor": str(entry.get("review_cycle_anchor") or ""),
+            "evidence_refs": list(entry.get("terminal_evidence_refs") or []),
+        }
+        for pack_id, entry in sorted(packs.items())
+        if pack_id in green and str(entry.get("last_completion_at") or "")
+    ]
+
+
+def build_review_horizon(
+    *,
+    user_id: str,
+    events: Iterable[Any] | None,
+    now_iso: str = "",
+    exam_date_iso: str = "",
+    pack_lifecycle: dict[str, Any] | None = None,
+    declined_probe_ids: Iterable[str] | None = None,
+    days: int = 7,
+) -> dict[str, Any]:
+    """pack 级 7 天到期预报——同一候选桥接（``_pack_review_candidates``），调度
+    真值仍唯一归 ``revalidation_queue.build_review_horizon_projection``（计划体系
+    §3.1 权威点 2：到期推算不许住在本模块）。本读面是预报（display），不做
+    viewmodel/供给兑付过滤——CTA 兑付资格仍只归当日投影 + resolve 口径。"""
+    events = list(events or [])
+    green = {row["pack_id"]: row for row in list_green_lessons()}
+    packs = _lifecycle_packs(events=events, pack_lifecycle=pack_lifecycle)
+    return build_review_horizon_projection(
+        user_id=user_id,
+        candidates=_pack_review_candidates(packs=packs, green=green),
+        now_iso=now_iso,
+        exam_date_iso=exam_date_iso,
+        declined_probe_ids=declined_probe_ids,
+        days=days,
+    )
 
 
 def resolve_due_review_probe(
@@ -219,6 +265,7 @@ def list_redeemable_due_items(projection: dict[str, Any]) -> list[dict[str, Any]
 __all__ = [
     "ReviewHorizonUnavailable",
     "build_review_due_projection",
+    "build_review_horizon",
     "list_redeemable_due_items",
     "resolve_due_review_probe",
     "resolve_review_exam_date",
