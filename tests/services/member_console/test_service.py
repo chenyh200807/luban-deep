@@ -8901,3 +8901,73 @@ def test_corpus_pruning_migrations_are_idempotent(tmp_path: Path) -> None:
     migrations = service._load().get("migrations") or {}
     assert migrations.get("zero_chapter_practice_stats_pruned_v1") is True
     assert migrations.get("merged_member_payload_pruned_v1") is True
+
+
+# ---------------------------------------------------------------------------
+# 登录两缺口回归（计划 §5.1 拒绝路径 / §9.4 两条后端缺口）
+# ---------------------------------------------------------------------------
+
+
+def _stub_wechat_code_exchange(
+    service: MemberConsoleService,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    openid: str,
+) -> None:
+    async def _fake_exchange_code(_code: str) -> dict[str, str]:
+        return {"openid": openid, "unionid": "", "session_key": "session-key"}
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange_code)
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_grant_lane_still_binds_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) 授权手机号的正常车道：一次调用拿到 token 且手机号已绑定。"""
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_grant_lane_0001")
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911110001"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", lambda **_kwargs: None)
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    payload = await service.login_with_wechat_phone("wx-code-grant", "phone-code-grant")
+
+    assert payload["token"]
+    assert payload["bound"] is True
+    assert payload["phone"] == "13911110001"
+    member = service._ensure_member(service._load(), payload["user_id"])
+    assert member["phone"] == "13911110001"
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_decline_lane_logs_in_openid_only_and_can_assess(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) 拒绝手机号授权：openid-only 会话仍是正规身份，测评照常可开。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_decline_lane_0001")
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    payload = await service.login_with_wechat_code("wx-code-decline")
+
+    assert payload["token"]
+    openid_uid = str(payload["user_id"])
+    assert openid_uid
+    member = service._ensure_member(service._load(), openid_uid)
+    assert not service._is_meaningful_phone(member.get("phone")), "拒绝授权的学员不得凭空拿到手机号"
+
+    quiz = service.create_assessment(openid_uid, count=5)
+
+    assert quiz["quiz_id"]
+    stored = service._load()["assessment_sessions"][quiz["quiz_id"]]
+    assert stored["user_id"] == openid_uid
