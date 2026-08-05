@@ -6,6 +6,10 @@ from typing import Any
 
 
 REPORT_SCHEMA_VERSION = "p0a-v1"
+PASS_READINESS_REPORT_SCHEMA_VERSION = "pass-readiness-v1"
+# Persisted report schema versions admitted by the DB CHECK constraint
+# (supabase/migrations/20260805000100_assessment_report_schema_pass_readiness.sql).
+SUPPORTED_REPORT_SCHEMA_VERSIONS = (REPORT_SCHEMA_VERSION, PASS_READINESS_REPORT_SCHEMA_VERSION)
 
 
 class AssessmentReportError(ValueError):
@@ -88,7 +92,7 @@ def build_result_report(
 
 def assert_supported_report(report: dict[str, Any]) -> None:
     version = str(dict(report or {}).get("schema_version") or "").strip()
-    if version != REPORT_SCHEMA_VERSION:
+    if version not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
         raise AssessmentReportError(f"unsupported_assessment_report_schema_version:{version or 'missing'}")
 
 

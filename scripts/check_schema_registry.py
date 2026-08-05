@@ -249,6 +249,7 @@ _FULLSET_NAMESPACE_RE = re.compile(
             luban[-_.]                    # underscore/dot AND dash (luban-consensus-gold-shadow.v0.1 …)
           | assessment_(?:session|p0a)
           | p0a-v                       # bare persisted report schema version (p0a-v1)
+          | pass-readiness-v            # pass-readiness diagnostic report envelope (pass-readiness-v1)
           | learning_report             # P2: learner-state runtime contract (registry beyond grading)
           | rag_retrieval_plan          # P2: RAG runtime retrieval-plan contract (registry beyond grading)
           | rag_evidence_bundle         # P2: RAG evidence bundle (single-authority builder, consolidated)

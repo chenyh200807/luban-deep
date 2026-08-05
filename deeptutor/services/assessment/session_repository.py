@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 SESSION_SCHEMA_VERSION = "assessment_session_v1"
 REPORT_SCHEMA_VERSION = "p0a-v1"
+PASS_READINESS_REPORT_SCHEMA_VERSION = "pass-readiness-v1"
+# Mirror of the DB CHECK constraint (supabase/migrations/20260805000100_*.sql).
+# Report envelopes must carry one of these persisted schema versions.
+SUPPORTED_REPORT_SCHEMA_VERSIONS = (REPORT_SCHEMA_VERSION, PASS_READINESS_REPORT_SCHEMA_VERSION)
 DEFAULT_TTL = timedelta(hours=24)
 DEFAULT_LEASE = timedelta(minutes=30)
 
@@ -233,7 +237,7 @@ class InMemoryAssessmentSessionRepository:
             if row.get("submit_idempotency_key") == key:
                 return copy.deepcopy(row)
             raise AssessmentSessionConflict("assessment_submit_body_conflict")
-        if result_report_json.get("schema_version") != REPORT_SCHEMA_VERSION:
+        if result_report_json.get("schema_version") not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
             raise AssessmentSessionConflict("result_report_schema_version_required")
         now = self._now_fn()
         row["submitted_answer_snapshot"] = copy.deepcopy(submitted_answer_snapshot or {})
@@ -572,7 +576,7 @@ class SupabaseAssessmentSessionRepository:
             if row.get("submit_idempotency_key") == key:
                 return copy.deepcopy(row)
             raise AssessmentSessionConflict("assessment_submit_body_conflict")
-        if result_report_json.get("schema_version") != REPORT_SCHEMA_VERSION:
+        if result_report_json.get("schema_version") not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
             raise AssessmentSessionConflict("result_report_schema_version_required")
         now = self._now_fn()
         patch = {
