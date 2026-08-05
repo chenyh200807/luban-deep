@@ -966,6 +966,32 @@ function getLubanReviewDue(opts) {
   return requestStateGet("/api/v1/luban/review-due", opts);
 }
 
+/** 鲁班 — 备考计划投影(计划页/跑道视图, exam_prep_plan_projection 薄透传)。
+ * flag(LUBAN_EXAM_PREP_PLAN_ENABLED)关时服务端返 {enabled:false} → 页面隐藏入口(非 404)。 */
+function getLubanExamPrepPlan(opts) {
+  return requestStateGet("/api/v1/luban/exam-prep-plan", opts);
+}
+
+/** 鲁班 — 计划意志 defer(推迟)信号: 走唯一 learner-signal 写器(计划体系 §3.3)。
+ * 复习任务 defer 必带 probe_id(落 revalidation_queue declined 机制);
+ * learn 任务 defer 只带 concept_id(=pack_id)。意志只动排序日程, 绝不进掌握/得分。 */
+function postPlanDefer(packId, probeId, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/learner-signal/signal",
+        method: "POST",
+        data: {
+          signal_type: "defer",
+          concept_id: String(packId || "").trim(),
+          probe_id: String(probeId || "").trim(),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
 /** 鲁班 — 站完成信号(非 promoting): 复测调度的触发事实——交接时刻/复测完成时上报。
  * 走唯一 learner-signal 写入口, 不写掌握、不进证据编译器(contracts/learner-state.md)。 */
 function postStationCompleted(packId, packTitle, completionId, opts) {
@@ -1233,6 +1259,8 @@ module.exports = {
   getLubanRetestItems: getLubanRetestItems,
   completeLubanRetest: completeLubanRetest,
   getLubanReviewDue: getLubanReviewDue,
+  getLubanExamPrepPlan: getLubanExamPrepPlan,
+  postPlanDefer: postPlanDefer,
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,
   getLubanSeethrough: getLubanSeethrough,

@@ -1,0 +1,150 @@
+<!-- 计划页 · 跑道视图（纸墨朱竹,沿用现有设计语言,零新视觉体系） -->
+<view class="paper {{isDark ? '' : 'light'}} pl-page pk-paper-bg">
+  <view class="pl-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="pl-nav-inner">
+      <view class="pl-back" bindtap="goBack">
+        <text class="pl-back-arrow">‹</text>
+        <text class="pl-back-text">返回</text>
+      </view>
+      <text class="pl-nav-title">学习计划</text>
+    </view>
+  </view>
+
+  <scroll-view class="pl-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="pl-inner">
+
+      <view class="pl-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="pl-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="pl-loading" wx:if="{{loading}}">
+        <text>正在展开你的备考计划…</text>
+      </view>
+
+      <block wx:if="{{!loading && !errorText && vm}}">
+
+        <!-- flag 未开通:诚实占位,不 404 不假承诺 -->
+        <view class="pl-empty" wx:if="{{!vm.enabled}}">
+          <text class="pl-empty-kicker">备考计划</text>
+          <text class="pl-empty-title">计划视图即将开通</text>
+          <text class="pl-empty-desc">你的学习记录一直在积累。开通后，这里会按证据为你展开未来 7 天的备考安排。</text>
+          <view class="pl-empty-cta" bindtap="goLearn">
+            <text>先去今天的学习任务 →</text>
+          </view>
+        </view>
+
+        <block wx:else>
+
+          <!-- 收敛条:只显示报告值(禁日级跳动/预测话术) -->
+          <view class="pl-hero" wx:if="{{vm.header.hasReadiness}}">
+            <view class="pl-hero-main">
+              <view class="pl-hero-band">
+                <text class="pl-hero-band-num">{{vm.header.scoreBand}}</text>
+                <text class="pl-hero-band-label">当前分数带</text>
+              </view>
+              <view class="pl-hero-divider"></view>
+              <view class="pl-hero-band" wx:if="{{vm.header.passLine}}">
+                <text class="pl-hero-band-num pass">{{vm.header.passLine}}</text>
+                <text class="pl-hero-band-label">过线线</text>
+              </view>
+              <view class="pl-hero-divider" wx:if="{{vm.header.examCountdownDays !== null}}"></view>
+              <view class="pl-hero-band" wx:if="{{vm.header.examCountdownDays !== null}}">
+                <text class="pl-hero-band-num">{{vm.header.examCountdownDays}}</text>
+                <text class="pl-hero-band-label">距考天数</text>
+              </view>
+            </view>
+            <view class="pl-hero-meta">
+              <text wx:if="{{vm.header.riskLabel}}" class="pl-hero-risk">{{vm.header.riskLabel}}</text>
+              <text class="pl-hero-date" wx:if="{{vm.header.generatedDate}}">体检于 {{vm.header.generatedDate}} · 复测后可重新诊断获得新带</text>
+            </view>
+            <!-- 日级反馈只用证据文案位:数据没有就整块不显示,不造数 -->
+            <text class="pl-hero-evidence" wx:if="{{vm.todayEvidenceNote}}">{{vm.todayEvidenceNote}}</text>
+          </view>
+
+          <!-- 无报告:过线体检引导卡 -->
+          <view class="pl-guide" wx:else bindtap="goAssessment">
+            <view class="pl-guide-body">
+              <text class="pl-guide-kicker">还差一步</text>
+              <text class="pl-guide-title">先做一次过线体检</text>
+              <text class="pl-guide-desc">测出你当前的分数带和过线差距，计划会围绕差距来安排。</text>
+            </view>
+            <text class="pl-guide-link">去体检</text>
+          </view>
+
+          <!-- 今日包完成态:判定来自后端字段,前端不自算 -->
+          <view class="pl-done" wx:if="{{vm.todayComplete}}">
+            <text class="pl-done-title">今日包已完成</text>
+            <text class="pl-done-desc">今天安排的都做完了，明天的任务已经在下面排好。</text>
+          </view>
+
+          <!-- 复习面不可用:诚实降级说明(缺数据≠没任务) -->
+          <view class="pl-note" wx:if="{{vm.reviewDueUnavailable}}">
+            <text>复习排程暂时读不出来，下面的计划先不含到期复验；稍后下拉刷新。</text>
+          </view>
+
+          <!-- 空计划 -->
+          <view class="pl-empty" wx:if="{{vm.isEmpty}}">
+            <text class="pl-empty-title">计划暂时排不出任务</text>
+            <text class="pl-empty-desc">先去学习页点亮第一站，证据进来后这里会自动排出你的 7 天安排。</text>
+            <view class="pl-empty-cta" bindtap="goLearn">
+              <text>去点亮第一站 →</text>
+            </view>
+          </view>
+
+          <!-- 7 天滚动列表(顺序=服务端投影,零前端排序) -->
+          <view class="pl-day" wx:for="{{vm.days}}" wx:key="date" wx:for-item="day">
+            <view class="pl-day-head" wx:if="{{!day.isEmpty || day.isToday}}">
+              <text class="pl-day-label {{day.isToday ? 'today' : ''}}">{{day.dayLabel}}</text>
+              <text class="pl-day-minutes" wx:if="{{day.plannedMinutes}}">约 {{day.plannedMinutes}} 分钟</text>
+            </view>
+            <view class="pl-day-empty" wx:if="{{day.isToday && day.isEmpty}}">
+              <text>今天没有排进任务</text>
+            </view>
+            <view
+              class="pl-task {{item.deferred ? 'deferred' : ''}} {{item.completed ? 'completed' : ''}}"
+              wx:for="{{day.tasks}}"
+              wx:key="key"
+              data-day-offset="{{day.dayOffset}}"
+              data-task-key="{{item.key}}"
+              bindtap="openTask"
+            >
+              <view class="pl-task-icon {{item.familyIcon}}">
+                <text>{{item.familyLabel}}</text>
+              </view>
+              <view class="pl-task-body">
+                <view class="pl-task-titlerow">
+                  <text class="pl-task-title">{{item.title}}</text>
+                  <text class="pl-task-min" wx:if="{{item.expectedMinutes}}">{{item.expectedMinutes}} 分钟</text>
+                </view>
+                <!-- 为什么是它:投影 why 字段,可解释性红线 -->
+                <text class="pl-task-why" wx:if="{{item.why}}">{{item.why}}</text>
+                <text class="pl-task-note" wx:if="{{item.supplyNote}}">{{item.supplyNote}}</text>
+                <text class="pl-task-consequence" wx:if="{{item.consequence}}">{{item.consequence}}</text>
+                <text class="pl-task-deferred" wx:if="{{item.deferred}}">已推迟 · 明天会重新安排</text>
+              </view>
+              <view class="pl-task-side">
+                <text class="pl-task-cta" wx:if="{{item.ctaLabel}}">{{item.ctaLabel}}</text>
+                <view
+                  class="pl-task-defer"
+                  wx:if="{{item.canDefer}}"
+                  data-day-offset="{{day.dayOffset}}"
+                  data-task-key="{{item.key}}"
+                  catchtap="deferTask"
+                >
+                  <text>今天不练</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <!-- 供给缺口:诚实说明,不排假任务 -->
+          <view class="pl-note" wx:if="{{vm.supplyGapCount}}">
+            <text>有 {{vm.supplyGapCount}} 个薄弱点的练习内容正在教研准备中，备好后会自动排进计划。</text>
+          </view>
+
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+</view>

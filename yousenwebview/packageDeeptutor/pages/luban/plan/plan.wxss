@@ -1,0 +1,284 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 计划页 · 跑道视图(宣纸亮 / 夜宣纸暗)
+ * 主题色统一走 paper-ink.wxss 的 --pk-* token(与 learn/review/stations 同一
+ * token 权威,不引入第二套 token 词汇、零新视觉体系)。 */
+
+.pl-page {
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  color: var(--pk-t1);
+}
+
+/* ── 导航(与 review 同构) ── */
+.pl-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--pk-card);
+  border-bottom: 1rpx solid var(--pk-bd);
+}
+.pl-nav-inner {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.pl-back {
+  position: absolute;
+  left: 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  color: var(--pk-t2);
+}
+.pl-back-arrow { font-size: 40rpx; line-height: 1; }
+.pl-back-text { font-size: 26rpx; }
+.pl-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+
+/* ── 滚动 ── */
+.pl-scroll { position: fixed; left: 0; right: 0; bottom: 0; }
+.pl-inner {
+  padding: 24rpx 24rpx 0;
+  padding-bottom: calc(188rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  box-sizing: border-box;
+}
+
+/* ── 错误/加载 ── */
+.pl-error,
+.pl-loading {
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 32rpx;
+  font-size: 26rpx;
+  color: var(--pk-t2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.pl-retry {
+  color: var(--pk-red);
+  font-size: 26rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── 收敛条 ── */
+.pl-hero {
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 30rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+.pl-hero-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.pl-hero-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+.pl-hero-band-num {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+}
+.pl-hero-band-num.pass { color: var(--pk-grn); }
+.pl-hero-band-label { font-size: 22rpx; color: var(--pk-t3); }
+.pl-hero-divider {
+  width: 1rpx;
+  height: 56rpx;
+  background: var(--pk-bd);
+}
+.pl-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.pl-hero-risk {
+  font-size: 20rpx;
+  color: var(--pk-red);
+  border: 1rpx solid var(--pk-red);
+  border-radius: 8rpx;
+  padding: 2rpx 10rpx;
+  flex-shrink: 0;
+}
+.pl-hero-date { font-size: 22rpx; color: var(--pk-t3); }
+.pl-hero-evidence { font-size: 24rpx; color: var(--pk-grn); }
+
+/* ── 体检引导卡 ── */
+.pl-guide {
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 30rpx 28rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.pl-guide-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.pl-guide-kicker { font-size: 22rpx; color: var(--pk-red); font-weight: 700; }
+.pl-guide-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
+.pl-guide-desc { font-size: 24rpx; color: var(--pk-t2); line-height: 1.5; }
+.pl-guide-link {
+  color: var(--pk-red);
+  font-size: 26rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── 今日包完成态 ── */
+.pl-done {
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-grn);
+  border-radius: 20rpx;
+  padding: 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.pl-done-title { font-size: 30rpx; font-weight: 800; color: var(--pk-grn); }
+.pl-done-desc { font-size: 24rpx; color: var(--pk-t2); }
+
+/* ── 提示条 ── */
+.pl-note {
+  background: var(--pk-card);
+  border: 1rpx dashed var(--pk-bd);
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  line-height: 1.5;
+}
+
+/* ── 空态 ── */
+.pl-empty {
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 48rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+.pl-empty-kicker { font-size: 22rpx; color: var(--pk-t3); }
+.pl-empty-title { font-size: 34rpx; font-weight: 800; color: var(--pk-t1); }
+.pl-empty-desc { font-size: 26rpx; color: var(--pk-t2); line-height: 1.6; }
+.pl-empty-cta {
+  margin-top: 8rpx;
+  color: var(--pk-red);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+/* ── 日分组 ── */
+.pl-day {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.pl-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8rpx 6rpx 0;
+}
+.pl-day-label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--pk-t2);
+}
+.pl-day-label.today { color: var(--pk-t1); font-size: 30rpx; font-weight: 800; }
+.pl-day-minutes { font-size: 22rpx; color: var(--pk-t3); }
+.pl-day-empty {
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  padding: 8rpx 6rpx;
+}
+
+/* ── 任务卡 ── */
+.pl-task {
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+.pl-task.deferred { opacity: 0.55; }
+.pl-task.completed { border-color: var(--pk-grn); }
+.pl-task-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  background: var(--pk-gauge);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pl-task-icon text { font-size: 22rpx; font-weight: 700; color: var(--pk-t2); }
+.pl-task-icon.review text { color: var(--pk-grn); }
+.pl-task-icon.practice text { color: var(--pk-red); }
+.pl-task-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+.pl-task-titlerow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+.pl-task-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--pk-t1);
+}
+.pl-task-min { font-size: 22rpx; color: var(--pk-t3); flex-shrink: 0; }
+.pl-task-why { font-size: 24rpx; color: var(--pk-t2); line-height: 1.5; }
+.pl-task-note { font-size: 22rpx; color: var(--pk-t3); }
+.pl-task-consequence { font-size: 22rpx; color: var(--pk-red); }
+.pl-task-deferred { font-size: 22rpx; color: var(--pk-t3); }
+.pl-task-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+.pl-task-cta {
+  color: var(--pk-red);
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.pl-task-defer {
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 12rpx;
+  padding: 8rpx 16rpx;
+}
+.pl-task-defer text { font-size: 22rpx; color: var(--pk-t3); }
