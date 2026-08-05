@@ -862,6 +862,7 @@ domains:
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
       - tests/services/learner_state/test_revalidation_queue.py
+      - tests/services/learner_state/test_exam_prep_plan.py
       - tests/services/learner_state/test_mistake_clustering.py
       - tests/services/learner_state/test_learning_state_scenario_matrix.py
       - tests/services/learner_state/test_evidence_story_pii_redaction.py
@@ -875,6 +876,7 @@ domains:
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_home_event_window.py
+      - tests/services/member_console/test_home_next_step_composition_root.py
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
       - tests/services/member_console/test_rbac.py
