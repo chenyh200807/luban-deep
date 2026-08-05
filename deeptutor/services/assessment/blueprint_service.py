@@ -760,7 +760,8 @@ class AssessmentBlueprintService:
         exclude_source_ids: set[str] = set(bank_exclude_source_ids or set())
         exclude_semantic_signatures: set[str] = set(bank_exclude_semantic_signatures or set())
         avoid_scored_chapters: set[str] = set()
-        profile_probe_iter = iter(get_profile_probes())
+        profile_probe_pool = list(get_profile_probes())
+        used_probe_ids: set[str] = set()
         fallback_used = False
         used_source_ids: set[str] = set()
         used_semantic_signatures: set[str] = set()
@@ -815,11 +816,21 @@ class AssessmentBlueprintService:
                     avoid_scored_chapters.add(_chapter_key(candidate.chapter))
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=True, item=candidate))
             else:
-                for _ in range(section.count):
-                    try:
-                        probe = next(profile_probe_iter)
-                    except StopIteration as exc:
-                        raise AssessmentBlueprintUnavailable("Not enough built-in profile probes") from exc
+                # Probes are bound to their blueprint section by section_id —
+                # registry order is preserved inside a section, and a probe is
+                # never reused across sections within one form.
+                section_probes = [
+                    probe
+                    for probe in profile_probe_pool
+                    if probe.section_id == section.id and probe.id not in used_probe_ids
+                ]
+                if len(section_probes) < section.count:
+                    raise AssessmentBlueprintUnavailable(
+                        f"Not enough built-in profile probes for section {section.id}: "
+                        f"requires {section.count}, found {len(section_probes)}"
+                    )
+                for probe in section_probes[: section.count]:
+                    used_probe_ids.add(probe.id)
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=False, item=probe))
         return units, fallback_used, used_source_ids, used_semantic_signatures
 
