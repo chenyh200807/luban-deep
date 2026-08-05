@@ -1,0 +1,92 @@
+<!-- 过线体检 · 落地页(§4.1 六要素, 单 CTA) -->
+<view class="pr-page paper {{isDark?'':'light'}} pk-paper-bg">
+
+  <view class="pr-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="pr-nav-inner">
+      <view class="pr-nav-back" bindtap="goBack"><text class="pr-nav-arrow">‹</text></view>
+      <text class="pr-nav-title">{{copy.productName}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="pr-body" scroll-y style="top:{{navHeight}}px">
+    <view class="pr-landing">
+
+      <!-- 要素 2: H1 -->
+      <text class="pr-h1">{{copy.h1}}</text>
+
+      <!-- 要素 3: 副标 -->
+      <text class="pr-subtitle">{{copy.subtitle}}</text>
+
+      <!-- 要素 4: 防心测声明 -->
+      <view class="pr-antiquiz pk-card">
+        <text class="pr-antiquiz-txt">{{copy.antiQuizLine}}</text>
+      </view>
+
+      <!-- 要素 5: 样例报告缩略图占位(分数带 vs 过线线, 证据卡模糊) -->
+      <view class="pr-sample pk-card">
+        <text class="pr-sample-caption">{{copy.sampleReportCaption}}</text>
+        <view class="pr-sample-scale">
+          <view class="pr-sample-band"></view>
+          <view class="pr-sample-passline"></view>
+          <text class="pr-sample-passlabel">96</text>
+        </view>
+        <view class="pr-sample-cards">
+          <view class="pr-sample-card blurred"></view>
+          <view class="pr-sample-card blurred"></view>
+          <view class="pr-sample-card blurred"></view>
+        </view>
+        <text class="pr-sample-note">证据卡在你的报告里逐条可点开</text>
+      </view>
+
+      <view style="height:32rpx"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 要素 6: 单 CTA(登录按钮) -->
+  <view class="pr-action" style="padding-bottom: {{safeBottom + 24}}px">
+    <view class="pr-err" wx:if="{{errorMsg}}"><text class="pr-err-txt">{{errorMsg}}</text></view>
+
+    <block wx:if="{{loggedIn}}">
+      <button class="pr-cta pk-btn-ink" bindtap="onStartTap" disabled="{{logging}}">
+        <text>{{copy.ctaLoggedIn}}</text>
+      </button>
+      <view class="pr-last-report" wx:if="{{lastDiagnostic.completed}}" bindtap="onViewLastReport">
+        <text class="pr-last-report-txt">查看上次报告 ›</text>
+      </view>
+    </block>
+    <block wx:else>
+      <button
+        wx:if="{{privacyChecked}}"
+        class="pr-cta pk-btn-ink {{logging ? 'off' : ''}}"
+        open-type="getPhoneNumber"
+        bindgetphonenumber="handlePhoneNumber"
+        disabled="{{logging}}"
+      >
+        <text>{{logging ? '正在进入…' : copy.ctaLogin}}</text>
+      </button>
+      <button
+        wx:else
+        class="pr-cta pk-btn-ink"
+        bindtap="handlePrivacyRequiredTap"
+        disabled="{{logging}}"
+      >
+        <text>{{copy.ctaLogin}}</text>
+      </button>
+
+      <!-- 授权理由(§5.1 逐字): 卖资产绑定, 不设第二按钮/不挽留 -->
+      <text class="pr-auth-reason">{{copy.phoneAuthReason}}</text>
+
+      <view class="pr-privacy-row" wx:if="{{!privacyChecked}}">
+        <button
+          class="pr-privacy-agree"
+          open-type="agreePrivacyAuthorization"
+          bindagreeprivacyauthorization="handlePrivacyAgreementAuthorized"
+        >
+          <view class="pr-privacy-box"></view>
+          <text class="pr-privacy-copy">我已阅读并同意</text>
+        </button>
+        <text class="pr-privacy-link" catchtap="openPrivacyGuide">{{privacyContractName}}</text>
+      </view>
+    </block>
+  </view>
+</view>
