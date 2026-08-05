@@ -33,6 +33,7 @@ PUBLIC_PATHS: list[tuple[str, str, str]] = [
     ("POST", "/api/v1/auth/verify-code",         "anonymous SMS verification (rate-limited)"),
     ("POST", "/api/v1/auth/reset-password",      "anonymous SMS password reset (rate-limited)"),
     ("POST", "/api/v1/wechat/mp/login",          "anonymous wechat mp phone-authorized login (rate-limited)"),
+    ("POST", "/api/v1/wechat/mp/login-basic",    "anonymous wechat mp openid-only login, phone-declined lane (rate-limited)"),
     ("POST", "/api/v1/wechat/mp/bind-phone",     "anonymous wechat mp phone bind (rate-limited)"),
 
     # Invite test form (PII landing, rate-limited + openid required)

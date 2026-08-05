@@ -305,6 +305,27 @@ class InMemoryAssessmentSessionRepository:
         for row in self._rows.values():
             self._expire_if_needed(row)
 
+    def rekey_user_sessions(self, *, source_user_id: str, target_user_id: str) -> int:
+        """Move every session row owned by ``source_user_id`` to ``target_user_id``.
+
+        Account merge invariant (plan §9.4): the assessment read path is strict
+        ``user_id`` equality, so a merged-away account's sessions would be
+        stranded unless the merge re-keys them. Idempotent: after the first run
+        no row matches the source id, so a repeated merge moves nothing.
+        """
+        source = str(source_user_id or "").strip()
+        target = str(target_user_id or "").strip()
+        if not source or not target or source == target:
+            return 0
+        moved = 0
+        for row in self._rows.values():
+            if str(row.get("user_id") or "").strip() != source:
+                continue
+            row["user_id"] = target
+            row["updated_at"] = _iso(self._now_fn())
+            moved += 1
+        return moved
+
     def renew_lease(self, user_id: str, quiz_id: str, *, device_id: str, heartbeat_seconds: int = 300) -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         self._assert_lease(row, device_id=device_id)
@@ -676,6 +697,31 @@ class SupabaseAssessmentSessionRepository:
             patch["status"] = "scored"
             patch["degraded_reason"] = None
         return self._patch_owned(user_id, quiz_id, patch)
+
+    def rekey_user_sessions(self, *, source_user_id: str, target_user_id: str) -> int:
+        """Re-key merged-away sessions to the surviving uid (plan §9.4).
+
+        One PATCH over ``user_id=eq.<source>``; PostgREST returns the moved rows
+        so the caller can audit the count. Idempotent by construction — the
+        second call matches nothing.
+        """
+        source = str(source_user_id or "").strip()
+        target = str(target_user_id or "").strip()
+        if not source or not target or source == target:
+            return 0
+        self._ensure_configured()
+        try:
+            response = self._client_or_create().patch(
+                f"{self._base_url}/rest/v1/assessment_sessions",
+                headers=self._headers(prefer="return=representation"),
+                params={"user_id": f"eq.{source}"},
+                json={"user_id": target, "updated_at": _iso(self._now_fn())},
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AssessmentSessionError("assessment_sessions_unavailable") from exc
+        payload = response.json()
+        return len(payload) if isinstance(payload, list) else 0
 
     def expire_stale_sessions(self, *, user_id: str = "") -> None:
         filters = {"status": "eq.in_progress", "expires_at": f"lt.{_iso(self._now_fn())}"}

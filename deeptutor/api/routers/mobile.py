@@ -2821,6 +2821,16 @@ class WechatLoginRequest(BaseModel):
     scene: str = ""
 
 
+class WechatBasicLoginRequest(BaseModel):
+    """openid-only 登录入参（拒绝手机号授权的车道）。
+
+    刻意不接收 phone_code：手机号授权成功的车道必须走 /wechat/mp/login，
+    这样"是否拿到手机号"在路由层就是二选一，不靠一个可选字段区分。
+    """
+
+    code: str = ""
+
+
 class WechatBindPhoneRequest(BaseModel):
     phone_code: str = ""
     channel: str = ""
@@ -3165,6 +3175,33 @@ async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
         return await member_service.login_with_wechat_phone(
             body.code, body.phone_code, channel=body.channel, scene=body.scene
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@router.post(
+    "/wechat/mp/login-basic",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_wechat_login_basic",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
+async def wechat_login_basic(body: WechatBasicLoginRequest) -> dict[str, Any]:
+    """openid-only 登录（计划 §5.1 拒绝路径 / §9.4 缺口 1）。
+
+    学员在微信 getPhoneNumber 弹窗点"拒绝"时走这里：只用 wx.login 的 code 换
+    openid，发一个正规的认证会话，测评/结果/证据/微课/复测照常可用。手机号在
+    "保存报告""领取学习计划"两处再要，绝不硬卡核心结果。
+    """
+    try:
+        return await member_service.login_with_wechat_code(body.code)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:

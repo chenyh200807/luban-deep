@@ -8986,3 +8986,248 @@ def test_corpus_pruning_migrations_are_idempotent(tmp_path: Path) -> None:
     migrations = service._load().get("migrations") or {}
     assert migrations.get("zero_chapter_practice_stats_pruned_v1") is True
     assert migrations.get("merged_member_payload_pruned_v1") is True
+
+
+# ---------------------------------------------------------------------------
+# 登录两缺口回归（计划 §5.1 拒绝路径 / §9.4 两条后端缺口）
+# ---------------------------------------------------------------------------
+
+
+def _stub_wechat_code_exchange(
+    service: MemberConsoleService,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    openid: str,
+) -> None:
+    async def _fake_exchange_code(_code: str) -> dict[str, str]:
+        return {"openid": openid, "unionid": "", "session_key": "session-key"}
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange_code)
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_grant_lane_still_binds_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) 授权手机号的正常车道：一次调用拿到 token 且手机号已绑定。"""
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_grant_lane_0001")
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911110001"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", lambda **_kwargs: None)
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    payload = await service.login_with_wechat_phone("wx-code-grant", "phone-code-grant")
+
+    assert payload["token"]
+    assert payload["bound"] is True
+    assert payload["phone"] == "13911110001"
+    member = service._ensure_member(service._load(), payload["user_id"])
+    assert member["phone"] == "13911110001"
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_decline_lane_logs_in_openid_only_and_can_assess(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) 拒绝手机号授权：openid-only 会话仍是正规身份，测评照常可开。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_decline_lane_0001")
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    payload = await service.login_with_wechat_code("wx-code-decline")
+
+    assert payload["token"]
+    openid_uid = str(payload["user_id"])
+    assert openid_uid
+    member = service._ensure_member(service._load(), openid_uid)
+    assert not service._is_meaningful_phone(member.get("phone")), "拒绝授权的学员不得凭空拿到手机号"
+
+    quiz = service.create_assessment(openid_uid, count=5)
+
+    assert quiz["quiz_id"]
+    stored = service._load()["assessment_sessions"][quiz["quiz_id"]]
+    assert stored["user_id"] == openid_uid
+
+
+def _isolate_learner_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """把 learner_state 落到 tmp 目录并断开 Supabase，返回可注入的 service。"""
+    from deeptutor.services.learner_state.service import LearnerStateService
+    from deeptutor.services.path_service import PathService
+
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    PathService.reset_instance()
+    return LearnerStateService()
+
+
+
+@pytest.mark.asyncio
+async def test_merge_rekeys_assessment_sessions_and_memory_events_to_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) openid 期的证据必须随合并搬到 target uid，不得搁浅（计划 §9.4 不变量）。"""
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    learner_state = _isolate_learner_state(tmp_path, monkeypatch)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: learner_state)
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_merge_case_0001")
+    monkeypatch.setattr(service, "_persist_phone_identity", lambda **_kwargs: None)
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    login = await service.login_with_wechat_code("wx-code-merge-case")
+    openid_uid = str(login["user_id"])
+
+    quiz = service.create_assessment(openid_uid, count=5)
+    quiz_id = str(quiz["quiz_id"])
+    repository_session = service._assessment_session_repository.create_session(
+        user_id=openid_uid,
+        assessment_type="diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="diagnostic_v1",
+        form_id="form_merge_case",
+        client_questions_public=[],
+        session_questions_private=[],
+    )
+    repository_quiz_id = str(repository_session["quiz_id"])
+    event = learner_state.append_memory_event(
+        openid_uid,
+        source_feature="assessment",
+        source_id=quiz_id,
+        memory_kind="learning_evidence",
+        payload_json={"evidence_source": "pass_readiness_diagnostic", "quiz_id": quiz_id},
+    )
+
+    existing_member_uid = "member_owns_the_phone"
+
+    def _seed_existing_member(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, existing_member_uid)
+        member["phone"] = "13911112233"
+
+    service._mutate(_seed_existing_member)
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112233"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    result = await service.bind_phone_for_wechat(openid_uid, "phone-code-merge-case")
+
+    assert result["merged"] is True
+    target_uid = str(result["user_id"])
+    assert target_uid == existing_member_uid
+    assert target_uid != openid_uid
+
+    data = service._load()
+    assert data["assessment_sessions"][quiz_id]["user_id"] == target_uid
+    assert (
+        service._assessment_session_repository.private_session(target_uid, repository_quiz_id)["user_id"]
+        == target_uid
+    )
+    target_events = learner_state.list_memory_events(target_uid, limit=None)
+    assert [item.event_id for item in target_events] == [event.event_id]
+    assert target_events[0].user_id == target_uid
+    assert learner_state.list_memory_events(openid_uid, limit=None) == []
+
+
+@pytest.mark.asyncio
+async def test_merge_rekey_is_idempotent_across_repeated_merges(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(d) 重复合并既不重复搬运也不丢：第二次 re-key 计数归零、证据仍在 target。"""
+    learner_state = _isolate_learner_state(tmp_path, monkeypatch)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: learner_state)
+
+    source_uid = "wx_openid_only_source"
+    target_uid = "member_target_uid"
+
+    def _seed(data: dict[str, object]) -> None:
+        service._ensure_member(data, source_uid)
+        service._ensure_member(data, target_uid)
+
+    service._mutate(_seed)
+
+    quiz = service.create_assessment(source_uid, count=5)
+    quiz_id = str(quiz["quiz_id"])
+    repository_session = service._assessment_session_repository.create_session(
+        user_id=source_uid,
+        assessment_type="diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="diagnostic_v1",
+        form_id="form_idempotent",
+        client_questions_public=[],
+        session_questions_private=[],
+    )
+    event = learner_state.append_memory_event(
+        source_uid,
+        source_feature="assessment",
+        source_id=quiz_id,
+        memory_kind="learning_evidence",
+        payload_json={"evidence_source": "pass_readiness_diagnostic", "quiz_id": quiz_id},
+    )
+
+    first = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[source_uid],
+        operator="admin",
+        reason="rekey_idempotency",
+        idempotency_key="merge-rekey-1",
+    )
+    first_rekey = first["learning_ledger_rekey"]
+    assert first_rekey["assessment_sessions_local"] == 1
+    assert first_rekey["assessment_sessions_repository"] == 1
+    assert first_rekey["learner_memory_events_local"] == 1
+    assert first_rekey["errors"] == []
+
+    # 同 idempotency_key：整个 merge 走 dedupe，不再搬第二次。
+    deduped = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[source_uid],
+        operator="admin",
+        reason="rekey_idempotency",
+        idempotency_key="merge-rekey-1",
+    )
+    assert deduped["deduped"] is True
+
+    # 换 idempotency_key 再合一次：re-key 找不到 source 行，既不重复也不丢。
+    second = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[source_uid],
+        operator="admin",
+        reason="rekey_idempotency",
+        idempotency_key="merge-rekey-2",
+    )
+    second_rekey = second["learning_ledger_rekey"]
+    assert second_rekey["assessment_sessions_local"] == 0
+    assert second_rekey["assessment_sessions_repository"] == 0
+    assert second_rekey["learner_memory_events_local"] == 0
+    assert second_rekey["errors"] == []
+
+    data = service._load()
+    assert data["assessment_sessions"][quiz_id]["user_id"] == target_uid
+    assert (
+        service._assessment_session_repository.private_session(
+            target_uid, str(repository_session["quiz_id"])
+        )["user_id"]
+        == target_uid
+    )
+    target_events = learner_state.list_memory_events(target_uid, limit=None)
+    assert [item.event_id for item in target_events] == [event.event_id]
