@@ -1,0 +1,106 @@
+<!-- 过线体检 · 测评页(15 交互纯点选 + 中场检查点) -->
+<view class="pr-page paper {{isDark?'':'light'}} pk-paper-bg">
+
+  <view class="pr-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="pr-nav-inner">
+      <view class="pr-nav-back" bindtap="goBack"><text class="pr-nav-arrow">‹</text></view>
+      <text class="pr-nav-title">一建过线体检</text>
+      <view style="flex:1"></view>
+      <text class="pr-nav-progress" wx:if="{{stage === 'quiz'}}">{{currentIndex + 1}} / {{totalCount}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="pr-body" scroll-y style="top:{{navHeight}}px">
+
+    <!-- ═══ 答题 ═══ -->
+    <view class="pr-quiz" wx:if="{{stage === 'quiz' && questions.length}}">
+      <view class="pk-progress pr-progress">
+        <view class="pk-progress__fill" style="width:{{(currentIndex + 1) / totalCount * 100}}%"></view>
+      </view>
+
+      <view class="pr-sheet pk-card">
+        <view class="pr-sheet-meta">
+          <text class="pr-sheet-title">答题卡</text>
+          <text class="pr-sheet-count">已答 {{answeredCount}} / {{totalCount}}</text>
+        </view>
+        <view class="pr-sheet-grid">
+          <view
+            class="pr-chip {{item.answered ? 'answered' : ''}} {{item.current ? 'current' : ''}}"
+            wx:for="{{answerSheet}}"
+            wx:key="id"
+            bindtap="onJumpQuestion"
+            data-index="{{item.index}}"
+          >
+            <text class="pr-chip-txt">{{item.number}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="pr-question pk-card">
+        <view class="pr-q-header">
+          <text class="pr-q-type">{{currentQ.typeLabel}}</text>
+          <text class="pr-q-case" wx:if="{{currentQ.caseTag}}">{{currentQ.caseTag}}</text>
+          <text class="pr-q-unscored" wx:if="{{currentQ.question_type === 'profile_probe'}}">不计分</text>
+        </view>
+        <text class="pr-q-material" wx:if="{{currentQ.caseMaterial}}">{{currentQ.caseMaterial}}</text>
+        <text class="pr-q-stem">{{currentQ.question_stem}}</text>
+        <view class="pr-options">
+          <view
+            class="pr-option {{selMap[currentQ.id + '_' + opt.key] ? 'selected' : ''}}"
+            wx:for="{{currentQ.options}}"
+            wx:key="key"
+            wx:for-item="opt"
+            bindtap="onSelectOption"
+            data-key="{{opt.key}}"
+          >
+            <view class="pr-opt-key"><text class="pr-opt-key-txt">{{opt.key}}</text></view>
+            <text class="pr-opt-text">{{opt.text}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="pr-quiz-nav">
+        <view class="pr-quiz-btn pk-btn-ghost {{currentIndex === 0 ? 'disabled' : ''}}" bindtap="onPrev">
+          <text>上一题</text>
+        </view>
+        <view wx:if="{{currentIndex < totalCount - 1}}" class="pr-quiz-btn pk-btn-ink" bindtap="onNext">
+          <text>下一题</text>
+        </view>
+        <view wx:else class="pr-quiz-btn pk-btn-ink" bindtap="onSubmit">
+          <text>提交答卷</text>
+        </view>
+      </view>
+      <view style="height:120rpx"></view>
+    </view>
+
+    <!-- ═══ 中场检查点(§6.2: 粗带位 + coverage=low 文案 + 唯一 CTA) ═══ -->
+    <view class="pr-checkpoint" wx:elif="{{stage === 'checkpoint'}}">
+      <view class="pr-checkpoint-card pk-card">
+        <text class="pr-checkpoint-title">{{checkpoint.title}}</text>
+        <view class="pr-checkpoint-coverage pk-chip">
+          <text>{{checkpoint.coverageLabel}}</text>
+        </view>
+        <view class="pr-checkpoint-band" wx:if="{{checkpoint.bandLine}}">
+          <text class="pr-checkpoint-band-txt">当前粗估分数带：{{checkpoint.bandLine}}</text>
+        </view>
+        <text class="pr-checkpoint-line">{{checkpoint.coverageLine}}</text>
+        <view class="pr-checkpoint-cta pk-btn-ink" bindtap="onCheckpointContinue">
+          <text>{{checkpoint.cta}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ═══ 加载 / 提交中 ═══ -->
+    <view class="pr-loading" wx:elif="{{stage === 'loading' || stage === 'submitting'}}">
+      <view class="pr-spinner"></view>
+      <text class="pr-loading-txt">{{stage === 'submitting' ? '正在生成你的过线体检报告…' : '正在准备题目…'}}</text>
+    </view>
+
+    <!-- ═══ 错误 ═══ -->
+    <view class="pr-error" wx:elif="{{stage === 'error'}}">
+      <text class="pr-error-txt">{{errorText}}</text>
+      <view class="pr-error-btn pk-btn-ink" bindtap="onRetry"><text>重试</text></view>
+    </view>
+
+  </scroll-view>
+</view>

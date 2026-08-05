@@ -507,6 +507,19 @@ function wxLogin(code) {
   });
 }
 
+/** openid-only 登录(过线体检拒绝车道, §5.1)
+ * 用户在微信手机号弹窗点「拒绝」后, 同一 handler 内直接走本端点继续进测评。
+ * 请求契约冻结为 {"code": "<wx.login code>"}; 响应=标准 auth 响应(token/user_id/openid)。 */
+function wxLoginBasic(code) {
+  return request({
+    url: "/api/v1/wechat/mp/login-basic",
+    method: "POST",
+    data: { code: code },
+    useGateway: true,
+    noAuth: true,
+  });
+}
+
 /** 手机号授权快速登录 */
 function wxLoginWithPhone(code, phoneCode) {
   var attribution = regAttribution();
@@ -1152,6 +1165,11 @@ function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
 }
 
+/** 学习计划投影(G 线): 过线体检三优先屏与计划页共用的只读投影 */
+function getLubanExamPrepPlan(opts) {
+  return requestStateGet("/api/v1/luban/exam-prep-plan", opts);
+}
+
 /** 摸底测试 — 获取专题目录 */
 function getAssessmentTopics(opts) {
   return requestStateGet("/api/v1/assessment/topics", opts);
@@ -1215,6 +1233,7 @@ module.exports = {
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
   wxLogin: wxLogin,
+  wxLoginBasic: wxLoginBasic,
   wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
   regAttribution: regAttribution,
@@ -1271,6 +1290,7 @@ module.exports = {
   postStationCompleted: postStationCompleted,
   postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,
+  getLubanExamPrepPlan: getLubanExamPrepPlan,
   getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,
   getAssessmentSession: getAssessmentSession,

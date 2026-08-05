@@ -1,0 +1,77 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 过线体检 · 落地页 — 全量取色走 paper-ink token, 零新视觉体系 */
+.pr-page { height: 100vh; position: relative; overflow: hidden; }
+
+.pr-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
+.pr-nav-inner { height: 88rpx; display: flex; align-items: center; padding: 0 24rpx; gap: 12rpx; }
+.pr-nav-back {
+  width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--pk-card); border: 1rpx solid var(--pk-bd);
+}
+.pr-nav-arrow { font-size: 42rpx; color: var(--pk-t1); font-weight: 300; }
+.pr-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+
+.pr-body { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1; }
+.pr-landing { padding: 24rpx 32rpx 320rpx; display: flex; flex-direction: column; }
+
+.pr-h1 {
+  margin-top: 48rpx; font-size: 56rpx; line-height: 1.35; font-weight: 900;
+  color: var(--pk-t1); letter-spacing: 2rpx;
+}
+.pr-subtitle { margin-top: 20rpx; font-size: 26rpx; line-height: 1.7; color: var(--pk-t2); }
+
+.pr-antiquiz { margin-top: 36rpx; padding: 24rpx 26rpx; }
+.pr-antiquiz-txt { font-size: 24rpx; line-height: 1.7; color: var(--pk-t2); }
+
+.pr-sample { margin-top: 24rpx; padding: 26rpx; display: flex; flex-direction: column; gap: 20rpx; }
+.pr-sample-caption { font-size: 24rpx; font-weight: 700; letter-spacing: 3rpx; color: var(--pk-t3); }
+.pr-sample-scale { position: relative; height: 30rpx; border-radius: 15rpx; background: var(--pk-gauge); }
+.pr-sample-band {
+  position: absolute; left: 42%; width: 20%; top: 0; bottom: 0;
+  border-radius: 15rpx; background: var(--pk-grn); opacity: 0.85;
+}
+.pr-sample-passline {
+  position: absolute; left: 60%; top: -8rpx; bottom: -8rpx; width: 4rpx;
+  background: var(--pk-red); border-radius: 2rpx;
+}
+.pr-sample-passlabel {
+  position: absolute; left: 60%; top: -44rpx; transform: translateX(-50%);
+  font-size: 22rpx; font-weight: 800; color: var(--pk-red);
+}
+.pr-sample-cards { display: flex; gap: 14rpx; }
+.pr-sample-card {
+  flex: 1; height: 96rpx; border-radius: 16rpx;
+  background: var(--pk-gauge); border: 1rpx solid var(--pk-bd);
+}
+.pr-sample-card.blurred { filter: blur(5rpx); opacity: 0.75; }
+.pr-sample-note { font-size: 22rpx; color: var(--pk-t3); }
+
+.pr-action {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  padding: 24rpx 32rpx 0;
+  background: var(--pk-paper);
+  border-top: 1rpx solid var(--pk-bd);
+}
+.pr-err { margin-bottom: 14rpx; }
+.pr-err-txt { font-size: 24rpx; color: var(--pk-warn); }
+.pr-cta { width: 100%; }
+.pr-cta.off { opacity: 0.6; }
+button.pr-cta::after { border: none; }
+.pr-auth-reason { display: block; margin-top: 16rpx; font-size: 22rpx; line-height: 1.6; color: var(--pk-t3); }
+
+.pr-last-report { margin-top: 18rpx; display: flex; justify-content: center; }
+.pr-last-report-txt { font-size: 24rpx; color: var(--pk-t2); }
+
+.pr-privacy-row { margin-top: 16rpx; display: flex; align-items: center; gap: 4rpx; }
+.pr-privacy-agree {
+  display: flex; align-items: center; gap: 10rpx; padding: 0; margin: 0;
+  background: transparent; line-height: inherit; font-size: 22rpx;
+}
+.pr-privacy-agree::after { border: none; }
+.pr-privacy-box {
+  width: 28rpx; height: 28rpx; border-radius: 8rpx;
+  border: 2rpx solid var(--pk-bd); background: var(--pk-card);
+}
+.pr-privacy-copy { font-size: 22rpx; color: var(--pk-t3); }
+.pr-privacy-link { font-size: 22rpx; color: var(--pk-grn); }
