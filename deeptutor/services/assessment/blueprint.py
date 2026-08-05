@@ -20,6 +20,9 @@ class AssessmentSection:
     minimum_multiplier: int = 3
     hard_require_calculation: bool = False
     strict_topics: bool = False
+    # Item→dimension binding matrix (过线体检 §7.1): every scored item maps to
+    # exactly one ability dimension via its section. Empty = no binding.
+    ability_dimension: str = ""
 
 
 @dataclass(frozen=True)
@@ -256,6 +259,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             question_types=("single_choice",),
             fallback_question_types=("single_choice", "multi_choice"),
             topics=("主体结构", "混凝土", "钢筋"),
+            ability_dimension="core_knowledge",
         ),
         AssessmentSection(
             id="pr_objective_multi",
@@ -265,6 +269,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             question_types=("multi_choice",),
             fallback_question_types=("single_choice", "multi_choice"),
             topics=("主体结构", "安全", "质量验收"),
+            ability_dimension="core_knowledge",
         ),
         AssessmentSection(
             id="pr_case_safety",
@@ -273,6 +278,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             scored=True,
             question_types=("single_choice", "multi_choice"),
             topics=("安全", "脚手架", "模板", "危大工程"),
+            ability_dimension="construction_logic",
         ),
         AssessmentSection(
             id="pr_case_schedule",
@@ -281,6 +287,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             scored=True,
             question_types=("single_choice", "multi_choice"),
             topics=("进度计划", "网络计划", "施工组织"),
+            ability_dimension="construction_logic",
         ),
         AssessmentSection(
             id="pr_case_quality",
@@ -289,6 +296,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             scored=True,
             question_types=("single_choice", "multi_choice"),
             topics=("质量验收", "检验批", "质量"),
+            ability_dimension="case_scoring_point_recognition",
         ),
         AssessmentSection(
             id="pr_answer_discrimination",
@@ -298,6 +306,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             question_types=("single_choice",),
             fallback_question_types=("single_choice", "multi_choice"),
             topics=("防水", "屋面", "渗漏"),
+            ability_dimension="case_scoring_point_recognition",
         ),
         AssessmentSection(
             id="pr_scoring_point_recognition",
@@ -307,6 +316,7 @@ PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
             question_types=("multi_choice",),
             fallback_question_types=("single_choice", "multi_choice"),
             topics=("质量验收", "防水", "综合案例"),
+            ability_dimension="case_scoring_point_recognition",
         ),
         AssessmentSection(
             id="pr_prep_context",
@@ -351,6 +361,21 @@ def real_exam_source_policy(
         "user_copy": copy,
         "real_exam_share": share,
         "official_real_exam_label_allowed": official_allowed,
+    }
+
+
+def ability_dimensions_by_section(version: str) -> dict[str, str]:
+    """Section→ability-dimension binding matrix for a blueprint (§7.1).
+
+    Empty dict when the blueprint declares no bindings (all non-pass-readiness
+    blueprints today).
+    """
+
+    blueprint = get_assessment_blueprint(version)
+    return {
+        section.id: section.ability_dimension
+        for section in blueprint.sections
+        if section.scored and section.ability_dimension
     }
 
 

@@ -3909,19 +3909,24 @@ def test_pass_readiness_create_and_submit_use_registered_blueprint(
     assert len(payload["questions"]) == 15
     assert all("answer" not in question for question in payload["questions"])
 
-    scored_ids = [question["question_id"] for question in payload["questions"] if question.get("scored", True)]
     result = service.submit_assessment(
         "student_demo",
         payload["quiz_id"],
-        {question_id: "A" for question_id in scored_ids},
+        {question["question_id"]: "A" for question in payload["questions"]},
         time_spent_seconds=600,
     )
 
-    assert result["schema_version"] == "p0a-v1"
+    assert result["schema_version"] == "pass-readiness-v1"
     assert result["assessment_type"] == "pass_readiness"
     assert result["blueprint_version"] == "pass_readiness_architecture_v1"
     assert result["topic_label"] == "一建过线体检"
     assert result["score_summary"]["scored_count"] == 12
+    block = result["pass_readiness"]
+    assert block["pass_line"] == 96
+    assert block["band_policy_version"] == "band-v1"
+    assert block["evidence_coverage"] in {"low", "medium", "high", "insufficient"}
+    if block["band_status"] == "ok":
+        assert block["band_lower"] % 5 == 0 and block["band_upper"] % 5 == 0
 
 
 def test_submit_assessment_different_body_retry_conflicts(

@@ -52,7 +52,10 @@ from deeptutor.services.assessment.deep_explanation import (
     generate_llm_deep_explanation,
     minimum_explanation_points,
 )
-from deeptutor.services.assessment.report_read_model import build_result_report
+from deeptutor.services.assessment.report_read_model import (
+    build_pass_readiness_report,
+    build_result_report,
+)
 from deeptutor.services.assessment.scoring import AssessmentScoringError, score_assessment
 from deeptutor.services.assessment.session_repository import (
     AssessmentSessionConflict,
@@ -9054,17 +9057,31 @@ class MemberConsoleService:
                 topic_label = f"{topic_spec.label}专题测评"
             except TopicTestSetUnavailable:
                 topic_label = "专题测评"
-        report = build_result_report(
-            quiz_id=quiz_id,
-            assessment_type=assessment_type,
-            subject_id=str(session.get("subject_id") or "construction_exam"),
-            topic_ids=topic_ids,
-            topic_label=topic_label,
-            blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
-            form_id=str(session.get("form_id") or ""),
-            scored_result=scored_result,
-            writeback_refs={"writeback_status": {"status": "pending"}},
-        )
+        if assessment_type == "pass_readiness":
+            report = build_pass_readiness_report(
+                quiz_id=quiz_id,
+                assessment_type=assessment_type,
+                subject_id=str(session.get("subject_id") or "construction_exam"),
+                topic_label=topic_label,
+                blueprint_version=str(session.get("blueprint_version") or "pass_readiness_architecture_v1"),
+                form_id=str(session.get("form_id") or ""),
+                scored_result=scored_result,
+                session_questions=list(session.get("session_questions_private") or []),
+                answers=dict(answers or {}),
+                writeback_refs={"writeback_status": {"status": "pending"}},
+            )
+        else:
+            report = build_result_report(
+                quiz_id=quiz_id,
+                assessment_type=assessment_type,
+                subject_id=str(session.get("subject_id") or "construction_exam"),
+                topic_ids=topic_ids,
+                topic_label=topic_label,
+                blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
+                form_id=str(session.get("form_id") or ""),
+                scored_result=scored_result,
+                writeback_refs={"writeback_status": {"status": "pending"}},
+            )
         submitted = self._assessment_session_repository.mark_submitted_once(
             user_id,
             quiz_id,
