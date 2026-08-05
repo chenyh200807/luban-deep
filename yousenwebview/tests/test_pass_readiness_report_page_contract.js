@@ -99,6 +99,7 @@ function loadPage(overrides) {
     bindPhoneCalls: [],
     reportFetches: [],
     planFetches: [],
+    behaviors: [],
     ownerStorage: {},
   };
   if (overrides && overrides.snapshot) {
@@ -193,7 +194,9 @@ function loadPage(overrides) {
       }
       if (request === "../../../../utils/surface-telemetry") {
         return {
-          trackProductBehavior: function () {},
+          trackProductBehavior: function (name, payload) {
+            calls.behaviors.push({ name: name, payload: payload || {} });
+          },
           trackModuleView: function () {},
           trackModuleExit: function () {},
         };
@@ -293,12 +296,26 @@ function loadPage(overrides) {
   await flushPromises();
   assert.strictEqual(gated.page.data.plan.status, "pending", "enabled:false 保持骨架");
 
-  // ── 2. 屏序 ──
+  // ── 2. 屏序 + 专名漏斗事件 ──
+  function eventNames(calls) {
+    return calls.behaviors.map(function (item) {
+      return item.name;
+    });
+  }
   assert.strictEqual(loaded.page.data.section, "result");
+  assert.strictEqual(
+    eventNames(loaded.calls).filter(function (n) {
+      return n === "pass_readiness_result_viewed";
+    }).length,
+    1,
+    "结果首屏专名曝光一次",
+  );
   loaded.page.onPrimaryCta();
   assert.strictEqual(loaded.page.data.section, "evidence");
+  assert.ok(eventNames(loaded.calls).indexOf("pass_readiness_evidence_opened") >= 0);
   loaded.page.onEvidenceContinue();
   assert.strictEqual(loaded.page.data.section, "plan");
+  assert.ok(eventNames(loaded.calls).indexOf("pass_readiness_plan_viewed") >= 0);
   loaded.page.onPlanContinue();
   assert.strictEqual(loaded.page.data.section, "save");
 
@@ -306,6 +323,11 @@ function loadPage(overrides) {
   await flushPromises();
   assert.strictEqual(loaded.page.data.save.mode, "direct");
   loaded.page.onSaveDirect();
+  var savedEvent = loaded.calls.behaviors.find(function (item) {
+    return item.name === "pass_readiness_report_saved";
+  });
+  assert.ok(savedEvent, "保存发专名 report_saved");
+  assert.strictEqual(savedEvent.payload.identityState, "phone_granted");
   var landingUrl = loaded.calls.redirectTo[loaded.calls.redirectTo.length - 1];
   assert.ok(
     landingUrl.indexOf("/packageDeeptutor/pages/luban/plan/plan") === 0,
@@ -341,6 +363,13 @@ function loadPage(overrides) {
   openidOnly.page.onLoad({ quiz_id: "quiz_pr_1", section: "save" });
   await flushPromises();
   assert.strictEqual(openidOnly.page.data.save.mode, "phone_auth");
+  assert.strictEqual(
+    openidOnly.calls.behaviors.filter(function (item) {
+      return item.name === "pass_readiness_phone_auth_prompted";
+    }).length,
+    1,
+    "深链直达保存屏也发一次 phone_auth_prompted(identity_state=openid_only)",
+  );
   openidOnly.page.handleSavePhoneNumber({ detail: { errMsg: "getPhoneNumber:fail user deny" } });
   await flushPromises();
   assert.strictEqual(openidOnly.calls.bindPhoneCalls.length, 0);
@@ -351,6 +380,11 @@ function loadPage(overrides) {
   await flushPromises();
   assert.deepStrictEqual(openidOnly.calls.bindPhoneCalls, ["phone-code-save"]);
   assert.strictEqual(openidOnly.page.data.section, "saved");
+  var authCompleted = openidOnly.calls.behaviors.find(function (item) {
+    return item.name === "pass_readiness_phone_auth_completed";
+  });
+  assert.ok(authCompleted, "补授权成功发专名 phone_auth_completed");
+  assert.strictEqual(authCompleted.payload.identityState, "phone_granted");
 
   // ── 4. 微课/复测跳既有路由; 复测返回 → 收据屏 ──
   var journey = loadPage({
@@ -361,10 +395,22 @@ function loadPage(overrides) {
   await flushPromises();
   journey.page.onOpenLesson({ currentTarget: { dataset: { packId: "F16" } } });
   assert.ok(journey.calls.navigateTo[0].indexOf("station/station?pack_id=F16") >= 0);
+  assert.ok(
+    journey.calls.behaviors.some(function (item) {
+      return item.name === "pass_readiness_lesson_started";
+    }),
+    "微课跳转发专名 lesson_started",
+  );
   journey.page.onOpenLesson({ currentTarget: { dataset: { packId: "" } } });
   assert.strictEqual(journey.calls.navigateTo.length, 1, "无绑定不导航");
   journey.page.onOpenRetest({ currentTarget: { dataset: { packId: "F16" } } });
   assert.ok(journey.calls.navigateTo[1].indexOf("retest/retest?pack_id=F16") >= 0);
+  assert.ok(
+    journey.calls.behaviors.some(function (item) {
+      return item.name === "pass_readiness_retest_started";
+    }),
+    "复测跳转发专名 retest_started",
+  );
   journey.page.onShow();
   assert.strictEqual(journey.page.data.section, "receipt", "复测返回展示证明收据屏");
   assert.strictEqual(

@@ -199,15 +199,36 @@ function loadPage(overrides) {
     "拒绝与授权落点一致, tap 数相同",
   );
 
-  // 埋点区分 granted / denied
-  function authClickResult(calls) {
-    var row = calls.behaviors.find(function (item) {
-      return item.name === "auth_authorize_clicked";
+  // 专名埋点(catalog 已登记) + identity_state 验证维度
+  function loginCompleted(calls) {
+    return calls.behaviors.find(function (item) {
+      return item.name === "pass_readiness_login_completed";
     });
-    return row && row.payload.result;
   }
-  assert.strictEqual(authClickResult(declined.calls), "denied");
-  assert.strictEqual(authClickResult(granted.calls), "granted");
+  assert.strictEqual(
+    loginCompleted(declined.calls).payload.identityState,
+    "openid_only",
+    "拒绝车道 identity_state=openid_only",
+  );
+  assert.strictEqual(
+    loginCompleted(granted.calls).payload.identityState,
+    "phone_granted",
+    "授权车道 identity_state=phone_granted",
+  );
+  [declined, granted].forEach(function (flow) {
+    assert.ok(
+      flow.calls.behaviors.some(function (item) {
+        return item.name === "pass_readiness_landing_view";
+      }),
+      "落地曝光走专名事件",
+    );
+    assert.ok(
+      flow.calls.behaviors.some(function (item) {
+        return item.name === "pass_readiness_login_prompt_viewed";
+      }),
+      "登录提示曝光走专名事件",
+    );
+  });
 
   // ── 4. 隐私中断: 不登录不导航 ──
   var privacy = loadPage();
@@ -234,17 +255,26 @@ function loadPage(overrides) {
   assert.strictEqual(failed.calls.navigateTo.length, 0);
   assert.ok(failed.page.data.errorMsg.length > 0, "登录失败必须给内联重试提示");
   var failEvent = failed.calls.behaviors.find(function (item) {
-    return item.name === "auth_result" && item.payload.objectType === "login_failed";
+    return (
+      item.name === "pass_readiness_login_completed" &&
+      item.payload.result === "login_failed"
+    );
   });
-  assert.ok(failEvent, "失败埋点必须与拒绝区分(login_failed)");
+  assert.ok(failEvent, "失败埋点 result=login_failed, 与拒绝(openid_only 成功)可区分");
 
-  // ── 6. 已登录: 单按钮直接进测评 ──
+  // ── 6. 已登录: 单按钮直接进测评, 不再曝光登录提示 ──
   var logged = loadPage({ loggedIn: true });
   logged.page.onLoad({});
   logged.page.onStartTap();
   await flushPromises();
   assert.strictEqual(logged.calls.navigateTo.length, 1);
   assert.strictEqual(logged.calls.loginBasic.length, 0);
+  assert.ok(
+    !logged.calls.behaviors.some(function (item) {
+      return item.name === "pass_readiness_login_prompt_viewed";
+    }),
+    "已登录不发 login_prompt_viewed",
+  );
 
   console.log("PASS test_pass_readiness_login_lane.js");
 })().catch(function (err) {

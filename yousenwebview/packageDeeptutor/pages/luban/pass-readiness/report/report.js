@@ -144,6 +144,17 @@ Page({
     this._report = report;
     var result = reportVm.buildResultModel(report);
     var pr = _obj(report.pass_readiness);
+    // 专名漏斗: 结果首屏曝光(每次报告加载一次)
+    if (!this._resultViewedTracked) {
+      this._resultViewedTracked = true;
+      trackBehavior("pass_readiness_result_viewed", {
+        module: "pass_readiness",
+        section: "report_result",
+        action: "view",
+        objectType: "pass_readiness_report",
+        objectId: String(quizId || ""),
+      });
+    }
     this.setData({
       stage: "ready",
       quizId: String(quizId || ""),
@@ -186,10 +197,27 @@ Page({
         var info = api.unwrapResponse ? api.unwrapResponse(raw) : (raw && raw.data) || raw;
         var phone = String((info && info.phone) || "").replace(/\D/g, "");
         self.setData({ save: reportVm.buildSaveModel(phone.length >= 8) });
+        self._maybeTrackPhoneAuthPrompted();
       })
       .catch(function () {
         self.setData({ save: reportVm.buildSaveModel(false) });
+        self._maybeTrackPhoneAuthPrompted();
       });
+  },
+
+  // 保存屏二次授权曝光(openid-only): 深链直达与屏序切换两条路径共用, 只发一次
+  _maybeTrackPhoneAuthPrompted: function () {
+    if (this._phoneAuthPrompted) return;
+    if (this.data.section !== "save") return;
+    if (!this.data.save || this.data.save.mode !== "phone_auth") return;
+    this._phoneAuthPrompted = true;
+    trackBehavior("pass_readiness_phone_auth_prompted", {
+      module: "pass_readiness",
+      section: "report_save",
+      action: "view",
+      objectType: "phone_auth",
+      identityState: "openid_only",
+    });
   },
 
   // ── section 导航(每屏一个主 CTA) ────────────────────────────
@@ -200,12 +228,26 @@ Page({
       module: "pass_readiness",
       section: "report_" + section,
     });
+    // 专名漏斗: 计划预览曝光 / 保存屏二次授权曝光(openid-only)
+    if (section === "plan") {
+      trackBehavior("pass_readiness_plan_viewed", {
+        module: "pass_readiness",
+        section: "report_plan",
+        action: "view",
+        objectType: "exam_prep_plan",
+        objectId: this.data.quizId,
+      });
+    }
+    if (section === "save") {
+      this._maybeTrackPhoneAuthPrompted();
+    }
   },
 
   onPrimaryCta: function () {
     // 屏3 → 屏4: 先补最影响得分的这一点
-    trackBehavior("learning_action_started", {
+    trackBehavior("pass_readiness_evidence_opened", {
       module: "pass_readiness",
+      section: "report_evidence",
       action: "open",
       objectType: "pass_readiness_evidence",
       objectId: this.data.quizId,
@@ -233,9 +275,10 @@ Page({
   onOpenLesson: function (e) {
     var packId = String((e.currentTarget.dataset || {}).packId || "").trim();
     if (!packId) return;
-    trackBehavior("learning_action_started", {
+    trackBehavior("pass_readiness_lesson_started", {
       module: "pass_readiness",
-      action: "start_lesson",
+      section: "report_evidence",
+      action: "start",
       objectType: "lesson",
       objectId: packId,
     });
@@ -246,9 +289,10 @@ Page({
   onOpenRetest: function (e) {
     var packId = String((e.currentTarget.dataset || {}).packId || "").trim();
     if (!packId) return;
-    trackBehavior("learning_action_started", {
+    trackBehavior("pass_readiness_retest_started", {
       module: "pass_readiness",
-      action: "start_retest",
+      section: "report_evidence",
+      action: "start",
       objectType: "retest",
       objectId: packId,
     });
@@ -263,12 +307,6 @@ Page({
     var self = this;
     if (self.data.phoneBinding) return;
     var lane = passVm.resolveLoginLane(e && e.detail);
-    trackBehavior("auth_authorize_clicked", {
-      module: "pass_readiness",
-      action: "authorize",
-      objectType: "phone_auth_save",
-      result: lane.lane === "phone" ? "granted" : "denied",
-    });
     if (lane.lane !== "phone") {
       // 拒绝: 什么都不弹, declineNote 常驻可见, 继续看结果
       return;
@@ -277,12 +315,22 @@ Page({
     api
       .bindPhone(lane.phoneCode)
       .then(function () {
-        trackBehavior("learning_action_completed", {
+        trackBehavior("pass_readiness_phone_auth_completed", {
           module: "pass_readiness",
+          section: "report_save",
           action: "complete",
-          objectType: "pass_readiness_report_saved",
+          objectType: "phone_auth",
+          result: "success",
+          identityState: "phone_granted",
+        });
+        trackBehavior("pass_readiness_report_saved", {
+          module: "pass_readiness",
+          section: "report_save",
+          action: "complete",
+          objectType: "pass_readiness_report",
           objectId: self.data.quizId,
           result: "success",
+          identityState: "phone_granted",
         });
         self.setData({
           phoneBinding: false,
@@ -300,12 +348,14 @@ Page({
 
   // 屏 8(已有手机号): 直接确认保存 → 参数化落点
   onSaveDirect: function () {
-    trackBehavior("learning_action_completed", {
+    trackBehavior("pass_readiness_report_saved", {
       module: "pass_readiness",
+      section: "report_save",
       action: "complete",
-      objectType: "pass_readiness_report_saved",
+      objectType: "pass_readiness_report",
       objectId: this.data.quizId,
       result: "success",
+      identityState: "phone_granted",
     });
     this._landAfterSave();
   },

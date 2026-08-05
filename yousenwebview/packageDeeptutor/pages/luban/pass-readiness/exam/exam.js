@@ -131,12 +131,6 @@ Page({
   _createSession: function () {
     var self = this;
     self.setData({ stage: "loading", errorText: "" });
-    trackBehavior("learning_action_started", {
-      module: "pass_readiness",
-      action: "start_probe",
-      objectType: "pass_readiness_diagnostic",
-      objectId: "pass_readiness",
-    });
     api
       .createAssessment({
         assessment_type: "pass_readiness",
@@ -148,6 +142,14 @@ Page({
           self.setData({ stage: "error", errorText: "暂无可用题目，请稍后重试" });
           return;
         }
+        // 专名漏斗: 新会话真正开卷才算 started(resume 不重复计)
+        trackBehavior("pass_readiness_started", {
+          module: "pass_readiness",
+          section: "exam",
+          action: "start",
+          objectType: "pass_readiness_diagnostic",
+          objectId: session.quizId,
+        });
         self._applySession(session, null);
       })
       .catch(function (err) {
@@ -271,8 +273,9 @@ Page({
     if (this._checkpointSeen) return;
     this._checkpointSeen = true;
     this._persistDraft();
-    trackBehavior("module_viewed", {
+    trackBehavior("pass_readiness_midpoint_reached", {
       module: "pass_readiness",
+      section: "exam",
       action: "view",
       objectType: "midpoint_checkpoint",
       objectId: this._quizId || "",
@@ -369,8 +372,9 @@ Page({
         var report = (resp && (resp.data || resp)) || {};
         self._submitted = true;
         clearDraft();
-        trackBehavior("learning_action_completed", {
+        trackBehavior("pass_readiness_completed", {
           module: "pass_readiness",
+          section: "exam",
           action: "complete",
           objectType: "pass_readiness_diagnostic",
           objectId: self._quizId || "",

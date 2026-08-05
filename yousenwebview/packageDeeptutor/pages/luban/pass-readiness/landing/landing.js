@@ -45,6 +45,21 @@ Page({
       entrySource: String((options && (options.entry_source || options.source)) || "").trim(),
       loggedIn: auth.isLoggedIn(),
     });
+    // §10 专名漏斗事件(catalog 已登记): 落地曝光 + 登录提示曝光(未登录时)
+    trackBehavior("pass_readiness_landing_view", {
+      module: "pass_readiness",
+      section: "landing",
+      action: "view",
+      entrySource: this.data.entrySource,
+    });
+    if (!this.data.loggedIn) {
+      trackBehavior("pass_readiness_login_prompt_viewed", {
+        module: "pass_readiness",
+        section: "landing",
+        action: "view",
+        objectType: "login_prompt",
+      });
+    }
     this._refreshPrivacySetting();
     this._loadDiagnosticSource();
   },
@@ -110,12 +125,6 @@ Page({
   // 已登录: 单按钮直接进测评(与登录路径同为一次点击)
   onStartTap: function () {
     if (this.data.logging) return;
-    trackBehavior("learning_action_started", {
-      module: "pass_readiness",
-      action: "start_probe",
-      objectType: "pass_readiness_entry",
-      objectId: "logged_in",
-    });
     this._enterExam();
   },
 
@@ -124,12 +133,6 @@ Page({
     var self = this;
     if (self.data.logging) return;
     var lane = passVm.resolveLoginLane(e && e.detail);
-    trackBehavior("auth_authorize_clicked", {
-      module: "pass_readiness",
-      action: "authorize",
-      objectType: "phone_auth",
-      result: lane.lane === "phone" ? "granted" : "denied",
-    });
     if (lane.privacyInterrupted) {
       // 隐私协议中断 ≠ 拒绝手机号: 不能静默替用户登录, 提示重新勾选
       self.setData({ privacyChecked: false, errorMsg: "请先勾选同意用户隐私保护指引后继续" });
@@ -149,23 +152,27 @@ Page({
         var token = inner.token;
         if (!token) throw new Error("服务端未返回凭证");
         auth.setToken(token, inner.expires_at, inner);
-        trackBehavior("auth_result", {
+        // 专名 + identity_state 验证维度(phone_granted | openid_only)
+        trackBehavior("pass_readiness_login_completed", {
           module: "pass_readiness",
+          section: "landing",
           action: "complete",
-          objectType: lane.lane === "phone" ? "phone_auth" : "openid_basic",
+          objectType: "login",
           result: "success",
+          identityState: lane.lane === "phone" ? "phone_granted" : "openid_only",
         });
         self.setData({ logging: false, loggedIn: true });
         // 授权/拒绝两条路径在此汇合, 同样直接进测评(零二次弹窗/零 toast)
         self._enterExam();
       })
       .catch(function (err) {
-        // 登录失败(非拒绝): 埋点区分 login_failed, 页面内联展示可重试
-        trackBehavior("auth_result", {
+        // 登录失败(微信 API/网络错误, 非拒绝): result=login_failed 与拒绝可区分
+        trackBehavior("pass_readiness_login_completed", {
           module: "pass_readiness",
+          section: "landing",
           action: "error",
-          objectType: "login_failed",
-          result: "fail",
+          objectType: "login",
+          result: "login_failed",
           errorCode: String((err && err.message) || "").slice(0, 60),
         });
         var msg = api.describeRequestError

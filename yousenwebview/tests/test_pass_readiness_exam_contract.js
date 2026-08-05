@@ -65,6 +65,7 @@ function loadPage(overrides) {
     redirects: [],
     toasts: [],
     modals: [],
+    behaviors: [],
     ownerStorage: {},
   };
   var createResponse = Object.assign(
@@ -155,7 +156,9 @@ function loadPage(overrides) {
       }
       if (request === "../../../../utils/surface-telemetry") {
         return {
-          trackProductBehavior: function () {},
+          trackProductBehavior: function (name, payload) {
+            calls.behaviors.push({ name: name, payload: payload || {} });
+          },
           trackModuleView: function () {},
           trackModuleExit: function () {},
         };
@@ -219,6 +222,13 @@ function answerCurrent(page, key) {
   assert.ok(!("count" in loaded.calls.createPayloads[0]), "题数由蓝图定, 前端不传 count");
   assert.strictEqual(loaded.page.data.stage, "quiz");
   assert.strictEqual(loaded.page.data.totalCount, 8);
+  assert.strictEqual(
+    loaded.calls.behaviors.filter(function (item) {
+      return item.name === "pass_readiness_started";
+    }).length,
+    1,
+    "新建会话发一次专名 started",
+  );
 
   // 答满 5 道计分题: 不触发
   for (var i = 0; i < 5; i++) {
@@ -234,6 +244,12 @@ function answerCurrent(page, key) {
   assert.strictEqual(checkpoint.coverageLabel, "证据覆盖：低");
   assert.strictEqual(checkpoint.cta, "再答 6 题：收窄分数带 + 定位失分采分点");
   assert.strictEqual(checkpoint.bandLine, "", "服务端未给粗带字段则不渲染粗带数值");
+  assert.ok(
+    loaded.calls.behaviors.some(function (item) {
+      return item.name === "pass_readiness_midpoint_reached";
+    }),
+    "检查点发专名 midpoint_reached",
+  );
 
   // 唯一 CTA → 回到第一道未答题, 不再二次打断
   loaded.page.onCheckpointContinue();
@@ -277,6 +293,12 @@ function answerCurrent(page, key) {
   assert.strictEqual(resumed.page.data.selectedKeys.s1, "B", "同题冲突服务端赢");
   assert.strictEqual(resumed.page.data.selectedKeys.s2, "A", "服务端没有的题保留本地");
   assert.strictEqual(resumed.page.data.currentIndex, 1);
+  assert.ok(
+    !resumed.calls.behaviors.some(function (item) {
+      return item.name === "pass_readiness_started";
+    }),
+    "resume 不重复计 started",
+  );
 
   // ── 5. 提交 wire + 清草稿 + 存报告 + redirect ──
   var toSubmit = loadPage({ createResponse: { checkpoint_after: 0 } });
@@ -311,6 +333,12 @@ function answerCurrent(page, key) {
   assert.ok(storedReport && storedReport.quizId === "quiz_pr_exam", "报告快照落 owner storage");
   assert.strictEqual(toSubmit.calls.redirects.length, 1);
   assert.ok(toSubmit.calls.redirects[0].indexOf("report?quiz_id=quiz_pr_exam") >= 0);
+  assert.ok(
+    toSubmit.calls.behaviors.some(function (item) {
+      return item.name === "pass_readiness_completed" && item.payload.result === "success";
+    }),
+    "提交成功发专名 completed",
+  );
 
   console.log("PASS test_pass_readiness_exam_contract.js");
 })().catch(function (err) {
