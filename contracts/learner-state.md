@@ -623,6 +623,28 @@ Overlay 必须支持：
 
 - 学员级 heartbeat 调度主表
 
+### Exam-Prep Plan Projection（AI 学习计划体系计划 §3.1，2026-08-05 登记）
+
+`exam_prep_plan_projection`（`learner_state/exam_prep_plan.py`）是既有学情权威
+（证据、处方、复习调度、学序、供给）的 **7 天展开投影 + 学员意志叠加**——不是
+第二处方、第二调度器、第二学序，零自有存储、零 IO（全部输入由 composition root
+注入）。硬约束：
+
+1. 今日首任务仲裁**不复制**：day 0 首任务直接消费 `build_home_next_step_projection`
+   输出（四臂语义 review 占位 > practice 承接 > learn 学序推进 > fallback 逐字段
+   保留）。机器验收：flag on ∧ 无 plan_preference 时，计划首任务与旧四臂输出
+   逐字段相等（shadow parity）；同证据集固定 `now_iso` 重放产生同一计划。
+2. 未来天复习任务的到期日期**只准消费** `revalidation_queue.
+   build_review_horizon_projection` 读面，禁自行外推 due_at。
+3. 排序政策 = 计划 §3.2 公式，确定性、版本化 `PLAN_POLICY_VERSION`
+   （因子变更必须 bump）；学员意志（pin/defer/time_budget）只作用排序与日程，
+   绝不动证据结论；pin 不静默覆盖调度、后果可见（`consequence` 字段）。
+4. 供给硬过滤：无 published/retest 供给的 intent 进 `supply_gaps`（教研缺口输出），
+   不排假任务。每任务必带 `{task, source_authority, evidence_refs, expected_time,
+   completion_condition, retest_condition, why}` + 四臂兼容四字段（可审计）。
+5. 计划内容不落库为死文档（投影现算）；接入面与 serve 开关见下一节
+   `LUBAN_EXAM_PREP_PLAN_ENABLED` 条款。
+
 ### Home Next-Step Projection（融合计划 §3，2026-07-03 登记）
 
 `home_next_step_projection` 是跨模式「下一步」的**呈现仲裁 read-model authority**
