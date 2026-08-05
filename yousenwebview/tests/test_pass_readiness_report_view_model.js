@@ -1,11 +1,15 @@
 // Run: node yousenwebview/tests/test_pass_readiness_report_view_model.js
-// 过线体检结果侧视图模型域测试:
-// 1. §7.2 字段契约投影(band/pass_line/readiness/feasibility/risk/coverage/interval);
-// 2. band_status=evidence_insufficient → 诚实空态, 不造分数带;
-// 3. reference_pass_interval 空串 → 不渲染;
-// 4. 首屏精确整数纪律: 结果模型不输出精确整数就绪度字段;
-// 5. 证据屏槽位 + 易错点空槽诚实占位 + 绑定缺失禁 dead button;
-// 6. 计划预览 loading 态零假数据; 收据文案逐字; 保存/会员文案红线(§4.2/§4.3/§8.3)。
+// 过线体检结果侧视图模型域测试(C 线契约版):
+// 1. report.pass_readiness 块投影(band_status/band_lower/band_upper/band_tier/
+//    pass_line/ability_readiness/prep_feasibility/risk_band/coverage/interval/
+//    unmeasured_dimensions/self_reported_score_label);
+// 2. band_status=evidence_insufficient → 诚实空态(band_copy 分支), 不造分数带;
+// 3. coverage=low 时 reference_pass_interval 空串 → 不渲染;
+// 4. 首屏精确整数纪律: 精确就绪度只出现在 ability_readiness_detail(证据详情屏);
+// 5. unmeasured_dimensions 含 answer_expression → 禁表达弱点表述;
+// 6. 证据屏槽位 + 易错点空槽诚实占位 + 绑定缺失禁 dead button + wrong_items 兜底;
+// 7. 计划预览 loading 态零假数据; 收据文案逐字; 保存/会员文案红线;
+// 8. /assessment/profile diagnostic_sources.pass_readiness 唯一判断源。
 var assert = require("assert");
 var fs = require("fs");
 var path = require("path");
@@ -16,91 +20,146 @@ var vmPath = path.join(
 );
 var vm = require(vmPath);
 
-// ── 1. §7.2 契约投影 ─────────────────────────────────────────
+// ── 1. pass_readiness 块投影 ─────────────────────────────────
 var report = {
-  estimated_score_band: "75–95 分",
-  pass_line: 96,
-  ability_readiness: "中低 (55–65)",
-  prep_feasibility: "时间预算偏紧",
-  risk_band: "临界不稳",
-  evidence_coverage: "medium",
-  band_policy_version: "band-v1",
-  reference_pass_interval: "45%–60%",
-  diagnosis: "主要失分集中在案例采分点检索，而且马上能补。",
+  schema_version: "p0a-v1",
+  score_summary: { scored_count: 12, correct_count: 7 },
+  wrong_items: [],
+  pass_readiness: {
+    band_status: "ok",
+    estimated_score_band: "100–125 分",
+    band_lower: 100,
+    band_upper: 125,
+    band_width: 25,
+    band_tier: "default",
+    pass_line: 96,
+    ability_readiness: "中高 (75–85)",
+    ability_readiness_detail: "78 / 100（model_version band-v1）",
+    prep_feasibility: "时间预算偏紧",
+    risk_band: "临界不稳",
+    evidence_coverage: "medium",
+    band_policy_version: "band-v1",
+    reference_pass_interval: "45%–60%",
+    unmeasured_dimensions: ["answer_expression"],
+    self_reported_score_label: "自报未核验",
+    diagnosis: "主要失分集中在案例采分点检索，而且马上能补。",
+  },
 };
 var result = vm.buildResultModel(report);
 assert.strictEqual(result.bandAvailable, true);
-assert.strictEqual(result.bandText, "75–95 分");
+assert.strictEqual(result.bandText, "100–125 分");
+assert.strictEqual(result.bandTier, "default");
 assert.strictEqual(result.passLine, 96);
 assert.strictEqual(result.passLineLabel, "过线 96 分");
 assert.strictEqual(result.riskBand, "临界不稳");
-assert.strictEqual(result.readinessTier, "中低");
-assert.strictEqual(result.readinessRange, "55–65");
-assert.strictEqual(result.prepFeasibility, "时间预算偏紧");
+assert.strictEqual(
+  result.riskLine,
+  "临界不稳 · 时间预算偏紧",
+  "prep_feasibility 独立字段只拼进风险措辞",
+);
+assert.strictEqual(result.readinessTier, "中高");
+assert.strictEqual(result.readinessRange, "75–85");
 assert.strictEqual(result.evidenceCoverageLabel, "中");
 assert.strictEqual(result.bandPolicyVersion, "band-v1");
 assert.strictEqual(result.showReferenceInterval, true);
 assert.strictEqual(result.referencePassInterval, "45%–60%");
+assert.strictEqual(result.selfReportedScoreLabel, "自报未核验");
+assert.strictEqual(result.expressionMeasured, false, "unmeasured 含 answer_expression");
 assert.strictEqual(result.primaryCta, "先补最影响得分的这一点");
-assert.strictEqual(result.gapLine, "离过线还差最多 21 分", "损失框架 = pass_line − band_low");
-assert.ok(result.geometry && result.geometry.passLinePct > result.geometry.bandLeftPct);
+// 几何/差距用 band_lower/band_upper 数值字段, 不靠解析展示串
+assert.ok(result.geometry && result.geometry.passLinePct < 100);
+assert.strictEqual(
+  result.gapLine,
+  "预估分数带已越过过线线——用复测把它坐实",
+  "band_lower 高于过线线 → 不出差 X 分, 改为复测坐实框架",
+);
+assert.ok(result.geometry.bandLeftPct > result.geometry.passLinePct - 20);
 assert.ok(
   result.disclaimer.indexOf("尚未经过真实考试结果校准") >= 0,
   "信任声明必须逐字保留未校准边界",
 );
 
-// ── 2. 证据不足 → 诚实空态 ───────────────────────────────────
+// 带在过线线下方 → 损失框架句
+var below = vm.buildResultModel({
+  pass_readiness: {
+    band_status: "ok",
+    estimated_score_band: "75–95 分",
+    band_lower: 75,
+    band_upper: 95,
+    pass_line: 96,
+  },
+});
+assert.strictEqual(below.gapLine, "离过线还差最多 21 分", "gap = pass_line − band_lower");
+
+// ── 2. 证据不足分支(band_copy) ───────────────────────────────
 var insufficient = vm.buildResultModel({
-  estimated_score_band: null,
-  band_status: "evidence_insufficient",
-  pass_line: 96,
-  evidence_coverage: "low",
-  reference_pass_interval: "",
+  pass_readiness: {
+    band_status: "evidence_insufficient",
+    estimated_score_band: null,
+    band_copy: "evidence insufficient for a band",
+    pass_line: 96,
+    evidence_coverage: "low",
+    reference_pass_interval: "",
+  },
 });
 assert.strictEqual(insufficient.bandAvailable, false);
 assert.strictEqual(insufficient.bandText, "");
 assert.strictEqual(insufficient.geometry, null, "无带不画带");
 assert.strictEqual(insufficient.gapLine, "");
-assert.ok(insufficient.bandUnavailableCopy.length > 0, "空态必须有诚实解释文案");
+assert.strictEqual(
+  insufficient.bandUnavailableCopy,
+  "evidence insufficient for a band",
+  "空态优先用服务端 band_copy",
+);
 // ── 3. low 档 interval 空串不渲染 ────────────────────────────
 assert.strictEqual(insufficient.showReferenceInterval, false);
 
 // ── 4. 首屏精确整数纪律 ──────────────────────────────────────
+assert.strictEqual(typeof result.readinessTier, "string");
+assert.strictEqual(typeof result.readinessRange, "string");
 Object.keys(result).forEach(function (key) {
   if (key === "passLine") return; // 过线线 96 是契约常量, 允许
-  var value = result[key];
   assert.ok(
-    !(typeof value === "number" && key.toLowerCase().indexOf("readiness") >= 0),
+    !(typeof result[key] === "number" && key.toLowerCase().indexOf("readiness") >= 0),
     "首屏模型禁出精确整数就绪度字段: " + key,
   );
 });
-assert.strictEqual(typeof result.readinessTier, "string");
-assert.strictEqual(typeof result.readinessRange, "string");
+assert.ok(
+  !("abilityReadinessDetail" in result) && !("readinessDetail" in result),
+  "精确就绪度不进首屏模型",
+);
+var detail = vm.buildReadinessDetail(report);
+assert.strictEqual(detail.available, true);
+assert.ok(detail.text.indexOf("78") >= 0, "精确值只在证据详情屏投影");
 
-// ── 5. 证据屏 ────────────────────────────────────────────────
-var evidence = vm.buildEvidenceModel({
-  evidence_items: [
-    {
-      question_stem: "案例题:模板拆除顺序",
-      learner_answer: "B",
-      scoring_point: "先支后拆、后支先拆",
-      scoring_wording: "写出「后支的先拆」即可得 2 分",
-      pitfall: "常见错误是按施工顺序正向拆除",
-      why_missed: "你的判断停在正向顺序，这题考的是逆序拆除条件。",
-      source: "教材 2026 版 · 第 3 章模板工程",
-      lesson_pack_id: "F16",
-      retest_pack_id: "F16",
-    },
-    {
-      question_stem: "第二题",
-      learner_answer: "A",
-      scoring_point: "另一采分点",
-      pitfall: "",
-      why_missed: "",
-      source: "教材 2026 版",
-    },
-  ],
-});
+// ── 5/6. 证据屏 ──────────────────────────────────────────────
+var evidence = vm.buildEvidenceModel(
+  {
+    pass_readiness: report.pass_readiness,
+    evidence_items: [
+      {
+        question_stem: "案例题:模板拆除顺序",
+        learner_answer: "B",
+        scoring_point: "先支后拆、后支先拆",
+        scoring_wording: "写出「后支的先拆」即可得 2 分",
+        pitfall: "常见错误是按施工顺序正向拆除",
+        why_missed: "你的判断停在正向顺序，这题考的是逆序拆除条件。",
+        source: "教材 2026 版 · 第 3 章模板工程",
+        lesson_pack_id: "F16",
+        retest_pack_id: "F16",
+      },
+      {
+        question_stem: "第二题",
+        learner_answer: "A",
+        scoring_point: "另一采分点",
+        pitfall: "",
+        why_missed: "表达不完整导致失分。",
+        source: "教材 2026 版",
+      },
+    ],
+  },
+  result,
+);
 assert.strictEqual(evidence.items.length, 2);
 assert.strictEqual(evidence.isEmpty, false);
 assert.strictEqual(evidence.items[0].pitfallAvailable, true);
@@ -110,11 +169,39 @@ assert.strictEqual(
   "该采分点的易错点整理中",
   "易错点空槽必须诚实占位而非伪造",
 );
+assert.strictEqual(
+  evidence.items[1].whyMissed,
+  "",
+  "answer_expression 未测时禁出表达失分归因",
+);
 assert.strictEqual(evidence.items[0].lessonPackId, "F16");
-assert.strictEqual(evidence.items[1].lessonPackId, "", "无绑定则空 → 页面不渲染按钮(禁 dead button)");
+assert.strictEqual(
+  evidence.items[1].lessonPackId,
+  "",
+  "无绑定则空 → 页面不渲染按钮(禁 dead button)",
+);
 assert.ok(evidence.lessonMissingCopy.length > 0);
+assert.strictEqual(evidence.readinessDetail.available, true, "精确就绪度挂在证据详情模型");
 
-// ── 6. 计划预览 loading 态 ───────────────────────────────────
+// p0a wrong_items 兜底(错题渲染复用既有链字段)
+var fallbackEvidence = vm.buildEvidenceModel(
+  {
+    wrong_items: [
+      {
+        question_stem: "错题题干",
+        learner_answer: "C",
+        knowledge_points: ["主体结构"],
+        simple_explanation: "这题考完整枚举。",
+      },
+    ],
+  },
+  null,
+);
+assert.strictEqual(fallbackEvidence.items.length, 1);
+assert.strictEqual(fallbackEvidence.items[0].scoringPoint, "主体结构");
+assert.strictEqual(fallbackEvidence.items[0].whyMissed, "这题考完整枚举。");
+
+// ── 7. 计划预览 loading 态 ───────────────────────────────────
 var pendingPlan = vm.buildPlanPreviewModel(null);
 assert.strictEqual(pendingPlan.status, "pending");
 assert.strictEqual(pendingPlan.items.length, 0, "loading 态零假数据");
@@ -133,7 +220,7 @@ var readyPlan = vm.buildPlanPreviewModel({
 assert.strictEqual(readyPlan.status, "ready");
 assert.strictEqual(readyPlan.items.length, 3, "只取前三优先");
 
-// ── 7. 收据 / 保存 / 会员 ────────────────────────────────────
+// ── 收据 / 保存 / 会员 ───────────────────────────────────────
 var receipt = vm.buildReceiptModel();
 assert.strictEqual(
   receipt.headline,
@@ -158,7 +245,21 @@ var personalized = vm.buildMembershipCta({
 });
 assert.ok(personalized.personalization.indexOf("作废重考") >= 0);
 
-// ── 8. 文案红线扫描(§4.2 禁语 + §4.3 语气 + §8.3 禁「挂靠」) ──
+// ── 8. diagnostic_sources.pass_readiness 唯一判断源 ──────────
+var source = vm.readDiagnosticSource({
+  data: {
+    diagnostic_sources: {
+      pass_readiness: { completed: true, quiz_id: "quiz_pr_9", scored_at: "2026-08-05T10:00:00Z" },
+    },
+  },
+});
+assert.strictEqual(source.completed, true);
+assert.strictEqual(source.quizId, "quiz_pr_9");
+assert.strictEqual(source.scoredAt, "2026-08-05T10:00:00Z");
+var emptySource = vm.readDiagnosticSource({});
+assert.strictEqual(emptySource.completed, false, "缺块 = 未完成, 不由前端自判");
+
+// ── 9. 文案红线扫描(§4.2 禁语 + §4.3 语气 + §8.3 红线词) ─────
 var forbidden = [
   "挂靠",
   "看穿",
