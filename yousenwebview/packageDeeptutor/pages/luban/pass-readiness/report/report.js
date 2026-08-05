@@ -149,7 +149,7 @@ Page({
       quizId: String(quizId || ""),
       result: result,
       evidence: reportVm.buildEvidenceModel(report, result),
-      plan: reportVm.buildPlanPreviewModel(null), // 二波接 exam_prep_plan_projection
+      plan: reportVm.buildPlanPreviewModel(null), // 骨架起步, _loadPlanPreview 接真投影
       receipt: reportVm.buildReceiptModel(),
       member: reportVm.buildMembershipCta({
         daysToExam: pr.days_to_exam,
@@ -157,6 +157,24 @@ Page({
       }),
     });
     this._loadSaveModel();
+    this._loadPlanPreview();
+  },
+
+  // 三优先槽数据 = GET /api/v1/luban/exam-prep-plan(G 线只读投影);
+  // enabled:false / 失败 → 保持骨架 pending 态, 零假数据。
+  _loadPlanPreview: function () {
+    var self = this;
+    if (!api.getLubanExamPrepPlan) return;
+    api
+      .getLubanExamPrepPlan({ noRetry: true })
+      .then(function (resp) {
+        self.setData({
+          plan: reportVm.buildPlanPreviewModel((resp && (resp.data || resp)) || {}),
+        });
+      })
+      .catch(function () {
+        // 失败保持 pending 骨架
+      });
   },
 
   // 保存屏形态: 手机号已知 → 直接保存态; openid-only → 二次授权(可拒, 不拦结果)

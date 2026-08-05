@@ -98,6 +98,7 @@ function loadPage(overrides) {
     modals: [],
     bindPhoneCalls: [],
     reportFetches: [],
+    planFetches: [],
     ownerStorage: {},
   };
   if (overrides && overrides.snapshot) {
@@ -122,6 +123,13 @@ function loadPage(overrides) {
         return Promise.resolve({
           phone: overrides && overrides.hasPhone ? "13800000000" : "",
         });
+      },
+      getLubanExamPrepPlan: function () {
+        calls.planFetches.push(1);
+        if (overrides && overrides.planResponse) {
+          return Promise.resolve(overrides.planResponse);
+        }
+        return Promise.reject(new Error("plan_unavailable"));
       },
       bindPhone: function (phoneCode) {
         calls.bindPhoneCalls.push(phoneCode);
@@ -246,7 +254,44 @@ function loadPage(overrides) {
   assert.strictEqual(loaded.page.data.result.gapLine, "离过线还差最多 21 分");
   assert.strictEqual(loaded.page.data.result.expressionMeasured, false);
   assert.strictEqual(loaded.page.data.evidence.items[0].pitfall, "该采分点的易错点整理中");
-  assert.strictEqual(loaded.page.data.plan.status, "pending");
+  assert.ok(loaded.calls.planFetches.length >= 1, "报告就绪后必须拉 exam-prep-plan 投影");
+  assert.strictEqual(loaded.page.data.plan.status, "pending", "投影失败保持骨架, 零假数据");
+
+  // 投影可用 → 三优先槽渲染真任务(task/why/expected_time)
+  var planned = loadPage({
+    snapshot: { quizId: "quiz_pr_1", report: SAMPLE_REPORT, savedAt: 1 },
+    hasPhone: true,
+    planResponse: {
+      enabled: true,
+      exam_countdown_days: 92,
+      days: [
+        {
+          date: "2026-08-06",
+          tasks: [
+            { task: "补模板拆除采分点", why: "最大失分点", expected_time: "10 分钟", mode: "lesson", target_pack_id: "F16" },
+            { task: "平行复测", why: "新的正面证据", expected_time: "5 分钟", mode: "retest" },
+          ],
+        },
+        { date: "2026-08-07", tasks: [{ task: "网络计划轻练", why: "第二风险", expected_time: "8 分钟" }] },
+      ],
+    },
+  });
+  planned.page.onLoad({ quiz_id: "quiz_pr_1", section: "plan" });
+  await flushPromises();
+  assert.strictEqual(planned.page.data.plan.status, "ready");
+  assert.strictEqual(planned.page.data.plan.items.length, 3);
+  assert.strictEqual(planned.page.data.plan.items[0].title, "补模板拆除采分点");
+  assert.strictEqual(planned.page.data.plan.items[0].desc, "最大失分点");
+
+  // enabled:false → 骨架
+  var gated = loadPage({
+    snapshot: { quizId: "quiz_pr_1", report: SAMPLE_REPORT, savedAt: 1 },
+    hasPhone: true,
+    planResponse: { enabled: false, days: [] },
+  });
+  gated.page.onLoad({ quiz_id: "quiz_pr_1", section: "plan" });
+  await flushPromises();
+  assert.strictEqual(gated.page.data.plan.status, "pending", "enabled:false 保持骨架");
 
   // ── 2. 屏序 ──
   assert.strictEqual(loaded.page.data.section, "result");

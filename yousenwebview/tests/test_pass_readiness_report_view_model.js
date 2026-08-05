@@ -201,7 +201,7 @@ assert.strictEqual(fallbackEvidence.items.length, 1);
 assert.strictEqual(fallbackEvidence.items[0].scoringPoint, "主体结构");
 assert.strictEqual(fallbackEvidence.items[0].whyMissed, "这题考完整枚举。");
 
-// ── 7. 计划预览 loading 态 ───────────────────────────────────
+// ── 7. 计划预览(exam-prep-plan 冻结形状) ─────────────────────
 var pendingPlan = vm.buildPlanPreviewModel(null);
 assert.strictEqual(pendingPlan.status, "pending");
 assert.strictEqual(pendingPlan.items.length, 0, "loading 态零假数据");
@@ -209,16 +209,47 @@ assert.strictEqual(pendingPlan.slots.length, 3, "三优先静态结构槽");
 pendingPlan.slots.forEach(function (slot) {
   assert.ok(!slot.cta && !slot.url, "loading 态禁假按钮");
 });
+// enabled:false → 即使带 days 也保持骨架(旗标权威在服务端)
+var disabledPlan = vm.buildPlanPreviewModel({
+  enabled: false,
+  days: [{ date: "2026-08-06", tasks: [{ task: "不该出现", why: "x" }] }],
+});
+assert.strictEqual(disabledPlan.status, "pending", "enabled:false 必须保持骨架");
+assert.strictEqual(disabledPlan.items.length, 0);
+// enabled 投影: 全 days 拍平取前三, 映射 task/why/expected_time
 var readyPlan = vm.buildPlanPreviewModel({
-  items: [
-    { title: "补模板拆除采分点", desc: "微课+复测", evidence_source: "本次诊断", expected_time: "10 分钟" },
-    { title: "风险 2", desc: "" },
-    { title: "风险 3", desc: "" },
-    { title: "溢出项", desc: "" },
+  enabled: true,
+  exam_countdown_days: 92,
+  days: [
+    {
+      date: "2026-08-06",
+      tasks: [
+        { task: "补模板拆除采分点", why: "本次诊断最大失分点", expected_time: "10 分钟", mode: "lesson", target_pack_id: "F16" },
+        { task: "平行复测同一采分点", why: "拿一次新的正面证据", expected_time: "5 分钟", mode: "retest", target_pack_id: "F16" },
+      ],
+    },
+    {
+      date: "2026-08-07",
+      tasks: [
+        { task: "网络计划轻练", why: "第二失分风险", expected_time: "8 分钟", mode: "practice" },
+        { task: "溢出任务", why: "不该进前三", expected_time: "1 分钟" },
+      ],
+    },
   ],
 });
 assert.strictEqual(readyPlan.status, "ready");
-assert.strictEqual(readyPlan.items.length, 3, "只取前三优先");
+assert.strictEqual(readyPlan.items.length, 3, "全 days 拍平后只取前三");
+assert.strictEqual(readyPlan.items[0].title, "补模板拆除采分点");
+assert.strictEqual(readyPlan.items[0].desc, "本次诊断最大失分点");
+assert.strictEqual(readyPlan.items[0].expectedTime, "10 分钟");
+assert.strictEqual(readyPlan.items[0].targetPackId, "F16");
+assert.strictEqual(readyPlan.items[2].title, "网络计划轻练", "跨天拍平次序保持");
+assert.strictEqual(
+  readyPlan.items.filter(function (item) { return item.title === "溢出任务"; }).length,
+  0,
+);
+// 空 days → 骨架
+assert.strictEqual(vm.buildPlanPreviewModel({ enabled: true, days: [] }).status, "pending");
 
 // ── 收据 / 保存 / 会员 ───────────────────────────────────────
 var receipt = vm.buildReceiptModel();

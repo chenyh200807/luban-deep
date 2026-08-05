@@ -132,7 +132,7 @@
               <view class="pr-plan-copy">
                 <text class="pr-plan-title">{{item.title}}</text>
                 <text class="pr-plan-desc">{{item.desc}}</text>
-                <text class="pr-plan-meta" wx:if="{{item.evidenceSource || item.expectedTime}}">{{item.evidenceSource}}{{item.expectedTime ? ' · ' + item.expectedTime : ''}}</text>
+                <text class="pr-plan-meta" wx:if="{{item.expectedTime || item.date}}">{{item.date}}{{item.date && item.expectedTime ? ' · ' : ''}}{{item.expectedTime}}</text>
               </view>
             </view>
           </block>

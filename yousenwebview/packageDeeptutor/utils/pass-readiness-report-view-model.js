@@ -234,35 +234,48 @@ function buildEvidenceModel(report, resultModel) {
   };
 }
 
-// ── 屏 5: 三优先计划预览(数据二波接 exam_prep_plan_projection) ──
-// 本波只有静态结构 + loading 态; 无 payload 时零假数据、零可点按钮。
+// ── 屏 5: 三优先计划预览(GET /api/v1/luban/exam-prep-plan 投影) ──
+// 响应形状(冻结): { enabled, days:[{date, tasks:[{task, why, expected_time,
+// mode, target_pack_id, ...}]}], pass_readiness, exam_countdown_days, ... }。
+// 取全 days 拍平后的前三个任务渲染三优先槽(任务标题 + why + 预期时长)。
+// enabled:false / 请求失败 / 无任务 → 骨架 pending 态, 零假数据零可点按钮。
 function buildPlanPreviewModel(planPayload) {
   var body = _obj(planPayload);
-  var rows = _arr(body.items).slice(0, 3);
-  if (!rows.length) {
-    return {
-      status: "pending",
-      pendingCopy: "完整学习计划正在生成——保存报告后即可查看。",
-      slots: [
-        { index: 1, roleLabel: "立即证明任务", desc: "一节微课 + 一次平行复测" },
-        { index: 2, roleLabel: "下一个失分风险", desc: "绑定对应的学习与练习路径" },
-        { index: 3, roleLabel: "明确暂缓项", desc: "现在不该花时间的部分和原因" },
-      ],
-      items: [],
-    };
-  }
+  var payload = _obj(body.data && body.days === undefined ? body.data : body);
+  var pending = {
+    status: "pending",
+    pendingCopy: "完整学习计划正在生成——保存报告后即可查看。",
+    slots: [
+      { index: 1, roleLabel: "立即证明任务", desc: "一节微课 + 一次平行复测" },
+      { index: 2, roleLabel: "下一个失分风险", desc: "绑定对应的学习与练习路径" },
+      { index: 3, roleLabel: "明确暂缓项", desc: "现在不该花时间的部分和原因" },
+    ],
+    items: [],
+  };
+  if (payload.enabled === false) return pending;
+  var flattened = [];
+  _arr(payload.days).forEach(function (day) {
+    var d = _obj(day);
+    _arr(d.tasks).forEach(function (task) {
+      flattened.push({ task: _obj(task), date: _str(d.date) });
+    });
+  });
+  var rows = flattened.slice(0, 3);
+  if (!rows.length) return pending;
   return {
     status: "ready",
     pendingCopy: "",
     slots: [],
-    items: rows.map(function (raw, idx) {
-      var item = _obj(raw);
+    items: rows.map(function (row, idx) {
+      var task = row.task;
       return {
         index: idx + 1,
-        title: _str(item.title),
-        desc: _str(item.desc || item.description),
-        evidenceSource: _str(item.evidence_source),
-        expectedTime: _str(item.expected_time),
+        title: _str(task.task || task.title),
+        desc: _str(task.why || task.desc),
+        expectedTime: _str(task.expected_time),
+        mode: _str(task.mode),
+        targetPackId: _str(task.target_pack_id),
+        date: row.date,
       };
     }),
   };
