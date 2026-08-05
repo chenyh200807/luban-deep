@@ -306,3 +306,110 @@ def test_node_code_requires_taxonomy_resolver_existence(monkeypatch: pytest.Monk
     assert "taxonomy_code" not in free_text
     assert real_code["node_code"] == "1A413050"
     assert real_code["taxonomy_code"] == "1A413050"
+
+
+def _pass_readiness_scored_result() -> dict:
+    return {
+        "score_summary": {"score_pct": 50, "correct_count": 1, "scored_count": 2},
+        "measurement_confidence": {"level": "medium", "reasons": []},
+        "items": [
+            {
+                "question_id": "q1",
+                "source_question_id": "src_1",
+                "section_id": "pr_objective_single",
+                "learner_answer": "A",
+                "correct_answer": "A",
+                "is_correct": True,
+                "knowledge_points": ["主体结构"],
+                "simple_explanation": "作答正确。",
+                "error_codes": [],
+                "measurement_confidence": "medium",
+            },
+            {
+                "question_id": "q2",
+                "source_question_id": "src_2",
+                "section_id": "pr_case_quality",
+                "learner_answer": "B",
+                "correct_answer": "A",
+                "is_correct": False,
+                "knowledge_points": ["质量验收", "检验批"],
+                "simple_explanation": "验收程序错误。",
+                "error_codes": ["M01"],
+                "measurement_confidence": "medium",
+            },
+        ],
+    }
+
+
+def test_pass_readiness_writeback_carries_dimension_and_scoring_point_observations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_pr_1",
+        form_id="pass_readiness_architecture_v1_form_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        scored_result=_pass_readiness_scored_result(),
+        blueprint_version="pass_readiness_architecture_v1",
+    )
+
+    correct_payload = learner.events[0].payload_json
+    wrong_payload = learner.events[1].payload_json
+    assert learner.events[0].source_feature == "assessment_testset"
+    assert correct_payload["ability_dimension"] == "core_knowledge"
+    assert correct_payload["scoring_point_observations"] == [
+        {"scoring_point": "主体结构", "observed": "correct", "error_codes": []}
+    ]
+    assert wrong_payload["ability_dimension"] == "case_scoring_point_recognition"
+    assert wrong_payload["scoring_point_observations"] == [
+        {"scoring_point": "质量验收", "observed": "incorrect", "error_codes": ["M01"]},
+        {"scoring_point": "检验批", "observed": "incorrect", "error_codes": ["M01"]},
+    ]
+    # Canonical registry codes only; no display-bucket vocabulary persisted.
+    for payload in (correct_payload, wrong_payload):
+        for observation in payload["scoring_point_observations"]:
+            for code in observation["error_codes"]:
+                assert code in ERROR_CODE_REGISTRY
+        assert "display_bucket" not in str(payload)
+
+
+def test_non_pass_readiness_writeback_payload_shape_is_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_topic_1",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        scored_result=_scored_result(),
+        blueprint_version="topic_waterproof_v1",
+    )
+
+    for event in learner.events:
+        assert "ability_dimension" not in event.payload_json
+        assert "scoring_point_observations" not in event.payload_json
+
+
+def test_writeback_rejects_unregistered_error_codes_in_observations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, _learner, _mistake_book = _service(monkeypatch)
+    scored = _pass_readiness_scored_result()
+    scored["items"][1]["error_codes"] = ["X99"]
+
+    with pytest.raises(Exception):
+        service.writeback(
+            user_id="student_demo",
+            quiz_id="quiz_pr_bad_code",
+            form_id="pass_readiness_architecture_v1_form_1",
+            assessment_type="pass_readiness",
+            subject_id="construction_exam",
+            scored_result=scored,
+            blueprint_version="pass_readiness_architecture_v1",
+        )
