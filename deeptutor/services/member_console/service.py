@@ -7169,6 +7169,88 @@ class MemberConsoleService:
         )
         return best_role
 
+    @staticmethod
+    def _empty_learning_ledger_rekey_summary() -> dict[str, Any]:
+        return {
+            "assessment_sessions_local": 0,
+            "assessment_sessions_repository": 0,
+            "learner_memory_events_local": 0,
+            "learner_memory_events_remote": 0,
+            "errors": [],
+        }
+
+    def _rekey_learning_ledger_for_merge(
+        self,
+        data: dict[str, Any],
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+    ) -> dict[str, Any]:
+        """Move the merged-away accounts' learning ledger onto the surviving uid.
+
+        Plan §9.4 invariant: ``assessment_sessions`` and ``learner_memory_events``
+        are read by strict ``user_id`` equality, so a merge that only moves
+        member fields strands everything an openid-only learner produced before
+        binding a phone that already belongs to a member. This is the one-shot
+        UPDATE at the single merge write point — deliberately chosen over
+        alias-aware reads, which would smear a second identity resolution across
+        every learner-state read model.
+
+        Idempotent: after the first run nothing is owned by the source uid, so a
+        repeated merge moves nothing and loses nothing. Ledger transport
+        failures are recorded, not raised: the member-side merge has already
+        been decided and must not break the learner's login.
+        """
+        summary = self._empty_learning_ledger_rekey_summary()
+        target = str(target_user_id or "").strip()
+        if not target:
+            return summary
+        sessions = data.get("assessment_sessions")
+        for raw_source_id in source_user_ids:
+            source = str(raw_source_id or "").strip()
+            if not source or source == target:
+                continue
+            if isinstance(sessions, dict):
+                for row in sessions.values():
+                    if not isinstance(row, dict):
+                        continue
+                    if str(row.get("user_id") or "").strip() != source:
+                        continue
+                    row["user_id"] = target
+                    summary["assessment_sessions_local"] += 1
+            try:
+                summary["assessment_sessions_repository"] += int(
+                    self._assessment_session_repository.rekey_user_sessions(
+                        source_user_id=source,
+                        target_user_id=target,
+                    )
+                    or 0
+                )
+            except Exception as exc:  # noqa: BLE001 - merge must not fail on ledger transport
+                summary["errors"].append(f"assessment_sessions:{source}:{exc}")
+                logger.error(
+                    "assessment_sessions merge re-key failed: source=%s target=%s",
+                    source,
+                    target,
+                    exc_info=True,
+                )
+            try:
+                moved = self._get_learner_state_service().rekey_memory_events(
+                    source_user_id=source,
+                    target_user_id=target,
+                )
+                summary["learner_memory_events_local"] += int(moved.get("local_moved") or 0)
+                summary["learner_memory_events_remote"] += int(moved.get("remote_moved") or 0)
+            except Exception as exc:  # noqa: BLE001 - merge must not fail on ledger transport
+                summary["errors"].append(f"learner_memory_events:{source}:{exc}")
+                logger.error(
+                    "learner_memory_events merge re-key failed: source=%s target=%s",
+                    source,
+                    target,
+                    exc_info=True,
+                )
+        return summary
+
     def _merge_member_accounts_locked(
         self,
         data: dict[str, Any],
@@ -7194,6 +7276,7 @@ class MemberConsoleService:
                 "deduped": True,
                 "merged_source_ids": [],
                 "points_transferred": 0,
+                "learning_ledger_rekey": self._empty_learning_ledger_rekey_summary(),
                 "admin_role_after": self.get_admin_role(target_user_id),
                 "target_user_id": str(target.get("user_id") or target_user_id),
             }
@@ -7251,6 +7334,14 @@ class MemberConsoleService:
             self._strip_merged_member_payload(source)
             merged_source_ids.append(source_id)
 
+        # Plan §9.4: the ledger moves with the membership, inside the same merge
+        # action, before the audit row is written.
+        learning_ledger_rekey = self._rekey_learning_ledger_for_merge(
+            data,
+            target_user_id=canonical_target_id,
+            source_user_ids=list(merged_source_ids),
+        )
+
         after = deepcopy(target)
         audit = self._append_audit(
             data,
@@ -7265,6 +7356,7 @@ class MemberConsoleService:
                 "target": after,
                 "merged_source_ids": list(merged_source_ids),
                 "points_transferred": points_transferred,
+                "learning_ledger_rekey": deepcopy(learning_ledger_rekey),
             },
             operator=operator,
         )
@@ -7281,6 +7373,7 @@ class MemberConsoleService:
             "deduped": False,
             "merged_source_ids": list(merged_source_ids),
             "points_transferred": points_transferred,
+            "learning_ledger_rekey": learning_ledger_rekey,
             "target_user_id": canonical_target_id,
             "admin_role_after": None,
         }
