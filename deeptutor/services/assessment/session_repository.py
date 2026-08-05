@@ -205,6 +205,21 @@ class InMemoryAssessmentSessionRepository:
             return copy.deepcopy(row)
         return None
 
+    def latest_scored_session(self, user_id: str, assessment_type: str) -> dict[str, Any] | None:
+        """Latest scored session of one type — read-only canonical evidence probe."""
+
+        rows = [
+            row
+            for row in self._rows.values()
+            if str(row.get("user_id")) == str(user_id)
+            and str(row.get("assessment_type")) == str(assessment_type)
+            and str(row.get("status")) == "scored"
+        ]
+        if not rows:
+            return None
+        latest = max(rows, key=lambda row: str(row.get("scored_at") or row.get("created_at") or ""))
+        return copy.deepcopy(latest)
+
     def get_session_for_resume(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         self._expire_if_needed(row)
@@ -544,6 +559,22 @@ class SupabaseAssessmentSessionRepository:
             if sorted(list(row.get("topic_ids") or [])) == normalized_topics:
                 return copy.deepcopy(row)
         return None
+
+    def latest_scored_session(self, user_id: str, assessment_type: str) -> dict[str, Any] | None:
+        """Latest scored session of one type — read-only canonical evidence probe."""
+
+        rows = self._select(
+            {
+                "user_id": f"eq.{user_id}",
+                "assessment_type": f"eq.{assessment_type}",
+                "status": "eq.scored",
+                "order": "scored_at.desc.nullslast",
+            },
+            limit=1,
+        )
+        if not rows:
+            return None
+        return copy.deepcopy(rows[0])
 
     def get_session_for_resume(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)

@@ -3929,6 +3929,46 @@ def test_pass_readiness_create_and_submit_use_registered_blueprint(
         assert block["band_lower"] % 5 == 0 and block["band_upper"] % 5 == 0
 
 
+def test_pass_readiness_completion_projection_flips_only_after_evidence_lands(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    assert service.get_pass_readiness_completion("student_demo")["completed"] is False
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=15,
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+    )
+    service.submit_assessment(
+        "student_demo",
+        payload["quiz_id"],
+        {question["question_id"]: "A" for question in payload["questions"]},
+        time_spent_seconds=600,
+    )
+
+    # Scored but evidence writeback not yet landed → still not completed (§5.2).
+    assert service.get_pass_readiness_completion("student_demo")["completed"] is False
+
+    service._assessment_session_repository.attach_writeback_refs(
+        "student_demo",
+        payload["quiz_id"],
+        learning_event_refs=[{"event_id": "evt_1", "question_id": "q1"}],
+        mistake_book_refs=[],
+        mark_scored=True,
+    )
+
+    projection = service.get_pass_readiness_completion("student_demo")
+    assert projection["completed"] is True
+    assert projection["quiz_id"] == payload["quiz_id"]
+    assert projection["source"] == "assessment_sessions.pass_readiness"
+
+
 def test_submit_assessment_different_body_retry_conflicts(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

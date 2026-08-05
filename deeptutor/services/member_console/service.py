@@ -8404,6 +8404,22 @@ class MemberConsoleService:
             },
         }
 
+    def get_pass_readiness_completion(self, user_id: str) -> dict[str, Any]:
+        """Canonical pass-readiness completion projection (过线体检 §5.2).
+
+        Pure read over the durable assessment-session authority; unavailable
+        storage degrades to not-completed (never blocks the profile read and
+        never suppresses First Run without positive evidence).
+        """
+
+        from deeptutor.services.first_run.status import project_pass_readiness_completion
+
+        try:
+            session = self._assessment_session_repository.latest_scored_session(user_id, "pass_readiness")
+        except AssessmentSessionError:
+            session = None
+        return project_pass_readiness_completion(session)
+
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
         last_assessment = member.get("last_assessment") if isinstance(member.get("last_assessment"), dict) else {}

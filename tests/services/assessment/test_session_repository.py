@@ -504,6 +504,28 @@ def test_submit_rejects_unregistered_report_schema_version() -> None:
         )
 
 
+def test_latest_scored_session_filters_by_type_and_status() -> None:
+    repo = _repo()
+    session = _create(repo)
+
+    assert repo.latest_scored_session("u1", "topic_diagnostic") is None
+
+    repo.mark_submitted_once(
+        "u1",
+        session["quiz_id"],
+        submitted_answer_snapshot={"q1": "A"},
+        result_report_json={"schema_version": "p0a-v1"},
+        device_id="d1",
+    )
+
+    scored = repo.latest_scored_session("u1", "topic_diagnostic")
+    assert scored is not None
+    assert scored["quiz_id"] == session["quiz_id"]
+    assert scored["status"] == "scored"
+    assert repo.latest_scored_session("u1", "pass_readiness") is None
+    assert repo.latest_scored_session("u2", "topic_diagnostic") is None
+
+
 def test_report_read_model_supports_both_persisted_schema_versions() -> None:
     from deeptutor.services.assessment.report_read_model import (
         AssessmentReportError,
