@@ -3884,6 +3884,91 @@ def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
     assert result["score_summary"]["scored_count"] == 20
 
 
+def test_pass_readiness_create_and_submit_use_registered_blueprint(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=15,
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+    )
+
+    assert payload["assessment_type"] == "pass_readiness"
+    assert payload["blueprint_version"] == "pass_readiness_architecture_v1"
+    assert payload["topic_label"] == "一建过线体检"
+    assert payload["checkpoint_after"] == 6
+    assert payload["scored_count"] == 12
+    assert payload["profile_count"] == 3
+    assert payload["form_id"]
+    assert len(payload["questions"]) == 15
+    assert all("answer" not in question for question in payload["questions"])
+
+    result = service.submit_assessment(
+        "student_demo",
+        payload["quiz_id"],
+        {question["question_id"]: "A" for question in payload["questions"]},
+        time_spent_seconds=600,
+    )
+
+    assert result["schema_version"] == "pass-readiness-v1"
+    assert result["assessment_type"] == "pass_readiness"
+    assert result["blueprint_version"] == "pass_readiness_architecture_v1"
+    assert result["topic_label"] == "一建过线体检"
+    assert result["score_summary"]["scored_count"] == 12
+    block = result["pass_readiness"]
+    assert block["pass_line"] == 96
+    assert block["band_policy_version"] == "band-v1"
+    assert block["evidence_coverage"] in {"low", "medium", "high", "insufficient"}
+    if block["band_status"] == "ok":
+        assert block["band_lower"] % 5 == 0 and block["band_upper"] % 5 == 0
+
+
+def test_pass_readiness_completion_projection_flips_only_after_evidence_lands(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    assert service.get_pass_readiness_completion("student_demo")["completed"] is False
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=15,
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+    )
+    service.submit_assessment(
+        "student_demo",
+        payload["quiz_id"],
+        {question["question_id"]: "A" for question in payload["questions"]},
+        time_spent_seconds=600,
+    )
+
+    # Scored but evidence writeback not yet landed → still not completed (§5.2).
+    assert service.get_pass_readiness_completion("student_demo")["completed"] is False
+
+    service._assessment_session_repository.attach_writeback_refs(
+        "student_demo",
+        payload["quiz_id"],
+        learning_event_refs=[{"event_id": "evt_1", "question_id": "q1"}],
+        mistake_book_refs=[],
+        mark_scored=True,
+    )
+
+    projection = service.get_pass_readiness_completion("student_demo")
+    assert projection["completed"] is True
+    assert projection["quiz_id"] == payload["quiz_id"]
+    assert projection["source"] == "assessment_sessions.pass_readiness"
+
+
 def test_submit_assessment_different_body_retry_conflicts(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

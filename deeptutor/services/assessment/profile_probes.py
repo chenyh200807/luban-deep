@@ -61,6 +61,47 @@ PROFILE_PROBES: tuple[ProfileProbe, ...] = (
             ("D", "先让我自己判断，再给提示", "hint_first"),
         ),
     ),
+    # ── 过线体检 preparation-context probes (plan 2026-08-04 §6.2) ──────────
+    # Non-scored, structurally excluded from ability scoring; consumed by
+    # prep_feasibility / risk wording and the rolling-expiry CTA only.
+    ProfileProbe(
+        id="profile_pr_attempt_history_v1",
+        section_id="pr_prep_context",
+        topic="attempt_history",
+        question_stem="你目前的一建备考经历是？（含已通过科目的情况）",
+        options=(
+            ("A", "首次报考，四科都还没过", "first_attempt"),
+            ("B", "考过一次，去年已过部分公共科（管理/经济/法规）", "retaker_passed_public_last_year"),
+            ("C", "考过不止一次，前年过的公共科成绩今年到期", "retaker_passes_expiring_this_year"),
+            ("D", "只剩《建筑实务》一科未过", "retaker_only_practical_left"),
+            ("E", "之前通过的科目已作废，相当于重新开始", "retaker_passes_lapsed"),
+        ),
+    ),
+    ProfileProbe(
+        id="profile_pr_recent_score_band_v1",
+        section_id="pr_prep_context",
+        topic="recent_score_band",
+        question_stem="你最近一次《建筑实务》真实考试成绩大概在哪个分数段？（满分 160，过线 96）",
+        options=(
+            ("A", "没参加过实务考试", "no_prior_score"),
+            ("B", "60 分以下", "below_60"),
+            ("C", "60–79 分", "score_60_79"),
+            ("D", "80–95 分", "score_80_95"),
+            ("E", "96 分及以上（曾过线）", "score_96_plus"),
+        ),
+    ),
+    ProfileProbe(
+        id="profile_pr_weekly_study_hours_v1",
+        section_id="pr_prep_context",
+        topic="weekly_study_hours",
+        question_stem="未来到考试前，你每周能稳定投入多少有效学习时间？",
+        options=(
+            ("A", "5 小时以内", "lt_5"),
+            ("B", "5–10 小时", "5_10"),
+            ("C", "10–20 小时", "10_20"),
+            ("D", "20 小时以上", "gt_20"),
+        ),
+    ),
 )
 
 

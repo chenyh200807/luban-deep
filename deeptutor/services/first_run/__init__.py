@@ -6,7 +6,11 @@ from deeptutor.services.first_run.manifest import (
     load_first_run_manifest,
     score_first_run_answers,
 )
-from deeptutor.services.first_run.status import project_first_run_completion
+from deeptutor.services.first_run.status import (
+    project_first_run_completion,
+    project_first_run_gate,
+    project_pass_readiness_completion,
+)
 from deeptutor.services.first_run.writeback import (
     FirstRunIdempotencyConflict,
     FirstRunWritebackService,
@@ -21,5 +25,7 @@ __all__ = [
     "FirstRunWritebackService",
     "load_first_run_manifest",
     "project_first_run_completion",
+    "project_first_run_gate",
+    "project_pass_readiness_completion",
     "score_first_run_answers",
 ]

@@ -70,8 +70,42 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         "experience_invite_redeemed",
         "experience_access_blocked",
         "experience_authority_unavailable",
+        # 过线体检获客诊断漏斗（2026-08-05 登记，诊断计划 §10）: module=pass_readiness。
+        # 维度约定: identity_state property ∈ phone_granted|openid_only（登录后所有事件附带）;
+        # login_completed 的 result ∈ phone_granted|phone_declined|login_failed（漏斗必须能
+        # 区分拒绝与失败）; entry_source=获客渠道/内容/创意 id; object_id 携带 form/model/
+        # item_pool/report 版本串; risk band 与 evidence coverage 走 result/properties,
+        # 绝不附带答案载荷、采分点文本或敏感报告文本（FORBIDDEN_PRODUCT_BEHAVIOR_FIELDS
+        # + §10.1 泄漏红线）。subscribe_prompted/granted 按模板维度各报一条
+        # (object_type=template, object_id=模板 id)。share 卡默认真题挑战卡(§10.1),
+        # 分享视图是独立脱敏渲染。
+        "pass_readiness_landing_view",
+        "pass_readiness_login_prompt_viewed",
+        "pass_readiness_login_completed",
+        "pass_readiness_started",
+        "pass_readiness_midpoint_reached",
+        "pass_readiness_completed",
+        "pass_readiness_result_viewed",
+        "pass_readiness_evidence_opened",
+        "pass_readiness_lesson_started",
+        "pass_readiness_lesson_completed",
+        "pass_readiness_retest_started",
+        "pass_readiness_retest_completed",
+        "pass_readiness_phone_auth_prompted",
+        "pass_readiness_phone_auth_completed",
+        "pass_readiness_report_saved",
+        "pass_readiness_plan_viewed",
+        "pass_readiness_report_shared",
+        "pass_readiness_subscribe_prompted",
+        "pass_readiness_subscribe_granted",
     }
 )
+
+# identity_state property（诊断计划 §10 attach 要求, register-before-use）:
+# phone_granted=一键授权拿到手机号, openid_only=拒绝手机号仅 openid 降级。
+# login_failed 只出现在 login_completed 的 result 维度(微信 API 失败≠拒绝),
+# 不是身份状态。空串允许(非 pass_readiness 事件不要求)。
+PASS_READINESS_IDENTITY_STATES = frozenset({"phone_granted", "openid_only"})
 
 # practice_mode 允许值(register-before-use，单一 authority)：forward=学习轮 2 分钟
 # 正向轻练(build_retest_items mode=forward)、review=复习轮次日换皮复测(mode=review)。
@@ -140,6 +174,8 @@ PRODUCT_BEHAVIOR_MODULES = frozenset(
         # 首跑剧本（2026-07-10 登记，计划 §4 G0）。
         "first_run",
         "experience",
+        # 过线体检获客诊断（2026-08-05 登记，诊断计划 §10）：独立模块入口/旅程/报告/复入。
+        "pass_readiness",
     }
 )
 
@@ -192,6 +228,10 @@ PRODUCT_BEHAVIOR_ACTIONS = frozenset(
         "block",
         "status",
         "reserve",
+        # 过线体检获客诊断（2026-08-05 登记，诊断计划 §10）:
+        # share=脱敏分享卡(§10.1), save=报告保存/手机号补授权后的保存动作。
+        "share",
+        "save",
     }
 )
 
@@ -298,8 +338,13 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
     if practice_mode and practice_mode not in PRODUCT_BEHAVIOR_PRACTICE_MODES:
         raise ValueError(f"Unsupported practice_mode: {practice_mode!r}")
 
+    identity_state = _clean_string(metadata.get("identity_state"), max_length=32)
+    if identity_state and identity_state not in PASS_READINESS_IDENTITY_STATES:
+        raise ValueError(f"Unsupported identity_state: {identity_state!r}")
+
     return {
         "event_name": normalized_event,
+        "identity_state": identity_state,
         "visit_id": visit_id,
         "module": module,
         "section": section,

@@ -472,3 +472,67 @@ def test_supabase_transport_error_maps_to_assessment_session_error() -> None:
 
     assert exc_info.type.__name__ == "AssessmentSessionError"
     assert str(exc_info.value) == "assessment_sessions_unavailable"
+
+
+def test_submit_accepts_pass_readiness_report_schema_version() -> None:
+    repo = _repo()
+    session = _create(repo)
+
+    submitted = repo.mark_submitted_once(
+        "u1",
+        session["quiz_id"],
+        submitted_answer_snapshot={"q1": "A"},
+        result_report_json={"schema_version": "pass-readiness-v1", "band_policy_version": "band-v1"},
+        device_id="d1",
+    )
+
+    assert submitted["status"] == "scored"
+    assert submitted["result_report_json"]["schema_version"] == "pass-readiness-v1"
+
+
+def test_submit_rejects_unregistered_report_schema_version() -> None:
+    repo = _repo()
+    session = _create(repo)
+
+    with pytest.raises(AssessmentSessionConflict):
+        repo.mark_submitted_once(
+            "u1",
+            session["quiz_id"],
+            submitted_answer_snapshot={"q1": "A"},
+            result_report_json={"schema_version": "p0a-v2-unregistered"},
+            device_id="d1",
+        )
+
+
+def test_latest_scored_session_filters_by_type_and_status() -> None:
+    repo = _repo()
+    session = _create(repo)
+
+    assert repo.latest_scored_session("u1", "topic_diagnostic") is None
+
+    repo.mark_submitted_once(
+        "u1",
+        session["quiz_id"],
+        submitted_answer_snapshot={"q1": "A"},
+        result_report_json={"schema_version": "p0a-v1"},
+        device_id="d1",
+    )
+
+    scored = repo.latest_scored_session("u1", "topic_diagnostic")
+    assert scored is not None
+    assert scored["quiz_id"] == session["quiz_id"]
+    assert scored["status"] == "scored"
+    assert repo.latest_scored_session("u1", "pass_readiness") is None
+    assert repo.latest_scored_session("u2", "topic_diagnostic") is None
+
+
+def test_report_read_model_supports_both_persisted_schema_versions() -> None:
+    from deeptutor.services.assessment.report_read_model import (
+        AssessmentReportError,
+        assert_supported_report,
+    )
+
+    assert_supported_report({"schema_version": "p0a-v1"})
+    assert_supported_report({"schema_version": "pass-readiness-v1"})
+    with pytest.raises(AssessmentReportError):
+        assert_supported_report({"schema_version": "pass-readiness-v0"})

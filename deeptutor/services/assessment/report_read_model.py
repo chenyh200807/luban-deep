@@ -6,6 +6,10 @@ from typing import Any
 
 
 REPORT_SCHEMA_VERSION = "p0a-v1"
+PASS_READINESS_REPORT_SCHEMA_VERSION = "pass-readiness-v1"
+# Persisted report schema versions admitted by the DB CHECK constraint
+# (supabase/migrations/20260805000100_assessment_report_schema_pass_readiness.sql).
+SUPPORTED_REPORT_SCHEMA_VERSIONS = (REPORT_SCHEMA_VERSION, PASS_READINESS_REPORT_SCHEMA_VERSION)
 
 
 class AssessmentReportError(ValueError):
@@ -86,9 +90,136 @@ def build_result_report(
     }
 
 
+_SELF_REPORTED_SCORE_BY_TAG: dict[str, int | None] = {
+    # Representative mid-band values for the recent_score_band probe (自报未核验).
+    "no_prior_score": None,
+    "below_60": 50,
+    "score_60_79": 70,
+    "score_80_95": 88,
+    "score_96_plus": 100,
+}
+
+
+def _probe_tags(
+    session_questions: list[dict[str, Any]],
+    answers: dict[str, Any],
+) -> dict[str, str]:
+    """Map profile-probe topics to the tag of the tapped option."""
+
+    tags: dict[str, str] = {}
+    for question in session_questions:
+        if question.get("scored", True):
+            continue
+        topic = str(question.get("profile_topic") or "").strip()
+        if not topic:
+            continue
+        letter = str(answers.get(str(question.get("question_id") or "")) or "").strip().upper()
+        option_values = dict(question.get("option_values") or {})
+        tag = str(option_values.get(letter) or "").strip()
+        if tag:
+            tags[topic] = tag
+    return tags
+
+
+def build_pass_readiness_report(
+    *,
+    quiz_id: str,
+    assessment_type: str,
+    subject_id: str,
+    topic_label: str,
+    blueprint_version: str,
+    form_id: str,
+    scored_result: dict[str, Any],
+    session_questions: list[dict[str, Any]],
+    answers: dict[str, Any],
+    writeback_refs: dict[str, Any] | None = None,
+    degraded_reason: str | None = None,
+    now_iso: str = "",
+) -> dict[str, Any]:
+    """Assemble the pass-readiness-v1 report envelope (§7.2).
+
+    Keeps the base p0a report fields (items/wrong_items/score_summary/…) so the
+    existing client rendering chain still works, overrides the persisted
+    ``schema_version`` to ``pass-readiness-v1``, and adds the deterministic
+    ``pass_readiness`` §7.2 block. The p0a-v1 builder is untouched.
+    """
+
+    from deeptutor.services.assessment.blueprint import ability_dimensions_by_section
+    from deeptutor.services.assessment.pass_readiness_scoring import (
+        AbilityEvidence,
+        DimensionEvidence,
+        PrepContext,
+        build_pass_readiness_result,
+    )
+
+    base = build_result_report(
+        quiz_id=quiz_id,
+        assessment_type=assessment_type,
+        subject_id=subject_id,
+        topic_ids=[],
+        topic_label=topic_label,
+        blueprint_version=blueprint_version,
+        form_id=form_id,
+        scored_result=scored_result,
+        writeback_refs=writeback_refs,
+        degraded_reason=degraded_reason,
+    )
+    dimension_by_section = ability_dimensions_by_section(blueprint_version)
+    counts: dict[str, dict[str, float]] = {}
+    items = [dict(item) for item in list(scored_result.get("items") or [])]
+    answered_count = 0
+    for item in items:
+        answered = bool(str(item.get("learner_answer") or "").strip())
+        if answered:
+            answered_count += 1
+        dimension = dimension_by_section.get(str(item.get("section_id") or ""), "")
+        if not dimension or not answered:
+            continue
+        bucket = counts.setdefault(dimension, {"correct": 0.0, "observations": 0})
+        bucket["observations"] += 1
+        if item.get("is_correct"):
+            bucket["correct"] += 1
+
+    def _evidence(dimension: str) -> DimensionEvidence:
+        bucket = counts.get(dimension) or {"correct": 0.0, "observations": 0}
+        return DimensionEvidence(correct=bucket["correct"], observations=int(bucket["observations"]))
+
+    tags = _probe_tags(session_questions, dict(answers or {}))
+    expression = counts.get("answer_expression")
+    evidence = AbilityEvidence(
+        core_knowledge=_evidence("core_knowledge"),
+        construction_logic=_evidence("construction_logic"),
+        case_scoring_point_recognition=_evidence("case_scoring_point_recognition"),
+        answer_expression=(
+            DimensionEvidence(correct=expression["correct"], observations=int(expression["observations"]))
+            if expression
+            else None
+        ),
+        self_reported_score=_SELF_REPORTED_SCORE_BY_TAG.get(tags.get("recent_score_band", ""), None),
+    )
+    prep_context = PrepContext(
+        weekly_hours_band=tags.get("weekly_study_hours", ""),
+        remaining_weeks=None,
+        attempt_history=tags.get("attempt_history", ""),
+    )
+    pass_readiness = build_pass_readiness_result(
+        evidence,
+        prep_context,
+        scored_task_count=len(items),
+        answered_count=answered_count,
+        form_version=form_id,
+        item_pool_version=blueprint_version,
+        now_iso=str(now_iso or base["generated_at"]),
+    )
+    base["schema_version"] = PASS_READINESS_REPORT_SCHEMA_VERSION
+    base["score_title"] = "一建过线体检结果"
+    base["pass_readiness"] = pass_readiness
+    return base
+
+
 def assert_supported_report(report: dict[str, Any]) -> None:
     version = str(dict(report or {}).get("schema_version") or "").strip()
-    if version != REPORT_SCHEMA_VERSION:
+    if version not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
         raise AssessmentReportError(f"unsupported_assessment_report_schema_version:{version or 'missing'}")
 
 

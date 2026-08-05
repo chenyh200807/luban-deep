@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 SESSION_SCHEMA_VERSION = "assessment_session_v1"
 REPORT_SCHEMA_VERSION = "p0a-v1"
+PASS_READINESS_REPORT_SCHEMA_VERSION = "pass-readiness-v1"
+# Mirror of the DB CHECK constraint (supabase/migrations/20260805000100_*.sql).
+# Report envelopes must carry one of these persisted schema versions.
+SUPPORTED_REPORT_SCHEMA_VERSIONS = (REPORT_SCHEMA_VERSION, PASS_READINESS_REPORT_SCHEMA_VERSION)
 DEFAULT_TTL = timedelta(hours=24)
 DEFAULT_LEASE = timedelta(minutes=30)
 
@@ -201,6 +205,21 @@ class InMemoryAssessmentSessionRepository:
             return copy.deepcopy(row)
         return None
 
+    def latest_scored_session(self, user_id: str, assessment_type: str) -> dict[str, Any] | None:
+        """Latest scored session of one type — read-only canonical evidence probe."""
+
+        rows = [
+            row
+            for row in self._rows.values()
+            if str(row.get("user_id")) == str(user_id)
+            and str(row.get("assessment_type")) == str(assessment_type)
+            and str(row.get("status")) == "scored"
+        ]
+        if not rows:
+            return None
+        latest = max(rows, key=lambda row: str(row.get("scored_at") or row.get("created_at") or ""))
+        return copy.deepcopy(latest)
+
     def get_session_for_resume(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         self._expire_if_needed(row)
@@ -233,7 +252,7 @@ class InMemoryAssessmentSessionRepository:
             if row.get("submit_idempotency_key") == key:
                 return copy.deepcopy(row)
             raise AssessmentSessionConflict("assessment_submit_body_conflict")
-        if result_report_json.get("schema_version") != REPORT_SCHEMA_VERSION:
+        if result_report_json.get("schema_version") not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
             raise AssessmentSessionConflict("result_report_schema_version_required")
         now = self._now_fn()
         row["submitted_answer_snapshot"] = copy.deepcopy(submitted_answer_snapshot or {})
@@ -541,6 +560,22 @@ class SupabaseAssessmentSessionRepository:
                 return copy.deepcopy(row)
         return None
 
+    def latest_scored_session(self, user_id: str, assessment_type: str) -> dict[str, Any] | None:
+        """Latest scored session of one type — read-only canonical evidence probe."""
+
+        rows = self._select(
+            {
+                "user_id": f"eq.{user_id}",
+                "assessment_type": f"eq.{assessment_type}",
+                "status": "eq.scored",
+                "order": "scored_at.desc.nullslast",
+            },
+            limit=1,
+        )
+        if not rows:
+            return None
+        return copy.deepcopy(rows[0])
+
     def get_session_for_resume(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         row = self._expire_if_needed(row)
@@ -572,7 +607,7 @@ class SupabaseAssessmentSessionRepository:
             if row.get("submit_idempotency_key") == key:
                 return copy.deepcopy(row)
             raise AssessmentSessionConflict("assessment_submit_body_conflict")
-        if result_report_json.get("schema_version") != REPORT_SCHEMA_VERSION:
+        if result_report_json.get("schema_version") not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
             raise AssessmentSessionConflict("result_report_schema_version_required")
         now = self._now_fn()
         patch = {

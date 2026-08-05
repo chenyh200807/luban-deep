@@ -51,6 +51,7 @@ from deeptutor.services.first_run import (
     FirstRunManifestVersionConflict,
     FirstRunWritebackService,
     project_first_run_completion,
+    project_first_run_gate,
 )
 from deeptutor.services.internal_qa import (
     EVAL_BILLING_BYPASS_HEADER,
@@ -3824,8 +3825,18 @@ async def assessment_profile(authorization: str | None = Header(default=None)) -
     user_id = _resolve_authenticated_user_id(authorization)
     profile = dict(member_service.get_assessment_profile(user_id) or {})
     diagnostic_sources = dict(profile.get("diagnostic_sources") or {})
-    diagnostic_sources["first_run"] = project_first_run_completion(
+    first_run_projection = project_first_run_completion(
         learner_state_service.read_profile(user_id)
+    )
+    # 过线体检 §5.2 suppression: a completed pass-readiness diagnostic with
+    # landed evidence removes the legacy First Run ask. Pure read projection
+    # over canonical assessment evidence — no frontend flag, no new state.
+    pass_readiness_projection = await run_in_threadpool(
+        member_service.get_pass_readiness_completion, user_id
+    )
+    diagnostic_sources["pass_readiness"] = pass_readiness_projection
+    diagnostic_sources["first_run"] = project_first_run_gate(
+        first_run_projection, pass_readiness_projection
     )
     profile["diagnostic_sources"] = diagnostic_sources
     return profile

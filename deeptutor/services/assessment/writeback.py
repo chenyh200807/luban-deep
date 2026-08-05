@@ -5,7 +5,6 @@ from typing import Any
 
 from deeptutor.contracts.error_codes import check_emitted_error_codes
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.taxonomy.taxonomy_authority import (
     normalize_taxonomy_code,
     taxonomy_label,
@@ -28,10 +27,28 @@ class AssessmentWritebackService:
         assessment_type: str,
         subject_id: str,
         scored_result: dict[str, Any],
+        blueprint_version: str = "",
     ) -> dict[str, Any]:
+        # Lazy import: learner_state's package __init__ transitively imports
+        # member_console, which imports this module — a module-level import here
+        # deadlocks standalone imports of writeback (pre-existing latent cycle).
+        from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+
         items = [dict(item) for item in list(scored_result.get("items") or [])]
         all_codes = [code for item in items for code in list(item.get("error_codes") or [])]
         check_emitted_error_codes(all_codes)
+        # 过线体检 §7.1/§7.3: when the blueprint declares an item→dimension
+        # binding, evidence events additionally carry the ability dimension and
+        # per-scoring-point observations with CANONICAL registry error codes.
+        # Display buckets are a read-model projection and are never persisted.
+        dimension_by_section: dict[str, str] = {}
+        if blueprint_version:
+            try:
+                from deeptutor.services.assessment.blueprint import ability_dimensions_by_section
+
+                dimension_by_section = ability_dimensions_by_section(blueprint_version)
+            except ValueError:
+                dimension_by_section = {}
         learning_event_refs: list[dict[str, Any]] = []
         mistake_book_refs: list[dict[str, Any]] = []
         home_projection_payload: dict[str, Any] | None = None
@@ -67,6 +84,18 @@ class AssessmentWritebackService:
                 "measurement_confidence": item.get("measurement_confidence"),
                 "simple_explanation": item.get("simple_explanation"),
             }
+            ability_dimension = dimension_by_section.get(str(item.get("section_id") or ""), "")
+            if ability_dimension:
+                payload_json["ability_dimension"] = ability_dimension
+                payload_json["scoring_point_observations"] = [
+                    {
+                        "scoring_point": str(point or "").strip(),
+                        "observed": "correct" if is_correct else "incorrect",
+                        "error_codes": error_codes,
+                    }
+                    for point in (knowledge_points or ["综合能力"])
+                    if str(point or "").strip()
+                ]
             # §6-6：normalize 只做形态归一不校验存在性，自由中文串曾照落
             # node_code 污染 taxonomy join。写入侧收口：只有 resolver 真能
             # 解析的 code 才允许写 node_code/taxonomy_code。
