@@ -12,6 +12,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/luban/concept-cards/concept-cards": true,
   "pages/luban/errorbank/errorbank": true,
   "pages/luban/pass-readiness/landing/landing": true,
+  "pages/luban/plan/plan": true,
   "pages/luban/pass-readiness/exam/exam": true,
   "pages/luban/pass-readiness/report/report": true,
   "pages/luban/review/review": true,
@@ -139,6 +140,10 @@ module.exports = {
   },
   lubanGauntlet: function (query) {
     return withQuery("pages/luban/gauntlet/gauntlet", query);
+  },
+  // 学习计划页(跑道视图, G 线冻结路由; 页面代码随 G 线分支汇合)
+  lubanPlan: function (query) {
+    return withQuery("pages/luban/plan/plan", query);
   },
   // 过线体检(S5)独立入口: 落地 → 测评 → 报告(九屏旅程)
   lubanPassReadiness: function (query) {

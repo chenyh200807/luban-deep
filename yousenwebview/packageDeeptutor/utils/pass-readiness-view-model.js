@@ -269,16 +269,20 @@ function buildSubmitAnswers(selectedKeys) {
   return answers;
 }
 
-// ── 完成后落点(跑道反转第 1 步的接线点) ─────────────────────
-// 新用户完成诊断后的默认落点是「计划页(跑道视图)」——计划页二波交付。
-// 当前值先指向本模块报告页的保存成功态; 计划页路由落地后, 只改这一个常量
-// (把值换成计划页路由), 页面代码不用动。
-var POST_DIAGNOSTIC_LANDING_PATH =
-  "/packageDeeptutor/pages/luban/pass-readiness/report/report?section=saved";
+// ── 完成后落点(跑道反转第 1 步, 已接线) ─────────────────────
+// 新用户完成诊断后的默认落点 = 计划页(跑道视图), G 线冻结路由
+// /packageDeeptutor/pages/luban/plan/plan(页面代码随 G 线分支汇合)。
+// 报告页 _landAfterSave 带 redirect 失败回退(计划页未注册时落回保存成功态),
+// 汇合后自动连通, 无需再改代码。
+var POST_DIAGNOSTIC_LANDING_PATH = "/packageDeeptutor/pages/luban/plan/plan";
 
 function postDiagnosticLandingRoute(quizId) {
   var id = _str(quizId);
-  return POST_DIAGNOSTIC_LANDING_PATH + (id ? "&quiz_id=" + encodeURIComponent(id) : "");
+  return (
+    POST_DIAGNOSTIC_LANDING_PATH +
+    "?entry_source=pass_readiness" +
+    (id ? "&quiz_id=" + encodeURIComponent(id) : "")
+  );
 }
 
 module.exports = {

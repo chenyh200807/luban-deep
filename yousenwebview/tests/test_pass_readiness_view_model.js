@@ -189,13 +189,13 @@ assert.strictEqual(draft.currentIndex, 2);
 var answers = vm.buildSubmitAnswers({ s1: "A", m1: "AB", empty: "" });
 assert.deepStrictEqual(answers, { s1: "A", m1: "AB" }, "提交 wire 必须是 dict[str,str] 且过滤空值");
 
-// ── 7. 完成后落点路由(参数化常量) ────────────────────────────
+// ── 7. 完成后落点路由(参数化常量, 已切计划页) ────────────────
 var landing = vm.postDiagnosticLandingRoute("quiz_pr_1");
 assert.ok(
-  landing.indexOf("/packageDeeptutor/pages/luban/pass-readiness/report/report") === 0,
-  "当前落点=报告页保存成功态(计划页二波交付后只改常量)",
+  landing.indexOf("/packageDeeptutor/pages/luban/plan/plan") === 0,
+  "落点=计划页(跑道视图, G 线冻结路由)",
 );
-assert.ok(landing.indexOf("section=saved") >= 0);
+assert.ok(landing.indexOf("entry_source=pass_readiness") >= 0);
 assert.ok(landing.indexOf("quiz_id=quiz_pr_1") >= 0);
 
 console.log("PASS test_pass_readiness_view_model.js");

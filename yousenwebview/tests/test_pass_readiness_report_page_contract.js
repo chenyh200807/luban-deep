@@ -204,6 +204,7 @@ function loadPage(overrides) {
       },
       redirectTo: function (opts) {
         calls.redirectTo.push(opts.url);
+        if (overrides && overrides.redirectFails && opts.fail) opts.fail();
       },
       showToast: function (opts) {
         calls.toasts.push(opts);
@@ -256,16 +257,33 @@ function loadPage(overrides) {
   loaded.page.onPlanContinue();
   assert.strictEqual(loaded.page.data.section, "save");
 
-  // ── 3a. 手机号已知: 直接保存 → 参数化落点(当前=saved 态) ──
+  // ── 3a. 手机号已知: 直接保存 → 参数化落点 = 计划页(跑道反转第 1 步) ──
   await flushPromises();
   assert.strictEqual(loaded.page.data.save.mode, "direct");
   loaded.page.onSaveDirect();
-  assert.strictEqual(loaded.page.data.section, "saved", "当前落点常量指向保存成功态");
-  loaded.page.onSavedContinue();
-  assert.strictEqual(loaded.page.data.section, "member");
-  loaded.page.onMembershipCta();
+  var landingUrl = loaded.calls.redirectTo[loaded.calls.redirectTo.length - 1];
   assert.ok(
-    loaded.calls.navigateTo[loaded.calls.navigateTo.length - 1].indexOf("billing") >= 0,
+    landingUrl.indexOf("/packageDeeptutor/pages/luban/plan/plan") === 0,
+    "保存后落点=计划页(G 线冻结路由)",
+  );
+  assert.ok(landingUrl.indexOf("entry_source=pass_readiness") >= 0);
+  assert.ok(landingUrl.indexOf("quiz_id=quiz_pr_1") >= 0);
+
+  // 汇合前回退: 计划页未注册 → redirect fail → 本页保存成功态, 流程不断
+  var fallback = loadPage({
+    snapshot: { quizId: "quiz_pr_1", report: SAMPLE_REPORT, savedAt: 1 },
+    hasPhone: true,
+    redirectFails: true,
+  });
+  fallback.page.onLoad({ quiz_id: "quiz_pr_1", section: "save" });
+  await flushPromises();
+  fallback.page.onSaveDirect();
+  assert.strictEqual(fallback.page.data.section, "saved", "redirect 失败回退保存成功态");
+  fallback.page.onSavedContinue();
+  assert.strictEqual(fallback.page.data.section, "member");
+  fallback.page.onMembershipCta();
+  assert.ok(
+    fallback.calls.navigateTo[fallback.calls.navigateTo.length - 1].indexOf("billing") >= 0,
     "会员 handoff 走既有 billing 面",
   );
 
@@ -273,6 +291,7 @@ function loadPage(overrides) {
   var openidOnly = loadPage({
     snapshot: { quizId: "quiz_pr_1", report: SAMPLE_REPORT, savedAt: 1 },
     hasPhone: false,
+    redirectFails: true, // 汇合前环境: 绑定成功后回退保存成功态
   });
   openidOnly.page.onLoad({ quiz_id: "quiz_pr_1", section: "save" });
   await flushPromises();

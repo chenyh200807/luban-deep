@@ -292,17 +292,23 @@ Page({
     this._landAfterSave();
   },
 
-  // 完成后落点收口(跑道反转第 1 步接线点):
-  // 落点常量在 pass-readiness-view-model.postDiagnosticLandingRoute——
-  // 当前值指向本页保存成功态; 计划页(跑道视图)二波交付后只改那个常量,
-  // 这里会自动 redirect 到计划页, 本函数零改动。
+  // 完成后落点收口(跑道反转第 1 步, 已接线):
+  // 落点常量 = pass-readiness-view-model.postDiagnosticLandingRoute → 计划页
+  // (跑道视图, G 线冻结路由)。计划页代码在 G 线分支, 汇合前 redirect 会失败,
+  // fail 回退到本页保存成功态; 汇合后自动连通, 本函数零改动。
   _landAfterSave: function () {
+    var self = this;
     var target = passVm.postDiagnosticLandingRoute(this.data.quizId);
     if (target.indexOf("pages/luban/pass-readiness/report/report") >= 0) {
       this.setData({ savedDone: true, section: "saved" });
       return;
     }
-    wx.redirectTo({ url: target });
+    wx.redirectTo({
+      url: target,
+      fail: function () {
+        self.setData({ savedDone: true, section: "saved" });
+      },
+    });
   },
 
   onSavedContinue: function () {
