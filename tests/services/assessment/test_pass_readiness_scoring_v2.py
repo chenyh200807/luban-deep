@@ -69,7 +69,8 @@ def test_v2_tiers_by_checkpoint_progress() -> None:
     cases = [
         (coarse_evidence, 10, "coarse_checkpoint", "low"),
         (objective_evidence, 30, "objective_band", "medium"),
-        (_v2_evidence(), 36, "v2_default", "high"),
+        # 精带档 coverage 保守取 medium:expression 仍 not_measured,不冒 high。
+        (_v2_evidence(), 36, "v2_default", "medium"),
     ]
     for evidence, scored, expected_tier, expected_coverage in cases:
         band = derive_score_band_v2(

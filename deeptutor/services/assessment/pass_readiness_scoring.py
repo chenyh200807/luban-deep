@@ -397,7 +397,9 @@ def derive_score_band_v2(
     lower, upper = _banded_range(
         exact, min_width=min_width, self_reported_score=evidence.self_reported_score
     )
-    coverage = {"coarse_checkpoint": "low", "objective_band": "medium", "v2_default": "high"}[tier]
+    # v2_default 保守取 medium(指挥官裁决 2026-08-06):expression 在 P0 仍
+    # not_measured,不冒 v1 full_evidence 档的 high 语义;精带只体现在 ≥15 带宽。
+    coverage = {"coarse_checkpoint": "low", "objective_band": "medium", "v2_default": "medium"}[tier]
     return {
         "status": "ok",
         "copy": "",
