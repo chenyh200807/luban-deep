@@ -642,6 +642,9 @@ class AssessmentBlueprintService:
             "session_questions": session_questions,
             "blueprint_version": self._blueprint.version,
             "checkpoint_after": int(self._blueprint.checkpoint_after or 0),
+            # 两级检查点（§6.2-v2）：全量导出；v1 单值 blueprint 导出单元素列表，
+            # 向后兼容（checkpoint_after 恒等于第一个检查点）。
+            "checkpoints": [int(item) for item in self._blueprint.checkpoint_list],
             "sections": sections,
             "requested_count": requested_count,
             "delivered_count": delivered_count,
@@ -1240,6 +1243,29 @@ def _selection_offset(selection_seed: str, section_id: str) -> int:
     return 1000 + (int(digest[:8], 16) % 3000)
 
 
+# 真题标记键（§6.2-v2 拍板②「真题只做锚、不直接出」的选材闸）：练习册/教材行
+# 若 source_meta 携带任一真题溯源标记即视为真题原题换皮，多选过渡源不得选用。
+_REAL_EXAM_MARKER_KEYS = (
+    "based_on",
+    "based_on_source",
+    "based_on_question_id",
+    "source_exam",
+    "source_exam_id",
+    "exam_year",
+    "exam_source",
+    "real_exam_ref",
+)
+
+
+def _real_exam_marked(candidate: QuestionCandidate) -> bool:
+    if str(candidate.source_type or "").strip().upper() == "REAL_EXAM":
+        return True
+    meta = dict(candidate.source_meta or {})
+    if any(str(meta.get(key) or "").strip() for key in _REAL_EXAM_MARKER_KEYS):
+        return True
+    return "真题" in json.dumps(meta, ensure_ascii=False)
+
+
 def _select_diagnostic_candidates(
     candidates: list[QuestionCandidate],
     *,
@@ -1249,6 +1275,8 @@ def _select_diagnostic_candidates(
     avoid_chapters: set[str],
 ) -> list[QuestionCandidate]:
     filtered = list(candidates)
+    if section.exclude_real_exam_marked:
+        filtered = [candidate for candidate in filtered if not _real_exam_marked(candidate)]
     if section.strict_topics:
         filtered = [candidate for candidate in filtered if _section_topic_score(candidate, section) > 0]
     ordered = _prioritize_section_topics(

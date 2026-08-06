@@ -9138,6 +9138,8 @@ class MemberConsoleService:
             "topic_ids": [],
             "topic_label": "一建过线体检",
             "checkpoint_after": int(payload.get("checkpoint_after") or blueprint.checkpoint_after or 0),
+            # 两级检查点（§6.2-v2）：v1 导出单元素列表，向后兼容。
+            "checkpoints": [int(item) for item in (payload.get("checkpoints") or blueprint.checkpoint_list)],
             "status": session["status"],
             "reuse_reason": session.get("reuse_reason", ""),
             "questions": deepcopy(session["client_questions_public"]),
