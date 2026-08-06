@@ -34,11 +34,11 @@
 }
 
 .pr-body { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1; }
-.pr-landing { padding: 20rpx 32rpx 320rpx; display: flex; flex-direction: column; }
+.pr-landing { padding: 20rpx 32rpx 460rpx; display: flex; flex-direction: column; }
 
 /* ── H1 ── */
 .pr-h1 {
-  margin-top: 44rpx; font-size: 58rpx; line-height: 1.35; font-weight: 900;
+  margin-top: 36rpx; font-size: 58rpx; line-height: 1.35; font-weight: 900;
   color: var(--pk-t1); letter-spacing: 2rpx;
 }
 
@@ -77,7 +77,7 @@
 
 /* 宣纸舞台:永远浅色 + 点阵(学习首页 lr-stage 同口径硬编码) */
 .pr-sample-stage {
-  position: relative; height: 320rpx;
+  position: relative; height: 272rpx;
   border-bottom: 1rpx solid var(--pk-bd);
   background-color: #f4f3ec;
   background-image: radial-gradient(#e4e2d7 1.3rpx, transparent 1.3rpx);
@@ -155,8 +155,8 @@
 /* 微信 button 默认带 max-width/边距 → 不清掉会缩成内容宽居中导致文案折行
    (登录页 .btn-wechat-primary 同配方) */
 .pr-cta {
-  width: 100%; max-width: none; margin: 0; box-sizing: border-box;
-  min-height: 96rpx; font-size: 28rpx;
+  width: 100%; max-width: none; margin: 0; padding: 0; box-sizing: border-box;
+  height: 96rpx; font-size: 28rpx; white-space: nowrap;
 }
 .pr-cta.off { opacity: 0.6; }
 /* 组件 wxss 禁标签选择器 → 用类选择器覆写 button 默认边框 */
@@ -166,7 +166,7 @@
 .pr-last-report { margin-top: 18rpx; display: flex; justify-content: center; }
 .pr-last-report-txt { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
 
-.pr-privacy-row { margin-top: 16rpx; display: flex; align-items: center; gap: 4rpx; }
+.pr-privacy-row { margin-top: 18rpx; display: flex; flex-wrap: wrap; align-items: center; gap: 4rpx 6rpx; }
 .pr-privacy-agree {
   display: flex; align-items: center; gap: 10rpx; padding: 0; margin: 0;
   background: transparent; line-height: inherit; font-size: 24rpx;
@@ -177,4 +177,4 @@
   border: 2rpx solid var(--pk-bd); background: var(--pk-card);
 }
 .pr-privacy-copy { font-size: 24rpx; color: var(--pk-t3); }
-.pr-privacy-link { font-size: 24rpx; color: var(--pk-grn); }
+.pr-privacy-link { font-size: 24rpx; line-height: 1.6; color: var(--pk-grn); }

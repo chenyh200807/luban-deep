@@ -18,7 +18,7 @@ var vm = require(vmPath);
 
 // ── 1. 落地页六要素 ──────────────────────────────────────────
 assert.strictEqual(vm.LANDING_COPY.productName, "鲁班智考 · 一建过线体检");
-assert.strictEqual(vm.LANDING_COPY.h1, "现在上考场，你能过 96 分线吗？");
+assert.strictEqual(vm.LANDING_COPY.h1, "现在上考场，\n你能过 96 分线吗？");
 assert.ok(
   vm.LANDING_COPY.subtitle.indexOf("2015–2025") >= 0 &&
     vm.LANDING_COPY.subtitle.indexOf("采分点") >= 0,
