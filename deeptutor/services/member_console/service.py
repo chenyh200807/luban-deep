@@ -10143,10 +10143,20 @@ class MemberConsoleService:
         channel: str = "",
         scene: str = "",
     ) -> dict[str, Any]:
+        # 分段计时(诊断 2026-08-06 登录超 15s 前端超时线):零行为改动,只加一条日志。
+        _t0 = time.monotonic()
         identity = await self._resolve_wechat_login_identity(code)
-        return await self.bind_phone_for_wechat(
+        _t1 = time.monotonic()
+        payload = await self.bind_phone_for_wechat(
             identity["user_id"], phone_code, channel=channel, scene=scene
         )
+        logger.info(
+            "wechat_login_timing identity=%.2fs bind=%.2fs total=%.2fs",
+            _t1 - _t0,
+            time.monotonic() - _t1,
+            time.monotonic() - _t0,
+        )
+        return payload
 
     async def bind_phone_for_wechat(
         self,
@@ -10159,6 +10169,14 @@ class MemberConsoleService:
         raw_code = str(phone_code or "").strip()
         if not raw_code:
             raise ValueError("valid phone_code is required")
+        _bind_timings: dict[str, float] = {}
+        _seg_start = time.monotonic()
+
+        def _mark(segment: str) -> None:
+            nonlocal _seg_start
+            now_mono = time.monotonic()
+            _bind_timings[segment] = now_mono - _seg_start
+            _seg_start = now_mono
 
         _maybe_direct = _normalize_phone_input(raw_code)
         is_direct_phone = self._is_cn_mainland_mobile(_maybe_direct)
@@ -10189,11 +10207,13 @@ class MemberConsoleService:
                 identity_metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
         if len(normalized) != 11:
             raise ValueError("valid phone_code is required")
+        _mark("phone_exchange")
 
         try:
             verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
         except ValueError as exc:
             raise ValueError("手机号身份冲突，请联系客服") from exc
+        _mark("alias_resolve")
 
         # 注册渠道归因只做 first-touch：该手机号尚无已验证 canonical alias（真·首次注册）
         # 才写 reg_channel/reg_scene；已注册用户复登录不覆盖注册渠道。
@@ -10263,6 +10283,7 @@ class MemberConsoleService:
             }
 
         result = self._mutate(_apply)
+        _mark("member_apply")
         auth_identity = self._auth_identity_for_member(str(result.get("user_id") or "").strip())
         token = self._issue_access_token(
             user_id=auth_identity["user_id"],
@@ -10283,18 +10304,26 @@ class MemberConsoleService:
                 "phone": normalized,
             }
         )
+        _mark("token_and_response")
         # 微信绑定手机后同步持久化到 Supabase
         self._persist_phone_identity(
             phone=normalized,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
             identity_metadata=identity_metadata or None,
         )
+        _mark("persist_phone")
         # openid / unionid 持久化：canonical_uid 已确立后写入，
         # 使同一 WeChat Open Platform 下的跨产品登录可通过 unionid 直接命中同一身份。
         self._persist_wechat_openid_identity(
             openid=str(result.get("openid") or "").strip(),
             unionid=str(result.get("unionid") or "").strip(),
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
+        _mark("persist_openid")
+        logger.info(
+            "wechat_bind_phone_timing %s total=%.2fs",
+            " ".join(f"{key}={value:.2f}s" for key, value in _bind_timings.items()),
+            sum(_bind_timings.values()),
         )
         return payload
 
