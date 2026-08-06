@@ -19,7 +19,6 @@ from deeptutor.services.assessment.blueprint_service import (
     _real_exam_marked,
     _select_diagnostic_candidates,
 )
-
 from tests.services.assessment.test_compiled_practice_provider import (
     _item,
     _provider,

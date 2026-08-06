@@ -28,7 +28,6 @@ from deeptutor.services.assessment.pass_readiness_scoring import (
     derive_score_band_v2,
 )
 
-
 NOW = "2026-08-06T12:00:00Z"
 
 
