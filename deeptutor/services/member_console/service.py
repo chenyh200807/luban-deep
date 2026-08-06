@@ -34,7 +34,11 @@ except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.assessment.blueprint import get_assessment_blueprint, real_exam_source_policy
+from deeptutor.services.assessment.blueprint import (
+    COMPILED_PRACTICE_QUESTION_SOURCE,
+    get_assessment_blueprint,
+    real_exam_source_policy,
+)
 from deeptutor.services.assessment import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
@@ -42,6 +46,7 @@ from deeptutor.services.assessment import (
     StaticAssessmentQuestionProvider,
     SupabaseAssessmentQuestionProvider,
 )
+from deeptutor.services.assessment.blueprint_service import AssessmentQuestionProvider
 from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
@@ -942,9 +947,24 @@ class MemberConsoleService:
             "ASSESSMENT_USE_SUPABASE",
             default=False,
         )
+        blueprint = get_assessment_blueprint(blueprint_version)
+        provider: AssessmentQuestionProvider = (
+            SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider
+        )
+        if any(
+            section.question_source == COMPILED_PRACTICE_QUESTION_SOURCE
+            for section in blueprint.sections
+        ):
+            # 表单 v2 读侧聚合：编译轻练 section 路由到 compiled authority 读源，
+            # questions_bank section 语义零改动（v1 blueprint 不含该声明，不受影响）。
+            from deeptutor.services.assessment.compiled_practice_provider import (
+                SourceRoutedAssessmentQuestionProvider,
+            )
+
+            provider = SourceRoutedAssessmentQuestionProvider(default_provider=provider)
         return AssessmentBlueprintService(
-            blueprint=get_assessment_blueprint(blueprint_version),
-            provider=SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider,
+            blueprint=blueprint,
+            provider=provider,
             fallback_provider=fallback_provider,
             allow_dev_fallback=allow_dev_fallback,
         )

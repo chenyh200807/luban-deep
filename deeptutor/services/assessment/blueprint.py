@@ -6,6 +6,15 @@ from dataclasses import dataclass
 MIN_FORM_ROTATION_COUNT = 3
 TARGET_FORM_ROTATION_COUNT = 5
 
+# 题源声明（表单 v2 §6.2-v2 读侧聚合裁决）：section 可声明消费编译轻练权威
+# （luban_lesson compiled practice authority，read-side aggregation——不写
+# questions_bank、不复制数据、不造第二题库）。默认题源保持 questions_bank。
+QUESTIONS_BANK_QUESTION_SOURCE = "questions_bank"
+COMPILED_PRACTICE_QUESTION_SOURCE = "compiled_practice"
+# 编译轻练读源产出的 candidate source_type 标记（只存在于读侧投影/组卷快照，
+# 绝不回写 questions_bank）。
+COMPILED_PRACTICE_SOURCE_TYPE = "COMPILED_PRACTICE"
+
 
 @dataclass(frozen=True)
 class AssessmentSection:
@@ -23,6 +32,11 @@ class AssessmentSection:
     # Item→dimension binding matrix (过线体检 §7.1): every scored item maps to
     # exactly one ability dimension via its section. Empty = no binding.
     ability_dimension: str = ""
+    # 题源路由（§6.2-v2）：questions_bank（默认，Supabase 供给面）或
+    # compiled_practice（编译轻练权威读侧聚合；此时 compiled_packs 声明该
+    # section 的 pack 车道，只取 eligible∧signed 单选题）。
+    question_source: str = QUESTIONS_BANK_QUESTION_SOURCE
+    compiled_packs: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

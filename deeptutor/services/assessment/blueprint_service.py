@@ -12,6 +12,7 @@ import re
 import uuid
 
 from deeptutor.services.assessment.blueprint import (
+    COMPILED_PRACTICE_SOURCE_TYPE,
     MIN_FORM_ROTATION_COUNT,
     TARGET_FORM_ROTATION_COUNT,
     AssessmentBlueprint,
@@ -848,6 +849,9 @@ def _choose_assessment_form(forms: tuple[_AssessmentForm, ...]) -> _AssessmentFo
 
 
 def _built_form_source(provider: AssessmentQuestionProvider) -> str:
+    label = str(getattr(provider, "form_source_label", "") or "")
+    if label:
+        return label
     if isinstance(provider, SupabaseAssessmentQuestionProvider):
         return "supabase_questions_bank"
     if isinstance(provider, StaticAssessmentQuestionProvider):
@@ -1047,8 +1051,15 @@ def _build_scored_question(
     section: AssessmentSection,
     candidate: QuestionCandidate,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    if candidate.source_type == "DEV_FALLBACK":
+        source_table = "dev_fallback"
+    elif candidate.source_type == COMPILED_PRACTICE_SOURCE_TYPE:
+        # 读侧聚合真相：编译轻练权威不是 questions_bank 行，provenance 如实指认。
+        source_table = "luban_compiled_practice_authority"
+    else:
+        source_table = "questions_bank"
     provenance = {
-        "source_table": "questions_bank" if candidate.source_type != "DEV_FALLBACK" else "dev_fallback",
+        "source_table": source_table,
         "question_id": candidate.source_question_id,
         "source_question_id": candidate.source_question_id,
         "source_type": candidate.source_type,
