@@ -1,10 +1,41 @@
-<!-- 过线体检 · 落地页(§4.1 六要素, 单 CTA) -->
+<!-- 过线体检 · 落地页(§4.1 六要素, 单 CTA)
+     视觉与学习首页同基因:纸墨朱竹 token + 品牌红章 + 宣纸点阵舞台 + 错峰上浮入场。
+     纯呈现层改版:六要素绑定 / 登录车道 / 埋点零改动;副标与样例标题用 WXS
+     在呈现层拆分(copy 源字符串不动, 合同测试仍断言原绑定)。 -->
+<wxs module="fmt">
+var TRIM = getRegExp("^\\s+|\\s+$", "g");
+function parts(str) {
+  var s = "" + (str || "");
+  var raw = s.split("·");
+  var out = [];
+  for (var i = 0; i < raw.length; i++) {
+    var t = raw[i].replace(TRIM, "");
+    if (t) out.push(t);
+  }
+  return out;
+}
+function head(str) {
+  var p = parts(str);
+  return p.length ? p[0] : "";
+}
+function tail(str) {
+  var p = parts(str);
+  return p.length > 1 ? p.slice(1).join(" · ") : "";
+}
+module.exports = { parts: parts, head: head, tail: tail };
+</wxs>
+
 <view class="pr-page paper {{isDark?'':'light'}} pk-paper-bg">
 
   <view class="pr-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="pr-nav-inner">
       <view class="pr-nav-back" bindtap="goBack"><text class="pr-nav-arrow">‹</text></view>
-      <text class="pr-nav-title">{{copy.productName}}</text>
+      <view class="pr-nav-brand">
+        <view class="pr-nav-seal pk-seal">
+          <image class="pr-nav-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+        </view>
+        <text class="pr-nav-title">{{copy.productName}}</text>
+      </view>
     </view>
   </view>
 
@@ -12,30 +43,63 @@
     <view class="pr-landing">
 
       <!-- 要素 2: H1 -->
-      <text class="pr-h1">{{copy.h1}}</text>
+      <text class="pr-h1 pr-rise">{{copy.h1}}</text>
 
-      <!-- 要素 3: 副标 -->
-      <text class="pr-subtitle">{{copy.subtitle}}</text>
+      <!-- 要素 3: 副标(呈现层拆三枚 chip, 文案零改动) -->
+      <view class="pr-chips pr-rise pr-rise--d1">
+        <view class="pr-chip" wx:for="{{fmt.parts(copy.subtitle)}}" wx:key="*this">
+          <text class="pr-chip-txt">{{item}}</text>
+        </view>
+      </view>
 
-      <!-- 要素 4: 防心测声明 -->
-      <view class="pr-antiquiz pk-card">
+      <!-- 要素 4: 防心测声明(竹青批注条) -->
+      <view class="pr-antiquiz pk-card pr-rise pr-rise--d2">
+        <view class="pr-antiquiz-mark"><text class="pr-antiquiz-glyph">证</text></view>
         <text class="pr-antiquiz-txt">{{copy.antiQuizLine}}</text>
       </view>
 
-      <!-- 要素 5: 样例报告缩略图占位(分数带 vs 过线线, 证据卡模糊) -->
-      <view class="pr-sample pk-card">
-        <text class="pr-sample-caption">{{copy.sampleReportCaption}}</text>
-        <view class="pr-sample-scale">
-          <view class="pr-sample-band"></view>
-          <view class="pr-sample-passline"></view>
-          <text class="pr-sample-passlabel">96</text>
+      <!-- 要素 5: 样例报告缩略图(宣纸舞台:分数带 vs 过线线, 证据卡模糊) -->
+      <view class="pr-sample pk-card pr-rise pr-rise--d3">
+        <view class="pr-sample-stage">
+          <view class="pr-sample-badge"><text>{{fmt.head(copy.sampleReportCaption)}}</text></view>
+          <text class="pr-sample-cap">{{fmt.tail(copy.sampleReportCaption)}}</text>
+          <view class="pr-scale">
+            <text class="pr-scale-passnum">96</text>
+            <view class="pr-scale-track">
+              <view class="pr-scale-tick" style="left:25%"></view>
+              <view class="pr-scale-tick" style="left:50%"></view>
+              <view class="pr-scale-tick" style="left:75%"></view>
+              <view class="pr-scale-band"></view>
+            </view>
+            <view class="pr-scale-passline"></view>
+          </view>
         </view>
-        <view class="pr-sample-cards">
-          <view class="pr-sample-card blurred"></view>
-          <view class="pr-sample-card blurred"></view>
-          <view class="pr-sample-card blurred"></view>
+        <view class="pr-sample-foot">
+          <view class="pr-evidence-row">
+            <view class="pr-evc">
+              <view class="pr-evc-blur">
+                <view class="pr-evc-head"><view class="pr-evc-dot"></view><view class="pr-evc-bar"></view></view>
+                <view class="pr-evc-line pr-w72"></view>
+                <view class="pr-evc-line pr-w48"></view>
+              </view>
+            </view>
+            <view class="pr-evc">
+              <view class="pr-evc-blur">
+                <view class="pr-evc-head"><view class="pr-evc-dot pr-evc-dot--warn"></view><view class="pr-evc-bar"></view></view>
+                <view class="pr-evc-line pr-w60"></view>
+                <view class="pr-evc-line pr-w80"></view>
+              </view>
+            </view>
+            <view class="pr-evc">
+              <view class="pr-evc-blur">
+                <view class="pr-evc-head"><view class="pr-evc-dot"></view><view class="pr-evc-bar"></view></view>
+                <view class="pr-evc-line pr-w80"></view>
+                <view class="pr-evc-line pr-w40"></view>
+              </view>
+            </view>
+          </view>
+          <text class="pr-sample-note">证据卡在你的报告里逐条可点开</text>
         </view>
-        <text class="pr-sample-note">证据卡在你的报告里逐条可点开</text>
       </view>
 
       <view style="height:32rpx"></view>

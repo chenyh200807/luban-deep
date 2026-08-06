@@ -1,52 +1,149 @@
 @import "/packageDeeptutor/styles/paper-ink.wxss";
 
-/* 过线体检 · 落地页 — 全量取色走 paper-ink token, 零新视觉体系 */
+/* 过线体检 · 落地页 — 与学习首页同基因:
+   纸墨朱竹 token / 品牌红章 / 宣纸点阵舞台(永远浅色) / 楷体红字 / 错峰上浮入场。
+   全量取色走 paper-ink token, 零新视觉体系;舞台内与学习首页 lr-stage 同口径
+   硬编码浅纸色(夜主题下舞台不反转, 10a 定稿一致)。 */
 .pr-page { height: 100vh; position: relative; overflow: hidden; }
 
+/* ── 入场动画(学习首页 lr-rise 同参:上浮 19rpx + 渐显, 错峰 0.05s) ── */
+.pr-rise { animation: pr-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pr-rise--d1 { animation-delay: 0.05s; }
+.pr-rise--d2 { animation-delay: 0.1s; }
+.pr-rise--d3 { animation-delay: 0.15s; }
+@keyframes pr-rise {
+  from { opacity: 0; transform: translateY(19rpx); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 顶栏:返回 + 品牌红章(学习首页 lr-brand 同款) ── */
 .pr-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
-.pr-nav-inner { height: 88rpx; display: flex; align-items: center; padding: 0 24rpx; gap: 12rpx; }
+.pr-nav-inner { height: 88rpx; display: flex; align-items: center; padding: 0 24rpx; gap: 16rpx; }
 .pr-nav-back {
   width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center;
   border-radius: 50%; background: var(--pk-card); border: 1rpx solid var(--pk-bd);
+  flex-shrink: 0;
 }
 .pr-nav-arrow { font-size: 42rpx; color: var(--pk-t1); font-weight: 300; }
-.pr-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+.pr-nav-brand { display: flex; align-items: center; gap: 14rpx; min-width: 0; }
+.pr-nav-seal { width: 52rpx; height: 52rpx; border-radius: 14rpx; flex-shrink: 0; }
+.pr-nav-logo { width: 32rpx; height: 32rpx; }
+.pr-nav-title {
+  font-size: 30rpx; font-weight: 800; color: var(--pk-t1); letter-spacing: 1rpx;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .pr-body { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1; }
-.pr-landing { padding: 24rpx 32rpx 320rpx; display: flex; flex-direction: column; }
+.pr-landing { padding: 20rpx 32rpx 320rpx; display: flex; flex-direction: column; }
 
+/* ── H1 ── */
 .pr-h1 {
-  margin-top: 48rpx; font-size: 56rpx; line-height: 1.35; font-weight: 900;
+  margin-top: 44rpx; font-size: 58rpx; line-height: 1.35; font-weight: 900;
   color: var(--pk-t1); letter-spacing: 2rpx;
 }
-.pr-subtitle { margin-top: 20rpx; font-size: 26rpx; line-height: 1.7; color: var(--pk-t2); }
 
-.pr-antiquiz { margin-top: 36rpx; padding: 24rpx 26rpx; }
-.pr-antiquiz-txt { font-size: 24rpx; line-height: 1.7; color: var(--pk-t2); }
+/* ── 副标 chip 行(呈现层拆分, 文案源零改动) ── */
+.pr-chips { margin-top: 26rpx; display: flex; flex-wrap: wrap; gap: 12rpx; }
+.pr-chip {
+  padding: 10rpx 20rpx; border-radius: 999rpx;
+  background: var(--pk-card); border: 1rpx solid var(--pk-bd);
+  box-shadow: 0 2rpx 8rpx var(--pk-shadow);
+}
+.pr-chip-txt { font-size: 24rpx; font-weight: 700; color: var(--pk-t2); }
 
-.pr-sample { margin-top: 24rpx; padding: 26rpx; display: flex; flex-direction: column; gap: 20rpx; }
-.pr-sample-caption { font-size: 24rpx; font-weight: 700; letter-spacing: 3rpx; color: var(--pk-t3); }
-.pr-sample-scale { position: relative; height: 30rpx; border-radius: 15rpx; background: var(--pk-gauge); }
-.pr-sample-band {
-  position: absolute; left: 42%; width: 20%; top: 0; bottom: 0;
-  border-radius: 15rpx; background: var(--pk-grn); opacity: 0.85;
+/* ── 防心测声明:竹青批注条(学习首页首跑卡同构, 左沿彩条改竹青) ── */
+.pr-antiquiz {
+  margin-top: 36rpx; position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; gap: 18rpx;
+  padding: 26rpx 28rpx; border-color: var(--pk-accent-border);
 }
-.pr-sample-passline {
-  position: absolute; left: 60%; top: -8rpx; bottom: -8rpx; width: 4rpx;
-  background: var(--pk-red); border-radius: 2rpx;
+.pr-antiquiz::after {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 7rpx; background: var(--pk-grn);
 }
-.pr-sample-passlabel {
-  position: absolute; left: 60%; top: -44rpx; transform: translateX(-50%);
-  font-size: 22rpx; font-weight: 800; color: var(--pk-red);
+.pr-antiquiz-mark {
+  flex-shrink: 0; width: 56rpx; height: 56rpx; border-radius: 15rpx;
+  background: var(--pk-accent-soft);
+  display: flex; align-items: center; justify-content: center;
 }
-.pr-sample-cards { display: flex; gap: 14rpx; }
-.pr-sample-card {
-  flex: 1; height: 96rpx; border-radius: 16rpx;
+.pr-antiquiz-glyph {
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 32rpx; color: var(--pk-grn); line-height: 1;
+}
+.pr-antiquiz-txt { flex: 1; font-size: 24rpx; line-height: 1.7; color: var(--pk-t2); padding-top: 2rpx; }
+
+/* ── 样例报告卡(卡 padding:0;上半宣纸舞台 + 下半证据区, 学习首页站点卡同构) ── */
+.pr-sample { margin-top: 24rpx; padding: 0; overflow: hidden; border-radius: 30rpx; }
+
+/* 宣纸舞台:永远浅色 + 点阵(学习首页 lr-stage 同口径硬编码) */
+.pr-sample-stage {
+  position: relative; height: 320rpx;
+  border-bottom: 1rpx solid var(--pk-bd);
+  background-color: #f4f3ec;
+  background-image: radial-gradient(#e4e2d7 1.3rpx, transparent 1.3rpx);
+  background-size: 30rpx 30rpx;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 36rpx 46rpx;
+}
+.pr-sample-badge {
+  position: absolute; top: 21rpx; left: 22rpx;
+  padding: 9rpx 21rpx; border-radius: 999rpx; background: var(--pk-red);
+  font-size: 24rpx; font-weight: 800; color: #fff;
+  box-shadow: 0 6rpx 17rpx rgba(207, 68, 54, 0.25);
+}
+/* 舞台永远浅色 → 副题固定墨灰(不吃主题变量, 同 lr-stage-sub 口径) */
+.pr-sample-cap {
+  position: absolute; top: 28rpx; right: 26rpx;
+  font-size: 24rpx; font-weight: 800; color: #6f6b5d; letter-spacing: 2rpx;
+}
+
+/* 分数带标尺:浅纸上的固定亮色(舞台不随主题) */
+.pr-scale { position: relative; }
+.pr-scale-track {
+  position: relative; height: 34rpx; border-radius: 17rpx;
+  background: #e9e5d7; overflow: visible;
+}
+.pr-scale-tick {
+  position: absolute; top: 8rpx; bottom: 8rpx; width: 2rpx;
+  background: rgba(38, 36, 31, 0.1); border-radius: 1rpx;
+}
+.pr-scale-band {
+  position: absolute; left: 36%; width: 22%; top: 0; bottom: 0;
+  border-radius: 17rpx; background: #3e715d; opacity: 0.92;
+  box-shadow: 0 4rpx 12rpx rgba(62, 113, 93, 0.3);
+}
+.pr-scale-passline {
+  position: absolute; left: 62%; top: -16rpx; bottom: -16rpx; width: 4rpx;
+  background: #cf4436; border-radius: 2rpx;
+}
+/* 过线数字:楷体书法红(学习首页 lr-stage-cal 同款字链) */
+.pr-scale-passnum {
+  position: absolute; left: 62%; top: -84rpx; transform: translateX(-50%);
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+  font-size: 56rpx; color: #cf4436; line-height: 1;
+}
+
+/* 证据区:三张模糊小卡(卡框清晰、内容骨架模糊 = "报告里逐条可点开"的预告) */
+.pr-sample-foot { padding: 26rpx 26rpx 28rpx; display: flex; flex-direction: column; gap: 18rpx; }
+.pr-evidence-row { display: flex; gap: 14rpx; }
+.pr-evc {
+  flex: 1; min-width: 0; padding: 16rpx 14rpx; border-radius: 16rpx;
   background: var(--pk-gauge); border: 1rpx solid var(--pk-bd);
 }
-.pr-sample-card.blurred { filter: blur(5rpx); opacity: 0.75; }
-.pr-sample-note { font-size: 22rpx; color: var(--pk-t3); }
+.pr-evc-blur { filter: blur(4rpx); opacity: 0.8; display: flex; flex-direction: column; gap: 10rpx; }
+.pr-evc-head { display: flex; align-items: center; gap: 8rpx; }
+.pr-evc-dot { width: 16rpx; height: 16rpx; border-radius: 50%; background: var(--pk-grn); flex-shrink: 0; }
+.pr-evc-dot--warn { background: var(--pk-warn); }
+.pr-evc-bar { flex: 1; height: 12rpx; border-radius: 6rpx; background: var(--pk-sand); }
+.pr-evc-line { height: 10rpx; border-radius: 5rpx; background: var(--pk-sand); opacity: 0.7; }
+.pr-w40 { width: 40%; }
+.pr-w48 { width: 48%; }
+.pr-w60 { width: 60%; }
+.pr-w72 { width: 72%; }
+.pr-w80 { width: 80%; }
+.pr-sample-note { font-size: 24rpx; color: var(--pk-t3); }
 
+/* ── 底部 CTA 区 ── */
 .pr-action {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
   padding: 24rpx 32rpx 0;
@@ -55,23 +152,23 @@
 }
 .pr-err { margin-bottom: 14rpx; }
 .pr-err-txt { font-size: 24rpx; color: var(--pk-warn); }
-.pr-cta { width: 100%; }
+.pr-cta { width: 100%; min-height: 96rpx; font-size: 28rpx; }
 .pr-cta.off { opacity: 0.6; }
 button.pr-cta::after { border: none; }
-.pr-auth-reason { display: block; margin-top: 16rpx; font-size: 22rpx; line-height: 1.6; color: var(--pk-t3); }
+.pr-auth-reason { display: block; margin-top: 16rpx; font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); }
 
 .pr-last-report { margin-top: 18rpx; display: flex; justify-content: center; }
-.pr-last-report-txt { font-size: 24rpx; color: var(--pk-t2); }
+.pr-last-report-txt { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
 
 .pr-privacy-row { margin-top: 16rpx; display: flex; align-items: center; gap: 4rpx; }
 .pr-privacy-agree {
   display: flex; align-items: center; gap: 10rpx; padding: 0; margin: 0;
-  background: transparent; line-height: inherit; font-size: 22rpx;
+  background: transparent; line-height: inherit; font-size: 24rpx;
 }
 .pr-privacy-agree::after { border: none; }
 .pr-privacy-box {
   width: 28rpx; height: 28rpx; border-radius: 8rpx;
   border: 2rpx solid var(--pk-bd); background: var(--pk-card);
 }
-.pr-privacy-copy { font-size: 22rpx; color: var(--pk-t3); }
-.pr-privacy-link { font-size: 22rpx; color: var(--pk-grn); }
+.pr-privacy-copy { font-size: 24rpx; color: var(--pk-t3); }
+.pr-privacy-link { font-size: 24rpx; color: var(--pk-grn); }
