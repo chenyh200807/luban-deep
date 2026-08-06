@@ -44,6 +44,15 @@ class AssessmentBlueprintUnavailable(RuntimeError):
     """Raised when a formal assessment cannot be created without breaking the blueprint."""
 
 
+class AssessmentFormStoreUnreachable(AssessmentBlueprintUnavailable):
+    """持久化表单库(Supabase)传输层失败:超时/连接错/5xx。
+
+    语义与「表单不存在」严格区分:表单在库里、只是这次没取到。
+    消费者(_get_or_build_form_bank)对它做有界重试后 fail-closed,
+    绝不滑进现场重建——manifest 精编表单被静默重建 = 权威漂移。
+    """
+
+
 @dataclass(frozen=True)
 class QuestionCandidate:
     source_question_id: str
@@ -290,7 +299,14 @@ class SupabaseAssessmentQuestionProvider:
                 payload = response.read().decode("utf-8")
         except error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
+            if exc.code >= 500 or exc.code == 429:
+                raise AssessmentFormStoreUnreachable(
+                    f"Supabase {table} transient failure: HTTP {exc.code} {body}"
+                ) from exc
             raise AssessmentBlueprintUnavailable(f"Supabase {table} query failed: HTTP {exc.code} {body}") from exc
+        except (error.URLError, TimeoutError, OSError) as exc:
+            # urllib 的超时/断连以 URLError/socket.timeout 抛出,原先未捕获 → 直接炸成 500。
+            raise AssessmentFormStoreUnreachable(f"Supabase {table} unreachable: {exc}") from exc
         return list(json.loads(payload or "[]"))
 
     def _rest_upsert(
@@ -718,7 +734,16 @@ class AssessmentBlueprintService:
         if callable(persisted_loader):
             try:
                 form_bank = persisted_loader(self._blueprint)
+            except AssessmentFormStoreUnreachable:
+                # 传输层失败 ≠ 表单不存在:有界重试一次,仍不通就 fail-closed。
+                # 绝不滑进 _build_form_bank 现场重建——那条路对 manifest 精编
+                # blueprint 是权威漂移(即使建成功也不是签发的卷),且慢 30s+。
+                try:
+                    form_bank = persisted_loader(self._blueprint)
+                except AssessmentFormStoreUnreachable:
+                    raise
             except AssessmentBlueprintUnavailable:
+                # 真「库里没有表单」(未 seed / 行损坏)才允许落到现场重建(v1 语义)。
                 form_bank = None
             if form_bank is not None:
                 fallback_source = (

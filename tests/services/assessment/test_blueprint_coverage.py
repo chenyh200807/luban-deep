@@ -2,6 +2,7 @@ from deeptutor.services.assessment.blueprint import get_assessment_blueprint
 from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
+    AssessmentFormStoreUnreachable,
     _AssessmentForm,
     _AssessmentFormBank,
     _AssessmentFormUnit,
@@ -422,6 +423,55 @@ def test_blueprint_service_uses_persisted_forms_without_candidate_generation() -
     assert payload["question_bank_size"] == 500
     assert payload["fallback_used"] is False
     assert len(payload["questions"]) == 20
+
+
+class FlakyThenHealthyPersistedProvider(PersistedOnlyAssessmentProvider):
+    """首次持久化读抛传输层失败, 重试即成功(模拟 Supabase REST 抖动)。"""
+
+    def __init__(self, form_bank: _AssessmentFormBank) -> None:
+        super().__init__(form_bank)
+        self.load_calls = 0
+
+    def load_persisted_form_bank(self, blueprint):
+        self.load_calls += 1
+        if self.load_calls == 1:
+            raise AssessmentFormStoreUnreachable("Supabase assessment_forms unreachable: timed out")
+        return self.form_bank
+
+
+class AlwaysUnreachablePersistedProvider(PersistedOnlyAssessmentProvider):
+    def __init__(self, form_bank: _AssessmentFormBank) -> None:
+        super().__init__(form_bank)
+        self.load_calls = 0
+
+    def load_persisted_form_bank(self, blueprint):
+        self.load_calls += 1
+        raise AssessmentFormStoreUnreachable("Supabase assessment_forms unreachable: timed out")
+
+
+def test_persisted_store_transient_failure_retries_then_serves_persisted_forms() -> None:
+    provider = FlakyThenHealthyPersistedProvider(_persisted_form_bank_for_blueprint())
+    service = AssessmentBlueprintService(provider=provider, allow_dev_fallback=False)
+
+    payload = service.create_session(user_id="student_demo", count=20)
+
+    assert provider.load_calls == 2
+    assert provider.get_candidate_calls == 0, "传输抖动重试成功后不得触发现场重建"
+    assert payload["form_source"] == "persisted"
+
+
+def test_persisted_store_unreachable_fails_closed_without_rebuild() -> None:
+    provider = AlwaysUnreachablePersistedProvider(_persisted_form_bank_for_blueprint())
+    service = AssessmentBlueprintService(provider=provider, allow_dev_fallback=False)
+
+    try:
+        service.create_session(user_id="student_demo", count=20)
+        raise AssertionError("store unreachable 必须 fail-closed")
+    except AssessmentFormStoreUnreachable:
+        pass
+
+    assert provider.load_calls == 2, "应当恰好重试一次"
+    assert provider.get_candidate_calls == 0, "store 不可达时禁止滑进现场重建(权威漂移)"
 
 
 def test_blueprint_service_reports_static_form_source_when_supabase_falls_back() -> None:
