@@ -3900,10 +3900,10 @@ def test_pass_readiness_create_and_submit_use_registered_blueprint(
     )
 
     assert payload["assessment_type"] == "pass_readiness"
-    assert payload["blueprint_version"] == "pass_readiness_architecture_v1"
+    assert payload["blueprint_version"] == "pass_readiness_architecture_v2"
     assert payload["topic_label"] == "一建过线体检"
-    assert payload["checkpoint_after"] == 6
-    assert payload["scored_count"] == 12
+    assert payload["checkpoint_after"] == 10
+    assert payload["scored_count"] == 36
     assert payload["profile_count"] == 3
     assert payload["form_id"]
     assert len(payload["questions"]) == 15
