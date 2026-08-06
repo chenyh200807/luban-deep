@@ -1,0 +1,437 @@
+{
+ "schema": "luban_form_v2_qb_multi_snapshot.v0",
+ "note": "表单 v2 过渡题快照:10 道第三方练习册多选(非真题原题、非变式,标注过渡,v2.1 由变体拼装器+双签替换)+ 2 道题库配对单选。来源 Supabase public.questions_bank 只读拉取。",
+ "selected_multi_ids": [
+  14783,
+  14767,
+  14326,
+  14511,
+  14429,
+  14428,
+  14167,
+  14903,
+  14216,
+  18224
+ ],
+ "pair_row_ids": [
+  14416,
+  14418
+ ],
+ "rows": [
+  {
+   "id": 14167,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A413030",
+   "question_stem": "下列桩基检测方法中，可以用以判断桩身完整性类别的试验有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "低应变法"
+    },
+    {
+     "key": "B",
+     "value": "静载试验"
+    },
+    {
+     "key": "C",
+     "value": "高应变法"
+    },
+    {
+     "key": "D",
+     "value": "钻芯法"
+    },
+    {
+     "key": "E",
+     "value": "声波透射法"
+    }
+   ],
+   "correct_answer": "ACDE",
+   "analysis": "可以用以判断桩身完整性类别的试验有低应变法、高应变法、钻芯法、声波透射法。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "6bb2872772246f036959351039965fcfda01af755f5a0443686cdb59f5a1af85",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "地基与基础工程施工"
+   }
+  },
+  {
+   "id": 14216,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A413050",
+   "question_stem": "关于屋面防水的基本要求的说法，正确的有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "平屋面一级防水时，应采用不少于2道防水设防"
+    },
+    {
+     "key": "B",
+     "value": "混凝土结构宜采用结构找坡，坡度不小于2%"
+    },
+    {
+     "key": "C",
+     "value": "采用材料找坡时，坡度宜为3%"
+    },
+    {
+     "key": "D",
+     "value": "檐沟、天沟纵向找坡不应小于1%，找坡层最薄处厚度不宜小于20mm"
+    },
+    {
+     "key": "E",
+     "value": "檐沟、天沟防水层下应增设附加层且伸入屋面的宽度不应小于250mm"
+    }
+   ],
+   "correct_answer": "DE",
+   "analysis": "A选项错误，平屋面一级防水时，应采用不少于3道防水设防；B选项错误，混凝土结构宜采用结构找坡，坡度不小于3%；C选项错误，采用材料找坡时，坡度宜为2%。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "1a7ac7968d74c132c85faa8d3d80754c0fdec1a4b3fa94e9a09b070a554457a3",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "屋面与防水工程施工"
+   }
+  },
+  {
+   "id": 14326,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A431050",
+   "question_stem": "可以使用36V照明用电的施工现场有（  ）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "特别潮湿的场所"
+    },
+    {
+     "key": "B",
+     "value": "灯具离地面高度2.2m的场所"
+    },
+    {
+     "key": "C",
+     "value": "高温场所"
+    },
+    {
+     "key": "D",
+     "value": "有导电灰尘场所"
+    },
+    {
+     "key": "E",
+     "value": "锅炉或金属容器内"
+    }
+   ],
+   "correct_answer": "BCD",
+   "analysis": "选项A、E错误，在特别潮湿的场所，导电良好的地面、锅炉或金属容器内工作的照明电源电压≤12V。隧道、人防工程、高温、有导电灰尘、比较潮湿或灯具离地高度低于2.5m等场所的照明，电源电压≤36V。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "be838b1444707894742173be6c172605186fa232bcdb4876862a81fb203b2035",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "施工临时用电"
+   }
+  },
+  {
+   "id": 14416,
+   "source_type": "TEXTBOOK",
+   "question_type": "single_choice",
+   "node_code": "1A435020",
+   "question_stem": "按价值工程的原理，下列各种途径不可能提高产品价值同时降低成本的是（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "功能不变，成本降低"
+    },
+    {
+     "key": "B",
+     "value": "功能略有下降，成本大幅度降低"
+    },
+    {
+     "key": "C",
+     "value": "成本降低，功能提高"
+    },
+    {
+     "key": "D",
+     "value": "功能略有提高，成本大幅度提高"
+    }
+   ],
+   "correct_answer": "D",
+   "analysis": "用价值工程控制成本的原理按价值工程的公式V=F/C分析，提高价值的途径有5条：（1）功能提高，成本不变；（2）功能不变，成本降低；（3）功能提高，成本降低；（4）降低辅助功能，大幅度降低成本；（5）成本稍有提高，大大提高功能。其中（1）、（3）、（4）条途径是提高价值，同时也降低成本的途径。应当选择价值系数低、降低成本潜力大的工程作为价值工程的对象，寻求对成本的有效降低。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "ef639b14e8bb9db320134edff7e6d544dce69d61878a29173185ee055395f5ae",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "施工成本分析与控制"
+   }
+  },
+  {
+   "id": 14418,
+   "source_type": "TEXTBOOK",
+   "question_type": "single_choice",
+   "node_code": "1A435020",
+   "question_stem": "挣值法的三个成本值不包括（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "已完成工作的预算成本"
+    },
+    {
+     "key": "B",
+     "value": "已完成工作的实际成本"
+    },
+    {
+     "key": "C",
+     "value": "计划完成工作的预算成本"
+    },
+    {
+     "key": "D",
+     "value": "计划完成工作的实际成本"
+    }
+   ],
+   "correct_answer": "D",
+   "analysis": "挣值法主要运用三个成本值进行分析，它们分别是已完成工作预算成本、计划完成工作预算成本和已完成工作实际成本。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "ce85258506fba142d62f1151d4452b11c55c67d9de5d52eb45f6acef094c7edd",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "施工成本分析与控制"
+   }
+  },
+  {
+   "id": 14428,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A435020",
+   "question_stem": "采用价值工程原理控制成本时，能提高价值的途径有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "功能不变，成本降低"
+    },
+    {
+     "key": "B",
+     "value": "主要功能降低，成本大幅度降低"
+    },
+    {
+     "key": "C",
+     "value": "功能提高，成本不变"
+    },
+    {
+     "key": "D",
+     "value": "成本稍有提高，功能大幅度提高"
+    },
+    {
+     "key": "E",
+     "value": "功能提高，成本降低"
+    }
+   ],
+   "correct_answer": "ACDE",
+   "analysis": "按价值工程的公式V=F/C分析，提高价值的途径有5条：（1）功能提高，成本不变；（2）功能不变，成本降低；（3）功能提高，成本降低；（4）降低辅助功能，大幅度降低成本；（5）成本稍有提高，大大提高功能。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "972aaaa17da1cea6e5c52a16c1032324b64cbdf6f05c59edd0d1e3b8dac53053",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "施工成本分析与控制"
+   }
+  },
+  {
+   "id": 14429,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A435020",
+   "question_stem": "挣值法的评价指标包括（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "成本偏差"
+    },
+    {
+     "key": "B",
+     "value": "质量偏差"
+    },
+    {
+     "key": "C",
+     "value": "进度偏差"
+    },
+    {
+     "key": "D",
+     "value": "成本绩效指数"
+    },
+    {
+     "key": "E",
+     "value": "进度绩效指数"
+    }
+   ],
+   "correct_answer": "ACDE",
+   "analysis": "挣值法的四个评价指标包括：成本偏差、进度偏差、成本绩效指数和进度绩效指数。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "358084639e45421091da7871ffa77922437a7907a9cf2824d4bdec036e78aa36",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "施工成本分析与控制"
+   }
+  },
+  {
+   "id": 14511,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A437030",
+   "question_stem": "下列关于消防器材的配备的说法，正确的有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "临时搭设的建筑物区域内每100m2配备2只10L灭火器"
+    },
+    {
+     "key": "B",
+     "value": "50m2的临时木料间、油漆间等，配备2只灭火器"
+    },
+    {
+     "key": "C",
+     "value": "施工现场应有足够的消防水源，进水口一般不应少于1处"
+    },
+    {
+     "key": "D",
+     "value": "消火栓之间的距离不应大于120m"
+    },
+    {
+     "key": "E",
+     "value": "消防箱内消防水管的长度不小于20m"
+    }
+   ],
+   "correct_answer": "ABD",
+   "analysis": "临时搭设的建筑物区域内每100m2配备2只10L灭火器；施工现场应有足够的消防水源，进水口一般不应少于2处；消防箱内消防水管的长度不小于25m。",
+   "option_reasoning": {},
+   "source": "SMR章节千题斩2025",
+   "exam_year": null,
+   "content_hash": "270c4db4860d829c7781e6bd58c10d64bf5d0b2d052c0606c3e4378ae81d4706",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "施工现场消防"
+   }
+  },
+  {
+   "id": 14767,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A413030",
+   "question_stem": "大体积混凝土施工过程中，减少或防止出现裂缝的技术措施有（　　）。",
+   "options": [
+    "A. 二次振捣",
+    "B. 二次表面抹压",
+    "C. 控制混凝土内部温度的降温速率",
+    "D. 尽快降低混凝土表面温度",
+    "E. 保温保湿养护"
+   ],
+   "correct_answer": "ABCE",
+   "analysis": "减少或防止出现裂缝的技术措施没有尽快降低混凝土表面温度，相反应该控制内外温差。",
+   "option_reasoning": {},
+   "source": "ZL864考证宝典必刷500题2025",
+   "exam_year": null,
+   "content_hash": "4580818ae9ba4b29710f5e26859bc2c8e71399b7578a56e99af09a94edddcaa0",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "地基与基础工程施工"
+   }
+  },
+  {
+   "id": 14783,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A413040",
+   "question_stem": "混凝土施工缝留置位置正确的有（　　）。",
+   "options": [
+    "A. 柱在梁、板顶面",
+    "B. 单向板在平行于板长边的任何位置",
+    "C. 有主次梁的楼板在次梁跨中1/3范围内",
+    "D. 墙在纵横墙的交接处",
+    "E. 双向受力板按设计要求确定"
+   ],
+   "correct_answer": "ACDE",
+   "analysis": "单向板在平行与短边的任何位置",
+   "option_reasoning": {},
+   "source": "ZL864考证宝典必刷500题2025",
+   "exam_year": null,
+   "content_hash": "929b3e82ce5bae60df36784dd31e063e69643f75065f6307b19c552199d684d9",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "主体结构工程施工"
+   }
+  },
+  {
+   "id": 14903,
+   "source_type": "TEXTBOOK",
+   "question_type": "multi_choice",
+   "node_code": "1A434030",
+   "question_stem": "造成挖方边坡大面积塌方的原因可能有（　　）。",
+   "options": [
+    "A. 基坑（槽）开挖坡度不够",
+    "B. 土方施工机械配置不合理",
+    "C. 未采取有效的降排水措施",
+    "D. 边坡顶部堆载过大",
+    "E. 开挖次序、方法不当"
+   ],
+   "correct_answer": "ACDE",
+   "analysis": "（1）基坑（槽）开挖坡度不够（2）在有地表水、地下水作用的土层开挖时，未采取有效的降排水措施（3）边坡顶部堆载过大，或受外力振动影响（4）土质松软，开挖次序方法不当",
+   "option_reasoning": {},
+   "source": "ZL864考证宝典必刷500题2025",
+   "exam_year": null,
+   "content_hash": "80f821694d3a457bdf22de28c40488cf5dd2a32893f0f6cddf4beb0eda5d8047",
+   "based_on_version": 2025,
+   "tags": {
+    "node_name": "工程质量通病防治"
+   }
+  },
+  {
+   "id": 18224,
+   "source_type": "textbook_exercise",
+   "question_type": "multi_choice",
+   "node_code": "1A413050",
+   "question_stem": "关于地下卷材防水层施工要求的说法，正确的是（    ）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "卷材防水层宜用于经常处于地下水环境"
+    },
+    {
+     "key": "B",
+     "value": "铺贴卷材严禁在雨天、雪天、五级及以上大风中施工"
+    },
+    {
+     "key": "C",
+     "value": "冷粘法、自粘法施工的环境气温不宜低于10℃"
+    },
+    {
+     "key": "D",
+     "value": "热熔法、焊接法施工的环境气温不宜低于-15℃"
+    },
+    {
+     "key": "E",
+     "value": "卷材防水层应铺设在混凝土结构的迎水面上"
+    }
+   ],
+   "correct_answer": "ABE",
+   "analysis": "CD选项，冷粘法、自粘法施工的环境气温不宜低于5℃，热熔法、焊接法施工的环境气温不宜低于-10℃。",
+   "option_reasoning": {},
+   "source": "WW千锤百炼2025",
+   "exam_year": null,
+   "content_hash": "cc265ab48f1baff19135bf40dfef2ed9ff45534238aaf3f3905248575d09c868",
+   "based_on_version": 2025,
+   "tags": [
+    "屋面与防水工程施工"
+   ]
+  }
+ ]
+}
