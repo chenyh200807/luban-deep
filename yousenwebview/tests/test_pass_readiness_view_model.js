@@ -25,8 +25,8 @@ assert.ok(
   "副标必须含十一年真题与采分点定位",
 );
 assert.ok(
-  vm.LANDING_COPY.antiQuizLine.indexOf("不是心理测试") === 0,
-  "防心测声明必须打头",
+  vm.LANDING_COPY.antiQuizLine.indexOf("每一分都能点开") >= 0,
+  "证据承诺声明必须点明逐分可点开(owner 2026-08-06 拍板去掉心理测试框架)",
 );
 assert.strictEqual(vm.LANDING_COPY.ctaLogin, "快速登录 · 开始测评");
 assert.ok(

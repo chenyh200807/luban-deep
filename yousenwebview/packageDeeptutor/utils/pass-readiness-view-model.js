@@ -35,7 +35,7 @@ var LANDING_COPY = {
   productName: "鲁班智考 · 一建过线体检",
   h1: "现在上考场，你能过 96 分线吗？",
   subtitle: "10分钟摸底 · 2015–2025 十一年真题考法 · 找准你的丢分采分点",
-  antiQuizLine: "不是心理测试——差的每一分都能点开看：丢在哪道题、哪个采分点、怎么补回来",
+  antiQuizLine: "测完不只给一个分数——差的每一分都能点开看：丢在哪道题、哪个采分点、怎么补回来",
   sampleReportCaption: "样例报告 · 分数带 vs 过线线",
   ctaLogin: "快速登录 · 开始测评",
   ctaLoggedIn: "开始测评",

@@ -152,7 +152,12 @@
 }
 .pr-err { margin-bottom: 14rpx; }
 .pr-err-txt { font-size: 24rpx; color: var(--pk-warn); }
-.pr-cta { width: 100%; min-height: 96rpx; font-size: 28rpx; }
+/* 微信 button 默认带 max-width/边距 → 不清掉会缩成内容宽居中导致文案折行
+   (登录页 .btn-wechat-primary 同配方) */
+.pr-cta {
+  width: 100%; max-width: none; margin: 0; box-sizing: border-box;
+  min-height: 96rpx; font-size: 28rpx;
+}
 .pr-cta.off { opacity: 0.6; }
 /* 组件 wxss 禁标签选择器 → 用类选择器覆写 button 默认边框 */
 .pr-cta::after { border: none; }
