@@ -3906,7 +3906,7 @@ def test_pass_readiness_create_and_submit_use_registered_blueprint(
     assert payload["scored_count"] == 36
     assert payload["profile_count"] == 3
     assert payload["form_id"]
-    assert len(payload["questions"]) == 15
+    assert len(payload["questions"]) == 39
     assert all("answer" not in question for question in payload["questions"])
 
     result = service.submit_assessment(
@@ -3918,12 +3918,12 @@ def test_pass_readiness_create_and_submit_use_registered_blueprint(
 
     assert result["schema_version"] == "pass-readiness-v1"
     assert result["assessment_type"] == "pass_readiness"
-    assert result["blueprint_version"] == "pass_readiness_architecture_v1"
+    assert result["blueprint_version"] == "pass_readiness_architecture_v2"
     assert result["topic_label"] == "一建过线体检"
-    assert result["score_summary"]["scored_count"] == 12
+    assert result["score_summary"]["scored_count"] == 36
     block = result["pass_readiness"]
     assert block["pass_line"] == 96
-    assert block["band_policy_version"] == "band-v1"
+    assert block["band_policy_version"] == "band-v2"
     assert block["evidence_coverage"] in {"low", "medium", "high", "insufficient"}
     if block["band_status"] == "ok":
         assert block["band_lower"] % 5 == 0 and block["band_upper"] % 5 == 0
