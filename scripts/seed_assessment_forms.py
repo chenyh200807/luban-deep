@@ -22,9 +22,29 @@ def main() -> None:
         default="diagnostic_v1",
         help="Blueprint version to seed (e.g. pass_readiness_architecture_v2).",
     )
+    parser.add_argument(
+        "--manifest",
+        action="append",
+        default=None,
+        metavar="PATH",
+        help=(
+            "内容线表单 manifest(luban_s2_diagnostic_form.v2)路径,可重复传入多份;"
+            "给定时逐题按 manifest 钉选导入(sha 校验,失配即 fail),"
+            "不给时保持现行自动组卷。"
+        ),
+    )
+    parser.add_argument(
+        "--replicate-to-min",
+        action="store_true",
+        help="manifest 份数不足轮换下限(3)时,显式复制补足(过渡措施)。",
+    )
     args = parser.parse_args()
 
-    result = get_member_console_service().generate_and_persist_assessment_forms(args.blueprint)
+    result = get_member_console_service().generate_and_persist_assessment_forms(
+        args.blueprint,
+        manifest_paths=args.manifest,
+        replicate_to_min=args.replicate_to_min,
+    )
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return

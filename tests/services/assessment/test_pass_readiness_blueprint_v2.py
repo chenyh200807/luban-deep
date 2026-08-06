@@ -35,7 +35,16 @@ def test_v2_is_39_interactions_30_objective_6_case_3_probes() -> None:
     assert blueprint.profile_count == 3
 
     singles = [s for s in blueprint.sections if s.question_source == COMPILED_PRACTICE_QUESTION_SOURCE]
-    assert len(singles) == 5 and all(s.count == 4 for s in singles)  # 五族配额 4×5=20
+    # 五族配额=选编定稿 family_matrix(主体5/安全4/进度3/质量4/防水4,案例段补齐
+    # 族平衡),合计 20 单选。
+    assert len(singles) == 5 and sum(s.count for s in singles) == 20
+    assert {s.id: s.count for s in singles} == {
+        "pr2_single_main_structure": 5,
+        "pr2_single_safety": 4,
+        "pr2_single_schedule": 3,
+        "pr2_single_quality": 4,
+        "pr2_single_waterproof": 4,
+    }
     assert all(s.question_types == ("single_choice",) for s in singles)
     assert all(s.compiled_packs for s in singles)
 

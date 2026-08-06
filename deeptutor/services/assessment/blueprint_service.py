@@ -13,6 +13,7 @@ import uuid
 
 from deeptutor.services.assessment.blueprint import (
     COMPILED_PRACTICE_SOURCE_TYPE,
+    MANIFEST_SOURCE_TYPE,
     MIN_FORM_ROTATION_COUNT,
     TARGET_FORM_ROTATION_COUNT,
     AssessmentBlueprint,
@@ -568,6 +569,48 @@ class AssessmentBlueprintService:
             "persisted": True,
         }
 
+    def generate_and_persist_forms_from_manifest(
+        self,
+        manifest_paths: list[str],
+        *,
+        replicate_to_min: bool = False,
+    ) -> dict[str, Any]:
+        """内容线 manifest 钉选表单 → 持久化表单库(替代自动组卷,签名纪律)。
+
+        逐题按 manifest 题源引用解析并做 sha 校验(见 manifest_form_import),
+        任一失配整表 fail;无 manifest 的调用方走 generate_and_persist_forms,
+        现行自动组卷行为不变。
+        """
+
+        from deeptutor.services.assessment import manifest_form_import as _mfi
+
+        form_bank = _mfi.build_manifest_form_bank(
+            list(manifest_paths),
+            blueprint=self._blueprint,
+            bank_row_resolver=_mfi.supabase_bank_row_resolver(self._provider),
+            question_bank_size=_provider_question_bank_size(self._provider),
+            replicate_to_min=replicate_to_min,
+        )
+        saver = getattr(self._provider, "save_form_bank", None)
+        if not callable(saver):
+            raise AssessmentBlueprintUnavailable("Assessment provider cannot persist form bank")
+        saver(self._blueprint, form_bank)
+        cache_key = self._form_cache_key()
+        if cache_key:
+            with _FORM_CACHE_LOCK:
+                _FORM_CACHE[cache_key] = form_bank
+        self._local_form_bank = form_bank
+        return {
+            "blueprint_version": self._blueprint.version,
+            "form_count": len(form_bank.forms),
+            "form_ids": [form.form_id for form in form_bank.forms],
+            "form_source": form_bank.form_source,
+            "question_bank_size": form_bank.question_bank_size,
+            "fallback_used": False,
+            "persisted": True,
+            "manifest_paths": [str(path) for path in manifest_paths],
+        }
+
     def create_session(
         self,
         *,
@@ -1059,6 +1102,11 @@ def _build_scored_question(
     elif candidate.source_type == COMPILED_PRACTICE_SOURCE_TYPE:
         # 读侧聚合真相：编译轻练权威不是 questions_bank 行，provenance 如实指认。
         source_table = "luban_compiled_practice_authority"
+    elif candidate.source_type == MANIFEST_SOURCE_TYPE:
+        # manifest 钉选案例变式：新内容不在任何库，provenance=manifest:<sha>。
+        source_table = str(
+            (candidate.source_meta or {}).get("provenance") or "form_manifest"
+        )
     else:
         source_table = "questions_bank"
     provenance = {

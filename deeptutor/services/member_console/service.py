@@ -973,13 +973,21 @@ class MemberConsoleService:
         return self._build_assessment_blueprint_service().prewarm_forms()
 
     def generate_and_persist_assessment_forms(
-        self, blueprint_version: str = "diagnostic_v1"
+        self,
+        blueprint_version: str = "diagnostic_v1",
+        manifest_paths: list[str] | None = None,
+        replicate_to_min: bool = False,
     ) -> dict[str, Any]:
         # 默认值保持 diagnostic_v1(既有调用方零改动);表单 v2 签发经
         # blueprint_version="pass_readiness_architecture_v2" 走同一入口。
-        return self._build_assessment_blueprint_service(
-            blueprint_version
-        ).generate_and_persist_forms()
+        # manifest_paths 给定时走内容线钉选导入(manifest_form_import,逐题
+        # sha 校验),不给时保持现行自动组卷。
+        service = self._build_assessment_blueprint_service(blueprint_version)
+        if manifest_paths:
+            return service.generate_and_persist_forms_from_manifest(
+                list(manifest_paths), replicate_to_min=replicate_to_min
+            )
+        return service.generate_and_persist_forms()
 
     def get_assessment_topic_catalog(self, user_id: str = "") -> dict[str, Any]:
         provider = SupabaseAssessmentQuestionProvider()

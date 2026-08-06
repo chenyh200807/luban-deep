@@ -14,6 +14,9 @@ COMPILED_PRACTICE_QUESTION_SOURCE = "compiled_practice"
 # 编译轻练读源产出的 candidate source_type 标记（只存在于读侧投影/组卷快照，
 # 绝不回写 questions_bank）。
 COMPILED_PRACTICE_SOURCE_TYPE = "COMPILED_PRACTICE"
+# manifest 钉选导入的案例变式题 source_type 标记（新内容,不在任何库;
+# provenance=manifest:<manifest sha256>,见 manifest_form_import.py）。
+MANIFEST_SOURCE_TYPE = "FORM_MANIFEST"
 
 
 @dataclass(frozen=True)
@@ -380,7 +383,7 @@ PASS_READINESS_ARCHITECTURE_V2 = AssessmentBlueprint(
         AssessmentSection(
             id="pr2_single_main_structure",
             label="真题变式客观 · 主体结构",
-            count=4,
+            count=5,
             scored=True,
             question_types=("single_choice",),
             question_source=COMPILED_PRACTICE_QUESTION_SOURCE,
@@ -402,7 +405,7 @@ PASS_READINESS_ARCHITECTURE_V2 = AssessmentBlueprint(
         AssessmentSection(
             id="pr2_single_schedule",
             label="真题变式客观 · 进度",
-            count=4,
+            count=3,
             scored=True,
             question_types=("single_choice",),
             question_source=COMPILED_PRACTICE_QUESTION_SOURCE,
