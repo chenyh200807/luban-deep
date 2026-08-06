@@ -521,6 +521,11 @@ class _AssessmentTemplate:
     answer: str
 
 
+# 过线体检现行 blueprint 的单一权威(create 入口与启动预热共用,防两处漂移)。
+# v2 = 39 交互(30 客观对齐真题卷面+案例变式+两级检查点), owner 2026-08-06 拍板;
+# v1 blueprint/表单全程保留为回滚锚(改回此常量即回滚)。
+_PASS_READINESS_BLUEPRINT_VERSION = "pass_readiness_architecture_v2"
+
 _ASSESSMENT_BANK: list[_AssessmentTemplate] = [
     _AssessmentTemplate(
         id="q_foundation_1",
@@ -970,7 +975,17 @@ class MemberConsoleService:
         )
 
     def prewarm_assessment_forms(self) -> dict[str, Any]:
-        return self._build_assessment_blueprint_service().prewarm_forms()
+        # 预热清单与线上入口同权威:diagnostic_v1(专题测评)+ 过线体检现行 blueprint。
+        # 逐版本尽力而为——单版本失败不拖垮另一版本,也不拖垮启动(调用方在
+        # startup 后台线程里跑,只记日志)。
+        results: dict[str, Any] = {}
+        for version in ("diagnostic_v1", _PASS_READINESS_BLUEPRINT_VERSION):
+            try:
+                results[version] = self._build_assessment_blueprint_service(version).prewarm_forms()
+            except Exception as exc:
+                logger.warning("assessment form prewarm failed for %s: %s", version, exc)
+                results[version] = {"error": str(exc)}
+        return results
 
     def generate_and_persist_assessment_forms(
         self,
@@ -9125,9 +9140,7 @@ class MemberConsoleService:
         subject_id: str,
         device_id: str = "",
     ) -> dict[str, Any]:
-        # v2 = 39 交互(30 客观对齐真题卷面+案例变式+两级检查点), owner 2026-08-06 拍板;
-        # v1 blueprint/表单全程保留为回滚锚(改回此行即回滚)。
-        blueprint_version = "pass_readiness_architecture_v2"
+        blueprint_version = _PASS_READINESS_BLUEPRINT_VERSION
         blueprint = get_assessment_blueprint(blueprint_version)
         payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
             user_id=user_id,
