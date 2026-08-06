@@ -12,6 +12,8 @@ import re
 import uuid
 
 from deeptutor.services.assessment.blueprint import (
+    COMPILED_PRACTICE_SOURCE_TYPE,
+    MANIFEST_SOURCE_TYPE,
     MIN_FORM_ROTATION_COUNT,
     TARGET_FORM_ROTATION_COUNT,
     AssessmentBlueprint,
@@ -567,6 +569,48 @@ class AssessmentBlueprintService:
             "persisted": True,
         }
 
+    def generate_and_persist_forms_from_manifest(
+        self,
+        manifest_paths: list[str],
+        *,
+        replicate_to_min: bool = False,
+    ) -> dict[str, Any]:
+        """内容线 manifest 钉选表单 → 持久化表单库(替代自动组卷,签名纪律)。
+
+        逐题按 manifest 题源引用解析并做 sha 校验(见 manifest_form_import),
+        任一失配整表 fail;无 manifest 的调用方走 generate_and_persist_forms,
+        现行自动组卷行为不变。
+        """
+
+        from deeptutor.services.assessment import manifest_form_import as _mfi
+
+        form_bank = _mfi.build_manifest_form_bank(
+            list(manifest_paths),
+            blueprint=self._blueprint,
+            bank_row_resolver=_mfi.supabase_bank_row_resolver(self._provider),
+            question_bank_size=_provider_question_bank_size(self._provider),
+            replicate_to_min=replicate_to_min,
+        )
+        saver = getattr(self._provider, "save_form_bank", None)
+        if not callable(saver):
+            raise AssessmentBlueprintUnavailable("Assessment provider cannot persist form bank")
+        saver(self._blueprint, form_bank)
+        cache_key = self._form_cache_key()
+        if cache_key:
+            with _FORM_CACHE_LOCK:
+                _FORM_CACHE[cache_key] = form_bank
+        self._local_form_bank = form_bank
+        return {
+            "blueprint_version": self._blueprint.version,
+            "form_count": len(form_bank.forms),
+            "form_ids": [form.form_id for form in form_bank.forms],
+            "form_source": form_bank.form_source,
+            "question_bank_size": form_bank.question_bank_size,
+            "fallback_used": False,
+            "persisted": True,
+            "manifest_paths": [str(path) for path in manifest_paths],
+        }
+
     def create_session(
         self,
         *,
@@ -641,6 +685,9 @@ class AssessmentBlueprintService:
             "session_questions": session_questions,
             "blueprint_version": self._blueprint.version,
             "checkpoint_after": int(self._blueprint.checkpoint_after or 0),
+            # 两级检查点（§6.2-v2）：全量导出；v1 单值 blueprint 导出单元素列表，
+            # 向后兼容（checkpoint_after 恒等于第一个检查点）。
+            "checkpoints": [int(item) for item in self._blueprint.checkpoint_list],
             "sections": sections,
             "requested_count": requested_count,
             "delivered_count": delivered_count,
@@ -848,6 +895,9 @@ def _choose_assessment_form(forms: tuple[_AssessmentForm, ...]) -> _AssessmentFo
 
 
 def _built_form_source(provider: AssessmentQuestionProvider) -> str:
+    label = str(getattr(provider, "form_source_label", "") or "")
+    if label:
+        return label
     if isinstance(provider, SupabaseAssessmentQuestionProvider):
         return "supabase_questions_bank"
     if isinstance(provider, StaticAssessmentQuestionProvider):
@@ -1047,8 +1097,20 @@ def _build_scored_question(
     section: AssessmentSection,
     candidate: QuestionCandidate,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    if candidate.source_type == "DEV_FALLBACK":
+        source_table = "dev_fallback"
+    elif candidate.source_type == COMPILED_PRACTICE_SOURCE_TYPE:
+        # 读侧聚合真相：编译轻练权威不是 questions_bank 行，provenance 如实指认。
+        source_table = "luban_compiled_practice_authority"
+    elif candidate.source_type == MANIFEST_SOURCE_TYPE:
+        # manifest 钉选案例变式：新内容不在任何库，provenance=manifest:<sha>。
+        source_table = str(
+            (candidate.source_meta or {}).get("provenance") or "form_manifest"
+        )
+    else:
+        source_table = "questions_bank"
     provenance = {
-        "source_table": "questions_bank" if candidate.source_type != "DEV_FALLBACK" else "dev_fallback",
+        "source_table": source_table,
         "question_id": candidate.source_question_id,
         "source_question_id": candidate.source_question_id,
         "source_type": candidate.source_type,
@@ -1229,6 +1291,29 @@ def _selection_offset(selection_seed: str, section_id: str) -> int:
     return 1000 + (int(digest[:8], 16) % 3000)
 
 
+# 真题标记键（§6.2-v2 拍板②「真题只做锚、不直接出」的选材闸）：练习册/教材行
+# 若 source_meta 携带任一真题溯源标记即视为真题原题换皮，多选过渡源不得选用。
+_REAL_EXAM_MARKER_KEYS = (
+    "based_on",
+    "based_on_source",
+    "based_on_question_id",
+    "source_exam",
+    "source_exam_id",
+    "exam_year",
+    "exam_source",
+    "real_exam_ref",
+)
+
+
+def _real_exam_marked(candidate: QuestionCandidate) -> bool:
+    if str(candidate.source_type or "").strip().upper() == "REAL_EXAM":
+        return True
+    meta = dict(candidate.source_meta or {})
+    if any(str(meta.get(key) or "").strip() for key in _REAL_EXAM_MARKER_KEYS):
+        return True
+    return "真题" in json.dumps(meta, ensure_ascii=False)
+
+
 def _select_diagnostic_candidates(
     candidates: list[QuestionCandidate],
     *,
@@ -1238,6 +1323,8 @@ def _select_diagnostic_candidates(
     avoid_chapters: set[str],
 ) -> list[QuestionCandidate]:
     filtered = list(candidates)
+    if section.exclude_real_exam_marked:
+        filtered = [candidate for candidate in filtered if not _real_exam_marked(candidate)]
     if section.strict_topics:
         filtered = [candidate for candidate in filtered if _section_topic_score(candidate, section) > 0]
     ordered = _prioritize_section_topics(

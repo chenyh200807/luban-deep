@@ -34,7 +34,11 @@ except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.assessment.blueprint import get_assessment_blueprint, real_exam_source_policy
+from deeptutor.services.assessment.blueprint import (
+    COMPILED_PRACTICE_QUESTION_SOURCE,
+    get_assessment_blueprint,
+    real_exam_source_policy,
+)
 from deeptutor.services.assessment import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
@@ -42,6 +46,7 @@ from deeptutor.services.assessment import (
     StaticAssessmentQuestionProvider,
     SupabaseAssessmentQuestionProvider,
 )
+from deeptutor.services.assessment.blueprint_service import AssessmentQuestionProvider
 from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
@@ -942,9 +947,24 @@ class MemberConsoleService:
             "ASSESSMENT_USE_SUPABASE",
             default=False,
         )
+        blueprint = get_assessment_blueprint(blueprint_version)
+        provider: AssessmentQuestionProvider = (
+            SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider
+        )
+        if any(
+            section.question_source == COMPILED_PRACTICE_QUESTION_SOURCE
+            for section in blueprint.sections
+        ):
+            # 表单 v2 读侧聚合：编译轻练 section 路由到 compiled authority 读源，
+            # questions_bank section 语义零改动（v1 blueprint 不含该声明，不受影响）。
+            from deeptutor.services.assessment.compiled_practice_provider import (
+                SourceRoutedAssessmentQuestionProvider,
+            )
+
+            provider = SourceRoutedAssessmentQuestionProvider(default_provider=provider)
         return AssessmentBlueprintService(
-            blueprint=get_assessment_blueprint(blueprint_version),
-            provider=SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider,
+            blueprint=blueprint,
+            provider=provider,
             fallback_provider=fallback_provider,
             allow_dev_fallback=allow_dev_fallback,
         )
@@ -952,8 +972,22 @@ class MemberConsoleService:
     def prewarm_assessment_forms(self) -> dict[str, Any]:
         return self._build_assessment_blueprint_service().prewarm_forms()
 
-    def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
-        return self._build_assessment_blueprint_service().generate_and_persist_forms()
+    def generate_and_persist_assessment_forms(
+        self,
+        blueprint_version: str = "diagnostic_v1",
+        manifest_paths: list[str] | None = None,
+        replicate_to_min: bool = False,
+    ) -> dict[str, Any]:
+        # 默认值保持 diagnostic_v1(既有调用方零改动);表单 v2 签发经
+        # blueprint_version="pass_readiness_architecture_v2" 走同一入口。
+        # manifest_paths 给定时走内容线钉选导入(manifest_form_import,逐题
+        # sha 校验),不给时保持现行自动组卷。
+        service = self._build_assessment_blueprint_service(blueprint_version)
+        if manifest_paths:
+            return service.generate_and_persist_forms_from_manifest(
+                list(manifest_paths), replicate_to_min=replicate_to_min
+            )
+        return service.generate_and_persist_forms()
 
     def get_assessment_topic_catalog(self, user_id: str = "") -> dict[str, Any]:
         provider = SupabaseAssessmentQuestionProvider()
@@ -9118,6 +9152,8 @@ class MemberConsoleService:
             "topic_ids": [],
             "topic_label": "一建过线体检",
             "checkpoint_after": int(payload.get("checkpoint_after") or blueprint.checkpoint_after or 0),
+            # 两级检查点（§6.2-v2）：v1 导出单元素列表，向后兼容。
+            "checkpoints": [int(item) for item in (payload.get("checkpoints") or blueprint.checkpoint_list)],
             "status": session["status"],
             "reuse_reason": session.get("reuse_reason", ""),
             "questions": deepcopy(session["client_questions_public"]),
