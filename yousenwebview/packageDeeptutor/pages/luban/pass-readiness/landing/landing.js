@@ -1,6 +1,6 @@
 // 过线体检(S5)· 屏 1 落地页
 // §4.1 六要素 + §5.1 登录 UI 合同(验收级):
-// - 入口唯一按钮「微信一键登录 · 开始测评」(open-type=getPhoneNumber);
+// - 入口唯一按钮「快速登录 · 开始测评」(open-type=getPhoneNumber);
 // - 用户在微信弹窗点「拒绝」→ 同一 handler 内直接走 login-basic 继续进测评:
 //   零二次弹窗、零挽留文案、零 toast, 拒绝路径与授权路径 tap 数相同;
 // - 登录失败(微信 API 错误, 非拒绝)才展示重试, 埋点区分 decline 与 failure。

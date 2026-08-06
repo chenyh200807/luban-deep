@@ -18,7 +18,7 @@ var vm = require(vmPath);
 
 // ── 1. 落地页六要素 ──────────────────────────────────────────
 assert.strictEqual(vm.LANDING_COPY.productName, "鲁班智考 · 一建过线体检");
-assert.strictEqual(vm.LANDING_COPY.h1, "离 96 分过线，你还差几分？");
+assert.strictEqual(vm.LANDING_COPY.h1, "现在上考场，你能过 96 分线吗？");
 assert.ok(
   vm.LANDING_COPY.subtitle.indexOf("2015–2025") >= 0 &&
     vm.LANDING_COPY.subtitle.indexOf("采分点") >= 0,
@@ -28,7 +28,7 @@ assert.ok(
   vm.LANDING_COPY.antiQuizLine.indexOf("不是心理测试") === 0,
   "防心测声明必须打头",
 );
-assert.strictEqual(vm.LANDING_COPY.ctaLogin, "微信一键登录 · 开始测评");
+assert.strictEqual(vm.LANDING_COPY.ctaLogin, "快速登录 · 开始测评");
 assert.ok(
   vm.LANDING_COPY.phoneAuthReason.indexOf("不影响本次测评") >= 0 &&
     vm.LANDING_COPY.phoneAuthReason.indexOf("可随时退订") >= 0,
