@@ -17,9 +17,14 @@ from deeptutor.services.member_console import get_member_console_service
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate and persist diagnostic assessment forms.")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
+    parser.add_argument(
+        "--blueprint",
+        default="diagnostic_v1",
+        help="Blueprint version to seed (e.g. pass_readiness_architecture_v2).",
+    )
     args = parser.parse_args()
 
-    result = get_member_console_service().generate_and_persist_assessment_forms()
+    result = get_member_console_service().generate_and_persist_assessment_forms(args.blueprint)
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return

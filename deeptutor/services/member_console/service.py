@@ -972,8 +972,14 @@ class MemberConsoleService:
     def prewarm_assessment_forms(self) -> dict[str, Any]:
         return self._build_assessment_blueprint_service().prewarm_forms()
 
-    def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
-        return self._build_assessment_blueprint_service().generate_and_persist_forms()
+    def generate_and_persist_assessment_forms(
+        self, blueprint_version: str = "diagnostic_v1"
+    ) -> dict[str, Any]:
+        # 默认值保持 diagnostic_v1(既有调用方零改动);表单 v2 签发经
+        # blueprint_version="pass_readiness_architecture_v2" 走同一入口。
+        return self._build_assessment_blueprint_service(
+            blueprint_version
+        ).generate_and_persist_forms()
 
     def get_assessment_topic_catalog(self, user_id: str = "") -> dict[str, Any]:
         provider = SupabaseAssessmentQuestionProvider()
