@@ -1,0 +1,1349 @@
+{
+ "schema_version": "luban-z01-variant-bank",
+ "pack_id": "Z01",
+ "status": "candidate",
+ "review_track": "pending_dual_sign(teaching+scoring)·工单=2026-08-06-E06-Z01-双签工单.md",
+ "production_basis": "官方《2026教材对比明细》新增《智能建造技术导则(试行)》(建办市〔2025〕14号)·2026 教材块原文锚",
+ "source_pack_sha256": "f2b6aba2fb7dfc7ed6a2deb8352efb8b74d2884236da95f69f81298e23dd22ec",
+ "generation_ms": 0.05,
+ "gate": {
+  "total": 101,
+  "passed": 101,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-stage": 17,
+  "B-domain": 30,
+  "C-equip": 25,
+  "D-proc": 7,
+  "E-member": 22
+ },
+ "variants": [
+  {
+   "variant_id": "Z01-A-stage-000",
+   "rule_group": "A-stage",
+   "surface": "项目部提出智能建造应以「提品质、降成本」为目标，集成五阶段关键技术产品",
+   "params": {
+    "goal": "提品质降成本"
+   },
+   "expected_ok": true,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-001",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「工程勘察全过程数据的快速准确采集与共享」归入数字勘察阶段",
+   "params": {
+    "item": "工程勘察全过程数据的快速准确采集与共享",
+    "stage": "数字勘察"
+   },
+   "expected_ok": true,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:2",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-002",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「工程勘察全过程数据的快速准确采集与共享」归入智能生产阶段",
+   "params": {
+    "item": "工程勘察全过程数据的快速准确采集与共享",
+    "stage": "智能生产"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:2",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-003",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「工程勘察全过程数据的快速准确采集与共享」归入智能施工阶段",
+   "params": {
+    "item": "工程勘察全过程数据的快速准确采集与共享",
+    "stage": "智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:2",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-004",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「工程勘察全过程数据的快速准确采集与共享」归入智慧运维阶段",
+   "params": {
+    "item": "工程勘察全过程数据的快速准确采集与共享",
+    "stage": "智慧运维"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:2",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-A-stage-005",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑部品部件智能生产线与标准部品部件生产体系」归入数字勘察阶段",
+   "params": {
+    "item": "建筑部品部件智能生产线与标准部品部件生产体系",
+    "stage": "数字勘察"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-A-stage-006",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑部品部件智能生产线与标准部品部件生产体系」归入智能生产阶段",
+   "params": {
+    "item": "建筑部品部件智能生产线与标准部品部件生产体系",
+    "stage": "智能生产"
+   },
+   "expected_ok": true,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:3",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-007",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑部品部件智能生产线与标准部品部件生产体系」归入智能施工阶段",
+   "params": {
+    "item": "建筑部品部件智能生产线与标准部品部件生产体系",
+    "stage": "智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:3",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-008",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑部品部件智能生产线与标准部品部件生产体系」归入智慧运维阶段",
+   "params": {
+    "item": "建筑部品部件智能生产线与标准部品部件生产体系",
+    "stage": "智慧运维"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_052_0078:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-A-stage-009",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「施工现场智能建造装备及建筑机器人辅助作业」归入数字勘察阶段",
+   "params": {
+    "item": "施工现场智能建造装备及建筑机器人辅助作业",
+    "stage": "数字勘察"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-A-stage-010",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「施工现场智能建造装备及建筑机器人辅助作业」归入智能生产阶段",
+   "params": {
+    "item": "施工现场智能建造装备及建筑机器人辅助作业",
+    "stage": "智能生产"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-011",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「施工现场智能建造装备及建筑机器人辅助作业」归入智能施工阶段",
+   "params": {
+    "item": "施工现场智能建造装备及建筑机器人辅助作业",
+    "stage": "智能施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-012",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「施工现场智能建造装备及建筑机器人辅助作业」归入智慧运维阶段",
+   "params": {
+    "item": "施工现场智能建造装备及建筑机器人辅助作业",
+    "stage": "智慧运维"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-A-stage-013",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑结构健康监测与末端设备自动控制」归入数字勘察阶段",
+   "params": {
+    "item": "建筑结构健康监测与末端设备自动控制",
+    "stage": "数字勘察"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-A-stage-014",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑结构健康监测与末端设备自动控制」归入智能生产阶段",
+   "params": {
+    "item": "建筑结构健康监测与末端设备自动控制",
+    "stage": "智能生产"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-015",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑结构健康监测与末端设备自动控制」归入智能施工阶段",
+   "params": {
+    "item": "建筑结构健康监测与末端设备自动控制",
+    "stage": "智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-A-stage-016",
+   "rule_group": "A-stage",
+   "surface": "技术交底中把「建筑结构健康监测与末端设备自动控制」归入智慧运维阶段",
+   "params": {
+    "item": "建筑结构健康监测与末端设备自动控制",
+    "stage": "智慧运维"
+   },
+   "expected_ok": true,
+   "correct_statement": "《智能建造技术导则（试行）》以「提品质、降成本」为目标，集成数字勘察、数字设计、智能生产、智能施工、智慧运维五阶段关键技术；智能生产在工厂、智能施工在现场",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-017",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「桩基施工机器人辅助作业」列入数据驱动施工管理部分",
+   "params": {
+    "item": "桩基施工机器人辅助作业",
+    "domain": "数据驱动施工管理"
+   },
+   "expected_ok": false,
+   "correct_statement": "「桩基施工机器人辅助作业」属地基基础智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-018",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「桩基施工机器人辅助作业」列入地基基础智能施工部分",
+   "params": {
+    "item": "桩基施工机器人辅助作业",
+    "domain": "地基基础智能施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "「桩基施工机器人辅助作业」属地基基础智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:3",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-019",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「桩基施工机器人辅助作业」列入主体结构智能施工部分",
+   "params": {
+    "item": "桩基施工机器人辅助作业",
+    "domain": "主体结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「桩基施工机器人辅助作业」属地基基础智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:3",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-020",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「桩基施工机器人辅助作业」列入围护结构智能施工部分",
+   "params": {
+    "item": "桩基施工机器人辅助作业",
+    "domain": "围护结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「桩基施工机器人辅助作业」属地基基础智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-021",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「桩基施工机器人辅助作业」列入装饰装修工程智能施工部分",
+   "params": {
+    "item": "桩基施工机器人辅助作业",
+    "domain": "装饰装修工程智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「桩基施工机器人辅助作业」属地基基础智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-022",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「构件吊装与混凝土布料机器人辅助作业」列入数据驱动施工管理部分",
+   "params": {
+    "item": "构件吊装与混凝土布料机器人辅助作业",
+    "domain": "数据驱动施工管理"
+   },
+   "expected_ok": false,
+   "correct_statement": "「构件吊装与混凝土布料机器人辅助作业」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-023",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「构件吊装与混凝土布料机器人辅助作业」列入地基基础智能施工部分",
+   "params": {
+    "item": "构件吊装与混凝土布料机器人辅助作业",
+    "domain": "地基基础智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「构件吊装与混凝土布料机器人辅助作业」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-024",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「构件吊装与混凝土布料机器人辅助作业」列入主体结构智能施工部分",
+   "params": {
+    "item": "构件吊装与混凝土布料机器人辅助作业",
+    "domain": "主体结构智能施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "「构件吊装与混凝土布料机器人辅助作业」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-025",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「构件吊装与混凝土布料机器人辅助作业」列入围护结构智能施工部分",
+   "params": {
+    "item": "构件吊装与混凝土布料机器人辅助作业",
+    "domain": "围护结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「构件吊装与混凝土布料机器人辅助作业」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-026",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「构件吊装与混凝土布料机器人辅助作业」列入装饰装修工程智能施工部分",
+   "params": {
+    "item": "构件吊装与混凝土布料机器人辅助作业",
+    "domain": "装饰装修工程智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「构件吊装与混凝土布料机器人辅助作业」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-027",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「预制构件灌浆套筒自动灌浆」列入数据驱动施工管理部分",
+   "params": {
+    "item": "预制构件灌浆套筒自动灌浆",
+    "domain": "数据驱动施工管理"
+   },
+   "expected_ok": false,
+   "correct_statement": "「预制构件灌浆套筒自动灌浆」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-028",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「预制构件灌浆套筒自动灌浆」列入地基基础智能施工部分",
+   "params": {
+    "item": "预制构件灌浆套筒自动灌浆",
+    "domain": "地基基础智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「预制构件灌浆套筒自动灌浆」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-029",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「预制构件灌浆套筒自动灌浆」列入主体结构智能施工部分",
+   "params": {
+    "item": "预制构件灌浆套筒自动灌浆",
+    "domain": "主体结构智能施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "「预制构件灌浆套筒自动灌浆」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-030",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「预制构件灌浆套筒自动灌浆」列入围护结构智能施工部分",
+   "params": {
+    "item": "预制构件灌浆套筒自动灌浆",
+    "domain": "围护结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「预制构件灌浆套筒自动灌浆」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-031",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「预制构件灌浆套筒自动灌浆」列入装饰装修工程智能施工部分",
+   "params": {
+    "item": "预制构件灌浆套筒自动灌浆",
+    "domain": "装饰装修工程智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「预制构件灌浆套筒自动灌浆」属主体结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-032",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「实测实量机器人实体质量检测」列入数据驱动施工管理部分",
+   "params": {
+    "item": "实测实量机器人实体质量检测",
+    "domain": "数据驱动施工管理"
+   },
+   "expected_ok": false,
+   "correct_statement": "「实测实量机器人实体质量检测」属围护结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:8",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-033",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「实测实量机器人实体质量检测」列入地基基础智能施工部分",
+   "params": {
+    "item": "实测实量机器人实体质量检测",
+    "domain": "地基基础智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「实测实量机器人实体质量检测」属围护结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:8",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-034",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「实测实量机器人实体质量检测」列入主体结构智能施工部分",
+   "params": {
+    "item": "实测实量机器人实体质量检测",
+    "domain": "主体结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「实测实量机器人实体质量检测」属围护结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:8",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-035",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「实测实量机器人实体质量检测」列入围护结构智能施工部分",
+   "params": {
+    "item": "实测实量机器人实体质量检测",
+    "domain": "围护结构智能施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "「实测实量机器人实体质量检测」属围护结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:8",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-036",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「实测实量机器人实体质量检测」列入装饰装修工程智能施工部分",
+   "params": {
+    "item": "实测实量机器人实体质量检测",
+    "domain": "装饰装修工程智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「实测实量机器人实体质量检测」属围护结构智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:8",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-037",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「地坪打磨与乳胶漆喷涂机器人作业」列入数据驱动施工管理部分",
+   "params": {
+    "item": "地坪打磨与乳胶漆喷涂机器人作业",
+    "domain": "数据驱动施工管理"
+   },
+   "expected_ok": false,
+   "correct_statement": "「地坪打磨与乳胶漆喷涂机器人作业」属装饰装修工程智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:10",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-038",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「地坪打磨与乳胶漆喷涂机器人作业」列入地基基础智能施工部分",
+   "params": {
+    "item": "地坪打磨与乳胶漆喷涂机器人作业",
+    "domain": "地基基础智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「地坪打磨与乳胶漆喷涂机器人作业」属装饰装修工程智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:10",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-039",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「地坪打磨与乳胶漆喷涂机器人作业」列入主体结构智能施工部分",
+   "params": {
+    "item": "地坪打磨与乳胶漆喷涂机器人作业",
+    "domain": "主体结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「地坪打磨与乳胶漆喷涂机器人作业」属装饰装修工程智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:10",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-040",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「地坪打磨与乳胶漆喷涂机器人作业」列入围护结构智能施工部分",
+   "params": {
+    "item": "地坪打磨与乳胶漆喷涂机器人作业",
+    "domain": "围护结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「地坪打磨与乳胶漆喷涂机器人作业」属装饰装修工程智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:10",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-041",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「地坪打磨与乳胶漆喷涂机器人作业」列入装饰装修工程智能施工部分",
+   "params": {
+    "item": "地坪打磨与乳胶漆喷涂机器人作业",
+    "domain": "装饰装修工程智能施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "「地坪打磨与乳胶漆喷涂机器人作业」属装饰装修工程智能施工（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:10",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-042",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「BIM 施工总平面布置规划与工序模拟优化」列入数据驱动施工管理部分",
+   "params": {
+    "item": "BIM 施工总平面布置规划与工序模拟优化",
+    "domain": "数据驱动施工管理"
+   },
+   "expected_ok": true,
+   "correct_statement": "「BIM 施工总平面布置规划与工序模拟优化」属数据驱动施工管理（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:1",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-043",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「BIM 施工总平面布置规划与工序模拟优化」列入地基基础智能施工部分",
+   "params": {
+    "item": "BIM 施工总平面布置规划与工序模拟优化",
+    "domain": "地基基础智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「BIM 施工总平面布置规划与工序模拟优化」属数据驱动施工管理（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:1",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-044",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「BIM 施工总平面布置规划与工序模拟优化」列入主体结构智能施工部分",
+   "params": {
+    "item": "BIM 施工总平面布置规划与工序模拟优化",
+    "domain": "主体结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「BIM 施工总平面布置规划与工序模拟优化」属数据驱动施工管理（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:1",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-B-domain-045",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「BIM 施工总平面布置规划与工序模拟优化」列入围护结构智能施工部分",
+   "params": {
+    "item": "BIM 施工总平面布置规划与工序模拟优化",
+    "domain": "围护结构智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「BIM 施工总平面布置规划与工序模拟优化」属数据驱动施工管理（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:1",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-B-domain-046",
+   "rule_group": "B-domain",
+   "surface": "智能施工方案把「BIM 施工总平面布置规划与工序模拟优化」列入装饰装修工程智能施工部分",
+   "params": {
+    "item": "BIM 施工总平面布置规划与工序模拟优化",
+    "domain": "装饰装修工程智能施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "「BIM 施工总平面布置规划与工序模拟优化」属数据驱动施工管理（教材领域清单）",
+   "anchor": "cc:1A422000_053_0079:1",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-047",
+   "rule_group": "C-equip",
+   "surface": "项目部安排无人机承担：航拍自动化测算场地平整、基坑开挖及填筑土方量，生成三维实景模型展示进度",
+   "params": {
+    "equip": "无人机",
+    "use_owner": "无人机"
+   },
+   "expected_ok": true,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:2",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-048",
+   "rule_group": "C-equip",
+   "surface": "项目部安排无人机承担：辅助人工进行钢筋捆扎作业",
+   "params": {
+    "equip": "无人机",
+    "use_owner": "手持式智能钢筋捆扎机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:2",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-049",
+   "rule_group": "C-equip",
+   "surface": "项目部安排无人机承担：物料自动化运输，与智能升降机数据联网实现垂直与水平运输联动",
+   "params": {
+    "equip": "无人机",
+    "use_owner": "搬运机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:2",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-050",
+   "rule_group": "C-equip",
+   "surface": "项目部安排无人机承担：建筑外立面墙漆喷涂，自动规划路径并自动喷涂底漆、中涂、面漆、罩光漆",
+   "params": {
+    "equip": "无人机",
+    "use_owner": "喷涂机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:2",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-051",
+   "rule_group": "C-equip",
+   "surface": "项目部安排无人机承担：对预制构件的灌浆套筒进行连接并自动检测灌浆质量",
+   "params": {
+    "equip": "无人机",
+    "use_owner": "智能化灌浆装备"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:2",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-052",
+   "rule_group": "C-equip",
+   "surface": "项目部安排手持式智能钢筋捆扎机承担：航拍自动化测算场地平整、基坑开挖及填筑土方量，生成三维实景模型展示进度",
+   "params": {
+    "equip": "手持式智能钢筋捆扎机",
+    "use_owner": "无人机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-053",
+   "rule_group": "C-equip",
+   "surface": "项目部安排手持式智能钢筋捆扎机承担：辅助人工进行钢筋捆扎作业",
+   "params": {
+    "equip": "手持式智能钢筋捆扎机",
+    "use_owner": "手持式智能钢筋捆扎机"
+   },
+   "expected_ok": true,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:3",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-054",
+   "rule_group": "C-equip",
+   "surface": "项目部安排手持式智能钢筋捆扎机承担：物料自动化运输，与智能升降机数据联网实现垂直与水平运输联动",
+   "params": {
+    "equip": "手持式智能钢筋捆扎机",
+    "use_owner": "搬运机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:3",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-055",
+   "rule_group": "C-equip",
+   "surface": "项目部安排手持式智能钢筋捆扎机承担：建筑外立面墙漆喷涂，自动规划路径并自动喷涂底漆、中涂、面漆、罩光漆",
+   "params": {
+    "equip": "手持式智能钢筋捆扎机",
+    "use_owner": "喷涂机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-056",
+   "rule_group": "C-equip",
+   "surface": "项目部安排手持式智能钢筋捆扎机承担：对预制构件的灌浆套筒进行连接并自动检测灌浆质量",
+   "params": {
+    "equip": "手持式智能钢筋捆扎机",
+    "use_owner": "智能化灌浆装备"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:3",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-057",
+   "rule_group": "C-equip",
+   "surface": "项目部安排搬运机器人承担：航拍自动化测算场地平整、基坑开挖及填筑土方量，生成三维实景模型展示进度",
+   "params": {
+    "equip": "搬运机器人",
+    "use_owner": "无人机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-058",
+   "rule_group": "C-equip",
+   "surface": "项目部安排搬运机器人承担：辅助人工进行钢筋捆扎作业",
+   "params": {
+    "equip": "搬运机器人",
+    "use_owner": "手持式智能钢筋捆扎机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-059",
+   "rule_group": "C-equip",
+   "surface": "项目部安排搬运机器人承担：物料自动化运输，与智能升降机数据联网实现垂直与水平运输联动",
+   "params": {
+    "equip": "搬运机器人",
+    "use_owner": "搬运机器人"
+   },
+   "expected_ok": true,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-060",
+   "rule_group": "C-equip",
+   "surface": "项目部安排搬运机器人承担：建筑外立面墙漆喷涂，自动规划路径并自动喷涂底漆、中涂、面漆、罩光漆",
+   "params": {
+    "equip": "搬运机器人",
+    "use_owner": "喷涂机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:4",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-061",
+   "rule_group": "C-equip",
+   "surface": "项目部安排搬运机器人承担：对预制构件的灌浆套筒进行连接并自动检测灌浆质量",
+   "params": {
+    "equip": "搬运机器人",
+    "use_owner": "智能化灌浆装备"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:4",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-062",
+   "rule_group": "C-equip",
+   "surface": "项目部安排喷涂机器人承担：航拍自动化测算场地平整、基坑开挖及填筑土方量，生成三维实景模型展示进度",
+   "params": {
+    "equip": "喷涂机器人",
+    "use_owner": "无人机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:5",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-063",
+   "rule_group": "C-equip",
+   "surface": "项目部安排喷涂机器人承担：辅助人工进行钢筋捆扎作业",
+   "params": {
+    "equip": "喷涂机器人",
+    "use_owner": "手持式智能钢筋捆扎机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:5",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-064",
+   "rule_group": "C-equip",
+   "surface": "项目部安排喷涂机器人承担：物料自动化运输，与智能升降机数据联网实现垂直与水平运输联动",
+   "params": {
+    "equip": "喷涂机器人",
+    "use_owner": "搬运机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:5",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-065",
+   "rule_group": "C-equip",
+   "surface": "项目部安排喷涂机器人承担：建筑外立面墙漆喷涂，自动规划路径并自动喷涂底漆、中涂、面漆、罩光漆",
+   "params": {
+    "equip": "喷涂机器人",
+    "use_owner": "喷涂机器人"
+   },
+   "expected_ok": true,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-066",
+   "rule_group": "C-equip",
+   "surface": "项目部安排喷涂机器人承担：对预制构件的灌浆套筒进行连接并自动检测灌浆质量",
+   "params": {
+    "equip": "喷涂机器人",
+    "use_owner": "智能化灌浆装备"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_054_0080:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-067",
+   "rule_group": "C-equip",
+   "surface": "项目部安排智能化灌浆装备承担：航拍自动化测算场地平整、基坑开挖及填筑土方量，生成三维实景模型展示进度",
+   "params": {
+    "equip": "智能化灌浆装备",
+    "use_owner": "无人机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_053_0079:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-C-equip-068",
+   "rule_group": "C-equip",
+   "surface": "项目部安排智能化灌浆装备承担：辅助人工进行钢筋捆扎作业",
+   "params": {
+    "equip": "智能化灌浆装备",
+    "use_owner": "手持式智能钢筋捆扎机"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_053_0079:6",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-069",
+   "rule_group": "C-equip",
+   "surface": "项目部安排智能化灌浆装备承担：物料自动化运输，与智能升降机数据联网实现垂直与水平运输联动",
+   "params": {
+    "equip": "智能化灌浆装备",
+    "use_owner": "搬运机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_053_0079:6",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-070",
+   "rule_group": "C-equip",
+   "surface": "项目部安排智能化灌浆装备承担：建筑外立面墙漆喷涂，自动规划路径并自动喷涂底漆、中涂、面漆、罩光漆",
+   "params": {
+    "equip": "智能化灌浆装备",
+    "use_owner": "喷涂机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_053_0079:6",
+   "extension": true
+  },
+  {
+   "variant_id": "Z01-C-equip-071",
+   "rule_group": "C-equip",
+   "surface": "项目部安排智能化灌浆装备承担：对预制构件的灌浆套筒进行连接并自动检测灌浆质量",
+   "params": {
+    "equip": "智能化灌浆装备",
+    "use_owner": "智能化灌浆装备"
+   },
+   "expected_ok": true,
+   "correct_statement": "装备用途按教材配对：无人机=土方量测算与三维实景进度；钢筋捆扎机=辅助人工捆扎；搬运机器人=物料运输与升降机联动；喷涂机器人=外立面墙漆四层自动喷涂；智能化灌浆装备=灌浆套筒连接与灌浆质量自动检测",
+   "anchor": "cc:1A422000_053_0079:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-072",
+   "rule_group": "D-proc",
+   "surface": "项目编制智能施工专项实施方案明确应用计划，过程跟踪指导，完工后对实施效果评估",
+   "params": {
+    "steps": [
+     "编制",
+     "跟踪",
+     "评估"
+    ]
+   },
+   "expected_ok": true,
+   "correct_statement": "智能施工应编制专项实施方案明确应用计划，依据方案对施工过程跟踪指导，并在施工完成后对方案实施效果进行评估",
+   "anchor": "cc:1A422000_053_0079:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-073",
+   "rule_group": "D-proc",
+   "surface": "项目未编制智能施工专项实施方案，直接采购建筑机器人进场作业",
+   "params": {
+    "steps": [
+     "跟踪"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "智能施工应编制专项实施方案明确应用计划，依据方案对施工过程跟踪指导，并在施工完成后对方案实施效果进行评估",
+   "anchor": "cc:1A422000_053_0079:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-074",
+   "rule_group": "D-proc",
+   "surface": "项目编制了专项实施方案并跟踪指导，但施工完成后未对方案实施效果进行评估",
+   "params": {
+    "steps": [
+     "编制",
+     "跟踪"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "智能施工应编制专项实施方案明确应用计划，依据方案对施工过程跟踪指导，并在施工完成后对方案实施效果进行评估",
+   "anchor": "cc:1A422000_053_0079:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-075",
+   "rule_group": "D-proc",
+   "surface": "项目先组织机器人施工、完工后补编智能施工专项实施方案",
+   "params": {
+    "steps": [
+     "跟踪",
+     "编制"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "智能施工应编制专项实施方案明确应用计划，依据方案对施工过程跟踪指导，并在施工完成后对方案实施效果进行评估",
+   "anchor": "cc:1A422000_053_0079:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-076",
+   "rule_group": "D-proc",
+   "surface": "装备选型综合考虑技术适用性、成本投入、效益产出，明确应用需求及进场计划",
+   "params": {
+    "factors": [
+     "技术",
+     "成本",
+     "效益"
+    ]
+   },
+   "expected_ok": true,
+   "correct_statement": "装备应用应统筹考虑技术适用性、成本投入、效益产出三因素，明确应用需求及进场计划",
+   "anchor": "cc:1A422000_054_0080:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-077",
+   "rule_group": "D-proc",
+   "surface": "装备选型只比较各厂家技术先进性即确定进场计划",
+   "params": {
+    "factors": [
+     "技术"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "装备应用应统筹考虑技术适用性、成本投入、效益产出三因素，明确应用需求及进场计划",
+   "anchor": "cc:1A422000_054_0080:0",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-D-proc-078",
+   "rule_group": "D-proc",
+   "surface": "以 BIM 模型作为智能建造装备及建筑机器人协同作业、路径规划、导航及调度的基础",
+   "params": {
+    "bim_base": true
+   },
+   "expected_ok": true,
+   "correct_statement": "BIM 模型是装备协同作业、路径规划、导航及调度的基础",
+   "anchor": "cc:1A422000_054_0080:1",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-079",
+   "rule_group": "E-member",
+   "surface": "数字化交付方案将「模型」列入交付内容",
+   "params": {
+    "kind": "deliver",
+    "member": "模型"
+   },
+   "expected_ok": true,
+   "correct_statement": "数字化交付内容为四项：模型（建筑/结构/机电/装饰/幕墙）、图纸、工程量清单、工程所处环境信息",
+   "anchor": "cc:1A422000_054_0080:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-080",
+   "rule_group": "E-member",
+   "surface": "数字化交付方案将「图纸」列入交付内容",
+   "params": {
+    "kind": "deliver",
+    "member": "图纸"
+   },
+   "expected_ok": true,
+   "correct_statement": "数字化交付内容为四项：模型（建筑/结构/机电/装饰/幕墙）、图纸、工程量清单、工程所处环境信息",
+   "anchor": "cc:1A422000_054_0080:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-081",
+   "rule_group": "E-member",
+   "surface": "数字化交付方案将「工程量清单」列入交付内容",
+   "params": {
+    "kind": "deliver",
+    "member": "工程量清单"
+   },
+   "expected_ok": true,
+   "correct_statement": "数字化交付内容为四项：模型（建筑/结构/机电/装饰/幕墙）、图纸、工程量清单、工程所处环境信息",
+   "anchor": "cc:1A422000_054_0080:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-082",
+   "rule_group": "E-member",
+   "surface": "数字化交付方案将「工程所处环境信息」列入交付内容",
+   "params": {
+    "kind": "deliver",
+    "member": "工程所处环境信息"
+   },
+   "expected_ok": true,
+   "correct_statement": "数字化交付内容为四项：模型（建筑/结构/机电/装饰/幕墙）、图纸、工程量清单、工程所处环境信息",
+   "anchor": "cc:1A422000_054_0080:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-083",
+   "rule_group": "E-member",
+   "surface": "技术交底称「施工日志」属于导则规定的数字化交付内容",
+   "params": {
+    "kind": "deliver",
+    "member": "施工日志"
+   },
+   "expected_ok": false,
+   "correct_statement": "数字化交付内容为四项：模型（建筑/结构/机电/装饰/幕墙）、图纸、工程量清单、工程所处环境信息",
+   "anchor": "cc:1A422000_054_0080:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-084",
+   "rule_group": "E-member",
+   "surface": "技术交底称「成本核算台账」属于导则规定的数字化交付内容",
+   "params": {
+    "kind": "deliver",
+    "member": "成本核算台账"
+   },
+   "expected_ok": false,
+   "correct_statement": "数字化交付内容为四项：模型（建筑/结构/机电/装饰/幕墙）、图纸、工程量清单、工程所处环境信息",
+   "anchor": "cc:1A422000_054_0080:6",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-085",
+   "rule_group": "E-member",
+   "surface": "把「集成卫浴系统」列为装配式装修部品集成技术的组成系统",
+   "params": {
+    "kind": "decor",
+    "member": "集成卫浴系统"
+   },
+   "expected_ok": true,
+   "correct_statement": "装配式装修部品集成六系统：集成卫浴、集成厨房、架空楼面、隔墙和墙面、集成吊顶、设备和管线系统",
+   "anchor": "cc:1A422000_053_0079:9",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-086",
+   "rule_group": "E-member",
+   "surface": "把「集成厨房系统」列为装配式装修部品集成技术的组成系统",
+   "params": {
+    "kind": "decor",
+    "member": "集成厨房系统"
+   },
+   "expected_ok": true,
+   "correct_statement": "装配式装修部品集成六系统：集成卫浴、集成厨房、架空楼面、隔墙和墙面、集成吊顶、设备和管线系统",
+   "anchor": "cc:1A422000_053_0079:9",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-087",
+   "rule_group": "E-member",
+   "surface": "把「架空楼面系统」列为装配式装修部品集成技术的组成系统",
+   "params": {
+    "kind": "decor",
+    "member": "架空楼面系统"
+   },
+   "expected_ok": true,
+   "correct_statement": "装配式装修部品集成六系统：集成卫浴、集成厨房、架空楼面、隔墙和墙面、集成吊顶、设备和管线系统",
+   "anchor": "cc:1A422000_053_0079:9",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-088",
+   "rule_group": "E-member",
+   "surface": "把「集成吊顶系统」列为装配式装修部品集成技术的组成系统",
+   "params": {
+    "kind": "decor",
+    "member": "集成吊顶系统"
+   },
+   "expected_ok": true,
+   "correct_statement": "装配式装修部品集成六系统：集成卫浴、集成厨房、架空楼面、隔墙和墙面、集成吊顶、设备和管线系统",
+   "anchor": "cc:1A422000_053_0079:9",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-089",
+   "rule_group": "E-member",
+   "surface": "技术交底称「现浇楼面系统」属于装配式装修部品集成六系统",
+   "params": {
+    "kind": "decor",
+    "member": "现浇楼面系统"
+   },
+   "expected_ok": false,
+   "correct_statement": "装配式装修部品集成六系统：集成卫浴、集成厨房、架空楼面、隔墙和墙面、集成吊顶、设备和管线系统",
+   "anchor": "cc:1A422000_053_0079:9",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-090",
+   "rule_group": "E-member",
+   "surface": "技术交底称「外脚手架系统」属于装配式装修部品集成六系统",
+   "params": {
+    "kind": "decor",
+    "member": "外脚手架系统"
+   },
+   "expected_ok": false,
+   "correct_statement": "装配式装修部品集成六系统：集成卫浴、集成厨房、架空楼面、隔墙和墙面、集成吊顶、设备和管线系统",
+   "anchor": "cc:1A422000_053_0079:9",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-091",
+   "rule_group": "E-member",
+   "surface": "把「智能塔吊」列为智能顶升集成建造平台的集成装备",
+   "params": {
+    "kind": "platform",
+    "member": "智能塔吊"
+   },
+   "expected_ok": true,
+   "correct_statement": "智能顶升集成建造平台集成：智能塔吊、智能施工电梯、智能运输车、悬挂式布料机、水平运输设备、隔音降噪装置、物联感知与通信设备、建筑机器人、设备控制与监测平台",
+   "anchor": "cc:1A422000_053_0079:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-092",
+   "rule_group": "E-member",
+   "surface": "把「智能施工电梯」列为智能顶升集成建造平台的集成装备",
+   "params": {
+    "kind": "platform",
+    "member": "智能施工电梯"
+   },
+   "expected_ok": true,
+   "correct_statement": "智能顶升集成建造平台集成：智能塔吊、智能施工电梯、智能运输车、悬挂式布料机、水平运输设备、隔音降噪装置、物联感知与通信设备、建筑机器人、设备控制与监测平台",
+   "anchor": "cc:1A422000_053_0079:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-093",
+   "rule_group": "E-member",
+   "surface": "把「悬挂式布料机」列为智能顶升集成建造平台的集成装备",
+   "params": {
+    "kind": "platform",
+    "member": "悬挂式布料机"
+   },
+   "expected_ok": true,
+   "correct_statement": "智能顶升集成建造平台集成：智能塔吊、智能施工电梯、智能运输车、悬挂式布料机、水平运输设备、隔音降噪装置、物联感知与通信设备、建筑机器人、设备控制与监测平台",
+   "anchor": "cc:1A422000_053_0079:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-094",
+   "rule_group": "E-member",
+   "surface": "把「设备控制与监测平台」列为智能顶升集成建造平台的集成装备",
+   "params": {
+    "kind": "platform",
+    "member": "设备控制与监测平台"
+   },
+   "expected_ok": true,
+   "correct_statement": "智能顶升集成建造平台集成：智能塔吊、智能施工电梯、智能运输车、悬挂式布料机、水平运输设备、隔音降噪装置、物联感知与通信设备、建筑机器人、设备控制与监测平台",
+   "anchor": "cc:1A422000_053_0079:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-095",
+   "rule_group": "E-member",
+   "surface": "技术交底称「无人机」是智能顶升集成建造平台的集成装备",
+   "params": {
+    "kind": "platform",
+    "member": "无人机"
+   },
+   "expected_ok": false,
+   "correct_statement": "智能顶升集成建造平台集成：智能塔吊、智能施工电梯、智能运输车、悬挂式布料机、水平运输设备、隔音降噪装置、物联感知与通信设备、建筑机器人、设备控制与监测平台",
+   "anchor": "cc:1A422000_053_0079:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-096",
+   "rule_group": "E-member",
+   "surface": "技术交底称「实测实量机器人」是智能顶升集成建造平台的集成装备",
+   "params": {
+    "kind": "platform",
+    "member": "实测实量机器人"
+   },
+   "expected_ok": false,
+   "correct_statement": "智能顶升集成建造平台集成：智能塔吊、智能施工电梯、智能运输车、悬挂式布料机、水平运输设备、隔音降噪装置、物联感知与通信设备、建筑机器人、设备控制与监测平台",
+   "anchor": "cc:1A422000_053_0079:5",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-097",
+   "rule_group": "E-member",
+   "surface": "智慧运维平台方案将「人员管理」列为平台管理能力",
+   "params": {
+    "kind": "ops",
+    "member": "人员管理"
+   },
+   "expected_ok": true,
+   "correct_statement": "智慧运维平台提供人员管理、设备监控、能耗监测等管理能力，用于建筑结构健康监测、建筑功能运行维护、安全风险应急管理",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-098",
+   "rule_group": "E-member",
+   "surface": "智慧运维平台方案将「设备监控」列为平台管理能力",
+   "params": {
+    "kind": "ops",
+    "member": "设备监控"
+   },
+   "expected_ok": true,
+   "correct_statement": "智慧运维平台提供人员管理、设备监控、能耗监测等管理能力，用于建筑结构健康监测、建筑功能运行维护、安全风险应急管理",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-099",
+   "rule_group": "E-member",
+   "surface": "智慧运维平台方案将「能耗监测」列为平台管理能力",
+   "params": {
+    "kind": "ops",
+    "member": "能耗监测"
+   },
+   "expected_ok": true,
+   "correct_statement": "智慧运维平台提供人员管理、设备监控、能耗监测等管理能力，用于建筑结构健康监测、建筑功能运行维护、安全风险应急管理",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  },
+  {
+   "variant_id": "Z01-E-member-100",
+   "rule_group": "E-member",
+   "surface": "技术交底称「工程量清单编制」是智慧运维平台的管理能力",
+   "params": {
+    "kind": "ops",
+    "member": "工程量清单编制"
+   },
+   "expected_ok": false,
+   "correct_statement": "智慧运维平台提供人员管理、设备监控、能耗监测等管理能力，用于建筑结构健康监测、建筑功能运行维护、安全风险应急管理",
+   "anchor": "cc:1A422000_054_0080:7",
+   "extension": false
+  }
+ ]
+}
