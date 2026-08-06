@@ -33,6 +33,12 @@ from typing import Any
 PASS_READINESS_MODEL_VERSION = "pass-readiness-model-v1"
 BAND_POLICY_VERSION = "band-v1"
 
+# ── 表单 v2（§6.2-v2 + §7.1/§7.2 带宽阶梯 v2）───────────────────────────────
+# 观察数翻倍（12 计分 → 36 计分）后带宽阶梯诚实下调一档；v1 常量与函数原样
+# 保留（回滚锚），v2 走独立函数，绝不改 v1 行为。
+PASS_READINESS_MODEL_VERSION_V2 = "pass-readiness-model-v2"
+BAND_POLICY_VERSION_V2 = "band-v2"
+
 PASS_LINE = 96
 EXAM_TOTAL_SCORE = 160
 
@@ -60,6 +66,16 @@ BAND_WIDTH_LADDER: dict[str, int] = {
 BAND_WIDEN_STEP = 5
 COARSE_CHECKPOINT_TASK_COUNT = 6
 MIN_COMPLETION_RATE_FOR_BAND = 0.5
+
+# §6.2-v2 带宽阶梯 v2（两级检查点：第 10 题粗带 → 第 30 题客观带 → 36 题精带）。
+# 观察数翻倍后默认档从 ≥20 下调至 ≥15；仍是查表，不是判断。
+BAND_WIDTH_LADDER_V2: dict[str, int] = {
+    "coarse_checkpoint": 30,  # 10-task first checkpoint, coverage=low
+    "objective_band": 20,     # 30 objective tasks complete, cases pending
+    "v2_default": 15,         # full form complete (36 scored tasks)
+}
+COARSE_CHECKPOINT_TASK_COUNT_V2 = 10
+OBJECTIVE_BAND_TASK_COUNT_V2 = 30
 
 EVIDENCE_INSUFFICIENT_COPY = "evidence insufficient for a band"
 
@@ -180,6 +196,17 @@ def derive_ability_readiness(evidence: AbilityEvidence) -> dict[str, Any]:
     re-labeled as average (§7.1).
     """
 
+    return _derive_ability_readiness(evidence, model_version=PASS_READINESS_MODEL_VERSION)
+
+
+def derive_ability_readiness_v2(evidence: AbilityEvidence) -> dict[str, Any]:
+    """v2 模型版（pass-readiness-model-v2）：聚合语义与 §7.1 权重不变，
+    维度观察数由 v2 blueprint 维度矩阵重配（core≈20 / logic≈10 / case≈6）。"""
+
+    return _derive_ability_readiness(evidence, model_version=PASS_READINESS_MODEL_VERSION_V2)
+
+
+def _derive_ability_readiness(evidence: AbilityEvidence, *, model_version: str) -> dict[str, Any]:
     dimensions = {
         "core_knowledge": _dimension_report("core_knowledge", evidence.core_knowledge),
         "construction_logic": _dimension_report("construction_logic", evidence.construction_logic),
@@ -210,7 +237,7 @@ def derive_ability_readiness(evidence: AbilityEvidence) -> dict[str, Any]:
         "dimensions": dimensions,
         "unmeasured_dimensions": unmeasured,
         "thin_dimensions": thin,
-        "model_version": PASS_READINESS_MODEL_VERSION,
+        "model_version": model_version,
     }
 
 
@@ -282,24 +309,9 @@ def derive_score_band(
         min_width += BAND_WIDEN_STEP
     if readiness["thin_dimensions"]:
         min_width += BAND_WIDEN_STEP
-    ability_points = exact / 100.0 * EXAM_TOTAL_SCORE
-    if evidence.self_reported_score is not None:
-        self_reported = max(0, min(int(evidence.self_reported_score), EXAM_TOTAL_SCORE))
-        center = 0.7 * ability_points + 0.3 * self_reported
-    else:
-        center = ability_points
-    lower = _round_down_5(center - min_width / 2.0)
-    upper = _round_up_5(center + min_width / 2.0)
-    lower = max(0, lower)
-    upper = min(EXAM_TOTAL_SCORE, upper)
-    # Preserve the ladder minimum when clamping hit an endpoint.
-    while upper - lower < min_width:
-        if upper < EXAM_TOTAL_SCORE:
-            upper = min(EXAM_TOTAL_SCORE, upper + 5)
-        elif lower > 0:
-            lower = max(0, lower - 5)
-        else:  # pragma: no cover - width larger than the whole scale
-            break
+    lower, upper = _banded_range(
+        exact, min_width=min_width, self_reported_score=evidence.self_reported_score
+    )
     coverage = {"coarse_checkpoint": "low", "v1_default": "medium", "full_evidence": "high"}[tier]
     return {
         "status": "ok",
@@ -311,6 +323,91 @@ def derive_score_band(
         "evidence_coverage": coverage,
         "readiness": readiness,
         "band_policy_version": BAND_POLICY_VERSION,
+    }
+
+
+def _banded_range(
+    exact: int, *, min_width: int, self_reported_score: int | None
+) -> tuple[int, int]:
+    """端点取整到 5 的带子几何（v1/v2 共用；阶梯表由调用方查好传入）。"""
+
+    ability_points = exact / 100.0 * EXAM_TOTAL_SCORE
+    if self_reported_score is not None:
+        self_reported = max(0, min(int(self_reported_score), EXAM_TOTAL_SCORE))
+        center = 0.7 * ability_points + 0.3 * self_reported
+    else:
+        center = ability_points
+    lower = max(0, _round_down_5(center - min_width / 2.0))
+    upper = min(EXAM_TOTAL_SCORE, _round_up_5(center + min_width / 2.0))
+    # Preserve the ladder minimum when clamping hit an endpoint.
+    while upper - lower < min_width:
+        if upper < EXAM_TOTAL_SCORE:
+            upper = min(EXAM_TOTAL_SCORE, upper + 5)
+        elif lower > 0:
+            lower = max(0, lower - 5)
+        else:  # pragma: no cover - width larger than the whole scale
+            break
+    return lower, upper
+
+
+def _band_tier_v2(scored_task_count: int) -> str:
+    """v2 阶梯档位是任务量查表（§6.2-v2 两级检查点），不看 expression 证据——
+    P0 事实是 written_expression 无条件 not_measured，v2 的 ≥15 精带已按
+    观察数翻倍定价，档位只由走到了第几级检查点决定。"""
+
+    if scored_task_count <= COARSE_CHECKPOINT_TASK_COUNT_V2:
+        return "coarse_checkpoint"
+    if scored_task_count <= OBJECTIVE_BAND_TASK_COUNT_V2:
+        return "objective_band"
+    return "v2_default"
+
+
+def derive_score_band_v2(
+    evidence: AbilityEvidence,
+    *,
+    scored_task_count: int,
+    answered_count: int,
+) -> dict[str, Any]:
+    """带宽阶梯 v2（band-v2）：粗带(≤10 题)≥30 → 客观带(≤30 题)≥20 →
+    全量精带 ≥15。结构同 v1：无 feasibility 形参、流量变量进不了带子。"""
+
+    scored_task_count = max(0, int(scored_task_count))
+    answered_count = max(0, min(int(answered_count), scored_task_count))
+    readiness = derive_ability_readiness_v2(evidence)
+    exact = readiness["exact"]
+    completion_rate = answered_count / scored_task_count if scored_task_count else 0.0
+    if exact is None or completion_rate < MIN_COMPLETION_RATE_FOR_BAND:
+        return {
+            "status": "evidence_insufficient",
+            "copy": EVIDENCE_INSUFFICIENT_COPY,
+            "tier": None,
+            "lower": None,
+            "upper": None,
+            "width": None,
+            "evidence_coverage": "insufficient",
+            "readiness": readiness,
+            "band_policy_version": BAND_POLICY_VERSION_V2,
+        }
+    tier = _band_tier_v2(scored_task_count)
+    min_width = BAND_WIDTH_LADDER_V2[tier]
+    if answered_count < scored_task_count:
+        min_width += BAND_WIDEN_STEP
+    if readiness["thin_dimensions"]:
+        min_width += BAND_WIDEN_STEP
+    lower, upper = _banded_range(
+        exact, min_width=min_width, self_reported_score=evidence.self_reported_score
+    )
+    coverage = {"coarse_checkpoint": "low", "objective_band": "medium", "v2_default": "high"}[tier]
+    return {
+        "status": "ok",
+        "copy": "",
+        "tier": tier,
+        "lower": lower,
+        "upper": upper,
+        "width": upper - lower,
+        "evidence_coverage": coverage,
+        "readiness": readiness,
+        "band_policy_version": BAND_POLICY_VERSION_V2,
     }
 
 
@@ -345,6 +442,53 @@ def build_pass_readiness_result(
         scored_task_count=scored_task_count,
         answered_count=answered_count,
     )
+    return _assemble_pass_readiness_result(
+        band,
+        evidence,
+        prep_context,
+        form_version=form_version,
+        item_pool_version=item_pool_version,
+        now_iso=now_iso,
+    )
+
+
+def build_pass_readiness_result_v2(
+    evidence: AbilityEvidence,
+    prep_context: PrepContext,
+    *,
+    scored_task_count: int,
+    answered_count: int,
+    form_version: str,
+    item_pool_version: str,
+    now_iso: str,
+) -> dict[str, Any]:
+    """§7.2 输出的 v2 装配：band-v2 阶梯 + pass-readiness-model-v2，
+    信封字段与 v1 完全同形（消费方零改动），版本随 band 块如实透出。"""
+
+    band = derive_score_band_v2(
+        evidence,
+        scored_task_count=scored_task_count,
+        answered_count=answered_count,
+    )
+    return _assemble_pass_readiness_result(
+        band,
+        evidence,
+        prep_context,
+        form_version=form_version,
+        item_pool_version=item_pool_version,
+        now_iso=now_iso,
+    )
+
+
+def _assemble_pass_readiness_result(
+    band: dict[str, Any],
+    evidence: AbilityEvidence,
+    prep_context: PrepContext,
+    *,
+    form_version: str,
+    item_pool_version: str,
+    now_iso: str,
+) -> dict[str, Any]:
     readiness = band["readiness"]
     feasibility = derive_prep_feasibility(prep_context)
     insufficient = band["status"] != "ok"
@@ -370,8 +514,8 @@ def build_pass_readiness_result(
         "prep_feasibility_detail": feasibility,
         "risk_band": _risk_band(band),
         "evidence_coverage": band["evidence_coverage"],
-        "band_policy_version": BAND_POLICY_VERSION,
-        "model_version": PASS_READINESS_MODEL_VERSION,
+        "band_policy_version": str(band["band_policy_version"]),
+        "model_version": str(readiness["model_version"]),
         "form_version": str(form_version or ""),
         "item_pool_version": str(item_pool_version or ""),
         "generated_at": str(now_iso or ""),

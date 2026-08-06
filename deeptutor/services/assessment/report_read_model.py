@@ -150,6 +150,16 @@ def build_pass_readiness_report(
         DimensionEvidence,
         PrepContext,
         build_pass_readiness_result,
+        build_pass_readiness_result_v2,
+    )
+
+    # 表单 v2 → band-v2/model-v2 阶梯；v1 blueprint 走原函数（回滚锚，行为不动）。
+    # 持久化信封 schema_version 保持 pass-readiness-v1（DB CHECK 白名单），
+    # 版本差异由块内 band_policy_version/model_version 承载。
+    result_builder = (
+        build_pass_readiness_result_v2
+        if str(blueprint_version or "").strip() == "pass_readiness_architecture_v2"
+        else build_pass_readiness_result
     )
 
     base = build_result_report(
@@ -202,7 +212,7 @@ def build_pass_readiness_report(
         remaining_weeks=None,
         attempt_history=tags.get("attempt_history", ""),
     )
-    pass_readiness = build_pass_readiness_result(
+    pass_readiness = result_builder(
         evidence,
         prep_context,
         scored_task_count=len(items),
