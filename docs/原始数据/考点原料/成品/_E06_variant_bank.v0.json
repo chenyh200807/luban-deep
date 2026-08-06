@@ -1,0 +1,719 @@
+{
+ "schema_version": "luban-e06-variant-bank",
+ "pack_id": "E06",
+ "status": "candidate",
+ "review_track": "pending_dual_sign(teaching+scoring)·工单=2026-08-06-E06-Z01-双签工单.md",
+ "production_basis": "官方《2026教材对比明细》变化#56–#64(GB/T50500-2024 整目变动)·2026 教材块原文锚",
+ "source_pack_sha256": "efec37f2bb0513f9403d25186a11c81ebfa4264ee9bdd3739406e385c0b830c7",
+ "generation_ms": 0.03,
+ "gate": {
+  "total": 53,
+  "passed": 53,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-structure": 5,
+  "B-resp": 8,
+  "C-other": 9,
+  "D-agree": 16,
+  "E-defect": 9,
+  "F-clarify": 6
+ },
+ "variants": [
+  {
+   "variant_id": "E06-A-structure-000",
+   "rule_group": "A-structure",
+   "surface": "招标人将工程量清单按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价",
+   "params": {
+    "parts": 4,
+    "separate": true
+   },
+   "expected_ok": true,
+   "correct_statement": "工程量清单应按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价；不宜采用单价、总价计价方式的清单项目也可采用费率计价等其他计价方式",
+   "anchor": "cc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-A-structure-001",
+   "rule_group": "A-structure",
+   "surface": "招标人只编制分部分项工程项目清单和措施项目清单两部分，其他项目并入措施项目清单计价",
+   "params": {
+    "parts": 2,
+    "separate": false
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量清单应按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价；不宜采用单价、总价计价方式的清单项目也可采用费率计价等其他计价方式",
+   "anchor": "cc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-A-structure-002",
+   "rule_group": "A-structure",
+   "surface": "编制清单时将增值税并入各清单项目价款合并计价、不再单独列出",
+   "params": {
+    "parts": 3,
+    "separate": false
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量清单应按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价；不宜采用单价、总价计价方式的清单项目也可采用费率计价等其他计价方式",
+   "anchor": "cc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-A-structure-003",
+   "rule_group": "A-structure",
+   "surface": "某些清单项目不宜采用单价计价、总价计价方式，招标人采用费率计价方式确定价款",
+   "params": {
+    "rate_pricing": true,
+    "judged_valid": true
+   },
+   "expected_ok": true,
+   "correct_statement": "工程量清单应按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价；不宜采用单价、总价计价方式的清单项目也可采用费率计价等其他计价方式",
+   "anchor": "cc:1A432002_035_0046:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-A-structure-004",
+   "rule_group": "A-structure",
+   "surface": "投标人认为清单项目价款只能采用单价计价或总价计价两种方式，费率计价不合规",
+   "params": {
+    "rate_pricing": true,
+    "judged_valid": false
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量清单应按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价；不宜采用单价、总价计价方式的清单项目也可采用费率计价等其他计价方式",
+   "anchor": "cc:1A432002_035_0046:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-005",
+   "rule_group": "B-resp",
+   "surface": "单价合同履行中发现分部分项工程项目清单不完整，判其准确性、完整性由发包人负责",
+   "params": {
+    "list": "分部分项",
+    "contract": "单价合同",
+    "liable": "发包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-006",
+   "rule_group": "B-resp",
+   "surface": "单价合同履行中发现分部分项工程项目清单不完整，判其准确性、完整性由承包人负责",
+   "params": {
+    "list": "分部分项",
+    "contract": "单价合同",
+    "liable": "承包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-007",
+   "rule_group": "B-resp",
+   "surface": "总价合同履行中发现分部分项工程项目清单不完整，判其准确性、完整性由发包人负责",
+   "params": {
+    "list": "分部分项",
+    "contract": "总价合同",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-008",
+   "rule_group": "B-resp",
+   "surface": "总价合同履行中发现分部分项工程项目清单不完整，判其准确性、完整性由承包人负责",
+   "params": {
+    "list": "分部分项",
+    "contract": "总价合同",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-009",
+   "rule_group": "B-resp",
+   "surface": "单价合同履行中发现按项编制的措施项目清单漏项，判其完整性及准确性由发包人负责",
+   "params": {
+    "list": "措施项目",
+    "contract": "单价合同",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-010",
+   "rule_group": "B-resp",
+   "surface": "单价合同履行中发现按项编制的措施项目清单漏项，判其完整性及准确性由承包人负责",
+   "params": {
+    "list": "措施项目",
+    "contract": "单价合同",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-011",
+   "rule_group": "B-resp",
+   "surface": "总价合同履行中发现按项编制的措施项目清单漏项，判其完整性及准确性由发包人负责",
+   "params": {
+    "list": "措施项目",
+    "contract": "总价合同",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-B-resp-012",
+   "rule_group": "B-resp",
+   "surface": "总价合同履行中发现按项编制的措施项目清单漏项，判其完整性及准确性由承包人负责",
+   "params": {
+    "list": "措施项目",
+    "contract": "总价合同",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项清单：单价合同归发包人、总价合同（已标价）归承包人；措施项目清单：无论单价或总价合同，其完整性及准确性均由承包人负责",
+   "anchor": "cc:1A432002_035_0046:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-013",
+   "rule_group": "C-other",
+   "surface": "投标人对总承包服务费以计价基础乘以费率的方式计价",
+   "params": {
+    "item": "总承包服务费",
+    "mode": "费率"
+   },
+   "expected_ok": true,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:7",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-014",
+   "rule_group": "C-other",
+   "surface": "投标人对总承包服务费以项计算清单项目价格（总价计价）",
+   "params": {
+    "item": "总承包服务费",
+    "mode": "总价"
+   },
+   "expected_ok": true,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:7",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-015",
+   "rule_group": "C-other",
+   "surface": "投标人认为总承包服务费必须逐项按综合单价组价，费率计价不妥",
+   "params": {
+    "item": "总承包服务费",
+    "mode": "综合单价组价"
+   },
+   "expected_ok": false,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:7",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-016",
+   "rule_group": "C-other",
+   "surface": "投标人对计日工采用标准规定的单价计价方式计价",
+   "params": {
+    "item": "计日工",
+    "mode": "单价"
+   },
+   "expected_ok": true,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:7",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-017",
+   "rule_group": "C-other",
+   "surface": "投标人按招标工程量清单提供的相应金额填报暂列金额和专业工程暂估价",
+   "params": {
+    "item": "暂列金额暂估价",
+    "action": "按招标清单金额填报"
+   },
+   "expected_ok": true,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-018",
+   "rule_group": "C-other",
+   "surface": "投标人认为某专业工程暂估价偏低，自行调高该暂估价后填入投标价",
+   "params": {
+    "item": "暂列金额暂估价",
+    "action": "自行调整"
+   },
+   "expected_ok": false,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-019",
+   "rule_group": "C-other",
+   "surface": "投标人不采用招标工程量清单提供的暂列金额，按自身测算另行确定金额填报",
+   "params": {
+    "item": "暂列金额暂估价",
+    "action": "自行测算"
+   },
+   "expected_ok": false,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-020",
+   "rule_group": "C-other",
+   "surface": "招标人把夜间施工增加费列入其他项目清单",
+   "params": {
+    "item": "夜间施工增加",
+    "action": "错列其他项目"
+   },
+   "expected_ok": false,
+   "correct_statement": "夜间施工增加属措施项目清单列举内容；其他项目清单为暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目",
+   "anchor": "cc:1A432002_035_0046:4",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-C-other-021",
+   "rule_group": "C-other",
+   "surface": "招标人在其他项目清单中列明暂列金额、专业工程暂估价、计日工和总承包服务费",
+   "params": {
+    "item": "五项内容",
+    "action": "正确列示"
+   },
+   "expected_ok": true,
+   "correct_statement": "其他项目清单含暂列金额、专业工程暂估价、计日工、总承包服务费及合同约定的其他项目；总承包服务费采用费率或总价计价，计日工采用标准规定的单价计价，暂列金额与专业工程暂估价应按招标工程量清单提供金额填报",
+   "anchor": "cc:1A432002_035_0046:6",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-022",
+   "rule_group": "D-agree",
+   "surface": "工程量不确定的工程，发承包双方选用单价合同",
+   "params": {
+    "scene": "工程量不确定的工程",
+    "mode": "单价合同"
+   },
+   "expected_ok": true,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-023",
+   "rule_group": "D-agree",
+   "surface": "工程量不确定的工程，发承包双方选用总价合同",
+   "params": {
+    "scene": "工程量不确定的工程",
+    "mode": "总价合同"
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-024",
+   "rule_group": "D-agree",
+   "surface": "工程量不确定的工程，发承包双方选用成本加酬金合同",
+   "params": {
+    "scene": "工程量不确定的工程",
+    "mode": "成本加酬金合同"
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-025",
+   "rule_group": "D-agree",
+   "surface": "工程量明确的工程，发承包双方选用单价合同",
+   "params": {
+    "scene": "工程量明确的工程",
+    "mode": "单价合同"
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-026",
+   "rule_group": "D-agree",
+   "surface": "工程量明确的工程，发承包双方选用总价合同",
+   "params": {
+    "scene": "工程量明确的工程",
+    "mode": "总价合同"
+   },
+   "expected_ok": true,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-027",
+   "rule_group": "D-agree",
+   "surface": "工程量明确的工程，发承包双方选用成本加酬金合同",
+   "params": {
+    "scene": "工程量明确的工程",
+    "mode": "成本加酬金合同"
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-028",
+   "rule_group": "D-agree",
+   "surface": "紧急抢险救灾工程，发承包双方选用单价合同",
+   "params": {
+    "scene": "紧急抢险救灾工程",
+    "mode": "单价合同"
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-029",
+   "rule_group": "D-agree",
+   "surface": "紧急抢险救灾工程，发承包双方选用总价合同",
+   "params": {
+    "scene": "紧急抢险救灾工程",
+    "mode": "总价合同"
+   },
+   "expected_ok": false,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-030",
+   "rule_group": "D-agree",
+   "surface": "紧急抢险救灾工程，发承包双方选用成本加酬金合同",
+   "params": {
+    "scene": "紧急抢险救灾工程",
+    "mode": "成本加酬金合同"
+   },
+   "expected_ok": true,
+   "correct_statement": "工程量不确定宜单价合同、工程量明确宜总价合同、紧急抢险救灾或特别复杂工程宜成本加酬金合同",
+   "anchor": "cc:1A432002_036_0047:3 + kc:1A432002_036_0047:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-031",
+   "rule_group": "D-agree",
+   "surface": "某实行招标的工程，签约时双方协商变更招标文件中约定的工程范围后写入合同",
+   "params": {
+    "subst_item": "工程范围",
+    "deviate": true
+   },
+   "expected_ok": false,
+   "correct_statement": "实行招标的工程，合同约定价格不得背离招标文件中工程范围、工期、价款、质量等实质性内容",
+   "anchor": "cc:1A432002_036_0047:4",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-032",
+   "rule_group": "D-agree",
+   "surface": "某实行招标的工程，签约时双方协商变更招标文件中约定的工期后写入合同",
+   "params": {
+    "subst_item": "工期",
+    "deviate": true
+   },
+   "expected_ok": false,
+   "correct_statement": "实行招标的工程，合同约定价格不得背离招标文件中工程范围、工期、价款、质量等实质性内容",
+   "anchor": "cc:1A432002_036_0047:4",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-033",
+   "rule_group": "D-agree",
+   "surface": "某实行招标的工程，签约时双方协商变更招标文件中约定的价款后写入合同",
+   "params": {
+    "subst_item": "价款",
+    "deviate": true
+   },
+   "expected_ok": false,
+   "correct_statement": "实行招标的工程，合同约定价格不得背离招标文件中工程范围、工期、价款、质量等实质性内容",
+   "anchor": "cc:1A432002_036_0047:4",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-034",
+   "rule_group": "D-agree",
+   "surface": "某实行招标的工程，签约时双方协商变更招标文件中约定的质量后写入合同",
+   "params": {
+    "subst_item": "质量",
+    "deviate": true
+   },
+   "expected_ok": false,
+   "correct_statement": "实行招标的工程，合同约定价格不得背离招标文件中工程范围、工期、价款、质量等实质性内容",
+   "anchor": "cc:1A432002_036_0047:4",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-035",
+   "rule_group": "D-agree",
+   "surface": "某实行招标的工程，签订的合同价格与招标文件中工程范围、工期、价款、质量等实质性内容保持一致",
+   "params": {
+    "subst_item": "全部",
+    "deviate": false
+   },
+   "expected_ok": true,
+   "correct_statement": "实行招标的工程，合同约定价格不得背离招标文件中工程范围、工期、价款、质量等实质性内容",
+   "anchor": "cc:1A432002_036_0047:4",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-036",
+   "rule_group": "D-agree",
+   "surface": "成本加酬金合同履行中，发包人按实计算合同工程成本并按约定计算酬金及增值税后调整合同总价",
+   "params": {
+    "cost_plus_adjust": true
+   },
+   "expected_ok": true,
+   "correct_statement": "成本加酬金合同总价为暂定价，应按实计算工程成本并按约定计算酬金及增值税后调整合同总价",
+   "anchor": "cc:1A432002_036_0047:7",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-D-agree-037",
+   "rule_group": "D-agree",
+   "surface": "成本加酬金合同履行中，发包人以「合同总价已约定」为由拒绝按实调整合同总价",
+   "params": {
+    "cost_plus_adjust": false
+   },
+   "expected_ok": false,
+   "correct_statement": "成本加酬金合同总价为暂定价，应按实计算工程成本并按约定计算酬金及增值税后调整合同总价",
+   "anchor": "cc:1A432002_036_0047:7",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-038",
+   "rule_group": "E-defect",
+   "surface": "单价合同履行中发现工程量清单缺陷，处置为：按计价标准的规定调整合同价格",
+   "params": {
+    "contract": "单价合同",
+    "action": "按计价标准的规定调整合同价格"
+   },
+   "expected_ok": true,
+   "correct_statement": "清单缺陷处置分流：单价合同按计价标准调整合同价格；总价合同价格视为已含合同总价、承包人补充完善且不做调整",
+   "anchor": "cc:1A432002_036_0047:5 + cc:1A432002_037_0048:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-039",
+   "rule_group": "E-defect",
+   "surface": "单价合同履行中发现工程量清单缺陷，处置为：价格视为已包含在合同总价中，不做调整",
+   "params": {
+    "contract": "单价合同",
+    "action": "价格视为已包含在合同总价中，不做调整"
+   },
+   "expected_ok": false,
+   "correct_statement": "清单缺陷处置分流：单价合同按计价标准调整合同价格；总价合同价格视为已含合同总价、承包人补充完善且不做调整",
+   "anchor": "cc:1A432002_036_0047:5 + cc:1A432002_037_0048:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-040",
+   "rule_group": "E-defect",
+   "surface": "总价合同履行中发现工程量清单缺陷，处置为：按计价标准的规定调整合同价格",
+   "params": {
+    "contract": "总价合同",
+    "action": "按计价标准的规定调整合同价格"
+   },
+   "expected_ok": false,
+   "correct_statement": "清单缺陷处置分流：单价合同按计价标准调整合同价格；总价合同价格视为已含合同总价、承包人补充完善且不做调整",
+   "anchor": "cc:1A432002_036_0047:6 + cc:1A432002_037_0048:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-041",
+   "rule_group": "E-defect",
+   "surface": "总价合同履行中发现工程量清单缺陷，处置为：价格视为已包含在合同总价中，不做调整",
+   "params": {
+    "contract": "总价合同",
+    "action": "价格视为已包含在合同总价中，不做调整"
+   },
+   "expected_ok": true,
+   "correct_statement": "清单缺陷处置分流：单价合同按计价标准调整合同价格；总价合同价格视为已含合同总价、承包人补充完善且不做调整",
+   "anchor": "cc:1A432002_036_0047:6 + cc:1A432002_037_0048:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-042",
+   "rule_group": "E-defect",
+   "surface": "总价合同清单缺陷出现后，承包人承担工程量清单缺陷的补充完善责任",
+   "params": {
+    "contract": "总价合同",
+    "action": "承包人补充完善"
+   },
+   "expected_ok": true,
+   "correct_statement": "清单缺陷处置分流：单价合同按计价标准调整合同价格；总价合同价格视为已含合同总价、承包人补充完善且不做调整",
+   "anchor": "cc:1A432002_037_0048:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-043",
+   "rule_group": "E-defect",
+   "surface": "单价合同的分部分项工程项目清单工程数量为暂定工程量，合同履行中重新计量确定",
+   "params": {
+    "contract": "单价合同",
+    "prov_qty": "重新计量"
+   },
+   "expected_ok": true,
+   "correct_statement": "单价合同分部分项清单量为暂定量、履行中重新计量；总价合同内说明为暂定数量的清单项目按单价计价规定重新计量并调整合同价格及总价",
+   "anchor": "cc:1A432002_037_0048:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-044",
+   "rule_group": "E-defect",
+   "surface": "单价合同履行中，发包人要求按招标工程量清单载明的暂定工程量直接结算、不再重新计量",
+   "params": {
+    "contract": "单价合同",
+    "prov_qty": "不重新计量"
+   },
+   "expected_ok": false,
+   "correct_statement": "单价合同分部分项清单量为暂定量、履行中重新计量；总价合同内说明为暂定数量的清单项目按单价计价规定重新计量并调整合同价格及总价",
+   "anchor": "cc:1A432002_037_0048:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-045",
+   "rule_group": "E-defect",
+   "surface": "总价合同清单内说明为暂定数量的清单项目，按单价计价规定重新计量并调整合同价格及合同总价",
+   "params": {
+    "contract": "总价合同",
+    "prov_qty": "重新计量"
+   },
+   "expected_ok": true,
+   "correct_statement": "单价合同分部分项清单量为暂定量、履行中重新计量；总价合同内说明为暂定数量的清单项目按单价计价规定重新计量并调整合同价格及总价",
+   "anchor": "cc:1A432002_037_0048:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-E-defect-046",
+   "rule_group": "E-defect",
+   "surface": "总价合同清单内说明为暂定数量的清单项目实际数量增大，发包人以总价包干为由不予调整",
+   "params": {
+    "contract": "总价合同",
+    "prov_qty": "不重新计量"
+   },
+   "expected_ok": false,
+   "correct_statement": "单价合同分部分项清单量为暂定量、履行中重新计量；总价合同内说明为暂定数量的清单项目按单价计价规定重新计量并调整合同价格及总价",
+   "anchor": "cc:1A432002_037_0048:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-F-clarify-047",
+   "rule_group": "F-clarify",
+   "surface": "招标人在开标前要求投标人对投标报价作出澄清或说明",
+   "params": {
+    "timing": "开标前"
+   },
+   "expected_ok": false,
+   "correct_statement": "投标报价澄清应在开标后至定标前进行；算术误差及细微偏差可按计价标准修正但投标总价不得做任何调整；报价合理性疑问或漏报未报可要求澄清或说明",
+   "anchor": "cc:1A432002_036_0047:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-F-clarify-048",
+   "rule_group": "F-clarify",
+   "surface": "招标人在开标后至定标前要求投标人对投标报价作出澄清或说明",
+   "params": {
+    "timing": "开标后至定标前"
+   },
+   "expected_ok": true,
+   "correct_statement": "投标报价澄清应在开标后至定标前进行；算术误差及细微偏差可按计价标准修正但投标总价不得做任何调整；报价合理性疑问或漏报未报可要求澄清或说明",
+   "anchor": "cc:1A432002_036_0047:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-F-clarify-049",
+   "rule_group": "F-clarify",
+   "surface": "招标人在定标后要求投标人对投标报价作出澄清或说明",
+   "params": {
+    "timing": "定标后"
+   },
+   "expected_ok": false,
+   "correct_statement": "投标报价澄清应在开标后至定标前进行；算术误差及细微偏差可按计价标准修正但投标总价不得做任何调整；报价合理性疑问或漏报未报可要求澄清或说明",
+   "anchor": "cc:1A432002_036_0047:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-F-clarify-050",
+   "rule_group": "F-clarify",
+   "surface": "投标文件存在算术误差，按计价标准规定修正，投标总价保持不变",
+   "params": {
+    "arith_fix": true,
+    "total_adjusted": false
+   },
+   "expected_ok": true,
+   "correct_statement": "投标报价澄清应在开标后至定标前进行；算术误差及细微偏差可按计价标准修正但投标总价不得做任何调整；报价合理性疑问或漏报未报可要求澄清或说明",
+   "anchor": "cc:1A432002_036_0047:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-F-clarify-051",
+   "rule_group": "F-clarify",
+   "surface": "投标文件存在算术误差，修正的同时相应调整投标总价",
+   "params": {
+    "arith_fix": true,
+    "total_adjusted": true
+   },
+   "expected_ok": false,
+   "correct_statement": "投标报价澄清应在开标后至定标前进行；算术误差及细微偏差可按计价标准修正但投标总价不得做任何调整；报价合理性疑问或漏报未报可要求澄清或说明",
+   "anchor": "cc:1A432002_036_0047:8",
+   "extension": false
+  },
+  {
+   "variant_id": "E06-F-clarify-052",
+   "rule_group": "F-clarify",
+   "surface": "投标人未按要求完整填写投标报价（漏报），招标人要求其作出澄清或说明",
+   "params": {
+    "missing_price": true,
+    "clarify": true
+   },
+   "expected_ok": true,
+   "correct_statement": "投标报价澄清应在开标后至定标前进行；算术误差及细微偏差可按计价标准修正但投标总价不得做任何调整；报价合理性疑问或漏报未报可要求澄清或说明",
+   "anchor": "cc:1A432002_036_0047:8",
+   "extension": false
+  }
+ ]
+}
