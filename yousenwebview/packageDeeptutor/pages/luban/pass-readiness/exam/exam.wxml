@@ -18,23 +18,8 @@
         <view class="pk-progress__fill" style="width:{{(currentIndex + 1) / totalCount * 100}}%"></view>
       </view>
 
-      <view class="pr-sheet pk-card">
-        <view class="pr-sheet-meta">
-          <text class="pr-sheet-title">答题卡</text>
-          <text class="pr-sheet-count">已答 {{answeredCount}} / {{totalCount}}</text>
-        </view>
-        <view class="pr-sheet-grid">
-          <view
-            class="pr-chip {{item.answered ? 'answered' : ''}} {{item.current ? 'current' : ''}}"
-            wx:for="{{answerSheet}}"
-            wx:key="id"
-            bindtap="onJumpQuestion"
-            data-index="{{item.index}}"
-          >
-            <text class="pr-chip-txt">{{item.number}}</text>
-          </view>
-        </view>
-      </view>
+      <!-- 答题卡宫格已按 owner 2026-08-06 指示下线(39 格开屏压迫感强);
+           题间导航走底部上一题/下一题,进度在导航栏 x/39 + 顶部进度条。 -->
 
       <view class="pr-question pk-card">
         <view class="pr-q-header">
