@@ -9125,7 +9125,9 @@ class MemberConsoleService:
         subject_id: str,
         device_id: str = "",
     ) -> dict[str, Any]:
-        blueprint_version = "pass_readiness_architecture_v1"
+        # v2 = 39 交互(30 客观对齐真题卷面+案例变式+两级检查点), owner 2026-08-06 拍板;
+        # v1 blueprint/表单全程保留为回滚锚(改回此行即回滚)。
+        blueprint_version = "pass_readiness_architecture_v2"
         blueprint = get_assessment_blueprint(blueprint_version)
         payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
             user_id=user_id,
