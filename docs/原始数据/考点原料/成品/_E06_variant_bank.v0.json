@@ -4,8 +4,8 @@
  "status": "candidate",
  "review_track": "pending_dual_sign(teaching+scoring)·工单=2026-08-06-E06-Z01-双签工单.md",
  "production_basis": "官方《2026教材对比明细》变化#56–#64(GB/T50500-2024 整目变动)·2026 教材块原文锚",
- "source_pack_sha256": "efec37f2bb0513f9403d25186a11c81ebfa4264ee9bdd3739406e385c0b830c7",
- "generation_ms": 0.03,
+ "source_pack_sha256": "90189226e98848856c6ed1bc5ec3830631b8e03274b7657dcbe6f3117ff60241",
+ "generation_ms": 0.02,
  "gate": {
   "total": 53,
   "passed": 53,

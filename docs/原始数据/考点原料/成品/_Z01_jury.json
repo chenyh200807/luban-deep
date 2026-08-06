@@ -1,0 +1,50 @@
+[
+ {
+  "issue": "M4误区错因码E03建议改为E07概念混淆更精准",
+  "location": "L6 M4 误区→E03",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将M4错因码由E03改为E07",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "Z01 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "M4已挂E03/E07双码"
+  }
+ },
+ {
+  "issue": "跨章知识点全景中知识点7的LLM增强内容被标记为🟢",
+  "location": "1. 跨章知识点全景 (L1) - 知识点 7",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "标记降级为🔵",
+  "resolution": {
+   "status": "not_applicable",
+   "fixed_in": "Z01 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "#7原文即🟢(结构)/🔵(卡)分色"
+  }
+ },
+ {
+  "issue": "跨章知识点全景中知识点21的LLM增强内容被标记为🟢",
+  "location": "1. 跨章知识点全景 (L1) - 知识点 21",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "标记降级为🔵",
+  "resolution": {
+   "status": "not_applicable",
+   "fixed_in": "Z01 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "#21主锚cc原文,kc卡已标🔵辅助"
+  }
+ }
+]

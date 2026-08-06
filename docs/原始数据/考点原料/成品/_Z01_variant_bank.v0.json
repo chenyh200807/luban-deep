@@ -4,8 +4,8 @@
  "status": "candidate",
  "review_track": "pending_dual_sign(teaching+scoring)·工单=2026-08-06-E06-Z01-双签工单.md",
  "production_basis": "官方《2026教材对比明细》新增《智能建造技术导则(试行)》(建办市〔2025〕14号)·2026 教材块原文锚",
- "source_pack_sha256": "c5ad2546bf809c93faeb70f9875ea88726c06efd09a4a4cd9fd6958e854faaf5",
- "generation_ms": 0.06,
+ "source_pack_sha256": "f2b6aba2fb7dfc7ed6a2deb8352efb8b74d2884236da95f69f81298e23dd22ec",
+ "generation_ms": 0.05,
  "gate": {
   "total": 101,
   "passed": 101,

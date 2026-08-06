@@ -1,0 +1,82 @@
+[
+ {
+  "issue": "综合单价所含因素的描述与 cc:1A432002_035_0046:3 的原文不完全一致，表述方式有偏差",
+  "location": "L1 表格第4行",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将综合单价因素的描述调整为与标准原文严格一致的表述，包括'总价合同中出现工程量清单缺陷所需的费用'、'完成符合完工交付要求的相应清单项目必要的施工任务及其不可或缺的辅助工作所需的费用'、'因施工工序、施工条件、环境气候等因素影响所引起的费用'",
+  "resolution": {
+   "status": "not_applicable",
+   "fixed_in": "E06 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "摘要+逐字quote分层为既有体例,锚未漂移"
+  }
+ },
+ {
+  "issue": "计价方式分流/综合单价构成/五项汇总/缺陷归责总表标记为邻接 territory，但 E01 和 E06 存在部分重叠，划分不够清晰",
+  "location": "L1 表格第18行",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "重新评估 E01 和 E06 的边界，消除重叠部分，明确各自覆盖范围，或合并相关邻接区域",
+  "resolution": {
+   "status": "not_applicable",
+   "fixed_in": "E06 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "§0边界声明+§8.2 territory对账已划界,留教研复核"
+  }
+ },
+ {
+  "issue": "措施项目清单的责任主体描述仅提到'单价或总价合同均'，未明确指出具体责任内容",
+  "location": "L4 规则组 B",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "补充明确的责任表述，如'按项编制的措施项目清单的完整性及准确性均应由承包人负责'",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "E06 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "R4组B已补『完整性及准确性均由承包人负责』"
+  }
+ },
+ {
+  "issue": "误区现象描述'措施项目清单责任随合同类型翻转'未明确指出措施项目清单的责任主体",
+  "location": "L6 误区 M1",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "在误区描述中补充责任主体信息，明确措施项目清单的完整性及准确性由承包人负责，不受合同类型影响",
+  "resolution": {
+   "status": "not_applicable",
+   "fixed_in": "E06 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "误区现象栏本为错误心智描述,解药栏已明确"
+  }
+ },
+ {
+  "issue": "误区现象描述'总价合同一律不调（漏暂定数量例外）/ 单价合同缺陷不调'未明确指出总价合同内说明为暂定数量的项目应重新计量并调整",
+  "location": "L6 误区 M6",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "在误区描述中补充总价合同暂定数量调整的明确规则，即'采用总价合同的分部分项工程项目清单内说明是暂定数量的清单项目及其工程数量，应按计价标准单价计价的规定重新计量确定并对相关清单项目的合同价格及合同总价进行相应调整'",
+  "resolution": {
+   "status": "not_applicable",
+   "fixed_in": "E06 pack §9 (2026-08-06)",
+   "verified": true,
+   "note": "M6解药已含暂定数量重新计量规则"
+  }
+ }
+]
