@@ -30,7 +30,7 @@ def _record_assessment_explanation_duration(elapsed_ms: float) -> None:
     except Exception:  # pragma: no cover - defensive, never affects explanation
         logger.debug("assessment explanation duration metric skipped", exc_info=True)
 
-PROMPT_VERSION = "assessment-deep-explanation-llm-v1"
+PROMPT_VERSION = "assessment-deep-explanation-llm-v2"
 _MINIMUM_EXPLANATION_POINTS = 20
 _COST_POINT_SCALE = 1000
 
@@ -225,6 +225,9 @@ def _build_prompt(*, question: dict[str, Any], learner_answer: str, correct_answ
         "knowledge_points": question.get("knowledge_points") or question.get("knowledge_nodes") or [],
         "error_codes": question.get("error_codes") or [],
         "grading_key": question.get("grading_key") or {},
+        # v2: 签发教研诊断(逐选项 pitfall/why_missed/fix + model_answer + 采分点)
+        # 是内容事实权威——喂给模型作基准,防运行时现编与权威矛盾的解析。
+        "issued_diagnosis": question.get("answer_diagnosis") or {},
     }
     return (
         "请为学员生成一次付费 AI 详细解析。要求：\n"
@@ -232,7 +235,10 @@ def _build_prompt(*, question: dict[str, Any], learner_answer: str, correct_answ
         "2. 逐项解释选项为什么对/错，特别指出漏选、错选、多选。\n"
         "3. 给出采分点、易错点、记忆口诀和下一步练习建议。\n"
         "4. 不要说空话；每句话都要落到题干、选项或答案差异。\n"
-        "5. 严格输出 JSON，字段为 summary, key_terms, why_wrong, cause_analysis, "
+        "5. issued_diagnosis 是教研签发的诊断事实（采分点/逐选项易错点/纠错口径），"
+        "解析必须与其一致并在其基础上讲透讲细；它为空时才按题干与选项严谨推导，"
+        "不得编造教材条文或数值。\n"
+        "6. 严格输出 JSON，字段为 summary, key_terms, why_wrong, cause_analysis, "
         "scoring_points, option_reviews, pitfall, mnemonic, source_basis, next_action。\n"
         "option_reviews 每项字段为 key, status, status_label, review。\n\n"
         "题目信息：\n"

@@ -263,6 +263,84 @@ def test_evidence_items_carry_issued_diagnosis_for_the_chosen_option() -> None:
     assert card["source_ref"] == "exam:2024:第10题"
 
 
+def test_multi_select_why_missed_targets_missed_and_extra_letters() -> None:
+    """owner 2026-08-07 实拍卡18回归:多选漏选时,学员实选的是对的选项,
+    拿它的解读当「为什么丢分」=答非所问。错因必须锚定 错选+漏选 字母集。"""
+
+    questions = [
+        {
+            "question_id": "q01",
+            "question_type": "multi_choice",
+            "scored": True,
+            "answer": "ACD",
+            "options": [
+                {"key": "A", "text": "柱在梁、板顶面"},
+                {"key": "B", "text": "任意位置"},
+                {"key": "C", "text": "有主次梁的楼板在次梁跨中1/3"},
+                {"key": "D", "text": "墙在纵横墙交接处"},
+            ],
+            "answer_diagnosis": {
+                "scoring_point": "施工缝·留置位置",
+                "options": {
+                    "A": {"why_missed": "柱应留水平缝,位置在梁、板顶面。"},
+                    "B": {"why_missed": "单向板只能平行短边,不是任意位置。"},
+                    "C": {"why_missed": "次梁跨中1/3剪力小。"},
+                },
+            },
+        },
+        {"question_id": "q03", "question_type": "single_choice", "scored": True, "answer": "A"},
+    ]
+    scored = _scored_result(wrong_question_ids={"q01"})
+    for item in scored["items"]:
+        if item["question_id"] == "q01":
+            item["learner_answer"] = "BC"  # 错选 B + 漏选 A/D,C 选对了
+            item["question_type"] = "multi_choice"
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_8",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=scored,
+        session_questions=questions + _probe_questions(),
+        answers={"q01": "BC"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
+    )
+    # 错因逐项点名错选/漏选,而不是复读选对的 C
+    assert "错选 B：单向板只能平行短边" in card["why_missed"]
+    assert "漏选 A：柱应留水平缝" in card["why_missed"]
+    assert "漏选 D（墙在纵横墙交接处）" in card["why_missed"]
+    assert "次梁跨中1/3剪力小" not in card["why_missed"]
+
+
+def test_scoring_point_never_falls_back_to_chapter_level_knowledge_points() -> None:
+    """章节级 knowledge_points(如「主体结构工程施工」)不是采分点,
+    无签发采分点时诚实留白(owner 2026-08-07 实拍)。"""
+
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_9",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q03", "C"),
+        session_questions=_diagnosis_questions() + _probe_questions(),
+        answers={"q03": "C"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q03"
+    )
+    assert card["scoring_point"] == ""
+
+
 def test_evidence_wording_suppresses_correct_option_restatement() -> None:
     """model_answer 若只是正确选项原文的复读(实测编译权威 ~80% 如此),
     不得作为第二面重复渲染;真增量才透出。"""

@@ -4284,6 +4284,19 @@ def test_pass_readiness_wrong_item_deep_explanation_is_trial_included(
     assert captured == []
     assert "凿毛" in result["explanation"]["summary"]
 
+    # 结果缓存(owner 2026-08-07:同一题不得重复生成):二次调用命中缓存,
+    # 零 LLM 零计费,内容与首次一致。
+    async def _must_not_regenerate(**_kwargs: object) -> dict[str, object]:
+        raise AssertionError("cached explanation must not regenerate")
+
+    monkeypatch.setattr(member_service_module, "generate_llm_deep_explanation", _must_not_regenerate)
+    second = asyncio.run(
+        service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+    )
+    assert second["cache_status"] == "cached"
+    assert second["billing"] == {"status": "cached", "amount_points": 0}
+    assert second["explanation"]["summary"] == result["explanation"]["summary"]
+
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:
     service = MemberConsoleService()

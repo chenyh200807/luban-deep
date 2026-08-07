@@ -9,6 +9,18 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-08-07 - 证据卡质量三病 + 深解析缓存/签发诊断 grounding + 补锚工单
+
+- 问题:owner 实拍卡18/19「采分点和易错点太简单,整体质量太差」+ 拍板「深解析不得重复生成」+ 追问「267 空锚怎么解决」。
+- 根因(卡18 逐字还原出两个真病,不是文案问题):
+  1. **多选错因装配 bug**:build_evidence_items 按「学员实选字母」取首个有诊断的选项——多选漏选时实选的恰是**对的**选项(卡18 选 C 对,漏 A/D/E),把对选项的解读渲染成「为什么丢分」=答非所问。修法=错因锚定**错误字母集**(错选优先+漏选),多选逐项拼「错选 X：…;漏选 Y：…」,无解读时至少给选项原文;单选语义不变。
+  2. **章节标签冒充采分点**:题库车道无签发采分点时回落 knowledge_points[0](=「主体结构工程施工」章节名)——且前后端各有一个凑数回落点(ruler-and-surface)。修法=两侧回落全删,无签发采分点诚实留白;首屏预告同纪律。
+  3. **深解析重复生成**:cache_key 早已存在但从未有存取点(半截设计)。修法=唯一存放点 result_report_json.deep_explanations[cache_key](复用既有 JSONB 列,零迁移),两 repo 各加 store_deep_explanation,服务命中即回 cache_status=cached 零 LLM 零计费;写缓存失败留痕不拦结果。
+- 质量加固:prompt v2 把签发 answer_diagnosis(逐选项 pitfall/why_missed/fix+model_answer)喂进 prompt 作**事实基准**(解析不得与教研诊断矛盾,空时才自行推导、禁编造条文数值);PROMPT_VERSION bump 使缓存键自然换代。
+- 267 空锚裁决:全部来自讲义 HTML 编译车道(anchor=compiled_html:artifacts/... 无教材节点码);pack 级读侧兜底被数据否决(16/35 pack 跨多节点,张冠李戴风险);治本=内容线补锚。产出可审工单 artifacts/pass_readiness_anchor_backfill_worklist.json(267 条,词面匹配签发教材 bundle 建议锚,high 70/medium 55/low 142),人审确认后走编译管道+签发闸重签发,禁直写权威。
+- 验证:assessment 177(+2 多选/采分点回归)、快闸 529、member_console 全量+缓存回归、前端全套零失败、contract guard 绿。
+- 教训:①「质量差」的用户反馈要逐字还原到数据装配层——两张卡背后是装配 bug 和假内容,不是措辞问题;②cache_key 存在≠缓存存在,半截设计(键无store)是 unconsumed island 的变体;③多选题的「学员错误」=集合差,不是「学员选了什么」。
+
 ## 2026-08-07 - 过线体检六项清剿:检查点下线/复读压制/来源人话化/回写隔离/试驾深解析/毒环境卸载
 
 - 问题:owner 六项遗留逐一清剿令 + 两条新拍板(①中场小结页不要,连续答题;②证据卡解析要展现鲁班能力,"评测=试驾")。四路专家 subagent 并行只读测绘,主控单写者实施。

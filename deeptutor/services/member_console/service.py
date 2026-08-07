@@ -9647,6 +9647,21 @@ class MemberConsoleService:
             hashlib.sha256(json.dumps(question, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
             PROMPT_VERSION,
         )
+        # 结果缓存(owner 2026-08-07:同一题不得重复生成):唯一存放点=报告快照
+        # deep_explanations[cache_key];命中即回,零 LLM 零计费。
+        cached_explanation = dict(
+            (report.get("deep_explanations") or {}).get(cache_key) or {}
+        )
+        if cached_explanation:
+            return {
+                "quiz_id": quiz_id,
+                "question_id": normalized_question_id,
+                "cache_key": cache_key,
+                "cache_status": "cached",
+                "workflow_status": "completed",
+                "billing": {"status": "cached", "amount_points": 0},
+                "explanation": cached_explanation,
+            }
         # 试驾面(owner 2026-08-07 拍板):过线体检是获客入口,错题的鲁班深解析
         # 免额度——新用户 0 余额不得撞付费墙。成本天然封顶:只放行本卷报告
         # wrong_items 内的题(单卷 ≤36),路由限流(10/min·200/day)兜底。
@@ -9683,6 +9698,20 @@ class MemberConsoleService:
                 cache_key=cache_key,
                 amount_points=amount_points,
                 metadata=billing_metadata,
+            )
+        try:
+            self._assessment_session_repository.store_deep_explanation(
+                user_id,
+                quiz_id,
+                cache_key=cache_key,
+                explanation=explanation,
+            )
+        except Exception:
+            # 缓存写失败不拦生成结果——但必须留痕(禁静默吞,2026-08-07 教训)。
+            logger.exception(
+                "assessment_deep_explanation_cache_store_failed quiz_id=%s question_id=%s",
+                quiz_id,
+                normalized_question_id,
             )
         return {
             "quiz_id": quiz_id,

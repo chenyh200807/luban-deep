@@ -223,21 +223,52 @@ def build_evidence_items(
         question = dict(by_question_id.get(str(item.get("question_id") or "")) or {})
         diagnosis = dict(question.get("answer_diagnosis") or {})
         learner_answer = str(item.get("learner_answer") or "").strip().upper()
-        # 学员实选项的诊断优先(多选取首个命中项);题级解析兜底。
         per_option = dict(diagnosis.get("options") or {})
-        chosen: dict[str, Any] = {}
-        for letter in learner_answer:
-            candidate = dict(per_option.get(letter) or {})
-            if candidate:
-                chosen = candidate
-                break
-        why_missed = str(chosen.get("why_missed") or "").strip() or str(
-            diagnosis.get("explanation") or ""
-        ).strip()
         # 正确答案唯一权威=签发快照的 answer;scored 转录只作缺快照时的兜底。
         correct_answer = (
             str(question.get("answer") or item.get("correct_answer") or "").strip().upper()
         )
+        # 错因必须对准「错在哪」(2026-08-07 owner 实拍卡18回归):多选漏选时,
+        # 学员实选的往往是"对的那几个",拿它们的解读当丢分原因=答非所问。
+        # 诊断锚定错误字母集:错选(实选却不该选)优先,再漏选(该选却没选);
+        # 单选沿用实选项(实选即错选)。
+        is_multi = str(question.get("question_type") or "") == "multi_choice"
+        if is_multi and correct_answer:
+            extra_letters = [l for l in learner_answer if l not in correct_answer]
+            missed_letters = [l for l in correct_answer if l not in learner_answer]
+            error_letters = extra_letters + missed_letters
+        else:
+            extra_letters, missed_letters = list(learner_answer), []
+            error_letters = list(learner_answer)
+        chosen: dict[str, Any] = {}
+        for letter in error_letters:
+            candidate = dict(per_option.get(letter) or {})
+            if candidate:
+                chosen = candidate
+                break
+        why_missed = ""
+        if is_multi and (extra_letters or missed_letters):
+            option_texts = _option_text_by_key(question)
+            parts: list[str] = []
+            for letter in extra_letters:
+                reason = str(dict(per_option.get(letter) or {}).get("why_missed") or "").strip()
+                parts.append(
+                    f"错选 {letter}：{reason}"
+                    if reason
+                    else (f"错选 {letter}（{option_texts[letter]}）" if letter in option_texts else f"错选 {letter}")
+                )
+            for letter in missed_letters:
+                reason = str(dict(per_option.get(letter) or {}).get("why_missed") or "").strip()
+                parts.append(
+                    f"漏选 {letter}：{reason}"
+                    if reason
+                    else (f"漏选 {letter}（{option_texts[letter]}）" if letter in option_texts else f"漏选 {letter}")
+                )
+            why_missed = "；".join(parts)
+        if not why_missed:
+            why_missed = str(chosen.get("why_missed") or "").strip() or str(
+                diagnosis.get("explanation") or ""
+            ).strip()
         raw_source = str(chosen.get("source") or diagnosis.get("source") or "").strip()
         evidence.append(
             {
@@ -248,8 +279,9 @@ def build_evidence_items(
                 "learner_option_text": _joined_option_text(question, learner_answer),
                 "correct_answer": correct_answer,
                 "correct_option_text": _joined_option_text(question, correct_answer),
-                "scoring_point": str(diagnosis.get("scoring_point") or "").strip()
-                or (list(item.get("knowledge_points") or []) or [""])[0],
+                # 采分点只认签发诊断;禁拿章节级 knowledge_points 凑数——
+                # 「主体结构工程施工」是章节名不是采分点(2026-08-07 owner 实拍)。
+                "scoring_point": str(diagnosis.get("scoring_point") or "").strip(),
                 # 能得分的确切表述(§7.3-3):编译权威的 model_answer,且只留真增量
                 # (与正确选项原文近重复的复读一律压掉),没有即留空。
                 "scoring_wording": _incremental_scoring_wording(

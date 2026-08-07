@@ -225,7 +225,11 @@ var fallbackEvidence = vm.buildEvidenceModel(
   null,
 );
 assert.strictEqual(fallbackEvidence.items.length, 1);
-assert.strictEqual(fallbackEvidence.items[0].scoringPoint, "主体结构");
+assert.strictEqual(
+  fallbackEvidence.items[0].scoringPoint,
+  "",
+  "章节级 knowledge_points 禁冒充采分点(owner 2026-08-07 实拍)——无签发采分点即留白",
+);
 assert.strictEqual(fallbackEvidence.items[0].whyMissed, "这题考完整枚举。");
 
 // ── 7. 计划预览(exam-prep-plan 冻结形状) ─────────────────────

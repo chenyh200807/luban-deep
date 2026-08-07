@@ -311,6 +311,31 @@ class InMemoryAssessmentSessionRepository:
         row["updated_at"] = _iso(self._now_fn())
         return copy.deepcopy(row)
 
+    def store_deep_explanation(
+        self,
+        user_id: str,
+        quiz_id: str,
+        *,
+        cache_key: str,
+        explanation: dict[str, Any],
+    ) -> dict[str, Any]:
+        """深解析结果落回报告快照(owner 2026-08-07:同一题不得重复生成)。
+
+        唯一存放点=result_report_json.deep_explanations[cache_key];cache_key 含
+        学员作答与 prompt 版本,内容变化自然换键,不做过期策略。"""
+
+        row = self._owned_row(user_id, quiz_id)
+        report = dict(row.get("result_report_json") or {})
+        if not report:
+            raise AssessmentSessionError(f"assessment_report_not_ready:{quiz_id}")
+        cached = dict(report.get("deep_explanations") or {})
+        cached[str(cache_key)] = copy.deepcopy(explanation or {})
+        report["deep_explanations"] = cached
+        row["result_report_json"] = report
+        row["result_report_hash"] = _report_hash(report)
+        row["updated_at"] = _iso(self._now_fn())
+        return copy.deepcopy(row)
+
     def expire_stale_sessions(self) -> None:
         for row in self._rows.values():
             self._expire_if_needed(row)
@@ -719,6 +744,36 @@ class SupabaseAssessmentSessionRepository:
             patch["status"] = "scored"
             patch["degraded_reason"] = None
         return self._patch_owned(user_id, quiz_id, patch)
+
+    def store_deep_explanation(
+        self,
+        user_id: str,
+        quiz_id: str,
+        *,
+        cache_key: str,
+        explanation: dict[str, Any],
+    ) -> dict[str, Any]:
+        """深解析结果落回报告快照(与 InMemory 版同语义)。
+
+        读-改-写整列 JSONB;并发窗口=同一学员同秒点两张卡,丢失一条缓存的
+        后果只是下次点击重新生成一次,可接受,不为此上乐观锁。"""
+
+        row = self._owned_row(user_id, quiz_id)
+        report = dict(row.get("result_report_json") or {})
+        if not report:
+            raise AssessmentSessionError(f"assessment_report_not_ready:{quiz_id}")
+        cached = dict(report.get("deep_explanations") or {})
+        cached[str(cache_key)] = copy.deepcopy(explanation or {})
+        report["deep_explanations"] = cached
+        return self._patch_owned(
+            user_id,
+            quiz_id,
+            {
+                "result_report_json": report,
+                "result_report_hash": _report_hash(report),
+                "updated_at": _iso(self._now_fn()),
+            },
+        )
 
     def rekey_user_sessions(self, *, source_user_id: str, target_user_id: str) -> int:
         """Re-key merged-away sessions to the surviving uid (plan §9.4).

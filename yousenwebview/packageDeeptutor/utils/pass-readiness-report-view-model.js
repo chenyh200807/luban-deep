@@ -184,9 +184,8 @@ function buildNextPreview(report) {
   var labels = [];
   rows.forEach(function (raw) {
     var item = _obj(raw);
-    var label = _str(
-      item.scoring_point || item.scoring_point_text || _arr(item.knowledge_points)[0],
-    );
+    // 同采分点纪律:首屏预告也禁拿章节级 knowledge_points 凑数。
+    var label = _str(item.scoring_point || item.scoring_point_text);
     if (label && labels.indexOf(label) < 0) labels.push(label);
   });
   return {
@@ -247,11 +246,9 @@ function buildEvidenceModel(report, resultModel) {
         correctAnswer: correctAnswer,
         correctAnswerDisplay: _str(item.correct_option_text) || correctAnswer,
         correctWordingKnown: !!_str(item.scoring_wording || item.earning_wording),
-        scoringPoint: _str(
-          item.scoring_point ||
-            item.scoring_point_text ||
-            _arr(item.knowledge_points)[0],
-        ),
+        // 采分点由后端投影唯一裁决;前端不再拿章节级 knowledge_points 凑数
+        // (章节名冒充采分点=低质假内容,owner 2026-08-07 实拍)。
+        scoringPoint: _str(item.scoring_point || item.scoring_point_text),
         scoringWording: _str(item.scoring_wording || item.earning_wording),
         pitfall: pitfall || PITFALL_PLACEHOLDER,
         pitfallAvailable: !!pitfall,
