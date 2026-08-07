@@ -178,22 +178,31 @@ async def generate_llm_deep_explanation(
     ):
         started_at = time.monotonic()
         try:
-            raw = await complete(
-                prompt,
-                system_prompt=system_prompt,
-                temperature=0.2,
-                max_tokens=1200,
-                max_retries=2,
-                observation_name=_ASSESSMENT_EXPLANATION_OBSERVATION_NAME,
-            )
+            parsed: dict[str, Any] = {}
+            # 内容级重试一次:输出截断/非 JSON 时再要一遍。解析仍失败则显式抛错
+            # ——绝不吐罐头模板冒充付费解析(fail-closed-to-template 反模式;
+            # 2026-08-07 实测:v2 prompt 输出更长,1200 tokens 截断产出罐头还被
+            # 计费+缓存)。调用方不 capture、不缓存,前端提示稍后重试。
+            for _attempt in range(2):
+                raw = await complete(
+                    prompt,
+                    system_prompt=system_prompt,
+                    temperature=0.2,
+                    max_tokens=2400,
+                    max_retries=2,
+                    observation_name=_ASSESSMENT_EXPLANATION_OBSERVATION_NAME,
+                )
+                parsed = _parse_llm_json(raw)
+                if parsed:
+                    break
         finally:
             _record_assessment_explanation_duration((time.monotonic() - started_at) * 1000.0)
         usage_summary = observability.get_current_usage_summary()
-    parsed = _parse_llm_json(raw)
+    if not parsed:
+        raise RuntimeError("assessment_deep_explanation_generation_failed")
     return {
         "summary": _text(parsed.get("summary"))
-        or _text(question.get("simple_explanation"))
-        or "本题需要回到题干限定词和选项边界逐项核对。",
+        or _text(question.get("simple_explanation")),
         "learner_answer": str(learner_answer or ""),
         "correct_answer": str(correct_answer or ""),
         "key_terms": _string_list(parsed.get("key_terms"))[:6],
