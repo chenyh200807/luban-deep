@@ -54,6 +54,9 @@ def _candidate_from_compiled_item(
         return None
     options: list[tuple[str, str]] = []
     correct_letters: list[str] = []
+    # 报告面诊断:逐选项 temptation/loss_reason/fix 是签发权威里已审的教学内容,
+    # 只做只读投影(不进 client,见 blueprint_service._build_scored_question)。
+    option_diagnosis: dict[str, dict[str, str]] = {}
     for index, option in enumerate(raw_options):
         letter = _OPTION_LETTERS[index]
         text = str(option.get("text") or "").strip()
@@ -62,6 +65,14 @@ def _candidate_from_compiled_item(
         options.append((letter, text))
         if option.get("is_correct") is True:
             correct_letters.append(letter)
+        diagnosis = {
+            "pitfall": str(option.get("temptation") or "").strip(),
+            "why_missed": str(option.get("loss_reason") or "").strip(),
+            "fix": str(option.get("fix") or "").strip(),
+            "error_code": str(option.get("source_error_code") or "").strip(),
+        }
+        if any(diagnosis.values()):
+            option_diagnosis[letter] = diagnosis
     if len(correct_letters) != 1:
         return None
     source_anchor = str(item.get("source_anchor") or "").strip()
@@ -99,6 +110,12 @@ def _candidate_from_compiled_item(
         source_chunk_id="",
         node_code=node_match.group(1) if node_match else "",
         source_meta=source_meta,
+        answer_diagnosis={
+            "scoring_point": rule_group,
+            "model_answer": str(item.get("model_answer") or "").strip(),
+            "source": source_anchor,
+            "options": option_diagnosis,
+        },
     )
 
 

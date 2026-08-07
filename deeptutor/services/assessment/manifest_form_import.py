@@ -258,12 +258,21 @@ def _resolve_manifest_case_task(
                 f"case_base_content_sha256_mismatch:{task_id}:{base_variant_id}"
             )
     options: list[tuple[str, str]] = []
+    # 报告面诊断:manifest 逐选项 cause(失分原因)/source(教材出处)是已审内容,
+    # 只读投影进答案面(不进 client)。
+    option_diagnosis: dict[str, dict[str, str]] = {}
     for option in task.get("options") or []:
         key = str((option or {}).get("key") or "").strip().upper()
         value = str((option or {}).get("value") or "").strip()
         if not key or not value:
             raise ManifestFormImportError(f"case_option_invalid:{task_id}")
         options.append((key, value))
+        diagnosis = {
+            "why_missed": str((option or {}).get("cause") or "").strip(),
+            "source": str((option or {}).get("source") or "").strip(),
+        }
+        if any(diagnosis.values()):
+            option_diagnosis[key] = diagnosis
     answer = str(task.get("answer_key") or "").strip().upper()
     option_keys = {key for key, _value in options}
     if len(options) < 2 or not answer or not set(answer) <= option_keys:
@@ -294,6 +303,10 @@ def _resolve_manifest_case_task(
             "content_sha256": expected_sha,
             "difficulty_anchor": str(task.get("difficulty") or ""),
             "semantic_signature": f"manifest:{manifest.get('form_id')}:{task_id}",
+        },
+        answer_diagnosis={
+            "scoring_point": str(task.get("dimension") or family),
+            "options": option_diagnosis,
         },
     )
 

@@ -15,8 +15,23 @@
 .pr-body { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1; }
 .pr-section { padding: 24rpx 32rpx; display: flex; flex-direction: column; gap: 24rpx; }
 .pr-card { padding: 30rpx 28rpx; display: flex; flex-direction: column; gap: 18rpx; }
-.pr-cta { width: 100%; }
-button.pr-cta::after { border: none; }
+/* 微信 button 默认带 max-width → 不清掉长文案会折行(落地页同配方) */
+.pr-cta {
+  width: 100%; max-width: none; margin: 0; padding: 0; box-sizing: border-box;
+  min-height: 96rpx; font-size: 28rpx;
+}
+.pr-cta::after { border: none; }
+
+/* 「接下来你会看到」预告卡:竹青点 + 真实采分点名 */
+.pr-preview { gap: 14rpx; border-color: var(--pk-accent-border); }
+.pr-preview-row { display: flex; align-items: flex-start; gap: 14rpx; }
+.pr-preview-dot {
+  flex-shrink: 0; width: 14rpx; height: 14rpx; border-radius: 50%;
+  background: var(--pk-grn); margin-top: 12rpx;
+}
+.pr-preview-txt { flex: 1; font-size: 26rpx; line-height: 1.6; font-weight: 700; color: var(--pk-t1); }
+.pr-preview-tail { font-size: 24rpx; font-weight: 400; color: var(--pk-t3); }
+.pr-preview-more { font-size: 24rpx; line-height: 1.6; color: var(--pk-t3); }
 
 /* 屏 3 结果首屏 */
 .pr-band-head { display: flex; align-items: baseline; gap: 16rpx; }

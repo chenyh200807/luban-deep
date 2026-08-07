@@ -1,3 +1,5 @@
+import json
+
 from deeptutor.services.assessment.blueprint import get_assessment_blueprint
 from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintService,
@@ -647,3 +649,67 @@ def test_blueprint_service_fails_closed_when_scored_candidates_are_short() -> No
         assert "requires" in str(exc)
     else:  # pragma: no cover - assertion guard
         raise AssertionError("Expected blueprint service to fail closed")
+
+
+# ── 答案面单一去向红线(2026-08-07):诊断只进私有面,永不进答题页 ──────────
+
+
+def test_answer_diagnosis_never_reaches_the_exam_client_projection() -> None:
+    from deeptutor.services.assessment.blueprint import get_assessment_blueprint
+    from deeptutor.services.assessment.blueprint_service import _build_scored_question
+
+    blueprint = get_assessment_blueprint("diagnostic_v1")
+    section = blueprint.sections[0]
+    candidate = QuestionCandidate(
+        source_question_id="src_leak_probe",
+        question_stem="题干",
+        question_type="single_choice",
+        chapter="章节",
+        options=(("A", "对的"), ("B", "错的")),
+        answer="A",
+        source_type="REAL_EXAM",
+        answer_diagnosis={
+            "options": {"B": {"why_missed": "这句话一旦出现在答题页就是泄题"}},
+        },
+    )
+
+    client, stored = _build_scored_question("q01", section, candidate)
+
+    assert "answer_diagnosis" not in client, "答案面诊断泄露到答题页投影"
+    assert "answer" not in client, "正确答案泄露到答题页投影"
+    assert stored["answer_diagnosis"]["options"]["B"]["why_missed"]
+    serialized = json.dumps(client, ensure_ascii=False)
+    assert "泄题" not in serialized, "诊断文本经由其他字段泄露到答题页"
+
+
+def test_persisted_form_round_trip_preserves_answer_diagnosis() -> None:
+    candidates = [
+        QuestionCandidate(
+            source_question_id=f"q_{index}",
+            question_stem=f"题干 {index}",
+            question_type="case_study",
+            chapter=f"诊断章节 {index}",
+            options=(("A", "选项 A"), ("B", "选项 B"), ("C", "选项 C"), ("D", "选项 D")),
+            answer="A",
+            difficulty=("easy", "medium", "hard")[index % 3],
+            source_type="REAL_EXAM",
+            answer_diagnosis={"options": {"B": {"fix": f"补这一点 {index}"}}},
+        )
+        for index in range(1, 80)
+    ]
+    service = AssessmentBlueprintService(
+        provider=StaticAssessmentQuestionProvider(candidates),
+        allow_dev_fallback=False,
+    )
+    form_bank = service._build_form_bank()
+    form = form_bank.forms[0]
+
+    row = _form_to_persisted_row(
+        service.blueprint.version, form, question_bank_size=form_bank.question_bank_size
+    )
+    restored = _form_from_persisted_row(row, service.blueprint)
+
+    scored = [unit for unit in restored.units if unit.scored]
+    assert scored, "表单应含计分题"
+    # 诊断随持久化表单往返:seed 一次,报告随时读得到。
+    assert all(unit.item.answer_diagnosis["options"]["B"]["fix"] for unit in scored)

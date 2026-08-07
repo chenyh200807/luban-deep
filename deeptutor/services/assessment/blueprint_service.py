@@ -66,6 +66,13 @@ class QuestionCandidate:
     source_chunk_id: str = ""
     node_code: str = ""
     source_meta: dict[str, Any] | None = None
+    # 报告面诊断(答案面):逐选项「易错诱因 / 为什么丢分 / 怎么补 / 教材出处」+ 题级解析。
+    # 各供给车道从自己的签发权威只读投影而来(编译 authority 逐选项 temptation/
+    # loss_reason/fix、questions_bank.analysis、manifest 案例逐选项 cause/source),
+    # 报告只做读取,永不现编——现编即伪造。
+    # ⚠ 单一去向纪律:本字段只进私有会话快照(``stored``)与持久化表单,
+    # **永不进 client 投影**——答题页拿到它就等于泄题。
+    answer_diagnosis: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -244,6 +251,11 @@ class SupabaseAssessmentQuestionProvider:
                     "correct_answer",
                     "difficulty",
                     "tags",
+                    # 报告面诊断列(答案面):题级解析 + 逐选项理由 + 陷阱类型。
+                    # 只进 answer_diagnosis(私有面),不进 client 投影。
+                    "analysis",
+                    "option_reasoning",
+                    "trap_type",
                 )
             ),
             "limit": str(max(limit, 1)),
@@ -393,6 +405,7 @@ class SupabaseAssessmentQuestionProvider:
             source_chunk_id=str(row.get("source_chunk_id") or "").strip(),
             node_code=str(row.get("node_code") or "").strip(),
             source_meta=dict(row.get("source_meta") or {}) if isinstance(row.get("source_meta"), dict) else {},
+            answer_diagnosis=_bank_answer_diagnosis(row),
         )
         if not _is_supported_click_assessment_candidate(candidate):
             return None
@@ -941,6 +954,28 @@ def _with_form_source(form_bank: _AssessmentFormBank, form_source: str) -> _Asse
     )
 
 
+def _bank_answer_diagnosis(row: dict[str, Any]) -> dict[str, Any] | None:
+    """questions_bank 行 → 报告面诊断投影(只读,不改行)。
+
+    该库题级解析在 ``analysis`` 列;``option_reasoning`` 若为逐选项字典则一并
+    透出。两者皆空时返回 None——宁可让报告留白,也不编造解析。
+    """
+
+    explanation = str(row.get("analysis") or "").strip()
+    raw_reasoning = row.get("option_reasoning")
+    options: dict[str, dict[str, str]] = {}
+    if isinstance(raw_reasoning, dict):
+        for key, value in raw_reasoning.items():
+            letter = str(key or "").strip().upper()
+            text = str(value or "").strip()
+            if letter and text:
+                options[letter] = {"why_missed": text}
+    trap = str(row.get("trap_type") or "").strip()
+    if not explanation and not options and not trap:
+        return None
+    return {"explanation": explanation, "trap_type": trap, "options": options}
+
+
 def _form_to_persisted_row(
     blueprint_version: str,
     form: _AssessmentForm,
@@ -984,6 +1019,8 @@ def _form_unit_to_json(unit: _AssessmentFormUnit) -> dict[str, Any]:
             "source_chunk_id": item.source_chunk_id,
             "node_code": item.node_code,
             "source_meta": dict(item.source_meta or {}),
+            # 答案面诊断随持久化表单走(报告读它);client 投影另有裁剪,见 _build_scored_question。
+            "answer_diagnosis": dict(item.answer_diagnosis or {}),
         }
     item = unit.item
     if not isinstance(item, ProfileProbe):
@@ -1070,6 +1107,11 @@ def _form_unit_from_json(item: dict[str, Any]) -> _AssessmentFormUnit:
             source_chunk_id=str(item.get("source_chunk_id") or "").strip(),
             node_code=str(item.get("node_code") or "").strip(),
             source_meta=dict(item.get("source_meta") or {}) if isinstance(item.get("source_meta"), dict) else {},
+            answer_diagnosis=(
+                dict(item.get("answer_diagnosis") or {})
+                if isinstance(item.get("answer_diagnosis"), dict)
+                else None
+            ),
         )
         if not _is_supported_click_assessment_candidate(candidate):
             raise AssessmentBlueprintUnavailable(
@@ -1159,6 +1201,8 @@ def _build_scored_question(
     stored = {
         **client,
         "answer": candidate.answer,
+        # 答案面诊断只住私有快照:报告按学员实选项读它,答题页永远看不到。
+        "answer_diagnosis": dict(candidate.answer_diagnosis or {}),
     }
     return client, stored
 

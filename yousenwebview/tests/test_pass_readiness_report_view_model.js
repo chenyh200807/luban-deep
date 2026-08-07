@@ -65,7 +65,9 @@ assert.strictEqual(result.showReferenceInterval, true);
 assert.strictEqual(result.referencePassInterval, "45%–60%");
 assert.strictEqual(result.selfReportedScoreLabel, "自报未核验");
 assert.strictEqual(result.expressionMeasured, false, "unmeasured 含 answer_expression");
-assert.strictEqual(result.primaryCta, "先补最影响得分的这一点");
+// CTA 说清目的地(owner 2026-08-07:原文案看不出点进去有什么)。
+// 本 fixture 无失分证据 → 回落通用式;有证据时带数量,见下方断言。
+assert.strictEqual(result.primaryCta, "看我的采分点证据");
 // 几何/差距用 band_lower/band_upper 数值字段, 不靠解析展示串
 assert.ok(result.geometry && result.geometry.passLinePct < 100);
 assert.strictEqual(
@@ -180,7 +182,9 @@ assert.strictEqual(
   "",
   "无绑定则空 → 页面不渲染按钮(禁 dead button)",
 );
-assert.ok(evidence.lessonMissingCopy.length > 0);
+// 微课未绑定 → 卡片不再挂「整理中」待办占位(owner 2026-08-07):
+// §7.6 的禁 dead button 由按钮条件渲染满足,不需要额外的自家 backlog 文案。
+assert.ok(evidence.lessonCta.length > 0);
 assert.strictEqual(evidence.readinessDetail.available, true, "精确就绪度挂在证据详情模型");
 
 // p0a wrong_items 兜底(错题渲染复用既有链字段)
@@ -325,5 +329,44 @@ sources.forEach(function (file) {
     );
   });
 });
+
+// ── 首屏「接下来你会看到」预告(owner 2026-08-07:首屏没有继续下去的理由) ──
+// 只点名报告里已定位的采分点,数量与点名全部来自报告——零编造。
+var previewReport = {
+  schema_version: "pass-readiness-v1",
+  pass_readiness: {
+    estimated_score_band: "70–90 分",
+    band_lower: 70,
+    band_upper: 90,
+    pass_line: 96,
+    evidence_items: [
+      { question_stem: "题一", scoring_point: "施工缝·处理工序" },
+      { question_stem: "题二", scoring_point: "拆模·强度条件" },
+      { question_stem: "题三", scoring_point: "钢筋接头·位置" },
+      { question_stem: "题四", scoring_point: "进度·关键线路" },
+    ],
+  },
+};
+var previewResult = vm.buildResultModel(previewReport);
+assert.strictEqual(previewResult.nextPreview.available, true);
+assert.strictEqual(previewResult.nextPreview.count, 4);
+assert.deepStrictEqual(previewResult.nextPreview.points, [
+  "施工缝·处理工序",
+  "拆模·强度条件",
+  "钢筋接头·位置",
+]);
+assert.strictEqual(previewResult.nextPreview.moreCount, 1, "超出 3 个只提示数量,不铺满首屏");
+assert.strictEqual(
+  previewResult.primaryCta,
+  "看这 4 个失分点怎么补回来",
+  "CTA 必须说清点进去看到什么 + 用真实数量",
+);
+
+// 零证据时预告整块不渲染(不摆空架子)
+var emptyPreview = vm.buildResultModel({
+  schema_version: "pass-readiness-v1",
+  pass_readiness: { estimated_score_band: "70–90 分", pass_line: 96 },
+});
+assert.strictEqual(emptyPreview.nextPreview.available, false);
 
 console.log("PASS test_pass_readiness_report_view_model.js");

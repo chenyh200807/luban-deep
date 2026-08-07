@@ -121,6 +121,61 @@ def _probe_tags(
     return tags
 
 
+def build_evidence_items(
+    items: list[dict[str, Any]],
+    session_questions: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """失分题 → 证据卡(§7.3):诊断只从私有会话快照的 ``answer_diagnosis`` 读。
+
+    单一权威:诊断文本由供给车道在组卷时从各自签发权威(编译 authority 逐选项
+    temptation/loss_reason/fix、questions_bank.analysis、manifest 案例逐选项
+    cause/source)只读投影而来。本函数不生成任何解释文本——**权威没有的字段一律
+    留空**,由前端整行不渲染(omitted-rather-than-faked),绝不用通用套话冒充。
+    """
+
+    by_question_id = {
+        str(question.get("question_id") or ""): question
+        for question in list(session_questions or [])
+        if str(question.get("question_id") or "")
+    }
+    evidence: list[dict[str, Any]] = []
+    for item in list(items or []):
+        if item.get("is_correct"):
+            continue
+        question = dict(by_question_id.get(str(item.get("question_id") or "")) or {})
+        diagnosis = dict(question.get("answer_diagnosis") or {})
+        learner_answer = str(item.get("learner_answer") or "").strip().upper()
+        # 学员实选项的诊断优先(多选取首个命中项);题级解析兜底。
+        per_option = dict(diagnosis.get("options") or {})
+        chosen: dict[str, Any] = {}
+        for letter in learner_answer:
+            candidate = dict(per_option.get(letter) or {})
+            if candidate:
+                chosen = candidate
+                break
+        why_missed = str(chosen.get("why_missed") or "").strip() or str(
+            diagnosis.get("explanation") or ""
+        ).strip()
+        evidence.append(
+            {
+                "question_id": item.get("question_id"),
+                "source_question_id": item.get("source_question_id"),
+                "question_stem": item.get("question_stem"),
+                "learner_answer": item.get("learner_answer"),
+                "correct_answer": item.get("correct_answer"),
+                "scoring_point": str(diagnosis.get("scoring_point") or "").strip()
+                or (list(item.get("knowledge_points") or []) or [""])[0],
+                "pitfall": str(chosen.get("pitfall") or "").strip(),
+                "why_missed": why_missed,
+                "fix": str(chosen.get("fix") or "").strip(),
+                "source": str(chosen.get("source") or diagnosis.get("source") or "").strip(),
+                "error_codes": list(item.get("error_codes") or []),
+                "knowledge_points": list(item.get("knowledge_points") or []),
+            }
+        )
+    return evidence
+
+
 def build_pass_readiness_report(
     *,
     quiz_id: str,
@@ -223,6 +278,7 @@ def build_pass_readiness_report(
     )
     base["schema_version"] = PASS_READINESS_REPORT_SCHEMA_VERSION
     base["score_title"] = "一建过线体检结果"
+    pass_readiness["evidence_items"] = build_evidence_items(items, list(session_questions or []))
     base["pass_readiness"] = pass_readiness
     return base
 

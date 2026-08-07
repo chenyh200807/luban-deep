@@ -25,7 +25,18 @@ assert.ok(
   wxml.indexOf('wx:if="{{item.lessonPackId}}"') >= 0,
   "微课按钮必须以绑定存在为渲染条件(禁 dead button)",
 );
-assert.ok(wxml.indexOf("evidence.lessonMissingCopy") >= 0, "无绑定必须给诚实占位文案");
+assert.strictEqual(
+  wxml.indexOf("evidence.lessonMissingCopy"),
+  -1,
+  "微课未绑定不得渲染「整理中」待办占位(owner 2026-08-07:占位撑满每张卡显得像假页)",
+);
+// 诊断三槽必须以真实供给为渲染条件——无签发诊断即整块不渲染,不得填套话。
+["item.pitfallAvailable", "item.whyMissed", "item.fix"].forEach(function (binding) {
+  assert.ok(
+    wxml.indexOf('wx:if="{{' + binding + '}}"') >= 0,
+    "诊断槽必须条件渲染: " + binding,
+  );
+});
 [
   "result.bandText",
   "result.passLine",

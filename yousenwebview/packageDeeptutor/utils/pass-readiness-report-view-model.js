@@ -120,6 +120,8 @@ function buildResultModel(report) {
     }
   }
 
+  var nextPreview = buildNextPreview(report);
+
   // prep_feasibility 独立字段: 只拼进风险措辞, 永不改变分数带
   var riskBand = _str(pr.risk_band);
   var prepFeasibility = _str(pr.prep_feasibility);
@@ -160,7 +162,39 @@ function buildResultModel(report) {
     expressionMeasured: unmeasured.indexOf("answer_expression") < 0,
     diagnosis: _str(pr.diagnosis || pr.one_sentence_diagnosis || _obj(report).diagnosis),
     disclaimer: BAND_DISCLAIMER,
-    primaryCta: "先补最影响得分的这一点",
+    // 下一屏预告(§4.3 wow 必须暖):用真实定位到的失分采分点做"接下来你会看到",
+    // 让首屏不止停在一个带子——数量与点名全部来自报告,零编造;无供给时整块不渲染。
+    nextPreview: nextPreview,
+    primaryCta: nextPreview.count
+      ? "看这 " + nextPreview.count + " 个失分点怎么补回来"
+      : "看我的采分点证据",
+  };
+}
+
+// 首屏「接下来你会看到」预告:只点名报告里已定位的采分点(最多 3 个),
+// 不足则少列,零供给则整块不渲染——不编造、不凑数。
+function buildNextPreview(report) {
+  var pr = passReadinessBlock(report);
+  var body = _obj(report);
+  var rows = _arr(pr.evidence_items).length
+    ? _arr(pr.evidence_items)
+    : _arr(body.evidence_items).length
+      ? _arr(body.evidence_items)
+      : _arr(body.wrong_items);
+  var labels = [];
+  rows.forEach(function (raw) {
+    var item = _obj(raw);
+    var label = _str(
+      item.scoring_point || item.scoring_point_text || _arr(item.knowledge_points)[0],
+    );
+    if (label && labels.indexOf(label) < 0) labels.push(label);
+  });
+  return {
+    count: rows.length,
+    available: !!labels.length,
+    kicker: "接下来你会看到",
+    points: labels.slice(0, 3),
+    moreCount: Math.max(labels.length - 3, 0),
   };
 }
 
@@ -215,6 +249,7 @@ function buildEvidenceModel(report, resultModel) {
         pitfall: pitfall || PITFALL_PLACEHOLDER,
         pitfallAvailable: !!pitfall,
         whyMissed: whyMissed,
+        fix: _str(item.fix),
         source: _str(item.source || item.textbook_source || item.source_ref),
         lessonPackId: _str(item.lesson_pack_id),
         retestPackId: _str(item.retest_pack_id),

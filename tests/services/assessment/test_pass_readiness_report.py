@@ -184,3 +184,106 @@ def test_p0a_builder_behavior_is_unchanged() -> None:
 
     assert report["schema_version"] == "p0a-v1"
     assert "pass_readiness" not in report
+
+
+# ── 证据卡诊断链(2026-08-07 owner 实拍「解析全是空的」根因回归) ──────────
+# 病灶:考试面投影(必须隐藏答案)被复用为报告面投影(必须展示诊断),
+# 于是三条供给车道各自权威里已审的逐选项诊断一条都没到报告,
+# 前端只能长期显示「该采分点的易错点整理中」。
+
+
+def _diagnosis_questions() -> list[dict]:
+    """私有会话快照:q01 带签发诊断,q03 无诊断(用于验证不编造)。"""
+
+    return [
+        {
+            "question_id": "q01",
+            "question_type": "single_choice",
+            "scored": True,
+            "answer": "A",
+            "answer_diagnosis": {
+                "scoring_point": "施工缝·处理工序",
+                "source": "kc:leaf:concrete_joint",
+                "options": {
+                    "B": {
+                        "pitfall": "记了个 7d 就想一刀切省事。",
+                        "why_missed": "抗渗与后浇带必须不少于 14d，统一 7d 违反规范。",
+                        "fix": "抗渗、后浇带养护≥14d，不能按 7d。",
+                    }
+                },
+            },
+        },
+        {"question_id": "q03", "question_type": "single_choice", "scored": True, "answer": "A"},
+    ]
+
+
+def _wrong_on(question_id: str, letter: str) -> dict:
+    scored = _scored_result(wrong_question_ids={question_id})
+    for item in scored["items"]:
+        if item["question_id"] == question_id:
+            item["learner_answer"] = letter
+    return scored
+
+
+def test_evidence_items_carry_issued_diagnosis_for_the_chosen_option() -> None:
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q01", "B"),
+        session_questions=_diagnosis_questions() + _probe_questions(),
+        answers={"q01": "B"},
+        now_iso=NOW,
+    )
+
+    evidence = report["pass_readiness"]["evidence_items"]
+    card = next(item for item in evidence if item["question_id"] == "q01")
+    assert card["pitfall"] == "记了个 7d 就想一刀切省事。"
+    assert card["why_missed"].startswith("抗渗与后浇带必须不少于 14d")
+    assert card["fix"].startswith("抗渗、后浇带养护≥14d")
+    assert card["scoring_point"] == "施工缝·处理工序"
+    assert card["source"] == "kc:leaf:concrete_joint"
+
+
+def test_evidence_items_leave_fields_blank_rather_than_fabricate() -> None:
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_2",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q03", "C"),
+        session_questions=_diagnosis_questions() + _probe_questions(),
+        answers={"q03": "C"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q03"
+    )
+    # 权威没有诊断 → 三个诊断字段一律留空,由前端整行不渲染;绝不填通用套话。
+    assert card["pitfall"] == ""
+    assert card["why_missed"] == ""
+    assert card["fix"] == ""
+
+
+def test_evidence_items_only_cover_wrong_answers() -> None:
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_3",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q01", "B"),
+        session_questions=_diagnosis_questions() + _probe_questions(),
+        answers={"q01": "B"},
+        now_iso=NOW,
+    )
+
+    evidence = report["pass_readiness"]["evidence_items"]
+    assert [item["question_id"] for item in evidence] == ["q01"]

@@ -37,7 +37,10 @@ def _simple_explanation(question: dict[str, Any], *, is_correct: bool) -> str:
             return text
     if is_correct:
         return "本题作答正确，继续保持对关键条件和规范表述的核对。"
-    return "本题需要回到题干关键词、相关规范条文和防水构造要求逐项核对。"
+    # 无签发解析时只给与题目无关的中性提示——原文案写死"防水构造要求",
+    # 在钢筋/进度/造价等题上是**事实错误**(2026-08-07 owner 实拍发现)。
+    # 真解析走 report_read_model.build_evidence_items 的 answer_diagnosis 链。
+    return "本题需要回到题干关键词与对应规范条文逐项核对。"
 
 
 def _error_codes(question: dict[str, Any], *, learner_answer: str, correct_answer: str) -> list[str]:

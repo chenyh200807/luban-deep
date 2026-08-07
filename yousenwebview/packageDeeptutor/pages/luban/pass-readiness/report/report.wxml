@@ -63,6 +63,18 @@
           <text class="pr-diagnosis" wx:if="{{result.diagnosis}}">{{result.diagnosis}}</text>
           <text class="pr-disclaimer">{{result.disclaimer}}</text>
         </view>
+
+        <!-- 「接下来你会看到」预告:点名真实定位到的采分点,给出继续的理由。
+             无供给 → 整卡不渲染(不摆空架子)。 -->
+        <view class="pr-card pk-card pr-preview" wx:if="{{result.nextPreview.available}}">
+          <text class="pk-kicker">{{result.nextPreview.kicker}}</text>
+          <view class="pr-preview-row" wx:for="{{result.nextPreview.points}}" wx:key="*this">
+            <view class="pr-preview-dot"></view>
+            <text class="pr-preview-txt">{{item}}<text class="pr-preview-tail">·丢在哪 / 怎么补</text></text>
+          </view>
+          <text class="pr-preview-more" wx:if="{{result.nextPreview.moreCount}}">…等共 {{result.nextPreview.count}} 处失分点,逐条可点开</text>
+        </view>
+
         <view class="pr-cta pk-btn-ink" bindtap="onPrimaryCta"><text>{{result.primaryCta}}</text></view>
       </view>
 
@@ -83,23 +95,28 @@
             <text class="pr-ev-text">{{item.scoringPoint}}</text>
             <text class="pr-ev-text pr-ev-wording" wx:if="{{item.scoringWording}}">{{item.scoringWording}}</text>
           </view>
-          <view class="pr-ev-block">
+          <!-- 无签发诊断则整块不渲染(omitted-rather-than-faked):
+               宁可少一行,也不用「整理中」占位撑满每张卡。 -->
+          <view class="pr-ev-block" wx:if="{{item.pitfallAvailable}}">
             <text class="pr-ev-label">易错点</text>
-            <text class="pr-ev-text {{item.pitfallAvailable ? '' : 'pr-ev-placeholder'}}">{{item.pitfall}}</text>
+            <text class="pr-ev-text">{{item.pitfall}}</text>
           </view>
           <view class="pr-ev-block" wx:if="{{item.whyMissed}}">
             <text class="pr-ev-label">为什么丢分</text>
             <text class="pr-ev-text">{{item.whyMissed}}</text>
           </view>
+          <view class="pr-ev-block" wx:if="{{item.fix}}">
+            <text class="pr-ev-label">怎么补回来</text>
+            <text class="pr-ev-text">{{item.fix}}</text>
+          </view>
           <view class="pr-ev-block" wx:if="{{item.source}}">
             <text class="pr-ev-label">依据来源</text>
             <text class="pr-ev-text">{{item.source}}</text>
           </view>
-          <!-- 屏 6 入口: 有绑定才渲染按钮(禁 dead button) -->
+          <!-- 屏 6 入口: 有绑定才渲染按钮(禁 dead button);无绑定时整行不渲染 -->
           <view class="pr-ev-lesson pk-btn-ink" wx:if="{{item.lessonPackId}}" bindtap="onOpenLesson" data-pack-id="{{item.lessonPackId}}">
             <text>{{evidence.lessonCta}}</text>
           </view>
-          <text class="pr-ev-lesson-missing" wx:else>{{evidence.lessonMissingCopy}}</text>
           <view class="pr-ev-retest" wx:if="{{item.retestPackId}}" bindtap="onOpenRetest" data-pack-id="{{item.retestPackId}}">
             <text class="pr-ev-retest-txt">{{evidence.retestCta}} ›</text>
           </view>
