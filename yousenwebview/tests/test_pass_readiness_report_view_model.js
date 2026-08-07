@@ -142,21 +142,27 @@ var evidence = vm.buildEvidenceModel(
       {
         question_stem: "案例题:模板拆除顺序",
         learner_answer: "B",
+        learner_option_text: "B. 按施工顺序正向拆除",
+        correct_answer: "D",
+        correct_option_text: "D. 后支的先拆、先支的后拆",
         scoring_point: "先支后拆、后支先拆",
         scoring_wording: "写出「后支的先拆」即可得 2 分",
         pitfall: "常见错误是按施工顺序正向拆除",
         why_missed: "你的判断停在正向顺序，这题考的是逆序拆除条件。",
         source: "教材 2026 版 · 第 3 章模板工程",
+        source_ref: "ca:1A413030_103_0196",
         lesson_pack_id: "F16",
         retest_pack_id: "F16",
       },
       {
         question_stem: "第二题",
         learner_answer: "A",
+        correct_answer: "C",
         scoring_point: "另一采分点",
         pitfall: "",
         why_missed: "表达不完整导致失分。",
-        source: "教材 2026 版",
+        source: "",
+        source_ref: "kc:leaf:formwork_removal",
       },
     ],
   },
@@ -175,6 +181,23 @@ assert.strictEqual(
   evidence.items[1].whyMissed,
   "",
   "answer_expression 未测时禁出表达失分归因",
+);
+// 对照面(owner 2026-08-07「看不出正确答案是哪个」回归):
+// 作答/正确答案带选项原文;缺原文退回裸字母;source_ref 机器锚绝不回落进人话来源。
+assert.strictEqual(
+  evidence.items[0].learnerAnswerDisplay,
+  "B. 按施工顺序正向拆除",
+);
+assert.strictEqual(
+  evidence.items[0].correctAnswerDisplay,
+  "D. 后支的先拆、先支的后拆",
+);
+assert.strictEqual(evidence.items[1].learnerAnswerDisplay, "A");
+assert.strictEqual(evidence.items[1].correctAnswerDisplay, "C");
+assert.strictEqual(
+  evidence.items[1].source,
+  "",
+  "人话来源为空时不得回落 source_ref 机器锚",
 );
 assert.strictEqual(evidence.items[0].lessonPackId, "F16");
 assert.strictEqual(

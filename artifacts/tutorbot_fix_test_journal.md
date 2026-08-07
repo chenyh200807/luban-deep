@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-08-07 - 过线体检证据卡对照面:正确答案/选项原文/得分表述断链（三连投诉根因）
+
+- 问题:owner 两轮实拍投诉（16:50、19:59）——证据卡有诊断文案但「看不出正确答案是哪个,没分析我为什么错」。业务事实=证据卡必须是**可对照的诊断**:我选了什么（内容）、正确是什么（内容）、能得分的表述、我为何丢分。前一轮修复（4ab23bdb6/fe68773e9）接通了诊断文案车道,但对照面三处断链:①后端投影发了 correct_answer,前端 view-model 直接丢弃、wxml 无渲染位;②「你的作答」只投字母 C,无选项原文,逐选项诊断读起来像答非所问;③计划 §7.3-3 的「能得分的确切表述」前端有 scoring_wording 槽,后端从不产出——数据（answer_diagnosis.model_answer）从 4ab23bdb6 起就躺在签发快照里没人消费。附带病:依据来源把机器锚 ca:1A413030_103_0196 原样示人（fe68773e9 的蛇形谓词拦不住带冒号锚）。
+- 根因形状:dormant slot + unconsumed island 成对出现（前端有槽没数据喂、权威有数据没人读）,接通即最小修法;来源机器码是 ruler-and-surface 病（人话面与排障面共用一个字段）。
+- 失败的尝试:首版让 correct_answer 优先读 scored item 转录,被测试 fixture 的合成值（correct_answer=B vs 快照 answer=A）当场证伪——按单一权威改为签发快照 answer 优先,scored 转录只作兜底。
+- 修法:report_read_model.build_evidence_items 增 learner_option_text/correct_option_text（从快照 options 查文本）、scoring_wording←diagnosis.model_answer、source 过 _learner_facing_source（exam:YYYY:第N题→「YYYY 年真题·第N题」,纯 ASCII 机器锚留空）、机器锚只留 source_ref;view-model 增 learnerAnswerDisplay/correctAnswerDisplay,source 不再回落 source_ref;wxml 增「正确答案」行（竹青）、作答行标赭。零新概念零新状态:全部是接通既有权威字段。
+- 验证:assessment 173 passed（新增 2 回归:对照面全字段+机器锚永不进人话面）;member_console 371 passed;前端 view-model+页面契约+全套 node 零失败;contract guard 全绿;本地端到端真签发数据 36 卡:36/36 有正确答案+双方选项原文、20/36 有得分表述（编译车道有 model_answer,其余车道诚实留白）、机器锚泄露 0。
+- 教训:①「内容线接通了」≠「对照面成立」——学员读卡的最小闭环是 选项内容×正确答案×错因 三者同屏,验收必须按学员视角逐屏读,不能按字段清单打勾;②前后端各有半套（槽位/数据）但从未握手的 dormant slot,用字段名跨前后端 grep 一查即现,值得进自查清单。
+
 ## 2026-07-30 - tier1/2 可达性 1b：门死锁+exact 恒 miss 全链根因（四层剥洋葱）
 
 - 问题：批1a 前置了 prefetch 管道后，live 探针（在库案例粘贴）判分仍恒 tier3（derived_from_stem）、零检索观测。业务事实=「粘贴题库内案例题必须拿到题库判分权威」在四个不同层各断一刀。

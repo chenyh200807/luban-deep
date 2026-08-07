@@ -201,14 +201,20 @@ def _diagnosis_questions() -> list[dict]:
             "question_type": "single_choice",
             "scored": True,
             "answer": "A",
+            "options": [
+                {"key": "A", "text": "普通部位 7d、抗渗与后浇带 ≥14d"},
+                {"key": "B", "text": "全部统一按 7d 养护"},
+            ],
             "answer_diagnosis": {
                 "scoring_point": "施工缝·处理工序",
+                "model_answer": "抗渗混凝土与后浇带养护不得少于 14d。",
                 "source": "kc:leaf:concrete_joint",
                 "options": {
                     "B": {
                         "pitfall": "记了个 7d 就想一刀切省事。",
                         "why_missed": "抗渗与后浇带必须不少于 14d，统一 7d 违反规范。",
                         "fix": "抗渗、后浇带养护≥14d，不能按 7d。",
+                        "source": "exam:2024:第10题",
                     }
                 },
             },
@@ -245,7 +251,49 @@ def test_evidence_items_carry_issued_diagnosis_for_the_chosen_option() -> None:
     assert card["why_missed"].startswith("抗渗与后浇带必须不少于 14d")
     assert card["fix"].startswith("抗渗、后浇带养护≥14d")
     assert card["scoring_point"] == "施工缝·处理工序"
-    assert card["source"] == "kc:leaf:concrete_joint"
+    # 对照面(owner 2026-08-07 实拍「看不出正确答案是哪个」回归):
+    # 你的作答/正确答案都要带选项原文,采分点要带能得分的确切表述。
+    assert card["learner_answer"] == "B"
+    assert card["learner_option_text"] == "B. 全部统一按 7d 养护"
+    assert card["correct_answer"] == "A"
+    assert card["correct_option_text"] == "A. 普通部位 7d、抗渗与后浇带 ≥14d"
+    assert card["scoring_wording"] == "抗渗混凝土与后浇带养护不得少于 14d。"
+    # 依据来源人话化:exam 引用翻成人话;机器锚只留在 source_ref(排障),不进 source。
+    assert card["source"] == "2024 年真题·第10题"
+    assert card["source_ref"] == "exam:2024:第10题"
+
+
+def test_evidence_source_never_shows_machine_anchor() -> None:
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_5",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q01", "B"),
+        session_questions=[
+            {
+                **_diagnosis_questions()[0],
+                "answer_diagnosis": {
+                    "scoring_point": "施工缝·处理工序",
+                    "source": "ca:1A413030_103_0196",
+                    "options": {"B": {"why_missed": "顺序颠倒。"}},
+                },
+            },
+            _diagnosis_questions()[1],
+        ]
+        + _probe_questions(),
+        answers={"q01": "B"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
+    )
+    # owner 实拍病灶:依据来源整行显示「ca:1A413030_103_0196」。人话面必须留空。
+    assert card["source"] == ""
+    assert card["source_ref"] == "ca:1A413030_103_0196"
 
 
 def test_evidence_items_leave_fields_blank_rather_than_fabricate() -> None:

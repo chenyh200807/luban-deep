@@ -86,9 +86,13 @@
         <view class="pr-card pk-card pr-evidence-card" wx:for="{{evidence.items}}" wx:key="index">
           <text class="pk-kicker">失分采分点证据 {{item.index}}</text>
           <text class="pr-ev-stem">{{item.questionStem}}</text>
-          <view class="pr-ev-row" wx:if="{{item.learnerAnswer}}">
+          <view class="pr-ev-row" wx:if="{{item.learnerAnswerDisplay}}">
             <text class="pr-ev-label">你的作答</text>
-            <text class="pr-ev-value">{{item.learnerAnswer}}</text>
+            <text class="pr-ev-value pr-ev-wrong-pick">{{item.learnerAnswerDisplay}}</text>
+          </view>
+          <view class="pr-ev-row" wx:if="{{item.correctAnswerDisplay}}">
+            <text class="pr-ev-label">正确答案</text>
+            <text class="pr-ev-value pr-ev-right-pick">{{item.correctAnswerDisplay}}</text>
           </view>
           <view class="pr-ev-block" wx:if="{{item.scoringPoint}}">
             <text class="pr-ev-label">采分点</text>

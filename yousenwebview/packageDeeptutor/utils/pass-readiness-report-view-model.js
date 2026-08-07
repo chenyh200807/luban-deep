@@ -235,10 +235,16 @@ function buildEvidenceModel(report, resultModel) {
       if (!expressionMeasured && /表达/.test(whyMissed)) {
         whyMissed = "";
       }
+      var learnerAnswer = _str(item.learner_answer);
+      var correctAnswer = _str(item.correct_answer);
       return {
         index: idx + 1,
         questionStem: _str(item.question_stem || item.stem),
-        learnerAnswer: _str(item.learner_answer),
+        learnerAnswer: learnerAnswer,
+        // 有选项原文用原文(「C. …」),快照缺文本退回裸字母;都没有则整行不渲染。
+        learnerAnswerDisplay: _str(item.learner_option_text) || learnerAnswer,
+        correctAnswer: correctAnswer,
+        correctAnswerDisplay: _str(item.correct_option_text) || correctAnswer,
         correctWordingKnown: !!_str(item.scoring_wording || item.earning_wording),
         scoringPoint: _str(
           item.scoring_point ||
@@ -250,7 +256,8 @@ function buildEvidenceModel(report, resultModel) {
         pitfallAvailable: !!pitfall,
         whyMissed: whyMissed,
         fix: _str(item.fix),
-        source: _str(item.source || item.textbook_source || item.source_ref),
+        // source_ref 是机器锚(排障用),人话来源由后端投影裁决;这里绝不回落。
+        source: _str(item.source || item.textbook_source),
         lessonPackId: _str(item.lesson_pack_id),
         retestPackId: _str(item.retest_pack_id),
       };

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
@@ -121,6 +122,50 @@ def _probe_tags(
     return tags
 
 
+_EXAM_REF_RE = re.compile(r"^exam:(\d{4}):(.+)$")
+_MACHINE_REF_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_:.\-]*$")
+
+
+def _learner_facing_source(source: str) -> str:
+    """依据来源人话化(fail-closed,2026-08-07 owner 实拍「ca:1A413030_103_0196」)。
+
+    ``exam:YYYY:第N题`` 翻成「YYYY 年真题·第N题」;其余纯 ASCII 机器锚
+    (``ca:``/``kc:``/蛇形标识符)一律留空,由前端整行不渲染——宁可无来源行,
+    不给学员看内部机件。含中文的授权来源文本原样透出。
+    """
+
+    value = str(source or "").strip()
+    if not value:
+        return ""
+    match = _EXAM_REF_RE.fullmatch(value)
+    if match:
+        return f"{match.group(1)} 年真题·{match.group(2).strip()}"
+    if _MACHINE_REF_RE.fullmatch(value):
+        return ""
+    return value
+
+
+def _option_text_by_key(question: dict[str, Any]) -> dict[str, str]:
+    texts: dict[str, str] = {}
+    for option in list(question.get("options") or []):
+        if not isinstance(option, dict):
+            continue
+        key = str(option.get("key") or "").strip().upper()
+        text = str(option.get("text") or "").strip()
+        if key and text:
+            texts[key] = text
+    return texts
+
+
+def _joined_option_text(question: dict[str, Any], letters: str) -> str:
+    """字母串 → 「C. 选项原文」;多选逐项拼接。快照缺选项文本时返回空,
+    由前端退回只显示字母(不编造)。"""
+
+    texts = _option_text_by_key(question)
+    picked = [f"{letter}. {texts[letter]}" for letter in letters if letter in texts]
+    return "；".join(picked)
+
+
 def build_evidence_items(
     items: list[dict[str, Any]],
     session_questions: list[dict[str, Any]],
@@ -156,19 +201,29 @@ def build_evidence_items(
         why_missed = str(chosen.get("why_missed") or "").strip() or str(
             diagnosis.get("explanation") or ""
         ).strip()
+        # 正确答案唯一权威=签发快照的 answer;scored 转录只作缺快照时的兜底。
+        correct_answer = (
+            str(question.get("answer") or item.get("correct_answer") or "").strip().upper()
+        )
+        raw_source = str(chosen.get("source") or diagnosis.get("source") or "").strip()
         evidence.append(
             {
                 "question_id": item.get("question_id"),
                 "source_question_id": item.get("source_question_id"),
                 "question_stem": item.get("question_stem"),
                 "learner_answer": item.get("learner_answer"),
-                "correct_answer": item.get("correct_answer"),
+                "learner_option_text": _joined_option_text(question, learner_answer),
+                "correct_answer": correct_answer,
+                "correct_option_text": _joined_option_text(question, correct_answer),
                 "scoring_point": str(diagnosis.get("scoring_point") or "").strip()
                 or (list(item.get("knowledge_points") or []) or [""])[0],
+                # 能得分的确切表述(§7.3-3):编译权威的 model_answer,没有即留空。
+                "scoring_wording": str(diagnosis.get("model_answer") or "").strip(),
                 "pitfall": str(chosen.get("pitfall") or "").strip(),
                 "why_missed": why_missed,
                 "fix": str(chosen.get("fix") or "").strip(),
-                "source": str(chosen.get("source") or diagnosis.get("source") or "").strip(),
+                "source": _learner_facing_source(raw_source),
+                "source_ref": raw_source,
                 "error_codes": list(item.get("error_codes") or []),
                 "knowledge_points": list(item.get("knowledge_points") or []),
             }

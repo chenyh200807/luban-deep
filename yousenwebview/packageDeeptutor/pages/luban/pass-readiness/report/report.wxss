@@ -60,9 +60,11 @@
 /* 屏 4 证据 */
 .pr-evidence-card { gap: 14rpx; }
 .pr-ev-stem { font-size: 28rpx; font-weight: 700; line-height: 1.6; color: var(--pk-t1); }
-.pr-ev-row { display: flex; gap: 14rpx; align-items: center; }
-.pr-ev-label { font-size: 22rpx; font-weight: 700; color: var(--pk-t3); flex-shrink: 0; }
-.pr-ev-value { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
+.pr-ev-row { display: flex; gap: 14rpx; align-items: flex-start; }
+.pr-ev-label { font-size: 22rpx; font-weight: 700; color: var(--pk-t3); flex-shrink: 0; line-height: 1.7; }
+.pr-ev-value { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); line-height: 1.7; }
+.pr-ev-wrong-pick { color: var(--pk-warn); }
+.pr-ev-right-pick { color: var(--pk-grn); }
 .pr-ev-block { display: flex; flex-direction: column; gap: 6rpx; }
 .pr-ev-text { font-size: 25rpx; line-height: 1.7; color: var(--pk-t2); }
 .pr-ev-wording { color: var(--pk-grn); font-weight: 700; }
