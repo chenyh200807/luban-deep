@@ -1210,10 +1210,12 @@ function getAssessmentReport(quizId) {
   return requestStateGet("/api/v1/assessment/" + quizId + "/report");
 }
 
-/** 摸底测试 — 生成 AI 详细解析 */
-function requestAssessmentDeepExplanation(quizId, questionId) {
+/** 摸底测试 — 生成 AI 详细解析(异步 ensure/poll:秒回 generating,轮询取结果) */
+function requestAssessmentDeepExplanation(quizId, questionId, retry) {
   return request({
-    url: "/api/v1/assessment/" + quizId + "/items/" + questionId + "/explain",
+    url:
+      "/api/v1/assessment/" + quizId + "/items/" + questionId + "/explain" +
+      (retry ? "?retry=1" : ""),
     method: "POST",
   });
 }

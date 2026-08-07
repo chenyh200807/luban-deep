@@ -15,6 +15,7 @@ import secrets
 import sqlite3
 import string
 import threading
+import asyncio
 import time
 import urllib.parse
 import urllib.request
@@ -9608,7 +9609,88 @@ class MemberConsoleService:
             raise KeyError(f"Assessment report not ready: {quiz_id}")
         return deepcopy(report)
 
-    async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
+    # 深解析异步阶段(owner 2026-08-07:同步等 LLM 最坏 60-90s 撞小程序超时,
+    # 「客户还以为系统卡住了」)。阶段名是展示口径,状态本身(生成中/完成/失败)
+    # 是真实作业状态;pending 标记落报告快照,跨 worker 可见。
+    _EXPLANATION_STAGES = ("读取签发诊断", "逐项核对选项与教材依据", "组织讲解、口诀与下一步")
+    _EXPLANATION_PENDING_STALE_SECONDS = 180
+
+    def _deep_explanation_generating_payload(
+        self, *, quiz_id: str, question_id: str, cache_key: str, elapsed_seconds: float
+    ) -> dict[str, Any]:
+        stage_index = min(int(max(0.0, elapsed_seconds) // 10), len(self._EXPLANATION_STAGES) - 1)
+        return {
+            "quiz_id": quiz_id,
+            "question_id": question_id,
+            "cache_key": cache_key,
+            "cache_status": "pending",
+            "workflow_status": "generating",
+            "stages": list(self._EXPLANATION_STAGES),
+            "stage_index": stage_index,
+        }
+
+    async def _generate_and_store_deep_explanation(
+        self,
+        *,
+        user_id: str,
+        quiz_id: str,
+        question_id: str,
+        cache_key: str,
+        question: dict[str, Any],
+        learner_answer: str,
+        correct_answer: str,
+        trial_included: bool,
+    ) -> None:
+        try:
+            explanation = await generate_llm_deep_explanation(
+                question=question,
+                learner_answer=learner_answer,
+                correct_answer=correct_answer,
+                quiz_id=quiz_id,
+                question_id=question_id,
+            )
+            usage_summary = explanation.pop("usage_summary", None)
+            amount_points, billing_metadata = billable_points_from_usage_summary(usage_summary)
+            if not trial_included:
+                await asyncio.to_thread(
+                    self._capture_assessment_explanation_points,
+                    user_id=user_id,
+                    quiz_id=quiz_id,
+                    question_id=question_id,
+                    cache_key=cache_key,
+                    amount_points=amount_points,
+                    metadata=billing_metadata,
+                )
+            await asyncio.to_thread(
+                self._assessment_session_repository.store_deep_explanation,
+                user_id,
+                quiz_id,
+                cache_key=cache_key,
+                explanation=explanation,
+            )
+        except Exception:
+            logger.exception(
+                "assessment_deep_explanation_background_failed quiz_id=%s question_id=%s",
+                quiz_id,
+                question_id,
+            )
+            try:
+                await asyncio.to_thread(
+                    self._assessment_session_repository.store_deep_explanation,
+                    user_id,
+                    quiz_id,
+                    cache_key=cache_key,
+                    explanation={"failed": True, "failed_epoch": time.time()},
+                )
+            except Exception:
+                logger.exception(
+                    "assessment_deep_explanation_failed_marker_store_failed quiz_id=%s",
+                    quiz_id,
+                )
+
+    async def get_assessment_deep_explanation(
+        self, user_id: str, quiz_id: str, question_id: str, *, retry: bool = False
+    ) -> dict[str, Any]:
         self._require_durable_assessment_sessions()
         try:
             session = self._assessment_session_repository.private_session(user_id, quiz_id)
@@ -9648,11 +9730,9 @@ class MemberConsoleService:
             PROMPT_VERSION,
         )
         # 结果缓存(owner 2026-08-07:同一题不得重复生成):唯一存放点=报告快照
-        # deep_explanations[cache_key];命中即回,零 LLM 零计费。
-        cached_explanation = dict(
-            (report.get("deep_explanations") or {}).get(cache_key) or {}
-        )
-        if cached_explanation:
+        # deep_explanations[cache_key]。完成即回;pending/failed 标记走异步语义。
+        entry = dict((report.get("deep_explanations") or {}).get(cache_key) or {})
+        if entry and not entry.get("pending") and not entry.get("failed"):
             return {
                 "quiz_id": quiz_id,
                 "question_id": normalized_question_id,
@@ -9660,7 +9740,25 @@ class MemberConsoleService:
                 "cache_status": "cached",
                 "workflow_status": "completed",
                 "billing": {"status": "cached", "amount_points": 0},
-                "explanation": cached_explanation,
+                "explanation": entry,
+            }
+        if entry.get("pending"):
+            elapsed = time.time() - float(entry.get("started_epoch") or 0.0)
+            if elapsed < self._EXPLANATION_PENDING_STALE_SECONDS:
+                return self._deep_explanation_generating_payload(
+                    quiz_id=quiz_id,
+                    question_id=normalized_question_id,
+                    cache_key=cache_key,
+                    elapsed_seconds=elapsed,
+                )
+            # 超时残留(进程重启/任务夭折)→ 视同缺失,允许重新生成。
+        if entry.get("failed") and not retry:
+            return {
+                "quiz_id": quiz_id,
+                "question_id": normalized_question_id,
+                "cache_key": cache_key,
+                "cache_status": "failed",
+                "workflow_status": "failed",
             }
         # 试驾面(owner 2026-08-07 拍板):过线体检是获客入口,错题的鲁班深解析
         # 免额度——新用户 0 余额不得撞付费墙。成本天然封顶:只放行本卷报告
@@ -9675,53 +9773,32 @@ class MemberConsoleService:
                 cache_key=cache_key,
                 minimum_points=minimum_explanation_points(),
             )
-        explanation = await generate_llm_deep_explanation(
-            question=question,
-            learner_answer=learner_answer,
-            correct_answer=correct_answer,
-            quiz_id=quiz_id,
-            question_id=normalized_question_id,
+        # 先落 pending 标记(报告快照=跨 worker 的单一权威),再起后台任务——
+        # 请求秒回 generating,前端轮询同一入口取进度/结果,绝不同步苦等 LLM。
+        self._assessment_session_repository.store_deep_explanation(
+            user_id,
+            quiz_id,
+            cache_key=cache_key,
+            explanation={"pending": True, "started_epoch": time.time()},
         )
-        usage_summary = explanation.pop("usage_summary", None)
-        amount_points, billing_metadata = billable_points_from_usage_summary(usage_summary)
-        if trial_included:
-            billing = {
-                "status": "trial_included",
-                "amount_points": 0,
-                "reason": "pass_readiness_trial",
-            }
-        else:
-            billing = self._capture_assessment_explanation_points(
+        asyncio.get_running_loop().create_task(
+            self._generate_and_store_deep_explanation(
                 user_id=user_id,
                 quiz_id=quiz_id,
                 question_id=normalized_question_id,
                 cache_key=cache_key,
-                amount_points=amount_points,
-                metadata=billing_metadata,
+                question=question,
+                learner_answer=learner_answer,
+                correct_answer=correct_answer,
+                trial_included=trial_included,
             )
-        try:
-            self._assessment_session_repository.store_deep_explanation(
-                user_id,
-                quiz_id,
-                cache_key=cache_key,
-                explanation=explanation,
-            )
-        except Exception:
-            # 缓存写失败不拦生成结果——但必须留痕(禁静默吞,2026-08-07 教训)。
-            logger.exception(
-                "assessment_deep_explanation_cache_store_failed quiz_id=%s question_id=%s",
-                quiz_id,
-                normalized_question_id,
-            )
-        return {
-            "quiz_id": quiz_id,
-            "question_id": normalized_question_id,
-            "cache_key": cache_key,
-            "cache_status": "generated",
-            "workflow_status": "completed",
-            "billing": billing,
-            "explanation": explanation,
-        }
+        )
+        return self._deep_explanation_generating_payload(
+            quiz_id=quiz_id,
+            question_id=normalized_question_id,
+            cache_key=cache_key,
+            elapsed_seconds=0.0,
+        )
 
     def _ensure_assessment_explanation_balance(
         self,

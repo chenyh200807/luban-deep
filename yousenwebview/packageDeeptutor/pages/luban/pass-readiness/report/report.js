@@ -88,6 +88,7 @@ Page({
   },
 
   onUnload: function () {
+    this._clearDeepTimers();
     surfaceTelemetry.trackModuleExit(this);
   },
 
@@ -272,16 +273,74 @@ Page({
   },
 
   // 证据卡内嵌鲁班深解析(试驾时刻): 免额度由服务端裁决, 前端只做取数+渲染。
-  // 每题一次: 已加载则不重复请求(LLM 逐次生成, 前端会话内缓存在卡片模型上)。
-  onDeepExplanation: function (e) {
+  // 异步 ensure/poll(owner 2026-08-07 防超时): 首发秒回 generating + 阶段面板,
+  // 之后每 7s 轮询同一入口(限流窗内)直到 completed/failed; 超 3 分钟按失败收。
+  _deepTimers: null,
+
+  _pollDeepExplanation: function (questionId, idx, retry, startedAt) {
     var self = this;
+    var prefix = "evidence.items[" + idx + "]";
+    api
+      .requestAssessmentDeepExplanation(this.data.quizId, questionId, retry)
+      .then(function (resp) {
+        var body = api.unwrapResponse ? api.unwrapResponse(resp) : resp;
+        var status = String((body && body.workflow_status) || "");
+        var patch = {};
+        if (status === "completed") {
+          var model = reportVm.buildDeepExplanationModel(body);
+          patch[prefix + ".deepWorkflow"] = null;
+          if (model.available) {
+            patch[prefix + ".deepExplanation"] = model;
+            patch[prefix + ".deepError"] = "";
+          } else {
+            patch[prefix + ".deepError"] = "解析生成失败，请点击重试";
+          }
+          self.setData(patch);
+          return;
+        }
+        if (status === "generating") {
+          if (Date.now() - startedAt > 180000) {
+            patch[prefix + ".deepWorkflow"] = null;
+            patch[prefix + ".deepError"] = "鲁班这次拆解超时了，请点击重试";
+            self.setData(patch);
+            return;
+          }
+          patch[prefix + ".deepWorkflow"] = {
+            stages: (body && body.stages) || [],
+            stageIndex: Number((body && body.stage_index) || 0),
+          };
+          patch[prefix + ".deepError"] = "";
+          self.setData(patch);
+          self._deepTimers = self._deepTimers || {};
+          self._deepTimers[questionId] = setTimeout(function () {
+            self._pollDeepExplanation(questionId, idx, false, startedAt);
+          }, 7000);
+          return;
+        }
+        // failed / 未知状态
+        patch[prefix + ".deepWorkflow"] = null;
+        patch[prefix + ".deepError"] = "解析生成失败，请点击重试";
+        self.setData(patch);
+      })
+      .catch(function (err) {
+        var fail = {};
+        fail[prefix + ".deepWorkflow"] = null;
+        fail[prefix + ".deepError"] = api.describeRequestError
+          ? api.describeRequestError(err, "解析生成失败，请点击重试", { context: "assessment_explain" })
+          : "解析生成失败，请点击重试";
+        self.setData(fail);
+      });
+  },
+
+  onDeepExplanation: function (e) {
     var dataset = e.currentTarget.dataset || {};
     var questionId = String(dataset.questionId || "").trim();
     var idx = Number(dataset.idx);
+    var isRetry = String(dataset.retry || "") === "1";
     var items = (this.data.evidence && this.data.evidence.items) || [];
     if (!questionId || !(idx >= 0 && idx < items.length)) return;
     var item = items[idx];
-    if (item.deepLoading || item.deepExplanation) return;
+    if (item.deepWorkflow || item.deepExplanation) return;
     helpers.vibrate("light");
     trackBehavior("pass_readiness_deep_explanation_started", {
       module: "pass_readiness",
@@ -290,32 +349,20 @@ Page({
       objectType: "assessment_question",
       objectId: questionId,
     });
-    var prefix = "evidence.items[" + idx + "]";
     var patch = {};
-    patch[prefix + ".deepLoading"] = true;
+    var prefix = "evidence.items[" + idx + "]";
+    patch[prefix + ".deepWorkflow"] = { stages: [], stageIndex: 0 };
     patch[prefix + ".deepError"] = "";
     this.setData(patch);
-    api
-      .requestAssessmentDeepExplanation(this.data.quizId, questionId)
-      .then(function (resp) {
-        var model = reportVm.buildDeepExplanationModel(api.unwrapResponse ? api.unwrapResponse(resp) : resp);
-        var done = {};
-        done[prefix + ".deepLoading"] = false;
-        if (model.available) {
-          done[prefix + ".deepExplanation"] = model;
-        } else {
-          done[prefix + ".deepError"] = "解析生成失败，请稍后再试";
-        }
-        self.setData(done);
-      })
-      .catch(function (err) {
-        var fail = {};
-        fail[prefix + ".deepLoading"] = false;
-        fail[prefix + ".deepError"] = api.describeRequestError
-          ? api.describeRequestError(err, "解析生成失败，请稍后再试", { context: "assessment_explain" })
-          : "解析生成失败，请稍后再试";
-        self.setData(fail);
-      });
+    this._pollDeepExplanation(questionId, idx, isRetry, Date.now());
+  },
+
+  _clearDeepTimers: function () {
+    var timers = this._deepTimers || {};
+    Object.keys(timers).forEach(function (key) {
+      clearTimeout(timers[key]);
+    });
+    this._deepTimers = {};
   },
 
   // 屏 6: 跳既有微课页(无绑定则按钮不渲染, 禁 dead button)
@@ -426,8 +473,16 @@ Page({
     });
   },
 
+  // 跑道反转第一步(runway §3,owner 2026-08-08 令专家团队落地):
+  // 保存后默认着陆=计划页——把诊断证据接进 7 天备考安排;会员面仍经计划页链路可达。
   onSavedContinue: function () {
-    this._switchSection("member");
+    trackBehavior("learning_action_started", {
+      module: "pass_readiness",
+      action: "open",
+      objectType: "exam_prep_plan",
+      objectId: this.data.quizId,
+    });
+    wx.navigateTo({ url: route.lubanPlan() });
   },
 
   // 屏 9: 会员 handoff → 既有会员面

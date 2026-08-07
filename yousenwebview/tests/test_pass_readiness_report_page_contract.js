@@ -192,6 +192,9 @@ function loadPage(overrides) {
           lubanStation: function (packId) {
             return "/packageDeeptutor/pages/luban/station/station?pack_id=" + packId;
           },
+          lubanPlan: function () {
+            return "/packageDeeptutor/pages/luban/plan/plan";
+          },
           billing: function () {
             return "/packageDeeptutor/pages/billing/billing";
           },
@@ -357,8 +360,12 @@ function loadPage(overrides) {
   await flushPromises();
   fallback.page.onSaveDirect();
   assert.strictEqual(fallback.page.data.section, "saved", "redirect 失败回退保存成功态");
+  // 跑道反转第一步(runway §3):保存后落计划页,不再切会员屏
   fallback.page.onSavedContinue();
-  assert.strictEqual(fallback.page.data.section, "member");
+  assert.ok(
+    fallback.calls.navigateTo[fallback.calls.navigateTo.length - 1].indexOf("luban/plan") >= 0,
+    "保存成功态继续 → 计划页(跑道反转第一步)",
+  );
   fallback.page.onMembershipCta();
   assert.ok(
     fallback.calls.navigateTo[fallback.calls.navigateTo.length - 1].indexOf("billing") >= 0,

@@ -129,13 +129,23 @@
             <text class="pr-ev-label">依据来源</text>
             <text class="pr-ev-text">{{item.source}}</text>
           </view>
-          <!-- 鲁班深解析(试驾时刻): 免额度由服务端裁决; 每题只取一次 -->
-          <view class="pr-ev-deep-cta pk-btn-ink" wx:if="{{item.questionId && !item.deepExplanation && !item.deepLoading}}"
-                bindtap="onDeepExplanation" data-question-id="{{item.questionId}}" data-idx="{{index}}">
-            <text>看鲁班详细解析</text>
+          <!-- 鲁班深解析(试驾时刻): 异步 workflow——点按钮秒回生成中,阶段面板
+               实时可见(owner 2026-08-07: 不然客户以为系统卡住了) -->
+          <view class="pr-ev-deep-cta pk-btn-ink" wx:if="{{item.questionId && !item.deepExplanation && !item.deepWorkflow}}"
+                bindtap="onDeepExplanation" data-question-id="{{item.questionId}}" data-idx="{{index}}"
+                data-retry="{{item.deepError ? '1' : ''}}">
+            <text>{{item.deepError ? '重试鲁班详细解析' : '看鲁班详细解析'}}</text>
           </view>
-          <view class="pr-ev-deep-loading" wx:if="{{item.deepLoading}}">
-            <text>鲁班正在拆解这道题…</text>
+          <view class="pr-ev-workflow" wx:if="{{item.deepWorkflow}}">
+            <view class="pr-ev-workflow-head">
+              <view class="pr-ev-workflow-dot" />
+              <text class="pr-ev-workflow-title">鲁班解析中</text>
+            </view>
+            <view class="pr-ev-workflow-stage" wx:for="{{item.deepWorkflow.stages}}" wx:for-item="stageName" wx:for-index="stageIdx" wx:key="*this">
+              <text class="pr-ev-workflow-mark {{stageIdx < item.deepWorkflow.stageIndex ? 'is-done' : (stageIdx === item.deepWorkflow.stageIndex ? 'is-active' : '')}}">{{stageIdx < item.deepWorkflow.stageIndex ? '✓' : (stageIdx === item.deepWorkflow.stageIndex ? '●' : '○')}}</text>
+              <text class="pr-ev-workflow-txt {{stageIdx === item.deepWorkflow.stageIndex ? 'is-active' : ''}}">{{stageName}}</text>
+            </view>
+            <text class="pr-ev-workflow-note">约需半分钟，可先看其他卡片，回来时结果就在这。</text>
           </view>
           <text class="pr-ev-deep-error" wx:if="{{item.deepError}}">{{item.deepError}}</text>
           <view class="pr-ev-deep" wx:if="{{item.deepExplanation}}">

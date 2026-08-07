@@ -4139,13 +4139,32 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
         _fake_generate_llm_deep_explanation,
     )
     monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
+    captured_points: list[dict[str, object]] = []
+    monkeypatch.setattr(
+        service,
+        "_capture_assessment_explanation_points",
+        lambda **kwargs: captured_points.append(kwargs) or {"status": "captured"},
+    )
 
-    result = asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
+    # 异步语义(owner 2026-08-07 防超时):首发秒回 generating,后台生成落缓存,
+    # 轮询同一入口拿 completed。
+    async def _flow() -> tuple[dict[str, object], dict[str, object]]:
+        first = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending)
+        second = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        return first, second
+
+    first, result = asyncio.run(_flow())
     stored = service.get_assessment_report("student_demo", session["quiz_id"])
 
-    assert result["cache_status"] == "generated"
-    assert result["billing"]["status"] == "captured"
-    assert result["billing"]["amount_points"] == 20
+    assert first["workflow_status"] == "generating"
+    assert first["stages"] and first["stage_index"] == 0
+    assert result["workflow_status"] == "completed"
+    assert result["cache_status"] == "cached"
+    # 计费在后台完成(非试驾卷走正常捕获)
+    assert captured_points and captured_points[0]["amount_points"] == 20
     assert result["explanation"]["score_mutation_allowed"] is False
     assert result["explanation"]["learner_answer"] == "B"
     assert result["explanation"]["correct_answer"] == "A"
@@ -4274,18 +4293,24 @@ def test_pass_readiness_wrong_item_deep_explanation_is_trial_included(
     )
     monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
 
-    result = asyncio.run(
-        service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
-    )
+    async def _flow() -> tuple[dict[str, object], dict[str, object]]:
+        first = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending)
+        done = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        return first, done
 
-    # 0 余额也能生成;不走计费捕获,billing 如实标 trial。
-    assert result["billing"]["status"] == "trial_included"
-    assert result["billing"]["amount_points"] == 0
+    first, result = asyncio.run(_flow())
+
+    # 0 余额也能起生成(试驾免额度);后台零计费捕获。
+    assert first["workflow_status"] == "generating"
+    assert result["workflow_status"] == "completed"
     assert captured == []
     assert "凿毛" in result["explanation"]["summary"]
 
-    # 结果缓存(owner 2026-08-07:同一题不得重复生成):二次调用命中缓存,
-    # 零 LLM 零计费,内容与首次一致。
+    # 结果缓存(owner 2026-08-07:同一题不得重复生成):再次调用命中缓存,
+    # 零 LLM 零计费,内容一致。
     async def _must_not_regenerate(**_kwargs: object) -> dict[str, object]:
         raise AssertionError("cached explanation must not regenerate")
 
@@ -4296,6 +4321,64 @@ def test_pass_readiness_wrong_item_deep_explanation_is_trial_included(
     assert second["cache_status"] == "cached"
     assert second["billing"] == {"status": "cached", "amount_points": 0}
     assert second["explanation"]["summary"] == result["explanation"]["summary"]
+
+
+def test_deep_explanation_failure_surfaces_failed_status_and_retry_respawns(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """后台生成失败 → 轮询得 workflow_status=failed(前端停轮询给重试);
+    带 retry=True 再点 → 忽略失败标记重新起任务。"""
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_ids=[],
+        blueprint_version="pass_readiness_architecture_v2",
+        form_id="pass_readiness_form_1",
+        client_questions_public=[{"question_id": "q1", "question_stem": "题", "options": []}],
+        session_questions_private=[
+            {"question_id": "q1", "question_type": "single_choice", "question_stem": "题", "answer": "A", "scored": True, "options": []}
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+    service.submit_assessment("student_demo", session["quiz_id"], {"q1": "B"}, time_spent_seconds=30)
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
+
+    async def _boom(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("assessment_deep_explanation_generation_failed")
+
+    calls = {"n": 0}
+
+    async def _counting_boom(**kwargs: object) -> dict[str, object]:
+        calls["n"] += 1
+        return await _boom(**kwargs)
+
+    monkeypatch.setattr(member_service_module, "generate_llm_deep_explanation", _counting_boom)
+
+    async def _flow() -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
+        first = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        polled = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        retried = await service.get_assessment_deep_explanation(
+            "student_demo", session["quiz_id"], "q1", retry=True
+        )
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        return first, polled, retried
+
+    first, polled, retried = asyncio.run(_flow())
+    assert first["workflow_status"] == "generating"
+    assert polled["workflow_status"] == "failed"
+    assert retried["workflow_status"] == "generating"
+    assert calls["n"] == 2
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:

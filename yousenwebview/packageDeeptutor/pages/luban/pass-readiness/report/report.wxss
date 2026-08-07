@@ -70,8 +70,18 @@
 .pr-ev-wording { color: var(--pk-grn); font-weight: 700; }
 .pr-ev-placeholder { color: var(--pk-t3); }
 .pr-ev-deep-cta { margin-top: 10rpx; }
-.pr-ev-deep-loading { padding: 14rpx 0; }
-.pr-ev-deep-loading text { font-size: 24rpx; color: var(--pk-t3); }
+.pr-ev-workflow { display: flex; flex-direction: column; gap: 10rpx; padding: 18rpx 20rpx; margin-top: 8rpx; background: var(--pk-gauge); border-radius: 16rpx; }
+.pr-ev-workflow-head { display: flex; align-items: center; gap: 10rpx; }
+.pr-ev-workflow-dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: var(--pk-grn); animation: pr-ev-pulse 1.2s ease-in-out infinite; }
+@keyframes pr-ev-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+.pr-ev-workflow-title { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
+.pr-ev-workflow-stage { display: flex; align-items: center; gap: 10rpx; }
+.pr-ev-workflow-mark { font-size: 22rpx; color: var(--pk-t3); width: 28rpx; }
+.pr-ev-workflow-mark.is-done { color: var(--pk-grn); }
+.pr-ev-workflow-mark.is-active { color: var(--pk-grn); }
+.pr-ev-workflow-txt { font-size: 24rpx; color: var(--pk-t3); }
+.pr-ev-workflow-txt.is-active { color: var(--pk-t1); font-weight: 700; }
+.pr-ev-workflow-note { font-size: 22rpx; color: var(--pk-t3); margin-top: 4rpx; }
 .pr-ev-deep-error { font-size: 24rpx; color: var(--pk-warn); }
 .pr-ev-deep { display: flex; flex-direction: column; gap: 14rpx; margin-top: 6rpx; padding-top: 14rpx; border-top: 2rpx dashed var(--pk-gauge); }
 .pr-ev-deep-terms { display: flex; flex-wrap: wrap; gap: 10rpx; }

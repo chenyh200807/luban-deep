@@ -4016,6 +4016,7 @@ async def assessment_report(
 async def assessment_deep_explanation(
     quiz_id: str,
     question_id: str,
+    retry: bool = False,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
@@ -4023,6 +4024,7 @@ async def assessment_deep_explanation(
             _resolve_authenticated_user_id(authorization),
             quiz_id,
             question_id,
+            retry=retry,
         )
     except RuntimeError as exc:
         detail = str(exc)
