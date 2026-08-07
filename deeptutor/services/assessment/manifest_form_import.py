@@ -230,6 +230,22 @@ def _resolve_bank_task(
     return candidate
 
 
+_MACHINE_CODE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def _learner_facing(text: str) -> str:
+    """机器分类码不得冒充学员可读诊断(2026-08-07 实测拦截)。
+
+    manifest 的 ``cause``/``dimension`` 多为分类枚举(``concept_boundary``、
+    ``case_scoring_point``),直接投到证据卡上,学员会看到一串英文标识符。
+    这里 fail-closed:识别为纯 ASCII 蛇形标识符即判为机器码,返回空串,
+    由上层留白、前端整块不渲染——宁可少一行,不可给学员看内部机件。
+    """
+
+    value = str(text or "").strip()
+    return "" if not value or _MACHINE_CODE_RE.fullmatch(value) else value
+
+
 def _resolve_manifest_case_task(
     task: dict[str, Any],
     section: AssessmentSection,
@@ -268,8 +284,8 @@ def _resolve_manifest_case_task(
             raise ManifestFormImportError(f"case_option_invalid:{task_id}")
         options.append((key, value))
         diagnosis = {
-            "why_missed": str((option or {}).get("cause") or "").strip(),
-            "source": str((option or {}).get("source") or "").strip(),
+            "why_missed": _learner_facing((option or {}).get("cause")),
+            "source": _learner_facing((option or {}).get("source")),
         }
         if any(diagnosis.values()):
             option_diagnosis[key] = diagnosis
@@ -305,7 +321,9 @@ def _resolve_manifest_case_task(
             "semantic_signature": f"manifest:{manifest.get('form_id')}:{task_id}",
         },
         answer_diagnosis={
-            "scoring_point": str(task.get("dimension") or family),
+            # dimension 是能力维分类码(construction_logic 等),不可示人;
+            # family 是中文案例族名,才是学员看得懂的采分点标签。
+            "scoring_point": _learner_facing(family),
             "options": option_diagnosis,
         },
     )

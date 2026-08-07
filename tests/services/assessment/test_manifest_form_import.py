@@ -398,3 +398,17 @@ def test_service_entry_persists_and_serves_pinned_form(tmp_path, monkeypatch) ->
         if str(q.get("provenance", {}).get("source_table") or "").startswith("manifest:")
     ]
     assert len(case_rows) == 6
+
+
+# ── 机器码不得冒充学员诊断(2026-08-07 线上实测拦截) ──────────────────
+# manifest 的 cause/dimension 多为分类枚举(concept_boundary /
+# case_scoring_point),直接投到证据卡上,学员会看到一串英文标识符。
+
+
+def test_machine_codes_never_reach_learner_facing_diagnosis() -> None:
+    from deeptutor.services.assessment.manifest_form_import import _learner_facing
+
+    for code in ("concept_boundary", "case_scoring_point", "construction_logic", "e10"):
+        assert _learner_facing(code) == "", f"机器码泄露到学员面: {code}"
+    for prose in ("质量验收", "抗渗与后浇带必须不少于 14d", "GB 50204-2015 §8.1"):
+        assert _learner_facing(prose) == prose, f"正常人话被误伤: {prose}"
