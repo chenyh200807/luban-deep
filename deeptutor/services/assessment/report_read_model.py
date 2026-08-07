@@ -176,6 +176,38 @@ def _joined_option_text(question: dict[str, Any], letters: str) -> str:
     return "；".join(picked)
 
 
+# 编题内部速记段(2026-08-07 盘点 578 种 rule_group 实证):出题维度分类
+# (「××维」)与创作工序词。它们是机器面词汇,直出=敷衍学员。
+_INTERNAL_LABEL_SEGMENTS = {
+    "末题",
+    "上集",
+    "下集",
+    "判断纠错",
+    "案例辨析",
+    "采分点遗漏",
+    "采分句输出",
+    "采分诊断",
+}
+
+
+def _learner_facing_scoring_point(label: str) -> str:
+    """采分点标签人话化(owner 2026-08-07:「判型·条件维」这类内部速记=敷衍)。
+
+    按「·」分段,剥掉内部维度段(「××维」)与创作工序段;剥完不足 3 字
+    (如「判型」)说明剩下的仍是速记,fail-closed 留空——宁可无此行,
+    不给学员看编题黑话。真人话标签(「施工缝·处理工序」)原样保留。
+    """
+
+    segments = [seg.strip() for seg in str(label or "").split("·") if seg.strip()]
+    kept = [
+        seg
+        for seg in segments
+        if not seg.endswith("维") and seg not in _INTERNAL_LABEL_SEGMENTS
+    ]
+    cleaned = "·".join(kept)
+    return cleaned if len(cleaned) >= 3 else ""
+
+
 _WORDING_RESTATEMENT_RATIO = 0.75
 
 
@@ -279,9 +311,11 @@ def build_evidence_items(
                 "learner_option_text": _joined_option_text(question, learner_answer),
                 "correct_answer": correct_answer,
                 "correct_option_text": _joined_option_text(question, correct_answer),
-                # 采分点只认签发诊断;禁拿章节级 knowledge_points 凑数——
-                # 「主体结构工程施工」是章节名不是采分点(2026-08-07 owner 实拍)。
-                "scoring_point": str(diagnosis.get("scoring_point") or "").strip(),
+                # 采分点只认签发诊断(禁章节级 knowledge_points 凑数),且必须
+                # 过人话闸——内部速记(「判型·条件维」)剥净或留白。
+                "scoring_point": _learner_facing_scoring_point(
+                    str(diagnosis.get("scoring_point") or "")
+                ),
                 # 能得分的确切表述(§7.3-3):编译权威的 model_answer,且只留真增量
                 # (与正确选项原文近重复的复读一律压掉),没有即留空。
                 "scoring_wording": _incremental_scoring_wording(

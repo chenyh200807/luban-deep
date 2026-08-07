@@ -318,6 +318,21 @@ def test_multi_select_why_missed_targets_missed_and_extra_letters() -> None:
     assert "次梁跨中1/3剪力小" not in card["why_missed"]
 
 
+def test_scoring_point_scrubs_internal_authoring_shorthand() -> None:
+    """owner 2026-08-07:「判型·条件维」这类编题内部速记直出=敷衍。
+    维度段剥净;剥完不成话留白;真人话标签原样保留。"""
+
+    from deeptutor.services.assessment.report_read_model import _learner_facing_scoring_point
+
+    assert _learner_facing_scoring_point("施工缝·处理工序") == "施工缝·处理工序"
+    assert _learner_facing_scoring_point("支护选型·条件维") == "支护选型"
+    assert _learner_facing_scoring_point("步距K·计算表达维") == "步距K"
+    assert _learner_facing_scoring_point("灭火器·上集") == "灭火器"
+    assert _learner_facing_scoring_point("判型·条件维") == ""
+    assert _learner_facing_scoring_point("采分诊断·末题") == ""
+    assert _learner_facing_scoring_point("") == ""
+
+
 def test_scoring_point_never_falls_back_to_chapter_level_knowledge_points() -> None:
     """章节级 knowledge_points(如「主体结构工程施工」)不是采分点,
     无签发采分点时诚实留白(owner 2026-08-07 实拍)。"""
