@@ -239,6 +239,7 @@ function buildEvidenceModel(report, resultModel) {
       var correctAnswer = _str(item.correct_answer);
       return {
         index: idx + 1,
+        questionId: _str(item.question_id),
         questionStem: _str(item.question_stem || item.stem),
         learnerAnswer: learnerAnswer,
         // 有选项原文用原文(「C. …」),快照缺文本退回裸字母;都没有则整行不渲染。
@@ -385,6 +386,45 @@ function buildMembershipCta(context) {
   };
 }
 
+// ── 证据卡内嵌鲁班深解析(owner 2026-08-07 拍板:报告即试驾) ──
+// 只做只读投影: /items/{id}/explain 响应 → 渲染块;空字段整块不出(禁占位)。
+function buildDeepExplanationModel(payload) {
+  var body = _obj(payload);
+  var exp = _obj(body.explanation || body);
+  var blocks = [
+    { label: "鲁班讲解", text: _str(exp.summary) },
+    { label: "你为什么错", text: _str(exp.why_wrong) },
+    { label: "错因分析", text: _str(exp.cause_analysis) },
+    { label: "采分点拆解", text: _str(exp.scoring_points) },
+    { label: "易错陷阱", text: _str(exp.pitfall) },
+    { label: "记忆口诀", text: _str(exp.mnemonic) },
+    { label: "依据", text: _str(exp.source_basis) },
+    { label: "下一步", text: _str(exp.next_action) },
+  ].filter(function (block) {
+    return !!block.text;
+  });
+  var optionReviews = _arr(exp.option_reviews)
+    .map(function (row) {
+      var review = _obj(row);
+      return {
+        key: _str(review.key),
+        status: _str(review.status) || "neutral",
+        statusLabel: _str(review.status_label),
+        review: _str(review.review),
+      };
+    })
+    .filter(function (review) {
+      return review.key && review.review;
+    });
+  var keyTerms = _arr(exp.key_terms).map(_str).filter(Boolean);
+  return {
+    available: blocks.length > 0 || optionReviews.length > 0,
+    blocks: blocks,
+    optionReviews: optionReviews,
+    keyTerms: keyTerms,
+  };
+}
+
 module.exports = {
   BAND_DISCLAIMER: BAND_DISCLAIMER,
   RETEST_RECEIPT_COPY: RETEST_RECEIPT_COPY,
@@ -394,6 +434,7 @@ module.exports = {
   buildResultModel: buildResultModel,
   buildReadinessDetail: buildReadinessDetail,
   buildEvidenceModel: buildEvidenceModel,
+  buildDeepExplanationModel: buildDeepExplanationModel,
   buildPlanPreviewModel: buildPlanPreviewModel,
   buildReceiptModel: buildReceiptModel,
   readDiagnosticSource: readDiagnosticSource,

@@ -713,10 +713,6 @@ class AssessmentBlueprintService:
             "questions": client_questions,
             "session_questions": session_questions,
             "blueprint_version": self._blueprint.version,
-            "checkpoint_after": int(self._blueprint.checkpoint_after or 0),
-            # 两级检查点（§6.2-v2）：全量导出；v1 单值 blueprint 导出单元素列表，
-            # 向后兼容（checkpoint_after 恒等于第一个检查点）。
-            "checkpoints": [int(item) for item in self._blueprint.checkpoint_list],
             "sections": sections,
             "requested_count": requested_count,
             "delivered_count": delivered_count,

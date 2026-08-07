@@ -117,6 +117,31 @@
             <text class="pr-ev-label">依据来源</text>
             <text class="pr-ev-text">{{item.source}}</text>
           </view>
+          <!-- 鲁班深解析(试驾时刻): 免额度由服务端裁决; 每题只取一次 -->
+          <view class="pr-ev-deep-cta pk-btn-ink" wx:if="{{item.questionId && !item.deepExplanation && !item.deepLoading}}"
+                bindtap="onDeepExplanation" data-question-id="{{item.questionId}}" data-idx="{{index}}">
+            <text>看鲁班详细解析</text>
+          </view>
+          <view class="pr-ev-deep-loading" wx:if="{{item.deepLoading}}">
+            <text>鲁班正在拆解这道题…</text>
+          </view>
+          <text class="pr-ev-deep-error" wx:if="{{item.deepError}}">{{item.deepError}}</text>
+          <view class="pr-ev-deep" wx:if="{{item.deepExplanation}}">
+            <view class="pr-ev-deep-terms" wx:if="{{item.deepExplanation.keyTerms.length}}">
+              <text class="pr-ev-deep-term pk-chip" wx:for="{{item.deepExplanation.keyTerms}}" wx:for-item="term" wx:key="*this">{{term}}</text>
+            </view>
+            <view class="pr-ev-block" wx:for="{{item.deepExplanation.blocks}}" wx:for-item="block" wx:key="label">
+              <text class="pr-ev-label">{{block.label}}</text>
+              <text class="pr-ev-text">{{block.text}}</text>
+            </view>
+            <view class="pr-ev-block" wx:if="{{item.deepExplanation.optionReviews.length}}">
+              <text class="pr-ev-label">逐选项点评</text>
+              <view class="pr-ev-deep-option" wx:for="{{item.deepExplanation.optionReviews}}" wx:for-item="review" wx:key="key">
+                <text class="pr-ev-deep-option-key {{review.status === 'correct' ? 'pr-ev-right-pick' : (review.status === 'learner_wrong' || review.status === 'wrong' ? 'pr-ev-wrong-pick' : '')}}">{{review.key}}{{review.statusLabel ? ' · ' + review.statusLabel : ''}}</text>
+                <text class="pr-ev-text">{{review.review}}</text>
+              </view>
+            </view>
+          </view>
           <!-- 屏 6 入口: 有绑定才渲染按钮(禁 dead button);无绑定时整行不渲染 -->
           <view class="pr-ev-lesson pk-btn-ink" wx:if="{{item.lessonPackId}}" bindtap="onOpenLesson" data-pack-id="{{item.lessonPackId}}">
             <text>{{evidence.lessonCta}}</text>

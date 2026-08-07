@@ -70,14 +70,6 @@
 .pr-quiz-btn.disabled { opacity: 0.4; }
 
 /* 中场检查点 */
-.pr-checkpoint { padding: 120rpx 32rpx; }
-.pr-checkpoint-card { padding: 40rpx 32rpx; display: flex; flex-direction: column; gap: 22rpx; }
-.pr-checkpoint-title { font-size: 34rpx; font-weight: 900; color: var(--pk-t1); line-height: 1.5; }
-.pr-checkpoint-coverage { align-self: flex-start; background: var(--pk-gauge); color: var(--pk-t2); }
-.pr-checkpoint-band { background: var(--pk-accent-soft); border-radius: 16rpx; padding: 18rpx 20rpx; }
-.pr-checkpoint-band-txt { font-size: 26rpx; font-weight: 800; color: var(--pk-grn); }
-.pr-checkpoint-line { font-size: 26rpx; line-height: 1.7; color: var(--pk-t2); }
-.pr-checkpoint-cta { margin-top: 10rpx; }
 
 /* 加载/错误 */
 .pr-loading { padding: 200rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 26rpx; }

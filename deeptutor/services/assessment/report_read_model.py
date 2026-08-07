@@ -124,13 +124,16 @@ def _probe_tags(
 
 _EXAM_REF_RE = re.compile(r"^exam:(\d{4}):(.+)$")
 _MACHINE_REF_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_:.\-]*$")
+# 编译/判分锚共用「前缀:节点码_尾巴」语法(kc:/ca:/cc:/m35:),节点码可翻教材章节名。
+_NODE_ANCHOR_RE = re.compile(r"^(?:kc|ca|cc):(1A\d{6})|^m35:Q\d+-(1A\d{6})")
 
 
 def _learner_facing_source(source: str) -> str:
     """依据来源人话化(fail-closed,2026-08-07 owner 实拍「ca:1A413030_103_0196」)。
 
-    ``exam:YYYY:第N题`` 翻成「YYYY 年真题·第N题」;其余纯 ASCII 机器锚
-    (``ca:``/``kc:``/蛇形标识符)一律留空,由前端整行不渲染——宁可无来源行,
+    ``exam:YYYY:第N题`` → 「YYYY 年真题·第N题」;带教材节点码的机器锚经
+    taxonomy_authority(学员面章节名单一权威,永不露码)翻成「教材·章节名」;
+    翻不出的纯 ASCII 机器锚一律留空,由前端整行不渲染——宁可无来源行,
     不给学员看内部机件。含中文的授权来源文本原样透出。
     """
 
@@ -140,6 +143,13 @@ def _learner_facing_source(source: str) -> str:
     match = _EXAM_REF_RE.fullmatch(value)
     if match:
         return f"{match.group(1)} 年真题·{match.group(2).strip()}"
+    node_match = _NODE_ANCHOR_RE.match(value)
+    if node_match:
+        from deeptutor.services.taxonomy.taxonomy_authority import taxonomy_label
+
+        label = taxonomy_label(node_match.group(1) or node_match.group(2))
+        if label:
+            return f"教材·{label}"
     if _MACHINE_REF_RE.fullmatch(value):
         return ""
     return value
@@ -164,6 +174,29 @@ def _joined_option_text(question: dict[str, Any], letters: str) -> str:
     texts = _option_text_by_key(question)
     picked = [f"{letter}. {texts[letter]}" for letter in letters if letter in texts]
     return "；".join(picked)
+
+
+_WORDING_RESTATEMENT_RATIO = 0.75
+
+
+def _incremental_scoring_wording(wording: str, correct_texts: list[str]) -> str:
+    """得分表述只在超出正确选项原文时才透出(2026-08-07 实测:编译权威 649 条
+    model_answer 里 ~80% 是正确选项复读)。复读=同一事实的第二面,与「正确答案」
+    行重复渲染只会稀释解析;fail-closed 压掉,真增量(完整工序链/查表口径)保留。"""
+
+    from difflib import SequenceMatcher
+
+    value = str(wording or "").strip()
+    if not value:
+        return ""
+    normalized = re.sub(r"\s+", "", value)
+    for text in correct_texts:
+        candidate = re.sub(r"\s+", "", str(text or ""))
+        if not candidate:
+            continue
+        if SequenceMatcher(None, normalized, candidate).ratio() > _WORDING_RESTATEMENT_RATIO:
+            return ""
+    return value
 
 
 def build_evidence_items(
@@ -217,8 +250,15 @@ def build_evidence_items(
                 "correct_option_text": _joined_option_text(question, correct_answer),
                 "scoring_point": str(diagnosis.get("scoring_point") or "").strip()
                 or (list(item.get("knowledge_points") or []) or [""])[0],
-                # 能得分的确切表述(§7.3-3):编译权威的 model_answer,没有即留空。
-                "scoring_wording": str(diagnosis.get("model_answer") or "").strip(),
+                # 能得分的确切表述(§7.3-3):编译权威的 model_answer,且只留真增量
+                # (与正确选项原文近重复的复读一律压掉),没有即留空。
+                "scoring_wording": _incremental_scoring_wording(
+                    str(diagnosis.get("model_answer") or ""),
+                    [
+                        _option_text_by_key(question).get(letter, "")
+                        for letter in correct_answer
+                    ],
+                ),
                 "pitfall": str(chosen.get("pitfall") or "").strip(),
                 "why_missed": why_missed,
                 "fix": str(chosen.get("fix") or "").strip(),

@@ -9166,9 +9166,6 @@ class MemberConsoleService:
             "subject_id": subject_id,
             "topic_ids": [],
             "topic_label": "一建过线体检",
-            "checkpoint_after": int(payload.get("checkpoint_after") or blueprint.checkpoint_after or 0),
-            # 两级检查点（§6.2-v2）：v1 导出单元素列表，向后兼容。
-            "checkpoints": [int(item) for item in (payload.get("checkpoints") or blueprint.checkpoint_list)],
             "status": session["status"],
             "reuse_reason": session.get("reuse_reason", ""),
             "questions": deepcopy(session["client_questions_public"]),
@@ -9537,7 +9534,18 @@ class MemberConsoleService:
                 mistake_book_refs=list(writeback_refs.get("mistake_book_refs") or []),
                 mark_scored=True,
             )
+            if int(writeback_refs.get("failed_item_count") or 0):
+                # 逐题隔离后:部分题写入失败,已写的 refs 如实保留,状态如实降级。
+                self._assessment_session_repository.record_degraded(
+                    user_id,
+                    quiz_id,
+                    reason="writeback_partial",
+                )
         except Exception:
+            # 2026-08-07 审计:此处曾裸吞异常零日志,定性全靠数据考古。留痕再降级。
+            logger.exception(
+                "assessment_writeback_failed user_id=%s quiz_id=%s", user_id, quiz_id
+            )
             self._assessment_session_repository.record_degraded(
                 user_id,
                 quiz_id,
@@ -9639,11 +9647,19 @@ class MemberConsoleService:
             hashlib.sha256(json.dumps(question, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
             PROMPT_VERSION,
         )
-        self._ensure_assessment_explanation_balance(
-            user_id=user_id,
-            cache_key=cache_key,
-            minimum_points=minimum_explanation_points(),
+        # 试驾面(owner 2026-08-07 拍板):过线体检是获客入口,错题的鲁班深解析
+        # 免额度——新用户 0 余额不得撞付费墙。成本天然封顶:只放行本卷报告
+        # wrong_items 内的题(单卷 ≤36),路由限流(10/min·200/day)兜底。
+        trial_included = str(session.get("assessment_type") or "") == "pass_readiness" and any(
+            str(item.get("question_id") or "") == normalized_question_id
+            for item in list(report.get("wrong_items") or [])
         )
+        if not trial_included:
+            self._ensure_assessment_explanation_balance(
+                user_id=user_id,
+                cache_key=cache_key,
+                minimum_points=minimum_explanation_points(),
+            )
         explanation = await generate_llm_deep_explanation(
             question=question,
             learner_answer=learner_answer,
@@ -9653,14 +9669,21 @@ class MemberConsoleService:
         )
         usage_summary = explanation.pop("usage_summary", None)
         amount_points, billing_metadata = billable_points_from_usage_summary(usage_summary)
-        billing = self._capture_assessment_explanation_points(
-            user_id=user_id,
-            quiz_id=quiz_id,
-            question_id=normalized_question_id,
-            cache_key=cache_key,
-            amount_points=amount_points,
-            metadata=billing_metadata,
-        )
+        if trial_included:
+            billing = {
+                "status": "trial_included",
+                "amount_points": 0,
+                "reason": "pass_readiness_trial",
+            }
+        else:
+            billing = self._capture_assessment_explanation_points(
+                user_id=user_id,
+                quiz_id=quiz_id,
+                question_id=normalized_question_id,
+                cache_key=cache_key,
+                amount_points=amount_points,
+                metadata=billing_metadata,
+            )
         return {
             "quiz_id": quiz_id,
             "question_id": normalized_question_id,

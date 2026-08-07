@@ -393,3 +393,27 @@ var emptyPreview = vm.buildResultModel({
 assert.strictEqual(emptyPreview.nextPreview.available, false);
 
 console.log("PASS test_pass_readiness_report_view_model.js");
+
+// ── 9. 证据卡内嵌鲁班深解析投影(试驾时刻) ────────────────────
+var deep = vm.buildDeepExplanationModel({
+  explanation: {
+    summary: "先凿毛、清理、铺砂浆再浇筑。",
+    why_wrong: "你选的 C 把数值写成 12。",
+    key_terms: ["施工缝", "1.2N/mm²"],
+    option_reviews: [
+      { key: "A", status: "correct", status_label: "正确", review: "顺序与数值都对。" },
+      { key: "C", status: "learner_wrong", status_label: "你的选择", review: "数值差一个小数点。" },
+      { key: "", status: "neutral", status_label: "", review: "无键要丢弃" },
+    ],
+    mnemonic: "",
+  },
+});
+assert.strictEqual(deep.available, true);
+assert.strictEqual(deep.blocks[0].label, "鲁班讲解");
+assert.strictEqual(deep.blocks.length, 2, "空字段整块不出(禁占位)");
+assert.strictEqual(deep.optionReviews.length, 2, "无键点评必须丢弃");
+assert.deepStrictEqual(deep.keyTerms, ["施工缝", "1.2N/mm²"]);
+var deepEmpty = vm.buildDeepExplanationModel({ explanation: {} });
+assert.strictEqual(deepEmpty.available, false, "空解析不得渲染空壳");
+// 证据卡必须带 questionId(深解析取数入口)
+assert.strictEqual(evidence.items[0].questionId, "", "旧数据无 question_id 时留空不渲染入口");

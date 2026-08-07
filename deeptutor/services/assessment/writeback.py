@@ -55,110 +55,122 @@ class AssessmentWritebackService:
         home_projection_is_correct = True
         bot_id = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
         discarded_node_codes = 0
+        failed_item_count = 0
         for item in items:
-            question_id = str(item.get("question_id") or "").strip()
-            knowledge_points = list(item.get("knowledge_points") or [])
-            concept_id = _assessment_concept_id(item=item, knowledge_points=knowledge_points)
-            error_codes = list(item.get("error_codes") or [])
-            is_correct = bool(item.get("is_correct"))
-            payload_json = {
-                "event_type": "learning_evidence",
-                "assessment_type": assessment_type,
-                "quiz_id": quiz_id,
-                "form_id": form_id,
-                "question_id": question_id,
-                "source_question_id": item.get("source_question_id"),
-                "learner_answer": item.get("learner_answer"),
-                "correct_answer": item.get("correct_answer"),
-                "is_correct": is_correct,
-                "knowledge_points": knowledge_points,
-                "concept_id": concept_id,
-                "error_codes": error_codes,
-                "error_events": [
-                    {
-                        "error_code": code,
-                        "concept_tag": concept_id,
-                    }
-                    for code in error_codes
-                ],
-                "measurement_confidence": item.get("measurement_confidence"),
-                "simple_explanation": item.get("simple_explanation"),
-            }
-            ability_dimension = dimension_by_section.get(str(item.get("section_id") or ""), "")
-            if ability_dimension:
-                payload_json["ability_dimension"] = ability_dimension
-                payload_json["scoring_point_observations"] = [
-                    {
-                        "scoring_point": str(point or "").strip(),
-                        "observed": "correct" if is_correct else "incorrect",
-                        "error_codes": error_codes,
-                    }
-                    for point in (knowledge_points or ["综合能力"])
-                    if str(point or "").strip()
-                ]
-            # §6-6：normalize 只做形态归一不校验存在性，自由中文串曾照落
-            # node_code 污染 taxonomy join。写入侧收口：只有 resolver 真能
-            # 解析的 code 才允许写 node_code/taxonomy_code。
-            taxonomy_code = normalize_taxonomy_code(concept_id)
-            if taxonomy_code and taxonomy_label(taxonomy_code):
-                payload_json["node_code"] = taxonomy_code
-                payload_json["taxonomy_code"] = taxonomy_code
-            else:
-                discarded_node_codes += 1
-            payload_json["typed_edges"] = _typed_edges_from_assessment_item(
-                question_id=question_id,
-                submission_id=f"{quiz_id}:{question_id}",
-                concept_id=concept_id,
-                error_codes=error_codes,
-                source_feature="assessment_testset",
-            )
-            event = self._learner_state_service.append_memory_event(
-                user_id,
-                source_feature="assessment_testset",
-                source_id=f"{quiz_id}:{question_id}",
-                source_bot_id=bot_id,
-                memory_kind="learning_evidence",
-                payload_json=payload_json,
-                dedupe_key=f"assessment_item:{user_id}:{quiz_id}:{question_id}",
-            )
-            attempt_ref = sign_attempt_ref(
-                user_id=user_id,
-                event_id=str(event.event_id),
-                question_id=question_id,
-            )
-            ref = {
-                "event_id": str(event.event_id),
-                "question_id": question_id,
-                "attempt_ref": attempt_ref,
-                "kind": "learning_evidence",
-            }
-            learning_event_refs.append(ref)
-            if knowledge_points and (home_projection_payload is None or (home_projection_is_correct and not is_correct)):
-                home_projection_payload = _home_projection_payload_from_assessment_item(
-                    payload_json,
-                    subject_id=subject_id,
-                    event_id=str(event.event_id),
-                    attempt_ref=attempt_ref,
+            try:
+                question_id = str(item.get("question_id") or "").strip()
+                knowledge_points = list(item.get("knowledge_points") or [])
+                concept_id = _assessment_concept_id(item=item, knowledge_points=knowledge_points)
+                error_codes = list(item.get("error_codes") or [])
+                is_correct = bool(item.get("is_correct"))
+                payload_json = {
+                    "event_type": "learning_evidence",
+                    "assessment_type": assessment_type,
+                    "quiz_id": quiz_id,
+                    "form_id": form_id,
+                    "question_id": question_id,
+                    "source_question_id": item.get("source_question_id"),
+                    "learner_answer": item.get("learner_answer"),
+                    "correct_answer": item.get("correct_answer"),
+                    "is_correct": is_correct,
+                    "knowledge_points": knowledge_points,
+                    "concept_id": concept_id,
+                    "error_codes": error_codes,
+                    "error_events": [
+                        {
+                            "error_code": code,
+                            "concept_tag": concept_id,
+                        }
+                        for code in error_codes
+                    ],
+                    "measurement_confidence": item.get("measurement_confidence"),
+                    "simple_explanation": item.get("simple_explanation"),
+                }
+                ability_dimension = dimension_by_section.get(str(item.get("section_id") or ""), "")
+                if ability_dimension:
+                    payload_json["ability_dimension"] = ability_dimension
+                    payload_json["scoring_point_observations"] = [
+                        {
+                            "scoring_point": str(point or "").strip(),
+                            "observed": "correct" if is_correct else "incorrect",
+                            "error_codes": error_codes,
+                        }
+                        for point in (knowledge_points or ["综合能力"])
+                        if str(point or "").strip()
+                    ]
+                # §6-6：normalize 只做形态归一不校验存在性，自由中文串曾照落
+                # node_code 污染 taxonomy join。写入侧收口：只有 resolver 真能
+                # 解析的 code 才允许写 node_code/taxonomy_code。
+                taxonomy_code = normalize_taxonomy_code(concept_id)
+                if taxonomy_code and taxonomy_label(taxonomy_code):
+                    payload_json["node_code"] = taxonomy_code
+                    payload_json["taxonomy_code"] = taxonomy_code
+                else:
+                    discarded_node_codes += 1
+                payload_json["typed_edges"] = _typed_edges_from_assessment_item(
+                    question_id=question_id,
+                    submission_id=f"{quiz_id}:{question_id}",
+                    concept_id=concept_id,
+                    error_codes=error_codes,
+                    source_feature="assessment_testset",
                 )
-                home_projection_is_correct = is_correct
-            if not is_correct:
-                saved = self._mistake_book_service.save_item(
+                event = self._learner_state_service.append_memory_event(
+                    user_id,
+                    source_feature="assessment_testset",
+                    source_id=f"{quiz_id}:{question_id}",
+                    source_bot_id=bot_id,
+                    memory_kind="learning_evidence",
+                    payload_json=payload_json,
+                    dedupe_key=f"assessment_item:{user_id}:{quiz_id}:{question_id}",
+                )
+                attempt_ref = sign_attempt_ref(
                     user_id=user_id,
-                    attempt_ref=attempt_ref,
-                    subject_id=subject_id,
-                    bot_id=bot_id,
-                    title=str(item.get("question_stem") or item.get("source_question_id") or question_id),
-                    concept_label=(knowledge_points or ["综合能力"])[0],
-                    error_label="、".join(error_codes) or "未归因错误",
-                    note=str(item.get("simple_explanation") or ""),
-                    tags=["assessment_testset", assessment_type],
+                    event_id=str(event.event_id),
+                    question_id=question_id,
                 )
-                mistake_book_refs.append(
-                    {
-                        "event_id": saved.get("event_id"),
-                        "question_id": saved.get("question_id"),
-                        "attempt_ref": saved.get("attempt_ref"),
-                    }
+                ref = {
+                    "event_id": str(event.event_id),
+                    "question_id": question_id,
+                    "attempt_ref": attempt_ref,
+                    "kind": "learning_evidence",
+                }
+                learning_event_refs.append(ref)
+                if knowledge_points and (home_projection_payload is None or (home_projection_is_correct and not is_correct)):
+                    home_projection_payload = _home_projection_payload_from_assessment_item(
+                        payload_json,
+                        subject_id=subject_id,
+                        event_id=str(event.event_id),
+                        attempt_ref=attempt_ref,
+                    )
+                    home_projection_is_correct = is_correct
+                if not is_correct:
+                    saved = self._mistake_book_service.save_item(
+                        user_id=user_id,
+                        attempt_ref=attempt_ref,
+                        subject_id=subject_id,
+                        bot_id=bot_id,
+                        title=str(item.get("question_stem") or item.get("source_question_id") or question_id),
+                        concept_label=(knowledge_points or ["综合能力"])[0],
+                        error_label="、".join(error_codes) or "未归因错误",
+                        note=str(item.get("simple_explanation") or ""),
+                        tags=["assessment_testset", assessment_type],
+                    )
+                    mistake_book_refs.append(
+                        {
+                            "event_id": saved.get("event_id"),
+                            "question_id": saved.get("question_id"),
+                            "attempt_ref": saved.get("attempt_ref"),
+                        }
+                    )
+            except Exception:
+                # 单题失败不再杀死整卷回写(2026-08-07 审计:曾 3/30 写入即中止,
+                # 后 27 题全部丢失)。逐题隔离+显式留痕;dedupe_key 幂等保证补写安全。
+                failed_item_count += 1
+                logger.exception(
+                    "assessment writeback item failed: user_id=%s quiz_id=%s question_id=%s",
+                    user_id,
+                    quiz_id,
+                    str(item.get("question_id") or ""),
                 )
         if discarded_node_codes:
             # 病H-3 可观测性:resolver 解析不了的 concept_id 不写 node_code
@@ -177,9 +189,11 @@ class AssessmentWritebackService:
         return {
             "learning_event_refs": learning_event_refs,
             "mistake_book_refs": mistake_book_refs,
+            "failed_item_count": failed_item_count,
             "writeback_status": {
                 "learning_event_count": len(learning_event_refs),
                 "mistake_book_count": len(mistake_book_refs),
+                "failed_item_count": failed_item_count,
             },
         }
 

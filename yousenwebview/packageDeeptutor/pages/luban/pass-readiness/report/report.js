@@ -271,6 +271,53 @@ Page({
     this._switchSection("result");
   },
 
+  // 证据卡内嵌鲁班深解析(试驾时刻): 免额度由服务端裁决, 前端只做取数+渲染。
+  // 每题一次: 已加载则不重复请求(LLM 逐次生成, 前端会话内缓存在卡片模型上)。
+  onDeepExplanation: function (e) {
+    var self = this;
+    var dataset = e.currentTarget.dataset || {};
+    var questionId = String(dataset.questionId || "").trim();
+    var idx = Number(dataset.idx);
+    var items = (this.data.evidence && this.data.evidence.items) || [];
+    if (!questionId || !(idx >= 0 && idx < items.length)) return;
+    var item = items[idx];
+    if (item.deepLoading || item.deepExplanation) return;
+    helpers.vibrate("light");
+    trackBehavior("pass_readiness_deep_explanation_started", {
+      module: "pass_readiness",
+      section: "report_evidence",
+      action: "start",
+      objectType: "assessment_question",
+      objectId: questionId,
+    });
+    var prefix = "evidence.items[" + idx + "]";
+    var patch = {};
+    patch[prefix + ".deepLoading"] = true;
+    patch[prefix + ".deepError"] = "";
+    this.setData(patch);
+    api
+      .requestAssessmentDeepExplanation(this.data.quizId, questionId)
+      .then(function (resp) {
+        var model = reportVm.buildDeepExplanationModel(api.unwrapResponse ? api.unwrapResponse(resp) : resp);
+        var done = {};
+        done[prefix + ".deepLoading"] = false;
+        if (model.available) {
+          done[prefix + ".deepExplanation"] = model;
+        } else {
+          done[prefix + ".deepError"] = "解析生成失败，请稍后再试";
+        }
+        self.setData(done);
+      })
+      .catch(function (err) {
+        var fail = {};
+        fail[prefix + ".deepLoading"] = false;
+        fail[prefix + ".deepError"] = api.describeRequestError
+          ? api.describeRequestError(err, "解析生成失败，请稍后再试", { context: "assessment_explain" })
+          : "解析生成失败，请稍后再试";
+        self.setData(fail);
+      });
+  },
+
   // 屏 6: 跳既有微课页(无绑定则按钮不渲染, 禁 dead button)
   onOpenLesson: function (e) {
     var packId = String((e.currentTarget.dataset || {}).packId || "").trim();

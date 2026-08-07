@@ -59,21 +59,6 @@
     </view>
 
     <!-- ═══ 中场检查点(§6.2: 粗带位 + coverage=low 文案 + 唯一 CTA) ═══ -->
-    <view class="pr-checkpoint" wx:elif="{{stage === 'checkpoint'}}">
-      <view class="pr-checkpoint-card pk-card">
-        <text class="pr-checkpoint-title">{{checkpoint.title}}</text>
-        <view class="pr-checkpoint-coverage pk-chip">
-          <text>{{checkpoint.coverageLabel}}</text>
-        </view>
-        <view class="pr-checkpoint-band" wx:if="{{checkpoint.bandLine}}">
-          <text class="pr-checkpoint-band-txt">当前粗估分数带：{{checkpoint.bandLine}}</text>
-        </view>
-        <text class="pr-checkpoint-line">{{checkpoint.coverageLine}}</text>
-        <view class="pr-checkpoint-cta pk-btn-ink" bindtap="onCheckpointContinue">
-          <text>{{checkpoint.cta}}</text>
-        </view>
-      </view>
-    </view>
 
     <!-- ═══ 加载 / 提交中 ═══ -->
     <view class="pr-loading" wx:elif="{{stage === 'loading' || stage === 'submitting'}}">

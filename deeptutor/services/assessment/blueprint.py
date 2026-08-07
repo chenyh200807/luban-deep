@@ -53,20 +53,6 @@ class AssessmentBlueprint:
     sections: tuple[AssessmentSection, ...]
     assessment_type: str = "diagnostic"
     subject_id: str = "construction_exam"
-    # Midpoint hard checkpoint (过线体检 §6.2): after this many scored tasks the
-    # journey may surface a coarse band. 0 = no checkpoint.
-    # v2 起支持多级检查点（§6.2-v2：第 10 题粗带 → 第 30 题客观带 → 全部完成
-    # 精带）：checkpoints 声明全部检查点；checkpoint_after 保留单值语义
-    # （= 第一个检查点），v1 消费方零改动。
-    checkpoint_after: int = 0
-    checkpoints: tuple[int, ...] = ()
-
-    @property
-    def checkpoint_list(self) -> tuple[int, ...]:
-        """全部检查点（升序）。未声明 checkpoints 时回落到单值 checkpoint_after。"""
-        if self.checkpoints:
-            return tuple(int(item) for item in self.checkpoints)
-        return (int(self.checkpoint_after),) if self.checkpoint_after else ()
 
     @property
     def scored_count(self) -> int:
@@ -274,14 +260,12 @@ REAL_EXAM_SIMULATION_MINI_V1 = AssessmentBlueprint(
 # 过线体检 acquisition diagnostic (plan 2026-08-04 §6.2/§11 Phase 2).
 # Pure-tap constraint is binding: every scored task is single_choice or
 # multi_choice option-tap — no free text, no drag-sort, no new answer-wire
-# format. 12 scored tasks + 3 non-scored preparation-context probes, with the
-# 6-task coarse-band checkpoint expressed as blueprint metadata.
+# format. 12 scored tasks + 3 non-scored preparation-context probes.
 PASS_READINESS_ARCHITECTURE_V1 = AssessmentBlueprint(
     version="pass_readiness_architecture_v1",
     requested_count=15,
     assessment_type="pass_readiness",
     subject_id="construction_exam",
-    checkpoint_after=6,
     sections=(
         AssessmentSection(
             id="pr_objective_single",
@@ -376,8 +360,6 @@ PASS_READINESS_ARCHITECTURE_V2 = AssessmentBlueprint(
     requested_count=39,
     assessment_type="pass_readiness",
     subject_id="construction_exam",
-    checkpoint_after=10,
-    checkpoints=(10, 30),
     sections=(
         # ── 20 单选：编译轻练变式池，五族配额各 4（core_knowledge ≈20 观察）──
         AssessmentSection(

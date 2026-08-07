@@ -62,26 +62,11 @@ def test_v2_is_39_interactions_30_objective_6_case_3_probes() -> None:
     assert prep.id == "pr_prep_context" and prep.count == 3  # 复用 v1 probe 注册
 
 
-def test_v2_two_level_checkpoints_with_backward_compatible_single_value() -> None:
-    blueprint = get_assessment_blueprint("pass_readiness_architecture_v2")
-
-    assert blueprint.checkpoints == (10, 30)
-    assert blueprint.checkpoint_list == (10, 30)
-    # 单值语义向后兼容：checkpoint_after == 第一个检查点。
-    assert blueprint.checkpoint_after == 10
-    # 检查点单调递增且落在计分题量以内。
-    assert list(blueprint.checkpoint_list) == sorted(set(blueprint.checkpoint_list))
-    assert all(0 < c < blueprint.scored_count for c in blueprint.checkpoint_list)
-
-
 def test_v1_blueprint_is_untouched_rollback_anchor() -> None:
     v1 = get_assessment_blueprint("pass_readiness_architecture_v1")
 
     assert v1.requested_count == 15
     assert v1.scored_count == 12
-    assert v1.checkpoint_after == 6
-    assert v1.checkpoints == ()
-    assert v1.checkpoint_list == (6,)  # 单值回落，不改 v1 行为
     assert all(
         s.question_source == "questions_bank" and not s.exclude_real_exam_marked
         for s in v1.sections
@@ -168,12 +153,10 @@ def test_v1_sections_do_not_filter_marked_rows() -> None:
     assert [c.source_question_id for c in selected] == ["based-on-marked"]
 
 
-def _tiny_checkpoint_blueprint() -> AssessmentBlueprint:
+def _tiny_single_section_blueprint() -> AssessmentBlueprint:
     return AssessmentBlueprint(
-        version="checkpoint_probe_test",
+        version="single_section_probe_test",
         requested_count=4,
-        checkpoint_after=1,
-        checkpoints=(1, 3),
         sections=(
             AssessmentSection(
                 id="s1",
@@ -187,7 +170,7 @@ def _tiny_checkpoint_blueprint() -> AssessmentBlueprint:
     )
 
 
-def test_create_payload_exports_checkpoints_list_and_single_value() -> None:
+def test_create_payload_delivers_requested_count() -> None:
     candidates = [
         QuestionCandidate(
             source_question_id=f"q{i}",
@@ -201,12 +184,13 @@ def test_create_payload_exports_checkpoints_list_and_single_value() -> None:
         for i in range(12)
     ]
     service = AssessmentBlueprintService(
-        blueprint=_tiny_checkpoint_blueprint(),
+        blueprint=_tiny_single_section_blueprint(),
         provider=StaticAssessmentQuestionProvider(candidates),
     )
     payload = service.create_session(user_id="u1", count=4)
-    assert payload["checkpoint_after"] == 1
-    assert payload["checkpoints"] == [1, 3]
+    assert payload["delivered_count"] == 4
+    # 中场检查点已按 owner 2026-08-07 拍板全链下线:create payload 不再导出该族字段。
+    assert "checkpoint_after" not in payload and "checkpoints" not in payload
 
 
 def test_v2_form_assembles_39_units_with_routed_sources() -> None:
@@ -247,7 +231,6 @@ def test_v2_form_assembles_39_units_with_routed_sources() -> None:
     assert payload["delivered_count"] == 39
     assert payload["scored_count"] == 36
     assert payload["profile_count"] == 3
-    assert payload["checkpoints"] == [10, 30]
     compiled_questions = [
         q
         for q in payload["session_questions"]

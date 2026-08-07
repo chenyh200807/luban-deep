@@ -1,8 +1,7 @@
 // Run: node yousenwebview/tests/test_pass_readiness_exam_contract.js
 // 过线体检测评页(屏 2)合同:
 // 1. create 载荷 = assessment_type:"pass_readiness" + device_id(不带写死题数);
-// 2. 中场检查点完全由响应 checkpoint_after 驱动: 答满 N 道计分题 → 检查点屏,
-//    只出现一次; checkpoint_after 缺失 → 永不打断;
+// 2. 连续作答不打断(中场检查点已按 owner 2026-08-07 拍板全链下线);
 // 3. 检查点屏零证据/零弱点, 唯一 CTA 后回到第一道未答题;
 // 4. 本地草稿 + 服务端 resume, 同题冲突服务端赢;
 // 5. 提交 wire = dict[str,str]; 成功后清草稿、存报告、redirect 报告页。
@@ -71,7 +70,6 @@ function loadPage(overrides) {
   var createResponse = Object.assign(
     {
       quiz_id: "quiz_pr_exam",
-      checkpoint_after: 6,
       scored_count: 12,
       profile_count: 3,
       questions: buildQuestions(),
@@ -210,9 +208,9 @@ function answerCurrent(page, key) {
   // WXML: 案例微进度与不计分标注绑定在场
   assert.ok(wxml.indexOf("currentQ.caseTag") >= 0, "案例微进度绑定缺失");
   assert.ok(wxml.indexOf("profile_probe") >= 0, "profile_probe 不计分标注缺失");
-  assert.ok(wxml.indexOf("checkpoint.cta") >= 0, "检查点唯一 CTA 绑定缺失");
+  assert.ok(wxml.indexOf("checkpoint") < 0, "检查点屏必须从 wxml 删净");
 
-  // ── 1+2+3. create 载荷 + checkpoint_after 驱动 ──
+  // ── 1+2+3. create 载荷 + 连续作答 ──
   var loaded = loadPage();
   loaded.page.onLoad({});
   await flushPromises();
@@ -230,50 +228,24 @@ function answerCurrent(page, key) {
     "新建会话发一次专名 started",
   );
 
-  // 答满 5 道计分题: 不触发
-  for (var i = 0; i < 5; i++) {
+  // 连续答满 6 道计分题: 全程停留在 quiz,不再有任何中场打断
+  for (var i = 0; i < 6; i++) {
     answerCurrent(loaded.page);
     await flushTimers();
+    assert.strictEqual(loaded.page.data.stage, "quiz", "第 " + (i + 1) + " 题后不得打断");
   }
-  assert.strictEqual(loaded.page.data.stage, "quiz", "5 题不触发检查点");
-  // 第 6 道计分题 → 检查点
-  answerCurrent(loaded.page);
-  await flushTimers();
-  assert.strictEqual(loaded.page.data.stage, "checkpoint", "第 6 题后进入检查点屏");
-  var checkpoint = loaded.page.data.checkpoint;
-  assert.strictEqual(checkpoint.coverageLabel, "证据覆盖：低");
-  assert.strictEqual(checkpoint.cta, "再答 6 题：收窄分数带 + 定位失分采分点");
-  assert.strictEqual(checkpoint.bandLine, "", "服务端未给粗带字段则不渲染粗带数值");
   assert.ok(
-    loaded.calls.behaviors.some(function (item) {
+    !loaded.calls.behaviors.some(function (item) {
       return item.name === "pass_readiness_midpoint_reached";
     }),
-    "检查点发专名 midpoint_reached",
+    "midpoint 埋点已随检查点一并下线",
   );
-
-  // 唯一 CTA → 回到第一道未答题, 不再二次打断
-  loaded.page.onCheckpointContinue();
-  assert.strictEqual(loaded.page.data.stage, "quiz");
-  assert.strictEqual(loaded.page.data.currentQ.id, "c1", "回到第一道未答题");
-  answerCurrent(loaded.page, "A");
-  await flushTimers();
-  assert.strictEqual(loaded.page.data.stage, "quiz", "检查点只出现一次");
-
-  // ── checkpoint_after 缺失 → 永不打断 ──
-  var noCp = loadPage({ createResponse: { checkpoint_after: undefined } });
-  noCp.page.onLoad({});
-  await flushPromises();
-  for (var j = 0; j < 6; j++) {
-    answerCurrent(noCp.page);
-    await flushTimers();
-  }
-  assert.strictEqual(noCp.page.data.stage, "quiz", "checkpoint_after 缺失时禁前端写死 6");
+  assert.strictEqual(typeof loaded.page.onCheckpointContinue, "undefined", "检查点 handler 必须删净");
 
   // ── 4. resume: 草稿在 → 走服务端 resume, 冲突服务端赢 ──
   var resumed = loadPage({
     resumeResponse: {
       quiz_id: "quiz_pr_exam",
-      checkpoint_after: 6,
       scored_count: 12,
       profile_count: 3,
       questions: buildQuestions(),
@@ -284,7 +256,6 @@ function answerCurrent(page, key) {
     quizId: "quiz_pr_exam",
     selectedKeys: { s1: "A", s2: "A" },
     currentIndex: 1,
-    checkpointSeen: false,
   };
   resumed.page.onLoad({});
   await flushPromises();
@@ -301,7 +272,7 @@ function answerCurrent(page, key) {
   );
 
   // ── 5. 提交 wire + 清草稿 + 存报告 + redirect ──
-  var toSubmit = loadPage({ createResponse: { checkpoint_after: 0 } });
+  var toSubmit = loadPage({ createResponse: {} });
   toSubmit.page.onLoad({});
   await flushPromises();
   for (var k = 0; k < 6; k++) {

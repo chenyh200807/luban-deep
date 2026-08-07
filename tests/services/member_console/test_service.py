@@ -3902,7 +3902,6 @@ def test_pass_readiness_create_and_submit_use_registered_blueprint(
     assert payload["assessment_type"] == "pass_readiness"
     assert payload["blueprint_version"] == "pass_readiness_architecture_v2"
     assert payload["topic_label"] == "一建过线体检"
-    assert payload["checkpoint_after"] == 10
     assert payload["scored_count"] == 36
     assert payload["profile_count"] == 3
     assert payload["form_id"]
@@ -4208,6 +4207,82 @@ def test_assessment_deep_explanation_checks_balance_before_llm_generation(
 
     with pytest.raises(RuntimeError, match="assessment_deep_explanation_insufficient_balance"):
         asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
+
+
+def test_pass_readiness_wrong_item_deep_explanation_is_trial_included(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """试驾面(owner 2026-08-07 拍板):过线体检错题的鲁班深解析免额度——
+    新用户 0 余额不得撞付费墙;免额度只覆盖本卷 wrong_items 内的题。"""
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_ids=[],
+        blueprint_version="pass_readiness_architecture_v2",
+        form_id="pass_readiness_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "施工缝题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "question_type": "single_choice",
+                "question_stem": "施工缝题",
+                "answer": "A",
+                "scored": True,
+                "simple_explanation": "先凿毛清理再浇筑。",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+    service.submit_assessment("student_demo", session["quiz_id"], {"q1": "B"}, time_spent_seconds=30)
+
+    def _empty_wallet(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "student_demo")
+        member["points_balance"] = 0
+
+    service._mutate(_empty_wallet)
+
+    async def _fake_generate(**kwargs: object) -> dict[str, object]:
+        return {
+            "summary": "先凿毛、清理、铺砂浆再浇筑。",
+            "learner_answer": kwargs["learner_answer"],
+            "correct_answer": kwargs["correct_answer"],
+            "score_mutation_allowed": False,
+            "source": "assessment_deep_explanation_llm",
+            "prompt_version": "assessment-deep-explanation-llm-v1",
+            "usage_summary": {"estimated_total_cost_usd": 0.001},
+        }
+
+    captured: list[dict[str, object]] = []
+    monkeypatch.setattr(member_service_module, "generate_llm_deep_explanation", _fake_generate)
+    monkeypatch.setattr(
+        service,
+        "_capture_assessment_explanation_points",
+        lambda **kwargs: captured.append(kwargs) or {"status": "captured"},
+    )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
+
+    result = asyncio.run(
+        service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+    )
+
+    # 0 余额也能生成;不走计费捕获,billing 如实标 trial。
+    assert result["billing"]["status"] == "trial_included"
+    assert result["billing"]["amount_points"] == 0
+    assert captured == []
+    assert "凿毛" in result["explanation"]["summary"]
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:

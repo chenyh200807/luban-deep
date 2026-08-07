@@ -7,7 +7,7 @@
 //   拒绝车道 = POST /api/v1/wechat/mp/login-basic {code} → 标准 auth 响应。
 //   同一 handler 内分车道, 拒绝路径零二次弹窗/零挽留/零 toast, tap 数与授权路径相同。
 // - 测评: create_assessment(assessment_type="pass_readiness") 响应含
-//   checkpoint_after(中场检查点由此驱动, 前端不得写死 6)、scored_count、profile_count、
+//   scored_count、profile_count、
 //   15 questions(答案已 redact, 全部 single_choice/multi_choice/profile_probe 纯点选);
 //   提交走既有 submit_assessment, 答案 wire = dict[str,str] 字母。
 // - 检查点屏红线(§6.2): 只给粗带位 + coverage=low 文案 + 唯一 CTA;
@@ -151,8 +151,6 @@ function normalizeSession(payload) {
       caseMaterial: q.caseMaterial,
     };
   });
-  // checkpoint_after 唯一来源 = 服务端响应; 缺失 → 0 = 本次无中场检查点。
-  var checkpointAfter = Math.max(0, Math.floor(_num(body.checkpoint_after)));
   var scoredCount =
     Math.max(0, Math.floor(_num(body.scored_count))) ||
     questions.filter(function (q) {
@@ -160,13 +158,10 @@ function normalizeSession(payload) {
     }).length;
   return {
     quizId: _str(body.quiz_id),
-    checkpointAfter: checkpointAfter,
     scoredCount: scoredCount,
     profileCount: Math.max(0, Math.floor(_num(body.profile_count))),
     blueprintVersion: _str(body.blueprint_version),
     formVersion: _str(body.form_version || body.form_id),
-    // 服务端可选的中场粗带投影(若无则检查点屏只给 coverage=low 文案, 不本地造数)
-    midpointBand: _str(body.midpoint_band || (_obj(body.midpoint).band || "")),
     questions: questions,
     // 服务端草稿快照(resume 时冲突以它为准)
     serverAnswers: _obj(body.draft_answer_snapshot),
@@ -207,12 +202,11 @@ function buildAnswerState(questions, selectedKeys, currentIndex) {
 var DRAFT_STORAGE_KEY = "deeptutor.passReadiness.draft";
 var REPORT_STORAGE_KEY = "deeptutor.passReadiness.lastReport";
 
-function buildDraft(quizId, selectedKeys, currentIndex, checkpointSeen) {
+function buildDraft(quizId, selectedKeys, currentIndex) {
   return {
     quizId: _str(quizId),
     selectedKeys: _obj(selectedKeys),
     currentIndex: Math.max(0, Math.floor(_num(currentIndex))),
-    checkpointSeen: !!checkpointSeen,
     updatedAt: Date.now(),
   };
 }
@@ -231,33 +225,6 @@ function mergeResumeAnswers(serverAnswers, localDraftKeys) {
     if (value) merged[qId] = value;
   });
   return merged;
-}
-
-// ── 中场检查点(§6.2) ────────────────────────────────────────
-// 触发: 服务端 checkpoint_after > 0, 且已答计分题数达到 checkpoint_after,
-// 且本次会话尚未展示过。checkpoint_after 缺失(=0)时永不触发。
-function shouldShowCheckpoint(session, answeredScoredCount, checkpointSeen) {
-  var s = _obj(session);
-  var after = Math.max(0, Math.floor(_num(s.checkpointAfter)));
-  if (!after || checkpointSeen) return false;
-  return _num(answeredScoredCount) >= after;
-}
-
-function buildCheckpointModel(session) {
-  var s = _obj(session);
-  var after = Math.max(0, Math.floor(_num(s.checkpointAfter)));
-  var scored = Math.max(after, Math.floor(_num(s.scoredCount)));
-  var remaining = Math.max(0, scored - after);
-  return {
-    title: "中场小结 · 已完成 " + after + "/" + scored + " 道计分题",
-    // coverage=low 的诚实文案: 6 题不满足 §7.4 两次独立观察门, 不点名弱点。
-    coverageLabel: "证据覆盖：低",
-    coverageLine:
-      "当前证据只够给出一个很宽的分数带，还不足以定位你的失分采分点。",
-    // 粗带位: 只投影服务端字段; 服务端没给就整块隐藏, 前端不本地估分。
-    bandLine: _str(s.midpointBand),
-    cta: "再答 " + remaining + " 题：收窄分数带 + 定位失分采分点",
-  };
 }
 
 // ── 提交 wire(dict[str,str], 与既有 submit_assessment 一致) ──
@@ -296,8 +263,6 @@ module.exports = {
   buildAnswerState: buildAnswerState,
   buildDraft: buildDraft,
   mergeResumeAnswers: mergeResumeAnswers,
-  shouldShowCheckpoint: shouldShowCheckpoint,
-  buildCheckpointModel: buildCheckpointModel,
   buildSubmitAnswers: buildSubmitAnswers,
   postDiagnosticLandingRoute: postDiagnosticLandingRoute,
 };

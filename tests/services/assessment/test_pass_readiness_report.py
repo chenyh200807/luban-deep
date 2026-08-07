@@ -263,6 +263,66 @@ def test_evidence_items_carry_issued_diagnosis_for_the_chosen_option() -> None:
     assert card["source_ref"] == "exam:2024:第10题"
 
 
+def test_evidence_wording_suppresses_correct_option_restatement() -> None:
+    """model_answer 若只是正确选项原文的复读(实测编译权威 ~80% 如此),
+    不得作为第二面重复渲染;真增量才透出。"""
+
+    questions = _diagnosis_questions()
+    questions[0]["answer_diagnosis"]["model_answer"] = "普通部位 7d、抗渗与后浇带≥14d"
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_6",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q01", "B"),
+        session_questions=questions + _probe_questions(),
+        answers={"q01": "B"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
+    )
+    assert card["scoring_wording"] == ""
+
+
+def test_evidence_source_translates_textbook_node_anchor() -> None:
+    """kc:/ca:/cc: 锚带教材节点码时,经 taxonomy 单一权威翻成「教材·章节名」(永不露码)。"""
+
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_7",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q01", "B"),
+        session_questions=[
+            {
+                **_diagnosis_questions()[0],
+                "answer_diagnosis": {
+                    "scoring_point": "施工缝·处理工序",
+                    "source": "kc:1A413030_103_0196:1",
+                    "options": {"B": {"why_missed": "顺序颠倒。"}},
+                },
+            },
+            _diagnosis_questions()[1],
+        ]
+        + _probe_questions(),
+        answers={"q01": "B"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
+    )
+    assert card["source"].startswith("教材·")
+    assert "1A413030" not in card["source"]
+    assert card["source_ref"] == "kc:1A413030_103_0196:1"
+
+
 def test_evidence_source_never_shows_machine_anchor() -> None:
     report = build_pass_readiness_report(
         quiz_id="quiz_pr_5",
@@ -277,7 +337,7 @@ def test_evidence_source_never_shows_machine_anchor() -> None:
                 **_diagnosis_questions()[0],
                 "answer_diagnosis": {
                     "scoring_point": "施工缝·处理工序",
-                    "source": "ca:1A413030_103_0196",
+                    "source": "kc:leaf:concrete_joint",
                     "options": {"B": {"why_missed": "顺序颠倒。"}},
                 },
             },
@@ -291,9 +351,9 @@ def test_evidence_source_never_shows_machine_anchor() -> None:
     card = next(
         item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
     )
-    # owner 实拍病灶:依据来源整行显示「ca:1A413030_103_0196」。人话面必须留空。
+    # owner 实拍病灶:依据来源整行显示机器锚。无节点码可翻时人话面必须留空。
     assert card["source"] == ""
-    assert card["source_ref"] == "ca:1A413030_103_0196"
+    assert card["source_ref"] == "kc:leaf:concrete_joint"
 
 
 def test_evidence_items_leave_fields_blank_rather_than_fabricate() -> None:

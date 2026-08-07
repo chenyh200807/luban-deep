@@ -1,9 +1,7 @@
-// 过线体检(S5)· 屏 2 测评页(15 交互纯点选 + 第 6 题后中场检查点)
-// - create_assessment(assessment_type="pass_readiness"); checkpoint_after 由响应驱动(禁写死);
+// 过线体检(S5)· 屏 2 测评页(纯点选,连续作答不打断;中场检查点已按 owner 2026-08-07 拍板下线)
+// - create_assessment(assessment_type="pass_readiness");
 // - 可见进度 + 案例微进度(「案例 2/3」);
 // - 本地草稿 + 服务端 resume, 冲突服务端赢;
-// - 中场检查点(§6.2): 粗带位只投影服务端字段 + coverage=low 文案 + 唯一 CTA,
-//   不出任何证据/弱点;
 // - 提交走既有 submit_assessment(dict[str,str] 字母 wire)。
 var api = require("../../../../utils/api");
 var auth = require("../../../../utils/auth");
@@ -51,7 +49,7 @@ Page({
     isDark: false,
     statusBarHeight: 44,
     navHeight: 96,
-    stage: "loading", // loading | quiz | checkpoint | submitting | error
+    stage: "loading", // loading | quiz | submitting | error
     errorText: "",
     questions: [],
     currentIndex: 0,
@@ -64,13 +62,11 @@ Page({
     totalCount: 0,
     scoredCount: 0,
     profileCount: 0,
-    checkpoint: null,
   },
 
   _session: null,
   _quizId: "",
   _startTime: 0,
-  _checkpointSeen: false,
   _submitted: false,
 
   onLoad: function (options) {
@@ -179,7 +175,6 @@ Page({
     this._session = session;
     this._quizId = session.quizId;
     this._startTime = Date.now();
-    this._checkpointSeen = !!(draft && draft.checkpointSeen);
     var selMap = {};
     Object.keys(selectedKeys).forEach(function (qId) {
       String(selectedKeys[qId]).split("").forEach(function (key) {
@@ -210,7 +205,6 @@ Page({
         this._quizId,
         this.data.selectedKeys,
         this.data.currentIndex,
-        this._checkpointSeen,
       ),
     );
   },
@@ -248,64 +242,12 @@ Page({
     this._persistDraft();
 
     var self = this;
-    // 中场检查点: 完全由服务端 checkpoint_after 驱动
-    if (
-      passVm.shouldShowCheckpoint(
-        this._session,
-        answerState.answeredScoredCount,
-        this._checkpointSeen,
-      )
-    ) {
-      setTimeout(function () {
-        self._enterCheckpoint();
-      }, 300);
-      return;
-    }
     // 单选自动跳下一题(与既有测评页一致)
     if (!isMulti && this.data.currentIndex < this.data.questions.length - 1) {
       setTimeout(function () {
         self.onNext();
       }, 300);
     }
-  },
-
-  _enterCheckpoint: function () {
-    if (this._checkpointSeen) return;
-    this._checkpointSeen = true;
-    this._persistDraft();
-    trackBehavior("pass_readiness_midpoint_reached", {
-      module: "pass_readiness",
-      section: "exam",
-      action: "view",
-      objectType: "midpoint_checkpoint",
-      objectId: this._quizId || "",
-    });
-    this.setData({
-      stage: "checkpoint",
-      checkpoint: passVm.buildCheckpointModel(this._session),
-    });
-  },
-
-  onCheckpointContinue: function () {
-    helpers.vibrate("medium");
-    // 回到第一道未答题
-    var questions = this.data.questions;
-    var keys = this.data.selectedKeys;
-    var nextIndex = this.data.currentIndex;
-    for (var i = 0; i < questions.length; i++) {
-      if (!String(keys[questions[i].id] || "")) {
-        nextIndex = i;
-        break;
-      }
-    }
-    var answerState = passVm.buildAnswerState(questions, keys, nextIndex);
-    this.setData({
-      stage: "quiz",
-      checkpoint: null,
-      currentIndex: nextIndex,
-      currentQ: questions[nextIndex],
-      answerSheet: answerState.answerSheet,
-    });
   },
 
   // ── 导航 ────────────────────────────────────────────────────

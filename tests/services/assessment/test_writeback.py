@@ -413,3 +413,53 @@ def test_writeback_rejects_unregistered_error_codes_in_observations(
             scored_result=scored,
             blueprint_version="pass_readiness_architecture_v1",
         )
+
+
+def test_single_item_failure_does_not_kill_whole_writeback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """2026-08-07 审计回归:错题本单题写入抛错曾中止整卷循环(3/30 写入即停,
+    后 27 题全部丢失)。逐题隔离后:失败题留痕计数,其余题照常写入。"""
+
+    service, learner, _ = _service(monkeypatch)
+
+    class _ExplodingMistakeBook:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def save_item(self, **kwargs):
+            self.calls += 1
+            raise RuntimeError("mistake_book_write_disabled")
+
+    exploding = _ExplodingMistakeBook()
+    service._mistake_book_service = exploding
+    scored = _scored_result()
+    # 两道错题夹一道对题:第一道错题炸掉后,后续题必须继续写。
+    scored["items"].append(
+        {
+            "question_id": "q3",
+            "source_question_id": "src_3",
+            "learner_answer": "C",
+            "correct_answer": "A",
+            "is_correct": False,
+            "knowledge_points": ["防水工程"],
+            "simple_explanation": "",
+            "error_codes": ["M01"],
+            "measurement_confidence": "medium",
+        }
+    )
+
+    refs = service.writeback(
+        user_id="u1",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        scored_result=scored,
+    )
+
+    # 两道错题都尝试过(没有在第一题就中止)
+    assert exploding.calls == 2
+    assert refs["failed_item_count"] == 2
+    # 对题的 learning_evidence 照常写入(q1 全量 + q2/q3 事件在 save_item 前已落)
+    assert len(refs["learning_event_refs"]) >= 1
+    assert refs["writeback_status"]["failed_item_count"] == 2
+    assert refs["mistake_book_refs"] == []

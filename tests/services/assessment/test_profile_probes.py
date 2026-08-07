@@ -75,7 +75,6 @@ def test_pass_readiness_form_fills_prep_context_with_the_new_probes() -> None:
     payload = service.create_session(user_id="student_demo", count=15, assessment_type="pass_readiness")
 
     assert payload["blueprint_version"] == "pass_readiness_architecture_v1"
-    assert payload["checkpoint_after"] == 6
     assert payload["delivered_count"] == 15
     assert payload["scored_count"] == 12
     assert payload["profile_count"] == 3

@@ -9,6 +9,20 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-08-07 - 过线体检六项清剿:检查点下线/复读压制/来源人话化/回写隔离/试驾深解析/毒环境卸载
+
+- 问题:owner 六项遗留逐一清剿令 + 两条新拍板(①中场小结页不要,连续答题;②证据卡解析要展现鲁班能力,"评测=试驾")。四路专家 subagent 并行只读测绘,主控单写者实施。
+- 各项根因与修法:
+  1. **中场小结页全链下线**:专家测绘发现该页在 resume 路径本来就不生效(\_redacted_session 从不导出 checkpoint_after,恢复会话永不触发)=半死状态;判分档位用自有常量查表与 blueprint 字段零耦合;`checkpoints` 复数字段零消费者。全链删净(blueprint 字段/两处导出/前端触发+渲染+草稿位/midpoint 埋点),不留死导出。**计划 §6.2/§7.2 Deviation:owner 2026-08-07 拍板,回滚锚 a86f55e19**(计划文档不在本分支,Deviation 正文记于此+commit message,文档落 main 后补 Deviations 节)。
+  2. **得分表述反转**:14/30 覆盖不是病,病是反面——实测编译权威 649 条 model_answer 里 ~80% 是正确选项复读(86 全同+434 近重复),证据卡上和「正确答案」行重复渲染=ruler-and-surface 第二面。修法=投影层 difflib>0.75 判复读压空,只留真增量(工序链/查表口径)。效果 20→2,验收口径=「零复读第二面」而非覆盖率。
+  3. **来源人话化**:接线病非数据病。taxonomy_authority.taxonomy_label() 自宣学员面章节名单一权威(永不露码)且同层早已在用,report_read_model 没接而已。kc/ca/cc/m35 锚取节点码→「教材·章节名」,翻不出仍 fail-closed 留空。效果 7→20/36,机器锚 0。
+  4. **writeback_failed 定性纯本地环境病**(本地缺 DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED,生产 48h 零降级 refs 满额),但挖出三真缺陷同修:①service.py 裸 `except Exception:` 零日志(observability lie 重演)→ logger.exception 留痕;②前端文案承诺「系统会稍后重试」但 retry_assessment_writeback 零调用方(假承诺)→ 改诚实文案;③单题失败杀死整循环(实证 3/30 写入即停后 27 题全丢)→ 逐题 try/except 隔离+failed_item_count+writeback_partial 降级,dedupe 幂等保证补写安全。
+  5. **鲁班深解析接进证据卡(试驾时刻)**:deep_explanation 能力(路由/服务/计费全在)此前是端到端 unconsumed island——所有前端只渲染「详细解析下个版本上线」stub。接线=证据卡「看鲁班详细解析」按钮→既有 /items/{id}/explain(thin wrapper 零新能力);计费面:新会员 points_balance=0 必撞 20 分门 402,加 trial_included 通道——pass_readiness 卷内 wrong_items 免额度(单卷≤36 天然封顶+10/min·200/day 路由限流兜底),普通测评计费路径原样。埋点 pass_readiness_deep_explanation_started 入 catalog。
+  6. **毒环境卸载**:「site-packages 旧副本」真相=4 月 pip install -e 经 Documents symlink 指向 canonical 仓库,而 canonical 停在 7 月 codex 分支(无任何 pass_readiness 代码);editable finder 排 PathFinder 后兜底,脚本从 scratchpad 执行(sys.path[0]=脚本目录)时静默吃错。全机审计零活体消费者→ pip uninstall(从此吃错必响 ModuleNotFoundError)+根 conftest.py 四行闸(deeptutor.__file__ 必须在仓库树内)。
+- 失败的尝试:无重大弯路;wording 阈值 0.75 的 moderate 段(0.5-0.75 共 105/649)复读与增量混杂,保守替代方案(只压 exact)已弃——owner 抱怨的正是低质复读。
+- 验证:assessment+observability+redaction 527 passed;writeback 15 passed(+1 隔离回归);member_console 全量【见下条部署账】;前端全套 node 零失败(exam 契约测试改写为「连续作答不打断」断言);contract guard 绿;本地端到端 36 卡:人话来源 20/36 机器锚 0、wording 只留 2 条真增量、对照面 36/36。
+- 教训:①「半死功能」(只在部分路径生效的 UI)是删除阻力最小的信号——测绘先于争论;②覆盖率类指标(wording 14/30)不加语义质检就是假 KPI,复读把它撑高;③billable 能力接获客面必先查新用户默认余额,否则试驾变付费墙;④editable install + symlink + 停旧分支的 canonical = 三层叠加出静默毒环境,结构性卸载优于纪律条款。
+
 ## 2026-08-07 - 过线体检证据卡对照面:正确答案/选项原文/得分表述断链（三连投诉根因）
 
 - 问题:owner 两轮实拍投诉（16:50、19:59）——证据卡有诊断文案但「看不出正确答案是哪个,没分析我为什么错」。业务事实=证据卡必须是**可对照的诊断**:我选了什么（内容）、正确是什么（内容）、能得分的表述、我为何丢分。前一轮修复（4ab23bdb6/fe68773e9）接通了诊断文案车道,但对照面三处断链:①后端投影发了 correct_answer,前端 view-model 直接丢弃、wxml 无渲染位;②「你的作答」只投字母 C,无选项原文,逐选项诊断读起来像答非所问;③计划 §7.3-3 的「能得分的确切表述」前端有 scoring_wording 槽,后端从不产出——数据（answer_diagnosis.model_answer）从 4ab23bdb6 起就躺在签发快照里没人消费。附带病:依据来源把机器锚 ca:1A413030_103_0196 原样示人（fe68773e9 的蛇形谓词拦不住带冒号锚）。
