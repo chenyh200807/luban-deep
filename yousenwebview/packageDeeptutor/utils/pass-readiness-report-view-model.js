@@ -263,7 +263,6 @@ function buildEvidenceModel(report, resultModel) {
     isEmpty: !items.length,
     emptyCopy: "本次没有可展示的采分点证据——先完成一次复测积累新证据。",
     lessonCta: "看 8 分钟微课，把这个点补上",
-    lessonMissingCopy: "该采分点的微课绑定整理中",
     retestCta: "直接复测这个采分点",
     readinessDetail: buildReadinessDetail(report),
   };
