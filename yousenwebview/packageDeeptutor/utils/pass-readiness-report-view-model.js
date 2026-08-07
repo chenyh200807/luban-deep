@@ -236,6 +236,34 @@ function buildEvidenceModel(report, resultModel) {
       }
       var learnerAnswer = _str(item.learner_answer);
       var correctAnswer = _str(item.correct_answer);
+      // 逐选项点评(鲁班答题形式,owner 2026-08-07):签发权威全量投影,只读渲染。
+      var issuedReviews = _arr(item.option_reviews)
+        .map(function (raw) {
+          var review = _obj(raw);
+          var isCorrect = !!review.is_correct;
+          var isLearner = !!review.is_learner;
+          return {
+            key: _str(review.key),
+            text: _str(review.text),
+            review: _str(review.review),
+            pitfall: _str(review.pitfall),
+            roleLabel: isCorrect && isLearner
+              ? "你的作答 · 正确"
+              : isCorrect
+                ? "正确答案"
+                : isLearner
+                  ? "你的作答"
+                  : "",
+            roleClass: isCorrect
+              ? "pr-ev-right-pick"
+              : isLearner
+                ? "pr-ev-wrong-pick"
+                : "",
+          };
+        })
+        .filter(function (review) {
+          return review.key;
+        });
       return {
         index: idx + 1,
         questionId: _str(item.question_id),
@@ -256,6 +284,7 @@ function buildEvidenceModel(report, resultModel) {
         fix: _str(item.fix),
         // source_ref 是机器锚(排障用),人话来源由后端投影裁决;这里绝不回落。
         source: _str(item.source || item.textbook_source),
+        optionReviews: issuedReviews,
         lessonPackId: _str(item.lesson_pack_id),
         retestPackId: _str(item.retest_pack_id),
       };

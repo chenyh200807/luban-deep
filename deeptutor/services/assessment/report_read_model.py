@@ -214,6 +214,51 @@ def _learner_facing_scoring_point(label: str) -> str:
 # 一律透出,不做相似度压制。
 
 
+def _issued_option_reviews(
+    question: dict[str, Any],
+    learner_answer: str,
+    correct_answer: str,
+) -> list[dict[str, Any]]:
+    """逐选项点评投影(owner 2026-08-07:「按鲁班答题的形式展现」)。
+
+    签发权威三条车道都带全量逐选项诊断(编译:temptation/loss_reason/fix;
+    题库:option_reasoning;案例:逐选项 cause)——此前只投学员实选项,浪费了
+    权威。这里按选项顺序全量投影:错误选项 review=为什么错,正确选项
+    review=得分要点(fix)。全部只读签发内容,零现编;整卡无任何点评内容
+    时返回空列表,前端整块不渲染。"""
+
+    diagnosis = dict(question.get("answer_diagnosis") or {})
+    per_option = dict(diagnosis.get("options") or {})
+    reviews: list[dict[str, Any]] = []
+    has_content = False
+    for option in list(question.get("options") or []):
+        if not isinstance(option, dict):
+            continue
+        key = str(option.get("key") or "").strip().upper()
+        text = str(option.get("text") or "").strip()
+        if not key:
+            continue
+        entry = dict(per_option.get(key) or {})
+        is_correct = key in correct_answer
+        review = str(entry.get("why_missed") or "").strip()
+        if is_correct and not review:
+            review = str(entry.get("fix") or "").strip()
+        pitfall = str(entry.get("pitfall") or "").strip()
+        if review or pitfall:
+            has_content = True
+        reviews.append(
+            {
+                "key": key,
+                "text": text,
+                "is_correct": is_correct,
+                "is_learner": key in learner_answer,
+                "review": review,
+                "pitfall": pitfall,
+            }
+        )
+    return reviews if has_content else []
+
+
 def build_evidence_items(
     items: list[dict[str, Any]],
     session_questions: list[dict[str, Any]],
@@ -305,6 +350,9 @@ def build_evidence_items(
                 "pitfall": str(chosen.get("pitfall") or "").strip(),
                 "why_missed": why_missed,
                 "fix": str(chosen.get("fix") or "").strip(),
+                "option_reviews": _issued_option_reviews(
+                    question, learner_answer, correct_answer
+                ),
                 "source": _learner_facing_source(raw_source),
                 "source_ref": raw_source,
                 "error_codes": list(item.get("error_codes") or []),

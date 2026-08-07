@@ -318,6 +318,67 @@ def test_multi_select_why_missed_targets_missed_and_extra_letters() -> None:
     assert "次梁跨中1/3剪力小" not in card["why_missed"]
 
 
+def test_option_reviews_project_full_issued_diagnosis_per_option() -> None:
+    """鲁班答题形式(owner 2026-08-07):逐选项点评全量投影——错误选项
+    review=为什么错,正确选项 review=得分要点(fix);无任何点评内容整块空。"""
+
+    questions = [
+        {
+            "question_id": "q01",
+            "question_type": "single_choice",
+            "scored": True,
+            "answer": "A",
+            "options": [
+                {"key": "A", "text": "自下而上逐级验收"},
+                {"key": "B", "text": "自上而下逐级验收"},
+            ],
+            "answer_diagnosis": {
+                "scoring_point": "验收方向",
+                "options": {
+                    "A": {"fix": "层级名+自下而上方向+逐级前提,三件齐。"},
+                    "B": {
+                        "pitfall": "名头都对,方向顺手写成从大到小。",
+                        "why_missed": "方向倒装——应自下而上累积。",
+                        "fix": "自下而上逐级验。",
+                    },
+                },
+            },
+        },
+        {"question_id": "q03", "question_type": "single_choice", "scored": True, "answer": "A"},
+    ]
+    report = build_pass_readiness_report(
+        quiz_id="quiz_pr_10",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_label="一建过线体检",
+        blueprint_version="pass_readiness_architecture_v1",
+        form_id="pass_readiness_form_1",
+        scored_result=_wrong_on("q01", "B"),
+        session_questions=questions + _probe_questions(),
+        answers={"q01": "B"},
+        now_iso=NOW,
+    )
+
+    card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
+    )
+    reviews = card["option_reviews"]
+    assert [r["key"] for r in reviews] == ["A", "B"]
+    correct = reviews[0]
+    assert correct["is_correct"] and not correct["is_learner"]
+    assert correct["review"] == "层级名+自下而上方向+逐级前提,三件齐。"
+    wrong = reviews[1]
+    assert wrong["is_learner"] and not wrong["is_correct"]
+    assert wrong["review"] == "方向倒装——应自下而上累积。"
+    assert wrong["pitfall"].startswith("名头都对")
+    # 无逐选项诊断的题(q03)整块为空,前端不渲染
+    blank_card = next(
+        item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q03"
+    ) if any(i["question_id"] == "q03" for i in report["pass_readiness"]["evidence_items"]) else None
+    if blank_card is not None:
+        assert blank_card["option_reviews"] == []
+
+
 def test_scoring_point_scrubs_internal_authoring_shorthand() -> None:
     """owner 2026-08-07:「判型·条件维」这类编题内部速记直出=敷衍。
     维度段剥净;剥完不成话留白;真人话标签原样保留。"""

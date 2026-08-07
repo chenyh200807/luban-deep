@@ -421,3 +421,28 @@ var deepEmpty = vm.buildDeepExplanationModel({ explanation: {} });
 assert.strictEqual(deepEmpty.available, false, "空解析不得渲染空壳");
 // 证据卡必须带 questionId(深解析取数入口)
 assert.strictEqual(evidence.items[0].questionId, "", "旧数据无 question_id 时留空不渲染入口");
+
+// ── 10. 逐选项点评(鲁班答题形式)投影 ────────────────────────
+var reviewEvidence = vm.buildEvidenceModel(
+  {
+    evidence_items: [
+      {
+        question_stem: "验收方向题",
+        learner_answer: "B",
+        correct_answer: "A",
+        option_reviews: [
+          { key: "A", text: "自下而上", is_correct: true, is_learner: false, review: "三件齐。", pitfall: "" },
+          { key: "B", text: "自上而下", is_correct: false, is_learner: true, review: "方向倒装。", pitfall: "顺手从大到小。" },
+        ],
+      },
+    ],
+  },
+  null,
+);
+var reviews = reviewEvidence.items[0].optionReviews;
+assert.strictEqual(reviews.length, 2);
+assert.strictEqual(reviews[0].roleLabel, "正确答案");
+assert.strictEqual(reviews[0].roleClass, "pr-ev-right-pick");
+assert.strictEqual(reviews[1].roleLabel, "你的作答");
+assert.strictEqual(reviews[1].roleClass, "pr-ev-wrong-pick");
+assert.strictEqual(reviews[1].pitfall, "顺手从大到小。");

@@ -115,6 +115,16 @@
             <text class="pr-ev-label">怎么补回来</text>
             <text class="pr-ev-text">{{item.fix}}</text>
           </view>
+          <!-- 逐选项点评(鲁班答题形式):签发权威全量逐选项诊断,零现编 -->
+          <view class="pr-ev-block" wx:if="{{item.optionReviews.length}}">
+            <text class="pr-ev-label">逐选项点评</text>
+            <view class="pr-ev-deep-option" wx:for="{{item.optionReviews}}" wx:for-item="review" wx:key="key">
+              <text class="pr-ev-deep-option-key {{review.roleClass}}">{{review.key}}{{review.roleLabel ? ' · ' + review.roleLabel : ''}}</text>
+              <text class="pr-ev-option-text">{{review.text}}</text>
+              <text class="pr-ev-text pr-ev-review-pitfall" wx:if="{{review.pitfall}}">诱惑点：{{review.pitfall}}</text>
+              <text class="pr-ev-text" wx:if="{{review.review}}">{{review.review}}</text>
+            </view>
+          </view>
           <view class="pr-ev-block" wx:if="{{item.source}}">
             <text class="pr-ev-label">依据来源</text>
             <text class="pr-ev-text">{{item.source}}</text>
