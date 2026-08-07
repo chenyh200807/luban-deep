@@ -208,27 +208,10 @@ def _learner_facing_scoring_point(label: str) -> str:
     return cleaned if len(cleaned) >= 3 else ""
 
 
-_WORDING_RESTATEMENT_RATIO = 0.75
-
-
-def _incremental_scoring_wording(wording: str, correct_texts: list[str]) -> str:
-    """得分表述只在超出正确选项原文时才透出(2026-08-07 实测:编译权威 649 条
-    model_answer 里 ~80% 是正确选项复读)。复读=同一事实的第二面,与「正确答案」
-    行重复渲染只会稀释解析;fail-closed 压掉,真增量(完整工序链/查表口径)保留。"""
-
-    from difflib import SequenceMatcher
-
-    value = str(wording or "").strip()
-    if not value:
-        return ""
-    normalized = re.sub(r"\s+", "", value)
-    for text in correct_texts:
-        candidate = re.sub(r"\s+", "", str(text or ""))
-        if not candidate:
-            continue
-        if SequenceMatcher(None, normalized, candidate).ratio() > _WORDING_RESTATEMENT_RATIO:
-            return ""
-    return value
+# 2026-08-07 设计反转实录:曾按「与正确选项相近即复读」压掉 model_answer,
+# owner 实拍裁决推翻——正确答案行是「该点哪个选项」(对照角色),采分点位的
+# 规则句是「该记住什么」(记忆角色),文本相近也必须各自在位。签发 model_answer
+# 一律透出,不做相似度压制。
 
 
 def build_evidence_items(
@@ -316,15 +299,9 @@ def build_evidence_items(
                 "scoring_point": _learner_facing_scoring_point(
                     str(diagnosis.get("scoring_point") or "")
                 ),
-                # 能得分的确切表述(§7.3-3):编译权威的 model_answer,且只留真增量
-                # (与正确选项原文近重复的复读一律压掉),没有即留空。
-                "scoring_wording": _incremental_scoring_wording(
-                    str(diagnosis.get("model_answer") or ""),
-                    [
-                        _option_text_by_key(question).get(letter, "")
-                        for letter in correct_answer
-                    ],
-                ),
+                # 能得分的确切表述(§7.3-3):签发 model_answer 一律透出(见上方
+                # 设计反转注),没有即留空。
+                "scoring_wording": str(diagnosis.get("model_answer") or "").strip(),
                 "pitfall": str(chosen.get("pitfall") or "").strip(),
                 "why_missed": why_missed,
                 "fix": str(chosen.get("fix") or "").strip(),

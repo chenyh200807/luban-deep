@@ -94,9 +94,11 @@
             <text class="pr-ev-label">正确答案</text>
             <text class="pr-ev-value pr-ev-right-pick">{{item.correctAnswerDisplay}}</text>
           </view>
-          <view class="pr-ev-block" wx:if="{{item.scoringPoint}}">
+          <!-- 采分点=标签+规则句双槽:任一在场即渲染(规则句是记忆角色,
+               与正确答案行的对照角色并存,owner 2026-08-07 拍板) -->
+          <view class="pr-ev-block" wx:if="{{item.scoringPoint || item.scoringWording}}">
             <text class="pr-ev-label">采分点</text>
-            <text class="pr-ev-text">{{item.scoringPoint}}</text>
+            <text class="pr-ev-text" wx:if="{{item.scoringPoint}}">{{item.scoringPoint}}</text>
             <text class="pr-ev-text pr-ev-wording" wx:if="{{item.scoringWording}}">{{item.scoringWording}}</text>
           </view>
           <!-- 无签发诊断则整块不渲染(omitted-rather-than-faked):

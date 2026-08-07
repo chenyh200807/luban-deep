@@ -356,9 +356,9 @@ def test_scoring_point_never_falls_back_to_chapter_level_knowledge_points() -> N
     assert card["scoring_point"] == ""
 
 
-def test_evidence_wording_suppresses_correct_option_restatement() -> None:
-    """model_answer 若只是正确选项原文的复读(实测编译权威 ~80% 如此),
-    不得作为第二面重复渲染;真增量才透出。"""
+def test_evidence_wording_always_surfaces_issued_model_answer() -> None:
+    """设计反转回归(owner 2026-08-07 实拍拍板):正确答案行=对照角色,
+    采分点规则句=记忆角色——文本相近也必须各自在位,禁相似度压制。"""
 
     questions = _diagnosis_questions()
     questions[0]["answer_diagnosis"]["model_answer"] = "普通部位 7d、抗渗与后浇带≥14d"
@@ -378,7 +378,7 @@ def test_evidence_wording_suppresses_correct_option_restatement() -> None:
     card = next(
         item for item in report["pass_readiness"]["evidence_items"] if item["question_id"] == "q01"
     )
-    assert card["scoring_wording"] == ""
+    assert card["scoring_wording"] == "普通部位 7d、抗渗与后浇带≥14d"
 
 
 def test_evidence_source_translates_textbook_node_anchor() -> None:
