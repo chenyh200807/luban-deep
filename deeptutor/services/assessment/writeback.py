@@ -28,6 +28,7 @@ class AssessmentWritebackService:
         subject_id: str,
         scored_result: dict[str, Any],
         blueprint_version: str = "",
+        session_questions: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         # Lazy import: learner_state's package __init__ transitively imports
         # member_console, which imports this module — a module-level import here
@@ -181,6 +182,25 @@ class AssessmentWritebackService:
                 user_id,
                 quiz_id,
             )
+        # 体检错题 → 处方指派(owner 2026-08-08 拍板「诊断要驱动计划」):
+        # 只走既有处方事件流(training_intent_id 事件),练习臂/四臂/计划经同一
+        # read-model 消费——零新权威,parity by construction。绑定权威=私有快照
+        # provenance.source_meta.pack_id(编译车道);无绑定的车道诚实不派。
+        if str(assessment_type or "") == "pass_readiness":
+            try:
+                self._append_assessment_practice_intents(
+                    user_id=user_id,
+                    quiz_id=quiz_id,
+                    items=items,
+                    session_questions=list(session_questions or []),
+                    bot_id=bot_id,
+                )
+            except Exception:
+                logger.exception(
+                    "assessment practice intent emission failed: user_id=%s quiz_id=%s",
+                    user_id,
+                    quiz_id,
+                )
         _write_home_projection(
             learner_state_service=self._learner_state_service,
             user_id=user_id,
@@ -196,6 +216,67 @@ class AssessmentWritebackService:
                 "failed_item_count": failed_item_count,
             },
         }
+
+    def _append_assessment_practice_intents(
+        self,
+        *,
+        user_id: str,
+        quiz_id: str,
+        items: list[dict[str, Any]],
+        session_questions: list[dict[str, Any]],
+        bot_id: str,
+    ) -> None:
+        """错题按所属编译 pack 派一条「assigned」处方事件(每 pack 一条,幂等)。
+
+        处方 read-model(prescription_outcome_read_model)对这类事件给出
+        status=assigned → requires_active_practice → 首页四臂 practice 承接与
+        计划 practice_retest 任务同源出现。concept_label 带「体检失分点」前缀,
+        计划任务的 reason/why 直接可解释来源。"""
+
+        from deeptutor.services.assessment.report_read_model import (
+            _learner_facing_scoring_point,
+        )
+
+        meta_by_qid: dict[str, dict[str, Any]] = {}
+        for question in list(session_questions or []):
+            if not isinstance(question, dict):
+                continue
+            qid = str(question.get("question_id") or "").strip()
+            provenance = dict(question.get("provenance") or {})
+            source_meta = dict(provenance.get("source_meta") or {})
+            if qid and source_meta:
+                meta_by_qid[qid] = source_meta
+        by_pack: dict[str, str] = {}
+        for item in list(items or []):
+            if item.get("is_correct"):
+                continue
+            meta = meta_by_qid.get(str(item.get("question_id") or "").strip()) or {}
+            if str(meta.get("aggregation") or "") != "compiled_practice_readside":
+                continue
+            pack_id = str(meta.get("pack_id") or "").strip().upper()
+            if not pack_id or pack_id in by_pack:
+                continue
+            label = _learner_facing_scoring_point(str(meta.get("rule_group") or ""))
+            by_pack[pack_id] = label
+        for pack_id, label in sorted(by_pack.items()):
+            concept_label = f"体检失分点·{label}" if label else "体检失分点"
+            self._learner_state_service.append_memory_event(
+                user_id,
+                source_feature="assessment_testset",
+                source_id=f"{quiz_id}:intent:{pack_id}",
+                source_bot_id=bot_id,
+                memory_kind="learning_evidence",
+                payload_json={
+                    "event_type": "learning_evidence",
+                    "assessment_type": "pass_readiness",
+                    "quiz_id": quiz_id,
+                    "training_intent_id": f"ti_assessment:{quiz_id}:{pack_id}",
+                    "prescription_phase": "assigned",
+                    "target_pack_id": pack_id,
+                    "concept_label": concept_label,
+                },
+                dedupe_key=f"assessment_intent:{user_id}:{quiz_id}:{pack_id}",
+            )
 
 
 def _assessment_concept_id(*, item: dict[str, Any], knowledge_points: list[Any]) -> str:

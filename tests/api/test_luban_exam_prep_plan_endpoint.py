@@ -31,7 +31,7 @@ def _call(payload: dict, captured: dict) -> dict:
 def test_endpoint_passes_service_payload_through_unmodified() -> None:
     payload = {
         "enabled": True,
-        "plan_policy_version": "exam_prep_plan_policy_v1",
+        "plan_policy_version": "exam_prep_plan_policy_v2",
         "horizon_days": 7,
         "days": [{"date": "2026-08-05", "day_offset": 0, "tasks": [], "planned_minutes": 0}],
         "supply_gaps": [],

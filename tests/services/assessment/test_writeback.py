@@ -463,3 +463,74 @@ def test_single_item_failure_does_not_kill_whole_writeback(monkeypatch: pytest.M
     assert len(refs["learning_event_refs"]) >= 1
     assert refs["writeback_status"]["failed_item_count"] == 2
     assert refs["mistake_book_refs"] == []
+
+
+def test_pass_readiness_wrong_compiled_items_emit_assigned_practice_intents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """体检错题→处方指派(owner 2026-08-08「诊断要驱动计划」):编译车道错题按
+    pack 派一条 assigned 处方事件(幂等,每 pack 一条);processing 走既有处方
+    read-model,练习臂/计划同源出现。无 pack 绑定的车道诚实不派。"""
+
+    from deeptutor.services.learner_state.prescription_outcome_read_model import (
+        build_prescription_outcomes_read_projection,
+        requires_active_practice,
+    )
+
+    service, learner, _ = _service(monkeypatch)
+    scored = _scored_result()
+    session_questions = [
+        {
+            "question_id": "q1",
+            "provenance": {"source_meta": {"aggregation": "compiled_practice_readside", "pack_id": "a01", "rule_group": "拆模强度·条件维"}},
+        },
+        {
+            "question_id": "q2",
+            "provenance": {"source_meta": {"aggregation": "compiled_practice_readside", "pack_id": "a01", "rule_group": "拆模强度·条件维"}},
+        },
+    ]
+    service.writeback(
+        user_id="u1",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        scored_result=scored,
+        session_questions=session_questions,
+    )
+
+    intent_events = [
+        e for e in learner.events
+        if str((e.payload_json or {}).get("training_intent_id") or "").startswith("ti_assessment:")
+    ]
+    # q1 对 q2 错,同 pack 只派一条;label 剥内部维度段
+    assert len(intent_events) == 1
+    payload = intent_events[0].payload_json
+    assert payload["training_intent_id"] == "ti_assessment:quiz_1:A01"
+    assert payload["prescription_phase"] == "assigned"
+    assert payload["target_pack_id"] == "A01"
+    assert payload["concept_label"] == "体检失分点·拆模强度"
+    # 幂等:重放不加倍
+    service.writeback(
+        user_id="u1", quiz_id="quiz_1", form_id="form_1",
+        assessment_type="pass_readiness", subject_id="construction_exam",
+        scored_result=scored, session_questions=session_questions,
+    )
+    assert len([e for e in learner.events if str((e.payload_json or {}).get("training_intent_id") or "").startswith("ti_assessment:")]) == 1
+    # 经同一处方 read-model → assigned → 练习臂激活
+    outcomes = build_prescription_outcomes_read_projection(events=learner.events)
+    target = next(o for o in outcomes if o["training_intent_id"] == "ti_assessment:quiz_1:A01")
+    assert target["status"] == "assigned"
+    assert requires_active_practice(target)
+    assert target["target_pack_id"] == "A01"
+
+    # 非体检类型不派
+    service.writeback(
+        user_id="u2", quiz_id="quiz_2", form_id="form_1",
+        assessment_type="topic_diagnostic", subject_id="construction_exam",
+        scored_result=_scored_result(), session_questions=session_questions,
+    )
+    assert not [
+        e for e in learner.events
+        if e.user_id == "u2" and str((e.payload_json or {}).get("training_intent_id") or "")
+    ]

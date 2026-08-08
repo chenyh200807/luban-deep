@@ -229,3 +229,29 @@ def test_plan_preferences_from_events_extraction() -> None:
         "deferred_targets": ["X03"],
         "time_budget_minutes": 60,
     }
+
+
+def test_policy_v2_interleaves_practice_and_learn_within_days() -> None:
+    """policy_v2(owner 2026-08-08「别太线性」):practice/learn 轮转交错,
+    不再整天同臂连排;族内保各自权威序。"""
+
+    inputs = _fixture(
+        review_due_items=[],
+        review_horizon=None,
+        active_training_intents=[
+            {"training_intent_id": "ti_a01", "target_pack_id": "F16", "concept_label": "体检失分点·屋面防水"},
+            {"training_intent_id": "ti_x03", "target_pack_id": "X03", "concept_label": "体检失分点·模板支架"},
+        ],
+        pack_lifecycle={"packs": {}},
+    )
+    plan = build_exam_prep_plan_projection(**inputs)
+    assert plan["plan_policy_version"] == "exam_prep_plan_policy_v2"
+    flat = [t["task"] for d in plan["days"] for t in d["tasks"]]
+    # 前四个任务 practice/learn 交错(首任务=四臂 practice 承接,第二个即学习站)
+    assert flat[0] == "practice_retest"
+    assert flat[1] == "learn_station"
+    assert flat[2] == "practice_retest"
+    assert flat[3] == "learn_station"
+    # 体检来源在 reason 里可解释
+    first = plan["days"][0]["tasks"][0]
+    assert "体检失分点" in first["reason"] or "体检失分点" in first["why"]

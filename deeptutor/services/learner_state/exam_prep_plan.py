@@ -54,7 +54,7 @@ from deeptutor.services.taxonomy.construction_learning_graph import (
 
 _TZ = timezone(timedelta(hours=8))
 
-PLAN_POLICY_VERSION = "exam_prep_plan_policy_v1"
+PLAN_POLICY_VERSION = "exam_prep_plan_policy_v2"
 
 # §3.2 v1 因子常量（占位真值来源见模块 docstring；改动必须 bump 版本号）。
 # (expected_loss, frequency_weight, evidence_confidence, recoverability, minutes)
@@ -391,9 +391,16 @@ def build_exam_prep_plan_projection(
             horizon_buckets[offset] = tasks
 
     # ── 日程分配（review 占位 → 意志 → gap 排序填充 × 时间预算）──────────────
-    backlog: list[dict[str, Any]] = practice_pool + learn_pool
-    # §3.2 公式是任务族间的排序权威（稳定排序：族内保持各自权威序——处方序/学序）。
-    backlog.sort(key=lambda task: -_gap_score(task["task"]))
+    # policy_v2(owner 2026-08-08 拍板「别太线性」):practice/learn 轮转交错,
+    # 族内各保权威序(处方序/学序)——打破整天同臂连排;首任务仍由四臂 parity
+    # 合并裁决,不受交错影响。§3.2 gap 公式退役为族内参考,不再全池重排。
+    backlog: list[dict[str, Any]] = []
+    _pp, _lp = list(practice_pool), list(learn_pool)
+    while _pp or _lp:
+        if _pp:
+            backlog.append(_pp.pop(0))
+        if _lp:
+            backlog.append(_lp.pop(0))
 
     def _is_deferred_target(task: dict[str, Any]) -> bool:
         return _text(task.get("target_pack_id")).upper() in deferred_targets

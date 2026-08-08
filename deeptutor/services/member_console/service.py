@@ -9527,6 +9527,7 @@ class MemberConsoleService:
                 subject_id=str(session.get("subject_id") or "construction_exam"),
                 scored_result=scored_result,
                 blueprint_version=str(session.get("blueprint_version") or ""),
+                session_questions=list(session.get("session_questions_private") or []),
             )
             self._assessment_session_repository.attach_writeback_refs(
                 user_id,
@@ -9576,6 +9577,7 @@ class MemberConsoleService:
             subject_id=str(session.get("subject_id") or "construction_exam"),
             scored_result=scored_result,
             blueprint_version=str(session.get("blueprint_version") or ""),
+            session_questions=list(session.get("session_questions_private") or []),
         )
         stored = self._assessment_session_repository.attach_writeback_refs(
             user_id,

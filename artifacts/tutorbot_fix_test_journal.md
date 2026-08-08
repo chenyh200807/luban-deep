@@ -9,6 +9,18 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-08-08 - 计划反线性:体检错题经处方链驱动练习臂 + policy_v2 日内交错
+
+- 问题:owner 问「学习计划就只是练题吗?会不会太线性」。实测反转:新用户 7 天计划 21 任务**全是 learn_next**、零练习零复习——体检刚产出的 30 道错题诊断完全没进计划(获客叙事「诊断→计划补失分点」断裂),且学习站纯 registry 学序线性展开。
+- 根因:处方 read-model 只认带 training_intent_id 的事件;体检 writeback 事件不带 → practice 臂恒空。复习臂结构性首周为空(学过才有复习,诚实)。
+- 修法(零新权威,parity by construction):
+  1. **writeback 派处方**:体检错题按所属编译 pack(绑定权威=私有快照 provenance.source_meta.pack_id)每 pack 派一条 `assigned` 处方事件(training_intent_id=ti_assessment:{quiz}:{pack},concept_label=「体检失分点·×××」,dedupe 幂等)。走**同一事件流+同一 read-model**——首页四臂 practice 承接与计划 practice_retest 同源出现,四臂/计划都看见同样输入,parity 结构性保持。无 pack 绑定车道(题库/案例)诚实不派。
+  2. **policy_v2 日内交错**:practice/learn 轮转排(族内保权威序),打破整天同臂连排;§3.2 gap 全池重排退役;PLAN_POLICY_VERSION bump v2。
+  3. 弱项站排序**主动放弃**:练习任务已承载个性化,学序保留前置边安全序——不造同 pack 双任务。
+- 验证:writeback 16(+1 处方派生回归:同 pack 去重/幂等/read-model assigned/非体检不派)、exam_prep_plan 10(+1 交错回归)、assessment 193、contract guard 绿;本地端到端:同一用户从 21×learn → **10 practice+16 learn 日内交错**,reason=「继续练:体检失分点·×××,换个题面」,supply_gaps 0。
+- 踩坑实录:首次端到端验证在后台 writeback 线程完成前查计划 → 误判"没生效";第二坑=探针把 member dict 当 learner snapshot 传 _snapshot_memory_events(getattr 拿不到 memory_events 静默返回空)。教训:异步写后验读必须等落盘证据(直查 MEMORY_EVENTS.jsonl),探针要走与生产完全同名的读法。
+- 已知边界:处方闭环(学员做完复测→intent 转 completed/verified)依赖复测终端事件与 intent 的链接,未活体验证;若链接不上,任务 7 天后转 needs_followup 仍诚实活跃。列入灰度观察。
+
 ## 2026-08-08 - 深解析同步超时治本:ensure/poll 异步化 + workflow 阶段面板
 
 - 问题:owner 实拍「请求超时,请稍后重试」——深解析是同步等 LLM(2400 tokens+内容级重试,最坏 60-90s),撞小程序请求超时窗;且等待期零反馈,「客户还以为系统卡住了」。owner 拍板对齐学习模块追问 AI 的 workflow status 形态。

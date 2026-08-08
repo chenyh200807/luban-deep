@@ -202,7 +202,9 @@ def _learner_facing_scoring_point(label: str) -> str:
     kept = [
         seg
         for seg in segments
-        if not seg.endswith("维") and seg not in _INTERNAL_LABEL_SEGMENTS
+        if not seg.endswith("维")
+        and not seg.endswith("末题")
+        and seg not in _INTERNAL_LABEL_SEGMENTS
     ]
     cleaned = "·".join(kept)
     return cleaned if len(cleaned) >= 3 else ""
