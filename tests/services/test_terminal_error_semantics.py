@@ -1176,3 +1176,14 @@ def test_stream_replacement_still_overrides_heterogeneous_response() -> None:
     _replace_public_result_response_with_stream(event, streamed)
 
     assert "临时用水管理" in event.metadata["response"]
+
+
+def test_terminal_mapper_maps_deadline_exceeded_to_typed_chinese() -> None:
+    """2026-08-10 F3 钉:deadline 处决不再是无类型静默降级——专属 kind + 专属文案,
+    与任意未知失败(_PUBLIC_FAILED_MESSAGE)可区分。"""
+    from deeptutor.services.session.turn_runtime import map_turn_failure_to_public_text
+
+    text = map_turn_failure_to_public_text("deadline_exceeded")
+    assert "任务量较大" in text
+    assert text != map_turn_failure_to_public_text(None)
+    assert text != map_turn_failure_to_public_text("tool_budget_exhausted")

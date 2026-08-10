@@ -538,6 +538,14 @@ class AgentCoordinator:
             trace=parse_trace,
         )
 
+    # 2026-08-10 F3 生产事故(「出10道」180s deadline 硬死,8 题成品被全量丢弃):
+    # 生成段收束预算与并发上限是 coordinator 本地常量——不跨层向 turn_runtime 讨
+    # 预算(那会造第二 terminal authority);turn 级 deadline 仍是最后防线。
+    # 并发样板与 `_lightweight_batch_generate`(:933 gather)同源:LLM/RAG 都是
+    # async HTTP,等待期释放事件循环;Semaphore 封顶防 provider 突发限流。
+    _GENERATION_CONCURRENCY = 4
+    _GENERATION_COLLECT_BUDGET_S = 150.0
+
     async def _generation_loop(
         self,
         templates: list[QuestionTemplate],
@@ -548,81 +556,116 @@ class AgentCoordinator:
         lightweight_generation: bool = False,
     ) -> list[dict[str, Any]]:
         generator = self._create_generator()
-        results: list[dict[str, Any]] = []
         total = len(templates)
-        generated_questions: list[str] = []
+        semaphore = asyncio.Semaphore(self._GENERATION_CONCURRENCY)
 
-        for idx, template in enumerate(templates, 1):
-            await self._send_ws_update(
-                "question_update",
-                {
-                    "question_id": template.question_id,
-                    "status": "generating",
-                    "current": idx,
-                    "total": total,
-                },
-            )
-
-            success = True
-            try:
-                qa_pair = await generator.process(
-                    template=template,
-                    user_topic=user_topic,
-                    preference=preference,
-                    history_context=history_context,
-                    previous_questions=generated_questions or None,
-                    require_explanation=require_explanation,
-                    lightweight_generation=lightweight_generation,
+        async def _generate_one(idx: int, template: QuestionTemplate) -> dict[str, Any]:
+            async with semaphore:
+                await self._send_ws_update(
+                    "question_update",
+                    {
+                        "question_id": template.question_id,
+                        "status": "generating",
+                        "current": idx,
+                        "total": total,
+                    },
                 )
-            except Exception as exc:
-                success = False
-                self.logger.warning(f"Generation failed for {template.question_id}: {exc}")
-                qa_pair = QAPair(
-                    question_id=template.question_id,
-                    question=f"[Generation failed] {template.concentration}",
-                    correct_answer="N/A",
-                    explanation=str(exc),
-                    question_type=template.question_type,
-                    concentration=template.concentration,
-                    difficulty=template.difficulty,
-                    metadata={"error": str(exc)},
-                )
-
-            result = {
-                "template": template.__dict__,
-                "qa_pair": qa_pair.__dict__,
-                "success": success,
-            }
-            results.append(result)
-
-            # Track successfully generated question text for diversity enforcement
-            if success and qa_pair.question:
-                generated_questions.append(qa_pair.question)
-
-            await self._send_ws_update(
-                "result",
-                {
-                    "question_id": template.question_id,
-                    "index": idx - 1,
-                    "question": qa_pair.__dict__,
+                success = True
+                try:
+                    # 并发化后放弃 previous_questions 串行去重链(同批多样性由
+                    # ideation 层按 concentration 去重保证,见 _create_idea_agent
+                    # 的 existing_concentrations 注入)。
+                    qa_pair = await generator.process(
+                        template=template,
+                        user_topic=user_topic,
+                        preference=preference,
+                        history_context=history_context,
+                        previous_questions=None,
+                        require_explanation=require_explanation,
+                        lightweight_generation=lightweight_generation,
+                    )
+                except Exception as exc:
+                    success = False
+                    self.logger.warning(f"Generation failed for {template.question_id}: {exc}")
+                    qa_pair = QAPair(
+                        question_id=template.question_id,
+                        question=f"[Generation failed] {template.concentration}",
+                        correct_answer="N/A",
+                        explanation=str(exc),
+                        question_type=template.question_type,
+                        concentration=template.concentration,
+                        difficulty=template.difficulty,
+                        metadata={"error": str(exc)},
+                    )
+                result = {
+                    "template": template.__dict__,
+                    "qa_pair": qa_pair.__dict__,
                     "success": success,
-                },
-            )
-            await self._send_ws_update(
-                "progress",
-                {
-                    "stage": "generation",
-                    "status": "running",
-                    "current": idx,
-                    "total": total,
-                    "question_id": template.question_id,
-                },
-            )
+                }
+                await self._send_ws_update(
+                    "result",
+                    {
+                        "question_id": template.question_id,
+                        "index": idx - 1,
+                        "question": qa_pair.__dict__,
+                        "success": success,
+                    },
+                )
+                await self._send_ws_update(
+                    "progress",
+                    {
+                        "stage": "generation",
+                        "status": "running",
+                        "current": idx,
+                        "total": total,
+                        "question_id": template.question_id,
+                    },
+                )
+                return result
 
-        await self._send_ws_update(
-            "progress",
-            {"stage": "complete", "completed": len(results), "total": total},
+        tasks = {
+            asyncio.create_task(_generate_one(idx, template)): idx
+            for idx, template in enumerate(templates, 1)
+        }
+        done, pending = await asyncio.wait(
+            tasks.keys(), timeout=self._GENERATION_COLLECT_BUDGET_S
         )
+        # 预算收束(交付合同):预算内完成的题必须交付,未完成的取消并显式发声——
+        # 绝不因个别慢题把整批已做对的工作拖进 turn deadline 全量蒸发。
+        dropped_question_ids: list[str] = []
+        if pending:
+            for task in pending:
+                task.cancel()
+                idx = tasks[task]
+                dropped_question_ids.append(templates[idx - 1].question_id)
+            self.logger.warning(
+                "generation_collect_budget_exhausted: delivered=%d dropped=%s budget_s=%s",
+                len(done),
+                dropped_question_ids,
+                self._GENERATION_COLLECT_BUDGET_S,
+            )
+        indexed_results: list[tuple[int, dict[str, Any]]] = []
+        for task in done:
+            try:
+                indexed_results.append((tasks[task], task.result()))
+            except Exception as exc:  # cancelled/raised between wait and result
+                self.logger.warning(f"Generation task lost after wait: {exc}")
+        indexed_results.sort(key=lambda pair: pair[0])
+        results: list[dict[str, Any]] = [result for _idx, result in indexed_results]
+        completion_payload: dict[str, Any] = {
+            "stage": "complete",
+            "completed": len(results),
+            "total": total,
+        }
+        if dropped_question_ids:
+            # 降级路径必须发声(AGENTS 铁律):部分交付带类型化 marker,BI/trace 可判。
+            completion_payload["generation_shortfall"] = {
+                "kind": "generation_collect_budget_exhausted",
+                "requested": total,
+                "delivered": len(results),
+                "dropped_question_ids": dropped_question_ids,
+            }
+        await self._send_ws_update("progress", completion_payload)
         return results
 
     def _build_bank_hit_qa_pairs(

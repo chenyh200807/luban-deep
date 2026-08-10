@@ -789,7 +789,9 @@ def detect_requested_question_count(message: str) -> tuple[int, bool]:
         return 1, False
     digit_match = re.search(r"(\d{1,2})\s*(?:道|题|个题目|个小题)", text)
     if digit_match:
-        return max(1, min(50, int(digit_match.group(1)))), True
+        # 2026-08-10 F3:入口 clamp 50→20——重路径每题一次 LLM+RAG,50 题在任何
+        # 预算档下都不可达;20 在并发收束(coordinator)下有余量可达。
+        return max(1, min(20, int(digit_match.group(1)))), True
     zh_match = re.search(r"([一二两三四五六七八九十])\s*(?:道|题|个题目|个小题)", text)
     if zh_match:
         return _ZH_QUESTION_COUNT_MAP.get(zh_match.group(1), 1), True
@@ -3594,19 +3596,35 @@ def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
 # 长一套否定逻辑就是第二把尺病的温床(F1 事故:追问尺否定盲,把「不要提前给答案
 # 和解析」里的「解析」当真追问,复合形状误导整条出题链)。
 _NEGATION_PREFIXES = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
+# 延迟从句前缀:「等我作答后再批改」「做完再讲解」——追问词被未来条件限定,
+# 表达的是"本轮先不做",与否定同属"这轮不要求"语义,不构成本轮追问形状。
+# 注意裸「再」不入表(「再讲讲」是当下请求),必须带明确的未来条件词。
+_DEFERRED_FEEDBACK_PREFIXES = (
+    "等我",
+    "等你",
+    "作答后",
+    "做完",
+    "答完",
+    "写完",
+    "之后再",
+    "以后再",
+    "然后再",
+)
 
 
 def _has_non_negated_marker(text: str, markers: tuple[str, ...]) -> bool:
-    """marker 命中且不在否定窗口内才算数(与出题尺 `_has_negated_practice_generation_request`
-    同款 8 字符前缀窗口)。用于修复追问尺的否定盲,不新增第二把尺。"""
+    """marker 命中且前缀窗口内无「这轮不做」限定词(否定/延迟从句)才算数
+    (与出题尺 `_has_negated_practice_generation_request` 同款 8 字符前缀窗口)。
+    用于修复追问尺的否定盲/延迟盲,不新增第二把尺。"""
     compact = re.sub(r"\s+", "", text)
     if not compact:
         return False
+    discount_prefixes = _NEGATION_PREFIXES + _DEFERRED_FEEDBACK_PREFIXES
     for marker in markers:
         start = compact.find(marker)
         while start >= 0:
             prefix = compact[max(0, start - 8) : start]
-            if not any(negation in prefix for negation in _NEGATION_PREFIXES):
+            if not any(token in prefix for token in discount_prefixes):
                 return True
             start = compact.find(marker, start + len(marker))
     return False

@@ -3313,3 +3313,15 @@ def test_looks_like_question_followup_keeps_non_negated_explainer() -> None:
         looks_like_question_followup("下一题解析一下", _f1_stale_single_question_context())
         is True
     )
+
+
+def test_looks_like_question_followup_ignores_deferred_feedback_markers() -> None:
+    """延迟从句钉:「等我作答后再批改」的「批改」被未来条件限定(本轮先不做),
+    不构成本轮追问形状——出题+延迟批改类请求仍走出题确定性快路径。"""
+    assert (
+        looks_like_question_followup(
+            "再给我相关的五道题，不要给答案，等我作答后再批改",
+            _f1_stale_single_question_context(),
+        )
+        is False
+    )

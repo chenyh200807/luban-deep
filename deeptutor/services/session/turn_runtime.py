@@ -128,6 +128,9 @@ _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后
 # 生产 trace 已证伪该归因（拆小后仍触发），重发即可。
 _PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这次没有完成解答，已记录问题。请再发一次。"
 _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
+# 2026-08-10 F3:deadline 处决原是无类型静默降级(BI 面上与任意未知失败不可区分),
+# 补 typed kind + 诚实文案;生成段并发收束(coordinator)落地后本档只剩安全网角色。
+_PUBLIC_DEADLINE_EXCEEDED_MESSAGE = "这轮任务量较大，规定时间内没有完成，已记录问题。可以减少题目数量再试一次。"
 _PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
 _PUBLIC_MODEL_TRUNCATED_MESSAGE = "这次答案没有生成完整，已停止保存。请重新发送一次。"
 _PUBLIC_ORPHAN_RESTART_MESSAGE = "刚才服务重启，这条没答上，请再发一次。"
@@ -692,6 +695,8 @@ def map_turn_failure_to_public_text(failure_kind: str | None, *, status: str = "
         return _PUBLIC_MODEL_TRUNCATED_MESSAGE
     if kind == "orphaned_on_restart":
         return _PUBLIC_ORPHAN_RESTART_MESSAGE
+    if kind == "deadline_exceeded":
+        return _PUBLIC_DEADLINE_EXCEEDED_MESSAGE
     return _PUBLIC_FAILED_MESSAGE
 
 
@@ -6576,9 +6581,13 @@ class TurnRuntimeManager:
                 if timed_out
                 else "Turn cancelled"
             )
+            # 2026-08-10 F3:deadline 超时是有类型的失败(deadline_exceeded),不再
+            # 与任意未知失败共用无差别兜底——文案与 marker 都过律4 单一 mapper。
+            timed_out_failure_kind = "deadline_exceeded" if timed_out else None
             public_assistant_content = _safe_terminal_assistant_content(
                 assistant_content,
                 status=cancelled_status,
+                failure_kind=timed_out_failure_kind,
             )
             usage_summary = observability.get_current_usage_summary()
             assistant_event_summary = _summarize_assistant_events(assistant_events)
@@ -6634,13 +6643,21 @@ class TurnRuntimeManager:
             )
             if billing_capture:
                 trace_metadata["billing_capture"] = billing_capture
+            timed_out_error_metadata: dict[str, Any] = {
+                "turn_terminal": True,
+                "status": cancelled_status,
+            }
+            if timed_out_failure_kind:
+                # 降级路径必须发声(AGENTS 铁律):typed marker 进导出面,BI/trace 可判。
+                timed_out_error_metadata["turn_failure"] = {"kind": timed_out_failure_kind}
+                timed_out_error_metadata["error_code"] = timed_out_failure_kind
             await self._persist_and_publish(
                 execution,
                 StreamEvent(
                     type=StreamEventType.ERROR,
                     source=capability_name,
                     content=public_assistant_content,
-                    metadata={"turn_terminal": True, "status": cancelled_status},
+                    metadata=timed_out_error_metadata,
                 ),
             )
             await self._persist_and_publish(

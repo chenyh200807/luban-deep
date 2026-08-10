@@ -506,6 +506,8 @@ domains:
       # deep_question._resolve_generation_topic，冷启动澄清由 capability 层负责）。
       # 新契约覆盖见 tests/core/test_generation_topic_and_subject_authority.py。
       - tests/agents/question/test_practice_topic_context_inheritance.py
+      # 2026-08-10 F3 交付合同: _generation_loop 并发化+预算收束部分交付回归钉。
+      - tests/agents/question/test_generation_loop_parallel.py
       - tests/core/test_generation_topic_and_subject_authority.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py
