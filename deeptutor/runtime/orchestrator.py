@@ -394,6 +394,12 @@ class ChatOrchestrator:
                     context.metadata["semantic_router_shadow_route"] = ""
                     context.metadata["semantic_router_selected_capability"] = cap_name
                     return cap_name
+                # 2026-08-10(F1 生产事故)裁决:此让位通道保留——它是语义层对
+                # scene 快路径误判的纠错闸(如「那C呢」被 scene-LLM 误判成出题)。
+                # F1 的根因不在通道,在通道里流的水:被「解析」否定盲词表毒化的
+                # **确定性**追问补位曾伪装成语义判定流经此处。词表已退役、双形状
+                # 一律交语义层后,无歧义出题请求的 turn_decision 即 route_to_generation,
+                # 不会再触发让位;流到这里的 followup 判定只剩真语义层产物。
                 if semantic_route == "deep_question" and next_action in {
                     "route_to_followup_explainer",
                     "route_to_grading",

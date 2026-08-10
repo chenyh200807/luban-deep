@@ -202,7 +202,11 @@ _FOLLOWUP_MARKERS = (
     "第1问",
     "下一问",
     "继续问",
-    "继续",
+    # 2026-08-10 收权:裸「继续」退役——它是出题尺「继续出/继续练/继续做」的子串,
+    # 同一段文字被两把尺重复计票,把无歧义出题请求(「继续出5道类似的」)误判成
+    # 双形状。真追问形态保留具体词;裸「继续」属真歧义,交语义层带上下文裁决。
+    "继续讲",
+    "继续说",
     "我答",
 )
 _JUDGMENT_TRUE_TOKENS = {"对", "正确", "是", "true", "yes", "√", "t"}
@@ -1144,7 +1148,9 @@ def looks_like_question_followup(message: str, question_context: dict[str, Any] 
     text = str(message or "").strip().lower()
     if not text:
         return False
-    return any(marker in text for marker in _FOLLOWUP_MARKERS)
+    # 2026-08-10 否定感知(F1 事故):被否定的追问词(「不要提前给答案和解析」)不再
+    # 构成追问形状——否则纯出题请求被误判成"出题+追问"双形状,确定性快路径全体失灵。
+    return _has_non_negated_marker(text, _FOLLOWUP_MARKERS)
 
 
 def extract_submission_answer(message: str, question_context: dict[str, Any] | None) -> str | None:
@@ -1164,6 +1170,26 @@ def resolve_submission_attempt(
         batch_answers = _parse_batch_submission(message, items)
         if batch_answers:
             return normalized, {"kind": "batch", "answers": batch_answers}
+
+    # 单向 arity 闸(2026-08-10,F1 生产事故):消息里可解析出的带序号作答段数
+    # 超过上下文可判题数时,绝不把多题作答蒸馏成单字母去判 stale 单题
+    # (「1、c 2.c 3.c」对单题上下文曾被蒸成 "C" 以 0.92 高置信判旧题倒诬)。
+    # 方向是单向的:答少于题是合法部分提交,由上方 batch 解析正常消化,不拦。
+    # 复用既有 ambiguous 形状,下游(scene 层)已消化该形状 → needs_clarification。
+    numbered_marker_count = len(list(_NUMBERED_BATCH_MARKER_RE.finditer(str(message or "").strip())))
+    effective_question_count = len(items) if len(items) > 1 else 1
+    if numbered_marker_count >= 2 and numbered_marker_count > effective_question_count:
+        distilled = _extract_single_submission(message, normalized)
+        if distilled is not None:
+            return normalized, {
+                "kind": "ambiguous",
+                "answer": distilled,
+                "requires_question_index": True,
+                "arity_mismatch": {
+                    "submitted_segments": numbered_marker_count,
+                    "available_questions": effective_question_count,
+                },
+            }
 
     numbered = _parse_numbered_submission(message)
     if numbered and items:
@@ -3564,12 +3590,34 @@ def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
 # verbatim (zero behavior change); ``teaching_modes`` now re-exports it so all
 # existing callers keep their import line unchanged.
 # ---------------------------------------------------------------------------
+# 否定前缀单一权威(2026-08-10):出题尺与追问尺共用同一张否定表——两把尺各自
+# 长一套否定逻辑就是第二把尺病的温床(F1 事故:追问尺否定盲,把「不要提前给答案
+# 和解析」里的「解析」当真追问,复合形状误导整条出题链)。
+_NEGATION_PREFIXES = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
+
+
+def _has_non_negated_marker(text: str, markers: tuple[str, ...]) -> bool:
+    """marker 命中且不在否定窗口内才算数(与出题尺 `_has_negated_practice_generation_request`
+    同款 8 字符前缀窗口)。用于修复追问尺的否定盲,不新增第二把尺。"""
+    compact = re.sub(r"\s+", "", text)
+    if not compact:
+        return False
+    for marker in markers:
+        start = compact.find(marker)
+        while start >= 0:
+            prefix = compact[max(0, start - 8) : start]
+            if not any(negation in prefix for negation in _NEGATION_PREFIXES):
+                return True
+            start = compact.find(marker, start + len(marker))
+    return False
+
+
 def _has_negated_practice_generation_request(text: str) -> bool:
     compact = re.sub(r"\s+", "", text)
     if not compact:
         return False
 
-    negations = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
+    negations = _NEGATION_PREFIXES
     targets = (
         "出题",
         "做题",
