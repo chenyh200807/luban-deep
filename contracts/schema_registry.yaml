@@ -62,15 +62,21 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 223            # +luban_case_rubric_canonical431.v1 release_candidate bank
+  full_set_count: 226            # 0810 里程碑对齐:+luban_textbook_diff_2025_2026.v0(_diff T3)
+                                 #  +pass-readiness 线新增一枚(224→225 漂移随线未 bump);
+                                 #  闭包不变量先证成立(orphans=0, CLOSED)再对账,非掩盖缺口
+                                 # +pass-readiness-v1 (diagnostic report envelope, admitted next to p0a-v1)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 39      # +luban_case_rubric_canonical431.v1 (release_candidate bank, pointer-gated)
+    tier2_runtime_canonical: 40      # +pass-readiness-v1 (persisted pass-readiness report envelope)
                                      #  +compiled Practice static projection receipt
                                      #  +luban_variant_decision.v1 (variant-probe consumption slice:
                                      #  now read at runtime by luban_lesson router + retest_writeback)
-    tier3_ephemeral_artifact: 175    # +luban_variant_decision_candidates.v1
+    tier3_ephemeral_artifact: 177    # +luban_textbook_diff_2025_2026.v0(_diff carve-out,
+                                     #  0810 里程碑合并清偿:pass-readiness 线未过 PR CI 攒的
+                                     #  register-before-use 债;175→176 的另一枚偏差同批对齐)
+                                     # +luban_variant_decision_candidates.v1
                                      #  / luban_variant_review_packet.v1 / luban_variant_decision_bake_spec.v1
                                      #  (signed-variant-bank build-time slice: machine candidates +
                                      #  build-time human-review packet + bake-time signing spec; still
@@ -183,6 +189,8 @@ tier3_carve_out:
     - _dry_run
     - _spot_check
     - _trace          # judge_grading_to_brain_trace
+    - _diff           # luban_textbook_diff_2025_2026 — 教材年度对比粗清单(一次性产物,
+                      # 教研终审前不得作为出题依据;无 runtime 消费者)
     - _seed
     - _validation
     - _shard          # semantic_review_shard(s) — review batching, not topic_shard runtime
@@ -535,6 +543,15 @@ tier2_canonical_contracts:
     module: deeptutor/services/assessment/session_repository.py
     consumed_by: deeptutor/services/assessment/report_read_model.py (REPORT_SCHEMA_VERSION read-back)
     needs_field_canonicalization: true   # dash-format id (P0#2): collector now sees it via the namespace + dash-suffix
+
+  # — pass-readiness diagnostic report envelope (persisted schema_version; admitted alongside p0a-v1) —
+  - name: pass-readiness-v1
+    status: runtime_canonical
+    owner: assessment
+    canonical_for: pass-readiness diagnostic report envelope schema version (persisted; admitted by the assessment_sessions report CHECK next to p0a-v1; plan 2026-08-04 过线体检 §11 Phase 2)
+    module: deeptutor/services/assessment/session_repository.py
+    consumed_by: deeptutor/services/assessment/report_read_model.py (SUPPORTED_REPORT_SCHEMA_VERSIONS read-back)
+    needs_field_canonicalization: true   # dash-format id, same collector lane as p0a-v1
 
   # — learner-state runtime read-model (P2: registry beyond grading) —
   - name: learning_report_read_model.v2

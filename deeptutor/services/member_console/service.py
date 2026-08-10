@@ -15,6 +15,7 @@ import secrets
 import sqlite3
 import string
 import threading
+import asyncio
 import time
 import urllib.parse
 import urllib.request
@@ -34,7 +35,11 @@ except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.assessment.blueprint import get_assessment_blueprint, real_exam_source_policy
+from deeptutor.services.assessment.blueprint import (
+    COMPILED_PRACTICE_QUESTION_SOURCE,
+    get_assessment_blueprint,
+    real_exam_source_policy,
+)
 from deeptutor.services.assessment import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
@@ -42,6 +47,7 @@ from deeptutor.services.assessment import (
     StaticAssessmentQuestionProvider,
     SupabaseAssessmentQuestionProvider,
 )
+from deeptutor.services.assessment.blueprint_service import AssessmentQuestionProvider
 from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
@@ -52,7 +58,10 @@ from deeptutor.services.assessment.deep_explanation import (
     generate_llm_deep_explanation,
     minimum_explanation_points,
 )
-from deeptutor.services.assessment.report_read_model import build_result_report
+from deeptutor.services.assessment.report_read_model import (
+    build_pass_readiness_report,
+    build_result_report,
+)
 from deeptutor.services.assessment.scoring import AssessmentScoringError, score_assessment
 from deeptutor.services.assessment.session_repository import (
     AssessmentSessionConflict,
@@ -190,6 +199,34 @@ def _channel_attribution_metadata(channel: Any, scene: Any) -> dict[str, Any]:
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
 _HOME_NEXT_STEP_ENABLED = "DEEPTUTOR_HOME_NEXT_STEP_ENABLED"
+# AI 学习计划体系 P0(计划 §3.1 权威点 1): on = composition root 内 shadow 双算,
+# 对外 serve exam_prep_plan 今日首任务(差异打点); off(默认) = 旧四臂,逐字节现行为。
+_EXAM_PREP_PLAN_ENABLED = "LUBAN_EXAM_PREP_PLAN_ENABLED"
+
+
+def _exam_countdown_days(exam_date_iso: str, *, now_iso: str = "") -> int | None:
+    """距考天数（读侧派生，唯一真值 = member profile exam_date）。
+
+    未设置/不可解析 = None（合法空态，前端不显示，禁造数）;已过考期返回负数
+    （如实透传，展示语义归前端）。now 固定注入保证同输入同输出（确定性验收）。
+    """
+    text = str(exam_date_iso or "").strip()
+    if not text:
+        return None
+    from datetime import datetime, timedelta, timezone
+
+    tz = timezone(timedelta(hours=8))
+    try:
+        exam_day = datetime.fromisoformat(text[:10]).date()
+    except ValueError:
+        return None
+    try:
+        now = datetime.fromisoformat(str(now_iso).replace("Z", "+00:00"))
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=tz)
+    except ValueError:
+        now = datetime.now(tz)
+    return (exam_day - now.astimezone(tz).date()).days
 # 首页/雷达/章节盘共用的 learner 事件读窗(病C:窗口粒度)。容量推理:
 # lesson_viewed 按(pack,幕,日)折叠,40 pack × 2 幕 = 一天最多 ~80 条;
 # 判分/测评证据必须在同一窗内存活,100 = 80 条 lesson_viewed + 20 条判分
@@ -484,6 +521,11 @@ class _AssessmentTemplate:
     options: dict[str, str]
     answer: str
 
+
+# 过线体检现行 blueprint 的单一权威(create 入口与启动预热共用,防两处漂移)。
+# v2 = 39 交互(30 客观对齐真题卷面+案例变式+两级检查点), owner 2026-08-06 拍板;
+# v1 blueprint/表单全程保留为回滚锚(改回此常量即回滚)。
+_PASS_READINESS_BLUEPRINT_VERSION = "pass_readiness_architecture_v2"
 
 _ASSESSMENT_BANK: list[_AssessmentTemplate] = [
     _AssessmentTemplate(
@@ -911,18 +953,57 @@ class MemberConsoleService:
             "ASSESSMENT_USE_SUPABASE",
             default=False,
         )
+        blueprint = get_assessment_blueprint(blueprint_version)
+        provider: AssessmentQuestionProvider = (
+            SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider
+        )
+        if any(
+            section.question_source == COMPILED_PRACTICE_QUESTION_SOURCE
+            for section in blueprint.sections
+        ):
+            # 表单 v2 读侧聚合：编译轻练 section 路由到 compiled authority 读源，
+            # questions_bank section 语义零改动（v1 blueprint 不含该声明，不受影响）。
+            from deeptutor.services.assessment.compiled_practice_provider import (
+                SourceRoutedAssessmentQuestionProvider,
+            )
+
+            provider = SourceRoutedAssessmentQuestionProvider(default_provider=provider)
         return AssessmentBlueprintService(
-            blueprint=get_assessment_blueprint(blueprint_version),
-            provider=SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider,
+            blueprint=blueprint,
+            provider=provider,
             fallback_provider=fallback_provider,
             allow_dev_fallback=allow_dev_fallback,
         )
 
     def prewarm_assessment_forms(self) -> dict[str, Any]:
-        return self._build_assessment_blueprint_service().prewarm_forms()
+        # 预热清单与线上入口同权威:diagnostic_v1(专题测评)+ 过线体检现行 blueprint。
+        # 逐版本尽力而为——单版本失败不拖垮另一版本,也不拖垮启动(调用方在
+        # startup 后台线程里跑,只记日志)。
+        results: dict[str, Any] = {}
+        for version in ("diagnostic_v1", _PASS_READINESS_BLUEPRINT_VERSION):
+            try:
+                results[version] = self._build_assessment_blueprint_service(version).prewarm_forms()
+            except Exception as exc:
+                logger.warning("assessment form prewarm failed for %s: %s", version, exc)
+                results[version] = {"error": str(exc)}
+        return results
 
-    def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
-        return self._build_assessment_blueprint_service().generate_and_persist_forms()
+    def generate_and_persist_assessment_forms(
+        self,
+        blueprint_version: str = "diagnostic_v1",
+        manifest_paths: list[str] | None = None,
+        replicate_to_min: bool = False,
+    ) -> dict[str, Any]:
+        # 默认值保持 diagnostic_v1(既有调用方零改动);表单 v2 签发经
+        # blueprint_version="pass_readiness_architecture_v2" 走同一入口。
+        # manifest_paths 给定时走内容线钉选导入(manifest_form_import,逐题
+        # sha 校验),不给时保持现行自动组卷。
+        service = self._build_assessment_blueprint_service(blueprint_version)
+        if manifest_paths:
+            return service.generate_and_persist_forms_from_manifest(
+                list(manifest_paths), replicate_to_min=replicate_to_min
+            )
+        return service.generate_and_persist_forms()
 
     def get_assessment_topic_catalog(self, user_id: str = "") -> dict[str, Any]:
         provider = SupabaseAssessmentQuestionProvider()
@@ -7169,6 +7250,88 @@ class MemberConsoleService:
         )
         return best_role
 
+    @staticmethod
+    def _empty_learning_ledger_rekey_summary() -> dict[str, Any]:
+        return {
+            "assessment_sessions_local": 0,
+            "assessment_sessions_repository": 0,
+            "learner_memory_events_local": 0,
+            "learner_memory_events_remote": 0,
+            "errors": [],
+        }
+
+    def _rekey_learning_ledger_for_merge(
+        self,
+        data: dict[str, Any],
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+    ) -> dict[str, Any]:
+        """Move the merged-away accounts' learning ledger onto the surviving uid.
+
+        Plan §9.4 invariant: ``assessment_sessions`` and ``learner_memory_events``
+        are read by strict ``user_id`` equality, so a merge that only moves
+        member fields strands everything an openid-only learner produced before
+        binding a phone that already belongs to a member. This is the one-shot
+        UPDATE at the single merge write point — deliberately chosen over
+        alias-aware reads, which would smear a second identity resolution across
+        every learner-state read model.
+
+        Idempotent: after the first run nothing is owned by the source uid, so a
+        repeated merge moves nothing and loses nothing. Ledger transport
+        failures are recorded, not raised: the member-side merge has already
+        been decided and must not break the learner's login.
+        """
+        summary = self._empty_learning_ledger_rekey_summary()
+        target = str(target_user_id or "").strip()
+        if not target:
+            return summary
+        sessions = data.get("assessment_sessions")
+        for raw_source_id in source_user_ids:
+            source = str(raw_source_id or "").strip()
+            if not source or source == target:
+                continue
+            if isinstance(sessions, dict):
+                for row in sessions.values():
+                    if not isinstance(row, dict):
+                        continue
+                    if str(row.get("user_id") or "").strip() != source:
+                        continue
+                    row["user_id"] = target
+                    summary["assessment_sessions_local"] += 1
+            try:
+                summary["assessment_sessions_repository"] += int(
+                    self._assessment_session_repository.rekey_user_sessions(
+                        source_user_id=source,
+                        target_user_id=target,
+                    )
+                    or 0
+                )
+            except Exception as exc:  # noqa: BLE001 - merge must not fail on ledger transport
+                summary["errors"].append(f"assessment_sessions:{source}:{exc}")
+                logger.error(
+                    "assessment_sessions merge re-key failed: source=%s target=%s",
+                    source,
+                    target,
+                    exc_info=True,
+                )
+            try:
+                moved = self._get_learner_state_service().rekey_memory_events(
+                    source_user_id=source,
+                    target_user_id=target,
+                )
+                summary["learner_memory_events_local"] += int(moved.get("local_moved") or 0)
+                summary["learner_memory_events_remote"] += int(moved.get("remote_moved") or 0)
+            except Exception as exc:  # noqa: BLE001 - merge must not fail on ledger transport
+                summary["errors"].append(f"learner_memory_events:{source}:{exc}")
+                logger.error(
+                    "learner_memory_events merge re-key failed: source=%s target=%s",
+                    source,
+                    target,
+                    exc_info=True,
+                )
+        return summary
+
     def _merge_member_accounts_locked(
         self,
         data: dict[str, Any],
@@ -7194,6 +7357,7 @@ class MemberConsoleService:
                 "deduped": True,
                 "merged_source_ids": [],
                 "points_transferred": 0,
+                "learning_ledger_rekey": self._empty_learning_ledger_rekey_summary(),
                 "admin_role_after": self.get_admin_role(target_user_id),
                 "target_user_id": str(target.get("user_id") or target_user_id),
             }
@@ -7251,6 +7415,14 @@ class MemberConsoleService:
             self._strip_merged_member_payload(source)
             merged_source_ids.append(source_id)
 
+        # Plan §9.4: the ledger moves with the membership, inside the same merge
+        # action, before the audit row is written.
+        learning_ledger_rekey = self._rekey_learning_ledger_for_merge(
+            data,
+            target_user_id=canonical_target_id,
+            source_user_ids=list(merged_source_ids),
+        )
+
         after = deepcopy(target)
         audit = self._append_audit(
             data,
@@ -7265,6 +7437,7 @@ class MemberConsoleService:
                 "target": after,
                 "merged_source_ids": list(merged_source_ids),
                 "points_transferred": points_transferred,
+                "learning_ledger_rekey": deepcopy(learning_ledger_rekey),
             },
             operator=operator,
         )
@@ -7281,6 +7454,7 @@ class MemberConsoleService:
             "deduped": False,
             "merged_source_ids": list(merged_source_ids),
             "points_transferred": points_transferred,
+            "learning_ledger_rekey": learning_ledger_rekey,
             "target_user_id": canonical_target_id,
             "admin_role_after": None,
         }
@@ -7766,6 +7940,7 @@ class MemberConsoleService:
                 learner_user_id=learner_user_id,
                 snapshot=snapshot,
                 exam_date_iso=str(member.get("exam_date") or ""),
+                daily_target_minutes=max(1, int(member.get("daily_target") or 30)),
             )
             from deeptutor.services.learner_state.home_next_step_projection import (
                 MODE_UNAVAILABLE,
@@ -7782,79 +7957,72 @@ class MemberConsoleService:
         learner_user_id: str,
         snapshot: Any | None,
         exam_date_iso: str = "",
+        daily_target_minutes: int = 30,
     ) -> dict[str, Any]:
-        """融合计划 §3：跨模式「下一步」= home_next_step_projection 单一仲裁。
+        """融合计划 §3 + AI 学习计划体系 §3.1：跨模式「下一步」唯一 composition root。
 
         本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
-        输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
-        - 到期复 = 复习页同一 pack 级投影（build_review_due_projection，调度真值
-          归 revalidation_queue）经 list_redeemable_due_items 过滤的可兑付条目
-          （2026-07-20 收权：弱点节点 queue 不再是首页 review_due 臂的 decider——
-          两源 probe 铸造不同，弱点 probe 在复习入口 exact-match 永远兑付不了）。
-          与 /review-due 路由同门（review_module_enabled）、同一全量证据事件读法；
-          投影异常 → 臂空 + 诊断，不遮蔽 learn_next（fail-closed）。
-        - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
-          只接受 outcome authority 判定的未完成 workflow。
-        - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
-          生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
-          对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
-        - exam_date_iso = caller 已加载的 member profile（同一 authority 读侧
-          透传，免二次载入；空 = 合法「未设置」）。
+        计划体系收权（§3.1 权威点 1）：``_assemble_home_plan_inputs`` 是**唯一**
+        输入组装，旧四臂（``home_next_step_projection``）与新计划展开
+        （``exam_prep_plan_projection`` 取 day0 首任务）在**同一次组装内 shadow
+        双算**；``LUBAN_EXAM_PREP_PLAN_ENABLED``（默认 off）决定对外 serve 哪个，
+        差异打点（parity 采样）。没有第二套组装——共享内核 + 两套组装必然产出
+        两套答案。
         """
         try:
             from deeptutor.services.learner_state import home_next_step_projection as _hns
-            from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
-            from deeptutor.services.learner_state.prescription_outcome_read_model import (
-                build_prescription_outcomes_read_projection,
-                requires_active_practice,
+            from deeptutor.services.learner_state.exam_prep_plan import (
+                build_exam_prep_plan_projection,
             )
-            from deeptutor.services.luban_lesson import list_green_lessons
-            from deeptutor.services.luban_lesson import review_due as _review_due
 
-            learner_state_service = self._get_learner_state_service()
-            events = self._snapshot_memory_events(snapshot)
-            outcomes = build_prescription_outcomes_read_projection(events=events)
-            active_intents = [
-                outcome
-                for outcome in outcomes
-                if str(outcome.get("training_intent_id") or "").strip()
-                and requires_active_practice(outcome)
-            ]
-            try:
-                compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)
-            except Exception:
-                logger.warning("Failed to read compiled truth for home next step", exc_info=True)
-                compiled = {}
-            claims = list((compiled or {}).get("weak_points") or [])
-            review_due_items: list[dict[str, Any]] = []
-            review_due_unavailable = False
-            if _review_due.review_module_enabled():
-                try:
-                    # 与 /review-due 路由同一读法（全量证据事件，非 ≤100 snapshot
-                    # 窗）——窗口差会重新制造「复习页有货、首页无提示」的分歧。
-                    review_events = learner_state_service.list_learning_evidence_events(
-                        learner_user_id, limit=None, since=None
-                    )
-                    review_due_items = _review_due.list_redeemable_due_items(
-                        _review_due.build_review_due_projection(
-                            user_id=learner_user_id,
-                            events=review_events,
-                            exam_date_iso=str(exam_date_iso or "").strip(),
-                        )
-                    )
-                except Exception:
-                    logger.warning(
-                        "Failed to build review due projection for home next step",
-                        exc_info=True,
-                    )
-                    review_due_unavailable = True
-            return _hns.build_home_next_step_projection(
-                review_due_items=review_due_items,
-                active_training_intents=active_intents,
-                pack_lifecycle=_plp.project_pack_lifecycle(events=events, claims=claims),
-                green_lessons=list_green_lessons(),
-                review_due_unavailable=review_due_unavailable,
+            inputs = self._assemble_home_plan_inputs(
+                learner_user_id=learner_user_id,
+                snapshot=snapshot,
+                exam_date_iso=exam_date_iso,
+                daily_target_minutes=daily_target_minutes,
             )
+            legacy_next_step = _hns.build_home_next_step_projection(
+                review_due_items=inputs["review_due_items"],
+                active_training_intents=inputs["active_training_intents"],
+                pack_lifecycle=inputs["pack_lifecycle"],
+                green_lessons=inputs["green_lessons"],
+                review_due_unavailable=inputs["review_due_unavailable"],
+            )
+            if not env_flag(_EXAM_PREP_PLAN_ENABLED):
+                # off = 逐字节现行为（新计划不算不 serve）。
+                return legacy_next_step
+            plan = build_exam_prep_plan_projection(
+                now_iso=inputs["now_iso"],
+                days=7,
+                review_due_items=inputs["review_due_items"],
+                review_horizon=inputs["review_horizon"],
+                active_training_intents=inputs["active_training_intents"],
+                pack_lifecycle=inputs["pack_lifecycle"],
+                green_lessons=inputs["green_lessons"],
+                plan_preferences=inputs["plan_preferences"],
+                daily_target_minutes=inputs["daily_target_minutes"],
+                review_due_unavailable=inputs["review_due_unavailable"],
+            )
+            day0_tasks = list((plan.get("days") or [{}])[0].get("tasks") or [])
+            plan_head = day0_tasks[0] if day0_tasks else None
+            # shadow parity 差异打点（上线首周观察差异率；异常且无法解释 = stop
+            # condition，flag 不得转正）。
+            diff_fields = [
+                field
+                for field in ("mode", "source_authority", "source_ref", "target_pack_id", "reason")
+                if (plan_head or {}).get(field) != legacy_next_step.get(field)
+            ]
+            logger.info(
+                "exam_prep_plan_shadow_parity user=%s match=%s diff_fields=%s policy=%s",
+                learner_user_id,
+                not diff_fields,
+                diff_fields,
+                plan.get("plan_policy_version"),
+            )
+            if plan_head is None:
+                # 计划空 → fail-closed 回旧仲裁，不 serve 空卡。
+                return legacy_next_step
+            return plan_head
         except Exception:
             logger.warning("Failed to build home next step projection", exc_info=True)
             from deeptutor.services.learner_state.home_next_step_projection import (
@@ -7862,6 +8030,195 @@ class MemberConsoleService:
             )
 
             return unavailable_next_step()
+
+    def _assemble_home_plan_inputs(
+        self,
+        *,
+        learner_user_id: str,
+        snapshot: Any | None,
+        exam_date_iso: str = "",
+        daily_target_minutes: int = 30,
+    ) -> dict[str, Any]:
+        """唯一 composition root 的输入组装（计划体系 §3.1 权威点 1）。
+
+        输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
+        - 到期复 = 复习页同一 pack 级投影（build_review_due_projection，调度真值
+          归 revalidation_queue）经 list_redeemable_due_items 过滤的可兑付条目
+          （2026-07-20 收权：弱点节点 queue 不再是首页 review_due 臂的 decider——
+          两源 probe 铸造不同，弱点 probe 在复习入口 exact-match 永远兑付不了）。
+          与 /review-due 路由同门（review_module_enabled）、同一全量证据事件读法；
+          投影异常 → 臂空 + 诊断，不遮蔽 learn_next（fail-closed）。
+        - 7 天到期预报 = 同一 pack 候选桥接的 horizon 读面
+          （review_due.build_review_horizon → revalidation_queue，禁自算到期）。
+        - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
+          只接受 outcome authority 判定的未完成 workflow。
+          （已知债，刻意保留：outcomes/lifecycle 用 ≤100 snapshot 窗、review 用
+          全量证据读——parity 灰度期内不动老臂读口径，防污染 parity 基线；
+          口径收敛登记为 flag 转正后的独立工单。）
+        - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
+          生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
+          对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
+        - 学员意志 = 同一份 snapshot events 提取的 plan_preferences（唯一写器
+          record_learner_signal 的 pin/defer/time_budget）；复习任务的当日 defer
+          经 declined_probe_ids_from_events 落 revalidation_queue declined 机制。
+        - exam_date_iso / daily_target = caller 已加载的 member profile（同一
+          authority 读侧透传，免二次载入；空 = 合法「未设置」）。
+        """
+        from datetime import datetime, timedelta, timezone
+
+        from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
+        from deeptutor.services.learner_state.exam_prep_plan import (
+            plan_preferences_from_events,
+        )
+        from deeptutor.services.learner_state.prescription_outcome_read_model import (
+            build_prescription_outcomes_read_projection,
+            requires_active_practice,
+        )
+        from deeptutor.services.learner_state.revalidation_queue import (
+            declined_probe_ids_from_events,
+        )
+        from deeptutor.services.luban_lesson import list_green_lessons
+        from deeptutor.services.luban_lesson import review_due as _review_due
+
+        now_iso = datetime.now(timezone(timedelta(hours=8))).isoformat()
+        learner_state_service = self._get_learner_state_service()
+        events = self._snapshot_memory_events(snapshot)
+        outcomes = build_prescription_outcomes_read_projection(events=events)
+        active_intents = [
+            outcome
+            for outcome in outcomes
+            if str(outcome.get("training_intent_id") or "").strip()
+            and requires_active_practice(outcome)
+        ]
+        try:
+            compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)
+        except Exception:
+            logger.warning("Failed to read compiled truth for home next step", exc_info=True)
+            compiled = {}
+        claims = list((compiled or {}).get("weak_points") or [])
+        # 意志信号住 snapshot 原始事件流（list_learning_evidence_events 会把
+        # learner_signal 行过滤掉——declined/preferences 必须从这里取）。
+        declined_probe_ids = declined_probe_ids_from_events(events, now_iso=now_iso)
+        plan_preferences = plan_preferences_from_events(events, now_iso=now_iso)
+        review_due_items: list[dict[str, Any]] = []
+        review_due_unavailable = False
+        review_horizon: dict[str, Any] | None = None
+        if _review_due.review_module_enabled():
+            try:
+                # 与 /review-due 路由同一读法（全量证据事件，非 ≤100 snapshot
+                # 窗）——窗口差会重新制造「复习页有货、首页无提示」的分歧。
+                review_events = learner_state_service.list_learning_evidence_events(
+                    learner_user_id, limit=None, since=None
+                )
+                review_due_items = _review_due.list_redeemable_due_items(
+                    _review_due.build_review_due_projection(
+                        user_id=learner_user_id,
+                        events=review_events,
+                        now_iso=now_iso,
+                        exam_date_iso=str(exam_date_iso or "").strip(),
+                        declined_probe_ids=declined_probe_ids,
+                    )
+                )
+                review_horizon = _review_due.build_review_horizon(
+                    user_id=learner_user_id,
+                    events=review_events,
+                    now_iso=now_iso,
+                    exam_date_iso=str(exam_date_iso or "").strip(),
+                    declined_probe_ids=declined_probe_ids,
+                    days=7,
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to build review due projection for home next step",
+                    exc_info=True,
+                )
+                review_due_unavailable = True
+                review_horizon = None
+        return {
+            "now_iso": now_iso,
+            "review_due_items": review_due_items,
+            "review_due_unavailable": review_due_unavailable,
+            "review_horizon": review_horizon,
+            "active_training_intents": active_intents,
+            "pack_lifecycle": _plp.project_pack_lifecycle(events=events, claims=claims),
+            "green_lessons": list_green_lessons(),
+            "plan_preferences": plan_preferences,
+            "daily_target_minutes": max(1, int(daily_target_minutes or 30)),
+        }
+
+    def get_exam_prep_plan(self, user_id: str) -> dict[str, Any]:
+        """计划页（跑道视图）读面——GET /luban/exam-prep-plan 的唯一服务入口。
+
+        薄包装（计划体系 §3.1 权威点 1）：组装只走 ``_assemble_home_plan_inputs``
+        （唯一 composition root），投影只走 ``build_exam_prep_plan_projection``，
+        本方法零新状态、零新排序、零业务逻辑——只透传投影输出并附收敛条数据：
+
+        - ``pass_readiness``：最近一次过线体检报告的 {estimated_score_band,
+          pass_line, risk_band, generated_at}（既有 assessment report 读模型提取；
+          无报告 = None，前端显示「先做一次过线体检」引导。诚实红线：带子只显示
+          报告值，禁日级重估）；
+        - ``exam_countdown_days``：距考天数（唯一读源 = member profile exam_date，
+          未设置 = None）。
+
+        Flag ``LUBAN_EXAM_PREP_PLAN_ENABLED`` off → ``{"enabled": False}``
+        （前端隐藏入口，不 404）。
+        """
+        if not env_flag(_EXAM_PREP_PLAN_ENABLED):
+            return {"enabled": False}
+        from deeptutor.services.learner_state.exam_prep_plan import (
+            build_exam_prep_plan_projection,
+        )
+
+        member = self._load_member_snapshot(user_id)["member"]
+        learner_user_id = str(member.get("user_id") or user_id or "").strip()
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=_HOME_LEARNER_EVENT_LIMIT)
+        exam_date_iso = str(member.get("exam_date") or "").strip()
+        inputs = self._assemble_home_plan_inputs(
+            learner_user_id=learner_user_id,
+            snapshot=snapshot,
+            exam_date_iso=exam_date_iso,
+            daily_target_minutes=max(1, int(member.get("daily_target") or 30)),
+        )
+        plan = build_exam_prep_plan_projection(
+            now_iso=inputs["now_iso"],
+            days=7,
+            review_due_items=inputs["review_due_items"],
+            review_horizon=inputs["review_horizon"],
+            active_training_intents=inputs["active_training_intents"],
+            pack_lifecycle=inputs["pack_lifecycle"],
+            green_lessons=inputs["green_lessons"],
+            plan_preferences=inputs["plan_preferences"],
+            daily_target_minutes=inputs["daily_target_minutes"],
+            review_due_unavailable=inputs["review_due_unavailable"],
+        )
+        return {
+            "enabled": True,
+            **plan,
+            "pass_readiness": self._latest_pass_readiness_summary(user_id),
+            "exam_date": exam_date_iso,
+            "exam_countdown_days": _exam_countdown_days(exam_date_iso, now_iso=inputs["now_iso"]),
+        }
+
+    def _latest_pass_readiness_summary(self, user_id: str) -> dict[str, Any] | None:
+        """最近一次过线体检摘要（既有 assessment report 读模型；无 = None）。
+
+        读侧只提取，不改判、不重估；仓库不可用/未配置一律如实降级为 None
+        （收敛条走「先做一次过线体检」引导，禁造数）。
+        """
+        from deeptutor.services.assessment.report_read_model import (
+            extract_pass_readiness_summary,
+        )
+
+        try:
+            rows = self._assessment_session_repository.list_report_sessions(user_id, limit=20)
+        except Exception:
+            logger.warning("Failed to list assessment reports for pass readiness", exc_info=True)
+            return None
+        for row in rows:
+            summary = extract_pass_readiness_summary(row.get("result_report_json"))
+            if summary is not None:
+                return summary
+        return None
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:
@@ -8401,6 +8758,22 @@ class MemberConsoleService:
             },
         }
 
+    def get_pass_readiness_completion(self, user_id: str) -> dict[str, Any]:
+        """Canonical pass-readiness completion projection (过线体检 §5.2).
+
+        Pure read over the durable assessment-session authority; unavailable
+        storage degrades to not-completed (never blocks the profile read and
+        never suppresses First Run without positive evidence).
+        """
+
+        from deeptutor.services.first_run.status import project_pass_readiness_completion
+
+        try:
+            session = self._assessment_session_repository.latest_scored_session(user_id, "pass_readiness")
+        except AssessmentSessionError:
+            session = None
+        return project_pass_readiness_completion(session)
+
     def get_assessment_profile(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
         last_assessment = member.get("last_assessment") if isinstance(member.get("last_assessment"), dict) else {}
@@ -8550,6 +8923,13 @@ class MemberConsoleService:
             )
         if normalized_assessment_type == "real_exam_simulation":
             return self._create_real_exam_simulation_assessment(
+                user_id,
+                count=count,
+                subject_id=subject_id,
+                device_id=device_id,
+            )
+        if normalized_assessment_type == "pass_readiness":
+            return self._create_pass_readiness_assessment(
                 user_id,
                 count=count,
                 subject_id=subject_id,
@@ -8753,6 +9133,60 @@ class MemberConsoleService:
             "form_count": int(payload.get("form_count") or 0),
         }
 
+    def _create_pass_readiness_assessment(
+        self,
+        user_id: str,
+        *,
+        count: int,
+        subject_id: str,
+        device_id: str = "",
+    ) -> dict[str, Any]:
+        blueprint_version = _PASS_READINESS_BLUEPRINT_VERSION
+        blueprint = get_assessment_blueprint(blueprint_version)
+        payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
+            user_id=user_id,
+            count=count,
+            assessment_type="pass_readiness",
+            subject_id=subject_id,
+            topic_ids=[],
+        )
+        session = self._assessment_session_repository.create_session(
+            user_id=user_id,
+            assessment_type="pass_readiness",
+            subject_id=subject_id,
+            topic_ids=[],
+            blueprint_version=payload["blueprint_version"],
+            form_id=str(payload.get("form_id") or ""),
+            client_questions_public=list(payload.get("questions") or []),
+            session_questions_private=list(payload.get("session_questions") or []),
+            device_id=device_id,
+        )
+        return {
+            "quiz_id": session["quiz_id"],
+            "assessment_type": "pass_readiness",
+            "subject_id": subject_id,
+            "topic_ids": [],
+            "topic_label": "一建过线体检",
+            "status": session["status"],
+            "reuse_reason": session.get("reuse_reason", ""),
+            "questions": deepcopy(session["client_questions_public"]),
+            "blueprint_version": session["blueprint_version"],
+            "form_id": session["form_id"],
+            "sections": payload["sections"],
+            "requested_count": payload["requested_count"],
+            "delivered_count": payload["delivered_count"],
+            "scored_count": payload["scored_count"],
+            "profile_count": payload["profile_count"],
+            "available_count": payload["available_count"],
+            "question_bank_size": payload["question_bank_size"],
+            "unique_source_question_count": payload["unique_source_question_count"],
+            "shortfall_count": payload["shortfall_count"],
+            "fallback_used": bool(payload.get("fallback_used")),
+            "form_source": str(payload.get("form_source") or "unknown"),
+            "form_index": int(payload.get("form_index") or 0),
+            "form_count": int(payload.get("form_count") or 0),
+        }
+
     def submit_assessment(
         self,
         user_id: str,
@@ -8766,7 +9200,11 @@ class MemberConsoleService:
             p0a_session = self._assessment_session_repository.private_session(user_id, quiz_id)
         except AssessmentSessionNotFound:
             p0a_session = None
-        if p0a_session and p0a_session.get("assessment_type") in {"topic_diagnostic", "real_exam_simulation"}:
+        if p0a_session and p0a_session.get("assessment_type") in {
+            "topic_diagnostic",
+            "real_exam_simulation",
+            "pass_readiness",
+        }:
             return self._submit_durable_assessment(
                 user_id,
                 quiz_id,
@@ -8979,23 +9417,40 @@ class MemberConsoleService:
         if assessment_type == "real_exam_simulation":
             topic_ids = []
             topic_label = str(real_exam_source_policy(real_exam_share=0.0).get("label") or "综合模拟测评")
+        elif assessment_type == "pass_readiness":
+            topic_ids = []
+            topic_label = "一建过线体检"
         else:
             try:
                 topic_spec = resolve_topic_testset_spec(topic_ids)
                 topic_label = f"{topic_spec.label}专题测评"
             except TopicTestSetUnavailable:
                 topic_label = "专题测评"
-        report = build_result_report(
-            quiz_id=quiz_id,
-            assessment_type=assessment_type,
-            subject_id=str(session.get("subject_id") or "construction_exam"),
-            topic_ids=topic_ids,
-            topic_label=topic_label,
-            blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
-            form_id=str(session.get("form_id") or ""),
-            scored_result=scored_result,
-            writeback_refs={"writeback_status": {"status": "pending"}},
-        )
+        if assessment_type == "pass_readiness":
+            report = build_pass_readiness_report(
+                quiz_id=quiz_id,
+                assessment_type=assessment_type,
+                subject_id=str(session.get("subject_id") or "construction_exam"),
+                topic_label=topic_label,
+                blueprint_version=str(session.get("blueprint_version") or "pass_readiness_architecture_v1"),
+                form_id=str(session.get("form_id") or ""),
+                scored_result=scored_result,
+                session_questions=list(session.get("session_questions_private") or []),
+                answers=dict(answers or {}),
+                writeback_refs={"writeback_status": {"status": "pending"}},
+            )
+        else:
+            report = build_result_report(
+                quiz_id=quiz_id,
+                assessment_type=assessment_type,
+                subject_id=str(session.get("subject_id") or "construction_exam"),
+                topic_ids=topic_ids,
+                topic_label=topic_label,
+                blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
+                form_id=str(session.get("form_id") or ""),
+                scored_result=scored_result,
+                writeback_refs={"writeback_status": {"status": "pending"}},
+            )
         submitted = self._assessment_session_repository.mark_submitted_once(
             user_id,
             quiz_id,
@@ -9071,6 +9526,8 @@ class MemberConsoleService:
                 assessment_type=str(session.get("assessment_type") or "topic_diagnostic"),
                 subject_id=str(session.get("subject_id") or "construction_exam"),
                 scored_result=scored_result,
+                blueprint_version=str(session.get("blueprint_version") or ""),
+                session_questions=list(session.get("session_questions_private") or []),
             )
             self._assessment_session_repository.attach_writeback_refs(
                 user_id,
@@ -9079,7 +9536,18 @@ class MemberConsoleService:
                 mistake_book_refs=list(writeback_refs.get("mistake_book_refs") or []),
                 mark_scored=True,
             )
+            if int(writeback_refs.get("failed_item_count") or 0):
+                # 逐题隔离后:部分题写入失败,已写的 refs 如实保留,状态如实降级。
+                self._assessment_session_repository.record_degraded(
+                    user_id,
+                    quiz_id,
+                    reason="writeback_partial",
+                )
         except Exception:
+            # 2026-08-07 审计:此处曾裸吞异常零日志,定性全靠数据考古。留痕再降级。
+            logger.exception(
+                "assessment_writeback_failed user_id=%s quiz_id=%s", user_id, quiz_id
+            )
             self._assessment_session_repository.record_degraded(
                 user_id,
                 quiz_id,
@@ -9089,7 +9557,7 @@ class MemberConsoleService:
     def retry_assessment_writeback(self, user_id: str, quiz_id: str) -> dict[str, Any]:
         self._require_durable_assessment_sessions()
         session = self._assessment_session_repository.private_session(user_id, quiz_id)
-        if session.get("assessment_type") not in {"topic_diagnostic", "real_exam_simulation"}:
+        if session.get("assessment_type") not in {"topic_diagnostic", "real_exam_simulation", "pass_readiness"}:
             raise KeyError(f"Unknown quiz: {quiz_id}")
         if not session.get("submitted_answer_snapshot"):
             raise KeyError(f"Assessment not submitted: {quiz_id}")
@@ -9108,6 +9576,8 @@ class MemberConsoleService:
             assessment_type=str(session.get("assessment_type") or "topic_diagnostic"),
             subject_id=str(session.get("subject_id") or "construction_exam"),
             scored_result=scored_result,
+            blueprint_version=str(session.get("blueprint_version") or ""),
+            session_questions=list(session.get("session_questions_private") or []),
         )
         stored = self._assessment_session_repository.attach_writeback_refs(
             user_id,
@@ -9141,7 +9611,88 @@ class MemberConsoleService:
             raise KeyError(f"Assessment report not ready: {quiz_id}")
         return deepcopy(report)
 
-    async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
+    # 深解析异步阶段(owner 2026-08-07:同步等 LLM 最坏 60-90s 撞小程序超时,
+    # 「客户还以为系统卡住了」)。阶段名是展示口径,状态本身(生成中/完成/失败)
+    # 是真实作业状态;pending 标记落报告快照,跨 worker 可见。
+    _EXPLANATION_STAGES = ("读取签发诊断", "逐项核对选项与教材依据", "组织讲解、口诀与下一步")
+    _EXPLANATION_PENDING_STALE_SECONDS = 180
+
+    def _deep_explanation_generating_payload(
+        self, *, quiz_id: str, question_id: str, cache_key: str, elapsed_seconds: float
+    ) -> dict[str, Any]:
+        stage_index = min(int(max(0.0, elapsed_seconds) // 10), len(self._EXPLANATION_STAGES) - 1)
+        return {
+            "quiz_id": quiz_id,
+            "question_id": question_id,
+            "cache_key": cache_key,
+            "cache_status": "pending",
+            "workflow_status": "generating",
+            "stages": list(self._EXPLANATION_STAGES),
+            "stage_index": stage_index,
+        }
+
+    async def _generate_and_store_deep_explanation(
+        self,
+        *,
+        user_id: str,
+        quiz_id: str,
+        question_id: str,
+        cache_key: str,
+        question: dict[str, Any],
+        learner_answer: str,
+        correct_answer: str,
+        trial_included: bool,
+    ) -> None:
+        try:
+            explanation = await generate_llm_deep_explanation(
+                question=question,
+                learner_answer=learner_answer,
+                correct_answer=correct_answer,
+                quiz_id=quiz_id,
+                question_id=question_id,
+            )
+            usage_summary = explanation.pop("usage_summary", None)
+            amount_points, billing_metadata = billable_points_from_usage_summary(usage_summary)
+            if not trial_included:
+                await asyncio.to_thread(
+                    self._capture_assessment_explanation_points,
+                    user_id=user_id,
+                    quiz_id=quiz_id,
+                    question_id=question_id,
+                    cache_key=cache_key,
+                    amount_points=amount_points,
+                    metadata=billing_metadata,
+                )
+            await asyncio.to_thread(
+                self._assessment_session_repository.store_deep_explanation,
+                user_id,
+                quiz_id,
+                cache_key=cache_key,
+                explanation=explanation,
+            )
+        except Exception:
+            logger.exception(
+                "assessment_deep_explanation_background_failed quiz_id=%s question_id=%s",
+                quiz_id,
+                question_id,
+            )
+            try:
+                await asyncio.to_thread(
+                    self._assessment_session_repository.store_deep_explanation,
+                    user_id,
+                    quiz_id,
+                    cache_key=cache_key,
+                    explanation={"failed": True, "failed_epoch": time.time()},
+                )
+            except Exception:
+                logger.exception(
+                    "assessment_deep_explanation_failed_marker_store_failed quiz_id=%s",
+                    quiz_id,
+                )
+
+    async def get_assessment_deep_explanation(
+        self, user_id: str, quiz_id: str, question_id: str, *, retry: bool = False
+    ) -> dict[str, Any]:
         self._require_durable_assessment_sessions()
         try:
             session = self._assessment_session_repository.private_session(user_id, quiz_id)
@@ -9180,37 +9731,76 @@ class MemberConsoleService:
             hashlib.sha256(json.dumps(question, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
             PROMPT_VERSION,
         )
-        self._ensure_assessment_explanation_balance(
-            user_id=user_id,
-            cache_key=cache_key,
-            minimum_points=minimum_explanation_points(),
+        # 结果缓存(owner 2026-08-07:同一题不得重复生成):唯一存放点=报告快照
+        # deep_explanations[cache_key]。完成即回;pending/failed 标记走异步语义。
+        entry = dict((report.get("deep_explanations") or {}).get(cache_key) or {})
+        if entry and not entry.get("pending") and not entry.get("failed"):
+            return {
+                "quiz_id": quiz_id,
+                "question_id": normalized_question_id,
+                "cache_key": cache_key,
+                "cache_status": "cached",
+                "workflow_status": "completed",
+                "billing": {"status": "cached", "amount_points": 0},
+                "explanation": entry,
+            }
+        if entry.get("pending"):
+            elapsed = time.time() - float(entry.get("started_epoch") or 0.0)
+            if elapsed < self._EXPLANATION_PENDING_STALE_SECONDS:
+                return self._deep_explanation_generating_payload(
+                    quiz_id=quiz_id,
+                    question_id=normalized_question_id,
+                    cache_key=cache_key,
+                    elapsed_seconds=elapsed,
+                )
+            # 超时残留(进程重启/任务夭折)→ 视同缺失,允许重新生成。
+        if entry.get("failed") and not retry:
+            return {
+                "quiz_id": quiz_id,
+                "question_id": normalized_question_id,
+                "cache_key": cache_key,
+                "cache_status": "failed",
+                "workflow_status": "failed",
+            }
+        # 试驾面(owner 2026-08-07 拍板):过线体检是获客入口,错题的鲁班深解析
+        # 免额度——新用户 0 余额不得撞付费墙。成本天然封顶:只放行本卷报告
+        # wrong_items 内的题(单卷 ≤36),路由限流(10/min·200/day)兜底。
+        trial_included = str(session.get("assessment_type") or "") == "pass_readiness" and any(
+            str(item.get("question_id") or "") == normalized_question_id
+            for item in list(report.get("wrong_items") or [])
         )
-        explanation = await generate_llm_deep_explanation(
-            question=question,
-            learner_answer=learner_answer,
-            correct_answer=correct_answer,
+        if not trial_included:
+            self._ensure_assessment_explanation_balance(
+                user_id=user_id,
+                cache_key=cache_key,
+                minimum_points=minimum_explanation_points(),
+            )
+        # 先落 pending 标记(报告快照=跨 worker 的单一权威),再起后台任务——
+        # 请求秒回 generating,前端轮询同一入口取进度/结果,绝不同步苦等 LLM。
+        self._assessment_session_repository.store_deep_explanation(
+            user_id,
+            quiz_id,
+            cache_key=cache_key,
+            explanation={"pending": True, "started_epoch": time.time()},
+        )
+        asyncio.get_running_loop().create_task(
+            self._generate_and_store_deep_explanation(
+                user_id=user_id,
+                quiz_id=quiz_id,
+                question_id=normalized_question_id,
+                cache_key=cache_key,
+                question=question,
+                learner_answer=learner_answer,
+                correct_answer=correct_answer,
+                trial_included=trial_included,
+            )
+        )
+        return self._deep_explanation_generating_payload(
             quiz_id=quiz_id,
             question_id=normalized_question_id,
-        )
-        usage_summary = explanation.pop("usage_summary", None)
-        amount_points, billing_metadata = billable_points_from_usage_summary(usage_summary)
-        billing = self._capture_assessment_explanation_points(
-            user_id=user_id,
-            quiz_id=quiz_id,
-            question_id=normalized_question_id,
             cache_key=cache_key,
-            amount_points=amount_points,
-            metadata=billing_metadata,
+            elapsed_seconds=0.0,
         )
-        return {
-            "quiz_id": quiz_id,
-            "question_id": normalized_question_id,
-            "cache_key": cache_key,
-            "cache_status": "generated",
-            "workflow_status": "completed",
-            "billing": billing,
-            "explanation": explanation,
-        }
 
     def _ensure_assessment_explanation_balance(
         self,
@@ -9697,10 +10287,20 @@ class MemberConsoleService:
         channel: str = "",
         scene: str = "",
     ) -> dict[str, Any]:
+        # 分段计时(诊断 2026-08-06 登录超 15s 前端超时线):零行为改动,只加一条日志。
+        _t0 = time.monotonic()
         identity = await self._resolve_wechat_login_identity(code)
-        return await self.bind_phone_for_wechat(
+        _t1 = time.monotonic()
+        payload = await self.bind_phone_for_wechat(
             identity["user_id"], phone_code, channel=channel, scene=scene
         )
+        logger.info(
+            "wechat_login_timing identity=%.2fs bind=%.2fs total=%.2fs",
+            _t1 - _t0,
+            time.monotonic() - _t1,
+            time.monotonic() - _t0,
+        )
+        return payload
 
     async def bind_phone_for_wechat(
         self,
@@ -9713,6 +10313,14 @@ class MemberConsoleService:
         raw_code = str(phone_code or "").strip()
         if not raw_code:
             raise ValueError("valid phone_code is required")
+        _bind_timings: dict[str, float] = {}
+        _seg_start = time.monotonic()
+
+        def _mark(segment: str) -> None:
+            nonlocal _seg_start
+            now_mono = time.monotonic()
+            _bind_timings[segment] = now_mono - _seg_start
+            _seg_start = now_mono
 
         _maybe_direct = _normalize_phone_input(raw_code)
         is_direct_phone = self._is_cn_mainland_mobile(_maybe_direct)
@@ -9743,11 +10351,13 @@ class MemberConsoleService:
                 identity_metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
         if len(normalized) != 11:
             raise ValueError("valid phone_code is required")
+        _mark("phone_exchange")
 
         try:
             verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
         except ValueError as exc:
             raise ValueError("手机号身份冲突，请联系客服") from exc
+        _mark("alias_resolve")
 
         # 注册渠道归因只做 first-touch：该手机号尚无已验证 canonical alias（真·首次注册）
         # 才写 reg_channel/reg_scene；已注册用户复登录不覆盖注册渠道。
@@ -9817,6 +10427,7 @@ class MemberConsoleService:
             }
 
         result = self._mutate(_apply)
+        _mark("member_apply")
         auth_identity = self._auth_identity_for_member(str(result.get("user_id") or "").strip())
         token = self._issue_access_token(
             user_id=auth_identity["user_id"],
@@ -9837,18 +10448,26 @@ class MemberConsoleService:
                 "phone": normalized,
             }
         )
+        _mark("token_and_response")
         # 微信绑定手机后同步持久化到 Supabase
         self._persist_phone_identity(
             phone=normalized,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
             identity_metadata=identity_metadata or None,
         )
+        _mark("persist_phone")
         # openid / unionid 持久化：canonical_uid 已确立后写入，
         # 使同一 WeChat Open Platform 下的跨产品登录可通过 unionid 直接命中同一身份。
         self._persist_wechat_openid_identity(
             openid=str(result.get("openid") or "").strip(),
             unionid=str(result.get("unionid") or "").strip(),
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
+        _mark("persist_openid")
+        logger.info(
+            "wechat_bind_phone_timing %s total=%.2fs",
+            " ".join(f"{key}={value:.2f}s" for key, value in _bind_timings.items()),
+            sum(_bind_timings.values()),
         )
         return payload
 

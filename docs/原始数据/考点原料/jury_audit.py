@@ -32,7 +32,7 @@ def build_prompt(pack_path, src_path):
         for u in src.get("units", []):
             for sp in u.get("scoring_points", []):
                 if sp.get("point_id"): q[sp["point_id"]] = (sp.get("quote") or "")[:200]
-    cited = set(re.findall(r"(?:ca|kc|m35):[0-9A-Za-z_\-一-鿿]+(?::[0-9A-Za-z_\-一-鿿]+)?", pack))
+    cited = set(re.findall(r"(?:ca|kc|cc|m35):[0-9A-Za-z_\-一-鿿]+(?::[0-9A-Za-z_\-一-鿿]+)?", pack))
     srcmap = "\n".join(f"{p} :: {q[p]}" for p in sorted(cited) if p in q)
     sys_p = "你是异源独立语义裁判,中立取证(不是检察官,宁可标存疑也别为凑数编问题)。"
     usr = f"""审一份 Opus 团编的考点 pack。【分工】确定性脚本已验:真题锚 0 漂移、point_id 都存在。你别核题号/point_id 存在性,只做语义判断。

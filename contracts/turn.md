@@ -238,7 +238,14 @@
    - Agent loop 对预算耗尽 / provider error / 空答案 / provider token 上限截断只记录
      `runtime_metadata["turn_failure"]={kind, detail, ...}`（`tool_budget_exhausted` /
      `provider_error` / `provider_timeout` / `model_empty_answer` /
-     `model_output_truncated`），`final_content=None`；`finish_reason=length|max_tokens`
+     `model_output_truncated`；turn runtime deadline watchdog 处决超时轮时由
+     CancelledError 终态分支落 `deadline_exceeded`——2026-08-10 F3 修复,deadline
+     失败不再与未知失败共用无类型兜底,ERROR 事件带 `turn_failure`/`error_code`
+     导出。生成侧配套交付合同:`AgentCoordinator._generation_loop` 并发生成
+     (Semaphore 封顶)+ capability 本地预算收束,预算内完成的题必须交付,未完成
+     的取消并以 `generation_shortfall`(kind=`generation_collect_budget_exhausted`)
+     在 progress 事件发声;不跨层向 turn runtime 讨预算,180s watchdog 仍是最后
+     防线),`final_content=None`；`finish_reason=length|max_tokens`
      即使携带部分正文也不是完整终态，不得写 assistant 历史；其原始 `finish_reason` 必须进入
      `llm_stream_telemetry` 供生产追踪。
      不得产出任何学员可见 surrogate 文本。marker 严格 per-turn：入口 pop 陈旧值，恢复出

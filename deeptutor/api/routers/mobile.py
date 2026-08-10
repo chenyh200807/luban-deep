@@ -51,6 +51,7 @@ from deeptutor.services.first_run import (
     FirstRunManifestVersionConflict,
     FirstRunWritebackService,
     project_first_run_completion,
+    project_first_run_gate,
 )
 from deeptutor.services.internal_qa import (
     EVAL_BILLING_BYPASS_HEADER,
@@ -2820,6 +2821,16 @@ class WechatLoginRequest(BaseModel):
     scene: str = ""
 
 
+class WechatBasicLoginRequest(BaseModel):
+    """openid-only 登录入参（拒绝手机号授权的车道）。
+
+    刻意不接收 phone_code：手机号授权成功的车道必须走 /wechat/mp/login，
+    这样"是否拿到手机号"在路由层就是二选一，不靠一个可选字段区分。
+    """
+
+    code: str = ""
+
+
 class WechatBindPhoneRequest(BaseModel):
     phone_code: str = ""
     channel: str = ""
@@ -3164,6 +3175,33 @@ async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
         return await member_service.login_with_wechat_phone(
             body.code, body.phone_code, channel=body.channel, scene=body.scene
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@router.post(
+    "/wechat/mp/login-basic",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_wechat_login_basic",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
+async def wechat_login_basic(body: WechatBasicLoginRequest) -> dict[str, Any]:
+    """openid-only 登录（计划 §5.1 拒绝路径 / §9.4 缺口 1）。
+
+    学员在微信 getPhoneNumber 弹窗点"拒绝"时走这里：只用 wx.login 的 code 换
+    openid，发一个正规的认证会话，测评/结果/证据/微课/复测照常可用。手机号在
+    "保存报告""领取学习计划"两处再要，绝不硬卡核心结果。
+    """
+    try:
+        return await member_service.login_with_wechat_code(body.code)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -3824,8 +3862,18 @@ async def assessment_profile(authorization: str | None = Header(default=None)) -
     user_id = _resolve_authenticated_user_id(authorization)
     profile = dict(member_service.get_assessment_profile(user_id) or {})
     diagnostic_sources = dict(profile.get("diagnostic_sources") or {})
-    diagnostic_sources["first_run"] = project_first_run_completion(
+    first_run_projection = project_first_run_completion(
         learner_state_service.read_profile(user_id)
+    )
+    # 过线体检 §5.2 suppression: a completed pass-readiness diagnostic with
+    # landed evidence removes the legacy First Run ask. Pure read projection
+    # over canonical assessment evidence — no frontend flag, no new state.
+    pass_readiness_projection = await run_in_threadpool(
+        member_service.get_pass_readiness_completion, user_id
+    )
+    diagnostic_sources["pass_readiness"] = pass_readiness_projection
+    diagnostic_sources["first_run"] = project_first_run_gate(
+        first_run_projection, pass_readiness_projection
     )
     profile["diagnostic_sources"] = diagnostic_sources
     return profile
@@ -3968,6 +4016,7 @@ async def assessment_report(
 async def assessment_deep_explanation(
     quiz_id: str,
     question_id: str,
+    retry: bool = False,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
@@ -3975,6 +4024,7 @@ async def assessment_deep_explanation(
             _resolve_authenticated_user_id(authorization),
             quiz_id,
             question_id,
+            retry=retry,
         )
     except RuntimeError as exc:
         detail = str(exc)

@@ -509,6 +509,8 @@ domains:
       # deep_question._resolve_generation_topic，冷启动澄清由 capability 层负责）。
       # 新契约覆盖见 tests/core/test_generation_topic_and_subject_authority.py。
       - tests/agents/question/test_practice_topic_context_inheritance.py
+      # 2026-08-10 F3 交付合同: _generation_loop 并发化+预算收束部分交付回归钉。
+      - tests/agents/question/test_generation_loop_parallel.py
       - tests/core/test_generation_topic_and_subject_authority.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py
@@ -862,6 +864,7 @@ domains:
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
       - tests/services/learner_state/test_revalidation_queue.py
+      - tests/services/learner_state/test_exam_prep_plan.py
       - tests/services/learner_state/test_mistake_clustering.py
       - tests/services/learner_state/test_learning_state_scenario_matrix.py
       - tests/services/learner_state/test_evidence_story_pii_redaction.py
@@ -875,6 +878,8 @@ domains:
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_home_event_window.py
+      - tests/services/member_console/test_home_next_step_composition_root.py
+      - tests/services/member_console/test_exam_prep_plan_read.py
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
       - tests/services/member_console/test_rbac.py

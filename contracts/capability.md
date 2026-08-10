@@ -94,6 +94,21 @@
 
 43. capability / TutorBot / provider 可以把 `llm_stream_telemetry`、provider timing、first-useful-content timing、`latency_timeline`、`latency_max_stall` 等写入 runtime/session metadata，供 `turn_runtime` terminal observer 和内部诊断消费；这些字段不得进入 `/api/v1/ws` outbound public copy，不属于 capability public result contract，也不得成为客户端展示、capability route、评分、计费或 learner-state authority。公开 WS redaction 只能删除 public copy 中的内部观测字段，不能改写持久化 turn event、canonical final answer 或 terminal observer truth。
 
+44. 出题意图仲裁收权（2026-08-10，F1 生产事故根因修复）：「这轮是不是出题轮」的确定
+    性判据全链只允许一把出题形状尺（`looks_like_practice_generation_request`）+ 一把追
+    问形状尺（`looks_like_question_followup`，已否定感知：否定短语内的追问词如「不要提
+    前给答案和解析」不构成追问形状），禁止任何消费点自建第二套出题/追问意图词表或显式
+    闸（原 `_has_explicit_practice_generation_intent` 及其「解析」否定词表已退役，不得
+    复活）。仲裁规则唯一：**无歧义单形状 → 确定性快路径直判；出题+追问双形状 → 一律
+    fall-through 语义层（LLM interpreter / scene-LLM）裁决，确定性层不得抢答**。scene
+    权威 `practice_generation` 分支与 orchestrator 的 followup 让位通道是该规则的上下游：
+    让位通道只接收真语义层产物，被确定性补位伪装的追问判定不得再流入。批量作答 arity
+    单向闸：消息可解析的带序号作答段数 > 上下文可判题数时归 `ambiguous`
+    （`requires_question_index` + `arity_mismatch`），绝不蒸馏成单字母判 stale 单题；答少
+    于题是合法部分提交不受拦。回归钉：`tests/services/test_semantic_router.py`（F1 原文
+    快路径钉）、`tests/services/test_question_followup.py`（arity 双向钉+否定感知钉）、
+    `tests/services/test_question_lifecycle_scene_derivation.py`（双形状 defer/作答优先钉）。
+
 ## Schema
 
 - 机器可读 schema：`deeptutor/capabilities/request_contracts.py`

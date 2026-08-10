@@ -1,0 +1,1858 @@
+{
+ "schema": "luban_s2_diagnostic_form.v2",
+ "form_id": "pass_readiness_form_main_v2",
+ "blueprint": "pass_readiness_architecture_v2",
+ "date": "2026-08-06",
+ "supersedes": "pass_readiness_form_main_v1(form_v1_manifest.json)",
+ "owner_decisions": [
+  "题量对齐真题卷面:20单选+10多选+案例点选",
+  "变式优先,真题只做锚(零真题原题)"
+ ],
+ "interaction_contract": "纯点选(single/multi letter tap);答案线格式 dict[str,str];无自由文本/拖拽",
+ "written_expression": "not_measured(计划 §6.2 无条件降级;分数带走 §7.2 更宽阶梯)",
+ "band_policy_note": "每维观察数翻倍,带宽阶梯可下调一档(V1 ≥20 → v2 待定 ≥15),band_policy_version 需 bump(代码侧)",
+ "checkpoints": {
+  "after_S10": "第10计分题粗带:coverage=low,超宽带宽,不出证据屏不点名弱点(§6.2-v2 两级检查点第一级)",
+  "after_M10": "第30计分题客观带:客观题带宽档,仍不出案例采分点证据",
+  "completion": "39交互全部完成:精带+证据屏"
+ },
+ "confidence_tasks": [
+  "S06",
+  "M06",
+  "CC1"
+ ],
+ "context_probes": [
+  "P1",
+  "P2",
+  "P3"
+ ],
+ "ordering": [
+  "P1",
+  "P2",
+  "P3",
+  "S01",
+  "S02",
+  "S03",
+  "S04",
+  "S05",
+  "S06",
+  "S07",
+  "S08",
+  "S09",
+  "S10",
+  "S11",
+  "S12",
+  "S13",
+  "S14",
+  "S15",
+  "S16",
+  "S17",
+  "S18",
+  "S19",
+  "S20",
+  "M01",
+  "M02",
+  "M03",
+  "M04",
+  "M05",
+  "M06",
+  "M07",
+  "M08",
+  "M09",
+  "M10",
+  "CA1",
+  "CA2",
+  "CB1",
+  "CB2",
+  "CC1",
+  "CC2"
+ ],
+ "dimension_matrix": {
+  "core_knowledge": [
+   "S02",
+   "S04",
+   "S07",
+   "S08",
+   "S09",
+   "S10",
+   "S12",
+   "S20",
+   "M01",
+   "M02",
+   "M03",
+   "M04",
+   "M05",
+   "M06",
+   "M07",
+   "M08",
+   "M09",
+   "M10"
+  ],
+  "construction_logic": [
+   "S01",
+   "S03",
+   "S05",
+   "S06",
+   "S11",
+   "S13",
+   "S14",
+   "S15",
+   "S16",
+   "S17",
+   "S18",
+   "S19",
+   "CA1",
+   "CB1",
+   "CC1"
+  ],
+  "case_scoring_point": [
+   "CA2",
+   "CB2",
+   "CC2"
+  ],
+  "answer_expression": [],
+  "prep_feasibility_context_only": [
+   "P1",
+   "P2",
+   "P3"
+  ]
+ },
+ "family_matrix": {
+  "主体结构": [
+   "S01",
+   "S06",
+   "S11",
+   "S16",
+   "S20",
+   "M01",
+   "M06",
+   "CA1",
+   "CA2"
+  ],
+  "安全": [
+   "S02",
+   "S07",
+   "S12",
+   "S17",
+   "M02",
+   "M07"
+  ],
+  "进度": [
+   "S03",
+   "S08",
+   "S13",
+   "M03",
+   "M08",
+   "CC1",
+   "CC2"
+  ],
+  "质量验收": [
+   "S04",
+   "S09",
+   "S14",
+   "S18",
+   "M04",
+   "M09",
+   "CB1",
+   "CB2"
+  ],
+  "防水": [
+   "S05",
+   "S10",
+   "S15",
+   "S19",
+   "M05",
+   "M10"
+  ]
+ },
+ "transitional_tasks": [
+  "M01",
+  "M02",
+  "M03",
+  "M04",
+  "M05",
+  "M06",
+  "M07",
+  "M08",
+  "M09",
+  "M10"
+ ],
+ "materials": {
+  "CASE_A": {
+   "text": "某新建高层办公楼工程,地下2层,地上16层,主体为现浇钢筋混凝土结构。项目部编制的《后浇带施工专项方案》载明:①采用微膨胀混凝土浇筑;②模板独立支设;③剔除模板用钢丝网;④因设计无要求,基础底板后浇带12d后封闭;⑤浇筑后保持至少14d湿润养护。监理工程师审查后要求整改。",
+   "chars": 136,
+   "family": "主体结构",
+   "pack_id": "C01",
+   "origin": {
+    "kind": "real_exam_case_variant",
+    "year": 2018,
+    "exam_anchor": "案例分析(三)",
+    "v1_material": "CASE_A(form_v1_manifest.json)",
+    "sidecar": "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   },
+   "rewrite_note": "变式化改写:住宅→办公楼、12层→16层、10d→12d(仍<28d,不妥性质不变);三处不妥句(②独立支设/③剔钢丝网/④提前封闭)逐字保留原题措辞;①⑤为官方答案技术措施(3)(5)原文并入方案作干扰,零自造事实"
+  },
+  "CASE_B": {
+   "text": "某办公楼工程,各单位在质量检测管理中做了以下工作:①建设单位委托具有相应资质的检测机构负责本工程质量检测;②试样送检时,试验员向检测机构填报检测委托单;③监理对混凝土试件制作与送样见证,试验员如实记录取样、现场检测情况并制作见证记录;④总包项目部按建设单位要求,按季度向检测机构支付当期检测费用。",
+   "chars": 148,
+   "family": "质量验收",
+   "pack_id": "A02",
+   "origin": {
+    "kind": "real_exam_case_variant",
+    "year": 2023,
+    "exam_anchor": "案例一",
+    "v1_material": "CASE_B(form_v1_manifest.json)",
+    "sidecar": "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   },
+   "rewrite_note": "变式化改写:住宅小区→办公楼、工作项①②③④重排序(原②③互换)、每月→按季度(付费主体不妥性质不变);四项工作内容逐字保留;零自造事实"
+  },
+  "CASE_C": {
+   "text": "某新建教学楼项目由两栋结构类型与建筑规模完全相同的单体组成。项目部针对四个施工过程拟采用四个专业施工队组织流水施工,流水节拍依次为4、4、8、4个月。建设单位要求缩短工期,项目部决定增加相应的专业施工队,组织成倍节拍流水施工。",
+   "chars": 113,
+   "family": "进度",
+   "pack_id": "N03",
+   "origin": {
+    "kind": "real_exam_case_variant",
+    "year": 2023,
+    "exam_anchor": "第2题",
+    "v1_material": "CASE_C(form_v1_manifest.json)",
+    "sidecar": "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   },
+   "rewrite_note": "变式化改写:住宅→教学楼、节拍3,3,6,3→4,4,8,4(等比换数,gcd 结构不变:K=4、队数1+1+2+1=5、T=(2+5−1)×4=24个月);考法与四步采分链不变;M=2(两栋)保留;全部数值机械推导,零自造事实"
+  }
+ },
+ "tasks": [
+  {
+   "task_id": "P1",
+   "kind": "profile_probe",
+   "family": null,
+   "pack_id": null,
+   "dimension": "prep_feasibility(独立字段,禁入分数带)",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "probe_id": "prep_attempt_history",
+   "prompt": "第几次备考实务?上次实务成绩落在哪个分数带?(不计分,用于备考画像)",
+   "scored": false
+  },
+  {
+   "task_id": "P2",
+   "kind": "profile_probe",
+   "family": null,
+   "pack_id": null,
+   "dimension": "prep_feasibility(独立字段,禁入分数带)",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "probe_id": "prep_passed_subjects",
+   "prompt": "已通过科目及通过年份(管理/经济/法规)?(不计分,喂给滚动作废提醒)",
+   "scored": false
+  },
+  {
+   "task_id": "P3",
+   "kind": "profile_probe",
+   "family": null,
+   "pack_id": null,
+   "dimension": "prep_feasibility(独立字段,禁入分数带)",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "probe_id": "prep_weekly_hours",
+   "prompt": "每周有效学习时长?(不计分,只影响可行性/节奏,不影响分数带)",
+   "scored": false
+  },
+  {
+   "task_id": "S01",
+   "kind": "compiled_practice_item",
+   "family": "主体结构",
+   "pack_id": "C01",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/c01.practice.authority.json",
+    "variant_id": "C01-html-practice-html-q6-da41b3b80179",
+    "source_anchor": "ca:1A413030_103_0196",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   },
+   "stem": "施工缝处理后再浇筑的工序，选出顺序和关键词都对、能得分的作答。",
+   "rule_group": "施工缝·处理工序",
+   "fact_id": "c01-fact-joint-treatment-process",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E06",
+    "E03",
+    "M08"
+   ],
+   "content_sha256": "65615255a0035de78ee26145c52f240d64a09ad74a8bc35798bd8daa94f39e45",
+   "retest_pair": {
+    "variant_id": "C01-html-practice-html-q18-1212272c719b",
+    "fact_id": "c01-fact-joint-treatment-process",
+    "source_anchor": "ca:1A413030_103_0196",
+    "note": "同fact施工缝处理工序;backup q9"
+   }
+  },
+  {
+   "task_id": "S02",
+   "kind": "compiled_practice_item",
+   "family": "安全",
+   "pack_id": "J01",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/j01.practice.authority.json",
+    "variant_id": "J01-html-practice-html-q13-8befeb331bae",
+    "source_anchor": "exam:2019:第2题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_J01_exam_evidence.json"
+   },
+   "stem": "某基坑论证组织了「包括总承包单位技术负责人在内的 5 名专家」。指出不妥并纠正，选出能得分的作答。",
+   "rule_group": "专家回避·主体维",
+   "fact_id": "j01-fact-expert-panel-rules",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E02",
+    "E10",
+    "E08"
+   ],
+   "content_sha256": "d84cc5649c7a895b9af6dca66497d9bc775184f7947a9c0f7757ae7c7c4b3c55",
+   "retest_pair": {
+    "variant_id": "J01-html-practice-html-q16-673ec10c7375",
+    "fact_id": "j01-fact-expert-panel-rules",
+    "source_anchor": "exam:2019:第2题",
+    "note": "同fact同锚exam:2019:第2题,纠错→诊断换面"
+   }
+  },
+  {
+   "task_id": "S03",
+   "kind": "compiled_practice_item",
+   "family": "进度",
+   "pack_id": "E05",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/e05.practice.authority.json",
+    "variant_id": "E05-html-practice-html-q7-576365500963",
+    "source_anchor": "ca:1A435020_096_0157",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_E05_exam_evidence.json"
+   },
+   "stem": "已知 BCWP=6370 万元、BCWS=5340 万元。求进度绩效指数 SPI 并判读，选出能得分的作答。",
+   "rule_group": "进度绩效SPI·计算判读维",
+   "fact_id": "e05-fact-绩效指数除法判读",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E09",
+    "E07",
+    "E04"
+   ],
+   "content_sha256": "b705f10de478b85c4def12060923565e2d2ba575986c72b44e8a0f81301707bb",
+   "retest_pair": {
+    "variant_id": "E05-html-practice-html-q8-bdad94d68d2c",
+    "fact_id": "e05-fact-绩效指数除法判读",
+    "source_anchor": "ca:1A435020_096_0157",
+    "note": "同fact同指标SPI,问法换面(理想平行)"
+   }
+  },
+  {
+   "task_id": "S04",
+   "kind": "compiled_practice_item",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/a02.practice.authority.json",
+    "variant_id": "A02-html-practice-html-q7-b93861f4712e",
+    "source_anchor": "exam:2020:第30题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   },
+   "stem": "屋面保温材料进场必须复验的技术指标是？",
+   "rule_group": "进场关·保温材料复验",
+   "fact_id": "a02-fact-safety-energy-env-recheck",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "",
+    "",
+    ""
+   ],
+   "content_sha256": "ac93719e963c2642843636ab2074f6aba8b8b3e09d0a618e2089a479ba01505f",
+   "retest_pair": {
+    "variant_id": "A02-html-practice-html-q8-5e25509aefb1",
+    "fact_id": "a02-fact-safety-energy-env-recheck",
+    "source_anchor": "exam:2022:第22题",
+    "note": "同fact复验触发,屋面→墙体换面(理想平行)"
+   }
+  },
+  {
+   "task_id": "S05",
+   "kind": "compiled_practice_item",
+   "family": "防水",
+   "pack_id": "F02",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/f02.practice.authority.json",
+    "variant_id": "F02-html-practice-html-q7-875595f655ed",
+    "source_anchor": "exam:2016:第27题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   },
+   "stem": "某坡屋面铺贴双层高聚物改性沥青卷材，施工班组就搭接缝朝向与上下两层排布提出方案。关于搭接方向与层间关系，选出符合规范、能得分的作答。",
+   "rule_group": "方向·场景变式",
+   "fact_id": "f02-fact-lap-direction",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E07",
+    "E07",
+    "E03"
+   ],
+   "content_sha256": "0fece8000c631296abe2257f6a8c280d9b385bb8d7640c736c3bea75d489484f",
+   "retest_pair": {
+    "variant_id": "F02-html-practice-html-q2-8c8411934bd3",
+    "fact_id": "f02-fact-lap-direction",
+    "source_anchor": "exam:2016:第27题",
+    "note": "同fact同锚exam:2016:第27题,场景换面"
+   }
+  },
+  {
+   "task_id": "S06",
+   "kind": "compiled_practice_item",
+   "family": "主体结构",
+   "pack_id": "C04",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": true,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/c04.practice.authority.json",
+    "variant_id": "C04-html-practice-html-q4-7919150be099",
+    "source_anchor": "exam:2024:第10题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_C04_exam_evidence.json"
+   },
+   "stem": "某现浇混凝土梁跨度恰好为 8m。拆底模时强度百分率应取多少？选出依据正确的作答。",
+   "rule_group": "边界辨析·条件维",
+   "fact_id": "c04-fact-bottom-form-strength-threshold",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "M08",
+    "E07",
+    "M08"
+   ],
+   "content_sha256": "a1fcb1acd8dd7183b93ec8c25969609464205c3abbbc90792d5ef5b3e736466d",
+   "retest_pair": {
+    "variant_id": "C04-html-practice-html-q5-0f31b7c99ac5",
+    "fact_id": "c04-fact-bottom-form-strength-threshold",
+    "source_anchor": "exam:2024:第10题",
+    "note": "同fact强度阈值,边界→全表换面"
+   }
+  },
+  {
+   "task_id": "S07",
+   "kind": "compiled_practice_item",
+   "family": "安全",
+   "pack_id": "R01",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/r01.practice.authority.json",
+    "variant_id": "R01-html-practice-html-q11-f612cfaaa2fb",
+    "source_anchor": "kc:1A437000_145_0231:0",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_R01_exam_evidence.json"
+   },
+   "stem": "一、二、三级动火分别由谁审批？选出对应完整、能得分的作答。",
+   "rule_group": "审批主体·下集",
+   "fact_id": "r01-fact-hot-work-permit-rules",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E10",
+    "E10",
+    "E10"
+   ],
+   "content_sha256": "0da53944e11db1f94e55a47c7bebd5a09388a26a6e37011b99da2e5b75828fd7",
+   "retest_pair": {
+    "variant_id": "R01-html-practice-html-q12-a0bc6fdb059b",
+    "fact_id": "r01-fact-hot-work-permit-rules",
+    "source_anchor": "kc:1A437000_145_0231:1",
+    "note": "同fact动火审批,相邻子点(审批主体↔动火证规则);backup q15"
+   }
+  },
+  {
+   "task_id": "S08",
+   "kind": "compiled_practice_item",
+   "family": "进度",
+   "pack_id": "N01",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/n01.practice.authority.json",
+    "variant_id": "N01-html-practice-html-q1-279218eaba74",
+    "source_anchor": "kc:1A433000_056_0085:1",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_N01_exam_evidence.json"
+   },
+   "stem": "双代号网络计划中，如何判定关键工作与关键线路？选出判据最完整、能得分的作答。",
+   "rule_group": "判据·条件维",
+   "fact_id": "n01-fact-critical-work-zero-float",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E07",
+    "E07",
+    "E04"
+   ],
+   "content_sha256": "759a8b7606f9d0274574ee42a2387b9a41469c54c4784f63534c56974e9a3313",
+   "retest_pair": {
+    "variant_id": "N01-html-practice-html-q5-cdf1c9b59fce",
+    "fact_id": "n01-fact-critical-work-zero-float",
+    "source_anchor": "exam:2018:案例分析(二)问题1-4",
+    "note": "同fact零时差判据,判据→应用换面;backup q8"
+   }
+  },
+  {
+   "task_id": "S09",
+   "kind": "compiled_practice_item",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/g01.practice.authority.json",
+    "variant_id": "G01-html-practice-html-q9-2a2749517ef5",
+    "source_anchor": "kc:1A413000_084_0157:0",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   },
+   "stem": "深基坑分层开挖，每层厚度宜控制在多少？选出正确、能得分的作答。",
+   "rule_group": "分层开挖·条件维",
+   "fact_id": "g01-fact-deep-excavation-earthwork",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "M08",
+    "M08",
+    "M10"
+   ],
+   "content_sha256": "6e88f6156d808a915fa3025a375125e15e0e08f45f0f22496d12c5e4d796b4a1",
+   "retest_pair": {
+    "variant_id": "G01-html-practice-html-q10-80da5c905a97",
+    "fact_id": "g01-fact-deep-excavation-earthwork",
+    "source_anchor": "kc:1A413000_084_0157:1",
+    "note": "同fact深基坑开挖,相邻子点(分层厚度↔预留土层)"
+   }
+  },
+  {
+   "task_id": "S10",
+   "kind": "compiled_practice_item",
+   "family": "防水",
+   "pack_id": "F03",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/f03.practice.authority.json",
+    "variant_id": "F03-html-practice-html-q4-5436a7f644e1",
+    "source_anchor": "exam:2020:第12题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_F03_exam_evidence.json"
+   },
+   "stem": "某工程屋面采用倒置式保温屋面。写出自下而上的构造层次顺序，选出正确、能得分的作答。",
+   "rule_group": "屋面·层序",
+   "fact_id": "f03-fact-inverted-roof-order",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E06",
+    "E02",
+    "E06"
+   ],
+   "content_sha256": "ce4f456a0ffa68d9286adce4efae40f45705c99ee79031b94dc5b58340e0bd8e",
+   "retest_pair": {
+    "variant_id": "F03-html-practice-html-q16-6fe38b4dac44",
+    "fact_id": "f03-fact-inverted-roof-order",
+    "source_anchor": "exam:2020:第12题",
+    "note": "同fact倒置式层序,整链→相邻层换面"
+   }
+  },
+  {
+   "task_id": "S11",
+   "kind": "compiled_practice_item",
+   "family": "主体结构",
+   "pack_id": "C05",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/c05.practice.authority.json",
+    "variant_id": "C05-html-practice-html-q6-bac427403b54",
+    "source_anchor": "exam:2025:第12题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_C05_exam_evidence.json"
+   },
+   "stem": "框架梁纵向受力钢筋的接头位置应如何设置？选出上下位置正确、能得分的作答。",
+   "rule_group": "梁接头位置·程序维",
+   "fact_id": "c05-fact-rebar-splice-layout",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "M08",
+    "E10",
+    "M10"
+   ],
+   "content_sha256": "6e3aac844326d58890d126592bfe76235ef866c096b5aba3bdef2fe1cec476b3",
+   "retest_pair": {
+    "variant_id": "C05-html-practice-html-q7-479126da25f0",
+    "fact_id": "c05-fact-rebar-splice-layout",
+    "source_anchor": "kc:1A413030_100_0190:2",
+    "note": "同fact接头位置,梁→柱换面"
+   }
+  },
+  {
+   "task_id": "S12",
+   "kind": "compiled_practice_item",
+   "family": "安全",
+   "pack_id": "S05",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/s05.practice.authority.json",
+    "variant_id": "S05-html-practice-html-q3-155a719c59e8",
+    "source_anchor": "kc:1A431011_014_0015:2",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_S05_exam_evidence.json"
+   },
+   "stem": "现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
+   "rule_group": "一机一闸·管理",
+   "fact_id": "s05-fact-one-device-one-switchbox",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "M10",
+    "E10",
+    "E03"
+   ],
+   "content_sha256": "c54056dcb1bc81bc3ab4d1471175b78859474cbfcb63ef979e431c58c0ef344b",
+   "retest_pair": {
+    "variant_id": "S05-html-practice-html-q18-236101054350",
+    "fact_id": "s05-fact-2023-tempelec-case-diagnosis",
+    "source_anchor": "exam:2023:第1题",
+    "note": "包含配对:q18诊断②即一机一闸同采分点"
+   }
+  },
+  {
+   "task_id": "S13",
+   "kind": "compiled_practice_item",
+   "family": "进度",
+   "pack_id": "N03",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/n03.practice.authority.json",
+    "variant_id": "N03-html-practice-html-q13-756762132051",
+    "source_anchor": "kc:1A433000_052_0076:0",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   },
+   "stem": "某工程四个施工过程流水节拍为 2、4、3、5 天，彼此不成倍数关系。判定流水组织类型，选出能得分的作答。",
+   "rule_group": "判型·条件维",
+   "fact_id": "n03-fact-判型成倍数等步距异节奏",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E07",
+    "E07",
+    "E05"
+   ],
+   "content_sha256": "9a6e7517e082f6813bf552db3c46271d1ac6bb6f80c711d71b64896dea2f8367",
+   "retest_pair": {
+    "variant_id": "N03-html-practice-html-q12-ec5949f5d91d",
+    "fact_id": "n03-fact-判型成倍数等步距异节奏",
+    "source_anchor": "kc:1A433000_052_0077:0",
+    "note": "同fact判型,节拍组换面(理想平行)"
+   }
+  },
+  {
+   "task_id": "S14",
+   "kind": "compiled_practice_item",
+   "family": "质量验收",
+   "pack_id": "G02",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/g02.practice.authority.json",
+    "variant_id": "G02-html-practice-html-q6-8717ba7ee8c4",
+    "source_anchor": "exam:2018:案例分析(三)问题2",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_G02_exam_evidence.json"
+   },
+   "stem": "采用振动压实机回填压实，其分层（虚铺）厚度与压实遍数应为？",
+   "rule_group": "压实·计算表达维",
+   "fact_id": "g02-fact-vibratory-compaction-backfill",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E10",
+    "E03",
+    "E07"
+   ],
+   "content_sha256": "4e6874385188f2f82206e2a8998582fd878cb416295030cdce1ebdb0e183f2f4",
+   "retest_pair": {
+    "variant_id": "G02-html-practice-html-q7-7c97057ddfa5",
+    "fact_id": "g02-fact-vibratory-compaction-backfill",
+    "source_anchor": "kc:1A413000_085_0158:2",
+    "note": "同fact压实参数,振动碾→平碾换面(理想平行);backup q16"
+   }
+  },
+  {
+   "task_id": "S15",
+   "kind": "compiled_practice_item",
+   "family": "防水",
+   "pack_id": "F05",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/f05.practice.authority.json",
+    "variant_id": "F05-html-practice-html-q5-3110c18f72a7",
+    "source_anchor": "kc:1A434000_075_0117:1",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_F05_exam_evidence.json"
+   },
+   "stem": "管道穿墙部位渗漏。其治理措施按流程组织，选出能得分的作答。",
+   "rule_group": "穿墙治理·程序维",
+   "fact_id": "f05-fact-pipe-through-wall",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E02",
+    "E06",
+    "E07"
+   ],
+   "content_sha256": "dbad80066487db8ce63f5ae9e35ec1151eb7603a2f6d771851c3db3f27b27c7e",
+   "retest_pair": {
+    "variant_id": "F05-html-practice-html-q16-865ae327e250",
+    "fact_id": "f05-fact-pipe-through-wall",
+    "source_anchor": "kc:1A434000_075_0117:1",
+    "note": "同fact穿墙管治理,流程→诊断换面;backup q6"
+   }
+  },
+  {
+   "task_id": "S16",
+   "kind": "compiled_practice_item",
+   "family": "主体结构",
+   "pack_id": "C07",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/c07.practice.authority.json",
+    "variant_id": "C07-html-practice-html-q10-a867b05d0fe0",
+    "source_anchor": "kc:1A413030_110_0217:0",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_C07_exam_evidence.json"
+   },
+   "stem": "施工员用高强度螺栓兼作安装螺栓做临时固定。指出是否妥当，并选出正确做法。",
+   "rule_group": "兼作纠错·判断纠错",
+   "fact_id": "c07-fact-high-strength-bolt-install",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E10",
+    "E03",
+    "E07"
+   ],
+   "content_sha256": "592b0130d209c2c18cb1b39ef4ecd8abcd373aa8f644003fc8a4d45fcc0d4003",
+   "retest_pair": {
+    "variant_id": "C07-html-practice-html-q15-e6b53089649f",
+    "fact_id": "c07-fact-high-strength-bolt-install",
+    "source_anchor": "kc:1A413030_110_0217:0",
+    "note": "包含配对:q15诊断①即兼作安装螺栓同采分点;backup q9"
+   }
+  },
+  {
+   "task_id": "S17",
+   "kind": "compiled_practice_item",
+   "family": "安全",
+   "pack_id": "S06",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/s06.practice.authority.json",
+    "variant_id": "S06-html-practice-html-q1-318405b15872",
+    "source_anchor": "kc:1A436000_121_0195:0",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_S06_exam_evidence.json"
+   },
+   "stem": "某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
+   "rule_group": "临边触发·条件维",
+   "fact_id": "s06-fact-edge-guard-2m-trigger",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E03",
+    "E07",
+    "E04"
+   ],
+   "content_sha256": "19c5ef5d9f06ede48741aa5ecd3a64028c10b142624058757bef05ea92e7f7e2",
+   "retest_pair": {
+    "variant_id": "S06-html-practice-html-q5-34a8127a8e08",
+    "fact_id": "s06-fact-edge-guard-2m-trigger",
+    "source_anchor": "kc:1A436000_121_0195:0",
+    "note": "同fact临边防护,相邻子点(触发判定↔栏杆封闭);backup q14"
+   }
+  },
+  {
+   "task_id": "S18",
+   "kind": "compiled_practice_item",
+   "family": "质量验收",
+   "pack_id": "G04",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/g04.practice.authority.json",
+    "variant_id": "G04-html-practice-html-q7-1ccf38483ff3",
+    "source_anchor": "exam:2022:第13题",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_G04_exam_evidence.json"
+   },
+   "stem": "某换填施工：上下两层接缝距离 300mm，并将接缝设在承重墙墙角下方便施工。选出正确的判断与改正。",
+   "rule_group": "换填接缝·判断纠错",
+   "fact_id": "g04-fact-cushion-fill-seam-quality",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "M08",
+    "M04",
+    "E07"
+   ],
+   "content_sha256": "bc4c30dd415d34e02dfe5c2dab308af891a2e50c1a2c908c42b0c8acbc79ec0b",
+   "retest_pair": {
+    "variant_id": "G04-html-practice-html-q17-f39e7c7e8db1",
+    "fact_id": "g04-fact-cushion-fill-seam-quality",
+    "source_anchor": "exam:2022:第13题",
+    "note": "包含配对:q17诊断③即换填接缝同采分点;backup q6"
+   }
+  },
+  {
+   "task_id": "S19",
+   "kind": "compiled_practice_item",
+   "family": "防水",
+   "pack_id": "F16",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/f16.practice.authority.json",
+    "variant_id": "F16-html-practice-html-q2-d87ee9a33256",
+    "source_anchor": "exam:2017:案例二",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_F16_exam_evidence.json"
+   },
+   "stem": "屋面卷材起鼓（直径≥100mm）用割补法处理。写出完整工序，选可得分的箭头链。",
+   "rule_group": "割补工序·程序维",
+   "fact_id": "f16-fact-割补工序八环",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E02",
+    "E10",
+    "E04"
+   ],
+   "content_sha256": "5572878f3b279d7281671078fd1d293dc969530747f928b59c05c186b6360528",
+   "retest_pair": {
+    "variant_id": "F16-html-practice-html-q8-19876fafd2ec",
+    "fact_id": "f16-fact-割补工序八环",
+    "source_anchor": "exam:2017:案例二",
+    "note": "同fact同锚exam:2017:案例二,正序→乱序换面(理想平行)"
+   }
+  },
+  {
+   "task_id": "S20",
+   "kind": "compiled_practice_item",
+   "family": "主体结构",
+   "pack_id": "Q01",
+   "dimension": "core_knowledge",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "source": {
+    "kind": "compiled_practice_authority",
+    "file": "deeptutor/services/luban_lesson/compiled/q01.practice.authority.json",
+    "variant_id": "Q01-html-practice-html-q1-9ebeb63182e6",
+    "source_anchor": "kc:1A413030_104_0197:0",
+    "review_status": "signed",
+    "sidecar": "docs/原始数据/考点原料/_Q01_exam_evidence.json"
+   },
+   "stem": "某工程有普通硅酸盐水泥现浇柱、有抗渗要求的地下室墙、后浇带三部分。关于最短养护时间，选出完整、能得分的作答。",
+   "rule_group": "养护时长·条件维",
+   "fact_id": "q01-fact-curing-days-matrix",
+   "answer_key": "(见 authority 文件 options.is_correct;本 manifest 不复制全部选项文)",
+   "distractor_error_codes": [
+    "E10",
+    "E10",
+    "E02"
+   ],
+   "content_sha256": "ce6b6f0db86557faa5f7d2239f18fd019d17f04acd19af91a687ddec5837555d",
+   "retest_pair": {
+    "variant_id": "Q01-html-practice-html-q6-1478b0ae6dba",
+    "fact_id": "q01-fact-curing-days-matrix",
+    "source_anchor": "m35:Q3-1A433000:P8",
+    "note": "包含配对:q6抗渗墙7d纠错即养护矩阵子点;backup q10"
+   }
+  },
+  {
+   "task_id": "M01",
+   "kind": "bank_transitional_multi",
+   "family": "主体结构",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A413030_103 施工缝位置→C01",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14783,
+    "source_type": "TEXTBOOK",
+    "book": "ZL864考证宝典必刷500题2025",
+    "node_code": "1A413040",
+    "db_content_hash": "929b3e82ce5bae60df36784dd31e063e69643f75065f6307b19c552199d684d9",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "混凝土施工缝留置位置正确的有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "柱在梁、板顶面"
+    },
+    {
+     "key": "B",
+     "value": "单向板在平行于板长边的任何位置"
+    },
+    {
+     "key": "C",
+     "value": "有主次梁的楼板在次梁跨中1/3范围内"
+    },
+    {
+     "key": "D",
+     "value": "墙在纵横墙的交接处"
+    },
+    {
+     "key": "E",
+     "value": "双向受力板按设计要求确定"
+    }
+   ],
+   "answer_key": "ACDE",
+   "analysis": "单向板在平行与短边的任何位置",
+   "difficulty_anchor": "锚:C01 q1 同点真题 exam:2021:第8题",
+   "content_sha256": "677cf55561a968b140bccf1e1ba504edcb5501314b26241cb94736464f6d2933",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "C01-html-practice-html-q1-b9e7d1d4282c",
+    "source_anchor": "exam:2021:第8题",
+    "note": "同采分点(构件×施工缝位置枚举);backup q5/q17"
+   }
+  },
+  {
+   "task_id": "M02",
+   "kind": "bank_transitional_multi",
+   "family": "安全",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A431011_015 安全电压→S05",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14326,
+    "source_type": "TEXTBOOK",
+    "book": "SMR章节千题斩2025",
+    "node_code": "1A431050",
+    "db_content_hash": "be838b1444707894742173be6c172605186fa232bcdb4876862a81fb203b2035",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "可以使用36V照明用电的施工现场有（  ）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "特别潮湿的场所"
+    },
+    {
+     "key": "B",
+     "value": "灯具离地面高度2.2m的场所"
+    },
+    {
+     "key": "C",
+     "value": "高温场所"
+    },
+    {
+     "key": "D",
+     "value": "有导电灰尘场所"
+    },
+    {
+     "key": "E",
+     "value": "锅炉或金属容器内"
+    }
+   ],
+   "answer_key": "BCD",
+   "analysis": "选项A、E错误，在特别潮湿的场所，导电良好的地面、锅炉或金属容器内工作的照明电源电压≤12V。隧道、人防工程、高温、有导电灰尘、比较潮湿或灯具离地高度低于2.5m等场所的照明，电源电压≤36V。",
+   "difficulty_anchor": "锚:S05 同点真题 exam:2016:第13题",
+   "content_sha256": "21e07af2603a33e1b30bf56d339ea1727512f17b73372d72554bc383703e856f",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "S05-html-practice-html-q9-413717805b15",
+    "source_anchor": "kc:1A431011_015_0016:2",
+    "note": "同fact安全电压分档,多选场所枚举→单选分档对应换面;backup q8"
+   }
+  },
+  {
+   "task_id": "M03",
+   "kind": "bank_transitional_multi",
+   "family": "进度",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A435020_095 挣值法→E05",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14429,
+    "source_type": "TEXTBOOK",
+    "book": "SMR章节千题斩2025",
+    "node_code": "1A435020",
+    "db_content_hash": "358084639e45421091da7871ffa77922437a7907a9cf2824d4bdec036e78aa36",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "挣值法的评价指标包括（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "成本偏差"
+    },
+    {
+     "key": "B",
+     "value": "质量偏差"
+    },
+    {
+     "key": "C",
+     "value": "进度偏差"
+    },
+    {
+     "key": "D",
+     "value": "成本绩效指数"
+    },
+    {
+     "key": "E",
+     "value": "进度绩效指数"
+    }
+   ],
+   "answer_key": "ACDE",
+   "analysis": "挣值法的四个评价指标包括：成本偏差、进度偏差、成本绩效指数和进度绩效指数。",
+   "difficulty_anchor": "锚:E05 挣值链 ca:1A435020_095_0156",
+   "content_sha256": "c808908e63e50c3a6b0cc3df06cc9114559472dc0345f1ff13b4cf493b97c8fd",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "E05-html-practice-html-q6-c5a0b2262ef0",
+    "source_anchor": "ca:1A435020_095_0156",
+    "note": "CONDITIONAL 相邻子点:CPI∈四评价指标;backup qb#14418(三值构成)"
+   }
+  },
+  {
+   "task_id": "M04",
+   "kind": "bank_transitional_multi",
+   "family": "质量验收",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A413030_092-093 桩基检测→G03",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14167,
+    "source_type": "TEXTBOOK",
+    "book": "SMR章节千题斩2025",
+    "node_code": "1A413030",
+    "db_content_hash": "6bb2872772246f036959351039965fcfda01af755f5a0443686cdb59f5a1af85",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "下列桩基检测方法中，可以用以判断桩身完整性类别的试验有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "低应变法"
+    },
+    {
+     "key": "B",
+     "value": "静载试验"
+    },
+    {
+     "key": "C",
+     "value": "高应变法"
+    },
+    {
+     "key": "D",
+     "value": "钻芯法"
+    },
+    {
+     "key": "E",
+     "value": "声波透射法"
+    }
+   ],
+   "answer_key": "ACDE",
+   "analysis": "可以用以判断桩身完整性类别的试验有低应变法、高应变法、钻芯法、声波透射法。",
+   "difficulty_anchor": "锚:G03 exam_evidence sidecar(2015–2024 七锚)",
+   "content_sha256": "7430e0baf78325ef48e4341b0ee3b947dd9e9f720df77fc903cf32604fdd3227",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "G03-html-practice-html-q12-81340bfc439c",
+    "source_anchor": "kc:1A413030_092_0173:0",
+    "note": "同采分点(检测方法↔检测目的匹配);backup q13"
+   }
+  },
+  {
+   "task_id": "M05",
+   "kind": "bank_transitional_multi",
+   "family": "防水",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A413030_122 屋面基本要求→F03",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14216,
+    "source_type": "TEXTBOOK",
+    "book": "SMR章节千题斩2025",
+    "node_code": "1A413050",
+    "db_content_hash": "1a7ac7968d74c132c85faa8d3d80754c0fdec1a4b3fa94e9a09b070a554457a3",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "关于屋面防水的基本要求的说法，正确的有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "平屋面一级防水时，应采用不少于2道防水设防"
+    },
+    {
+     "key": "B",
+     "value": "混凝土结构宜采用结构找坡，坡度不小于2%"
+    },
+    {
+     "key": "C",
+     "value": "采用材料找坡时，坡度宜为3%"
+    },
+    {
+     "key": "D",
+     "value": "檐沟、天沟纵向找坡不应小于1%，找坡层最薄处厚度不宜小于20mm"
+    },
+    {
+     "key": "E",
+     "value": "檐沟、天沟防水层下应增设附加层且伸入屋面的宽度不应小于250mm"
+    }
+   ],
+   "answer_key": "DE",
+   "analysis": "A选项错误，平屋面一级防水时，应采用不少于3道防水设防；B选项错误，混凝土结构宜采用结构找坡，坡度不小于3%；C选项错误，采用材料找坡时，坡度宜为2%。",
+   "difficulty_anchor": "锚:F03 sidecar 2019/2020 直考屋面防水",
+   "content_sha256": "f4866c235bae7f976742ce88c78df00edcf3b05c2dbcf71a34f837af182e2a89",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "F03-html-practice-html-q3-3ad2bfdbadc0",
+    "source_anchor": "kc:1A413030_122_0230:2",
+    "note": "同采分点(屋面防水基本要求),数值面↔口径面换面"
+   }
+  },
+  {
+   "task_id": "M06",
+   "kind": "bank_transitional_multi",
+   "family": "主体结构",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": true,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A413030_095-096 大体积温控→Q02",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14767,
+    "source_type": "TEXTBOOK",
+    "book": "ZL864考证宝典必刷500题2025",
+    "node_code": "1A413030",
+    "db_content_hash": "4580818ae9ba4b29710f5e26859bc2c8e71399b7578a56e99af09a94edddcaa0",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "大体积混凝土施工过程中，减少或防止出现裂缝的技术措施有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "二次振捣"
+    },
+    {
+     "key": "B",
+     "value": "二次表面抹压"
+    },
+    {
+     "key": "C",
+     "value": "控制混凝土内部温度的降温速率"
+    },
+    {
+     "key": "D",
+     "value": "尽快降低混凝土表面温度"
+    },
+    {
+     "key": "E",
+     "value": "保温保湿养护"
+    }
+   ],
+   "answer_key": "ABCE",
+   "analysis": "减少或防止出现裂缝的技术措施没有尽快降低混凝土表面温度，相反应该控制内外温差。",
+   "difficulty_anchor": "锚:Q02 大体积真题群(2019案例一/2021/2023)",
+   "content_sha256": "ae606ff3a7f8b81d15423bd4cfe9ca7345e5993a4693a63477b84c663f23ad8d",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "Q02-html-practice-html-q1-2ee93b76d576",
+    "source_anchor": "kc:1A413030_095_0180:0",
+    "note": "同采分点(防裂技术措施骨架);backup 无(登记)"
+   }
+  },
+  {
+   "task_id": "M07",
+   "kind": "bank_transitional_multi",
+   "family": "安全",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A437000_146 灭火器配置→R01",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14511,
+    "source_type": "TEXTBOOK",
+    "book": "SMR章节千题斩2025",
+    "node_code": "1A437030",
+    "db_content_hash": "270c4db4860d829c7781e6bd58c10d64bf5d0b2d052c0606c3e4378ae81d4706",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "下列关于消防器材的配备的说法，正确的有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "临时搭设的建筑物区域内每100m2配备2只10L灭火器"
+    },
+    {
+     "key": "B",
+     "value": "50m2的临时木料间、油漆间等，配备2只灭火器"
+    },
+    {
+     "key": "C",
+     "value": "施工现场应有足够的消防水源，进水口一般不应少于1处"
+    },
+    {
+     "key": "D",
+     "value": "消火栓之间的距离不应大于120m"
+    },
+    {
+     "key": "E",
+     "value": "消防箱内消防水管的长度不小于20m"
+    }
+   ],
+   "answer_key": "ABD",
+   "analysis": "临时搭设的建筑物区域内每100m2配备2只10L灭火器；施工现场应有足够的消防水源，进水口一般不应少于2处；消防箱内消防水管的长度不小于25m。",
+   "difficulty_anchor": "锚:R01 sidecar exam:2018:第5题/2016:案例5",
+   "content_sha256": "e1ccc7066a32568a83ab40b47340c45305909e1219e599c9cc83ab12b6a8de48",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "R01-html-practice-html-q3-d0cdf4fe0036",
+    "source_anchor": "kc:1A437000_146_0233:0",
+    "note": "同采分点(每100㎡ 2只10L 配置数值);backup q4"
+   }
+  },
+  {
+   "task_id": "M08",
+   "kind": "bank_transitional_multi",
+   "family": "进度",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A435020 价值工程(成本控制方法)",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14428,
+    "source_type": "TEXTBOOK",
+    "book": "SMR章节千题斩2025",
+    "node_code": "1A435020",
+    "db_content_hash": "972aaaa17da1cea6e5c52a16c1032324b64cbdf6f05c59edd0d1e3b8dac53053",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "采用价值工程原理控制成本时，能提高价值的途径有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "功能不变，成本降低"
+    },
+    {
+     "key": "B",
+     "value": "主要功能降低，成本大幅度降低"
+    },
+    {
+     "key": "C",
+     "value": "功能提高，成本不变"
+    },
+    {
+     "key": "D",
+     "value": "成本稍有提高，功能大幅度提高"
+    },
+    {
+     "key": "E",
+     "value": "功能提高，成本降低"
+    }
+   ],
+   "answer_key": "ACDE",
+   "analysis": "按价值工程的公式V=F/C分析，提高价值的途径有5条：（1）功能提高，成本不变；（2）功能不变，成本降低；（3）功能提高，成本降低；（4）降低辅助功能，大幅度降低成本；（5）成本稍有提高，大大提高功能。",
+   "difficulty_anchor": "锚:2018 实务真题案例直考价值工程",
+   "content_sha256": "0f0b63f9c52cfa5519b4f8a94dc51903e54079a76d61949f652a0aede730891d",
+   "retest_pair": {
+    "kind": "questions_bank_row",
+    "qb_id": 14416,
+    "note": "③章节题库配对:同书同点单选(提高价值途径);难度锚依据=2018真题案例考价值工程(qb REAL_EXAM #9172)"
+   }
+  },
+  {
+   "task_id": "M09",
+   "kind": "bank_transitional_multi",
+   "family": "质量验收",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A413000_084 基坑开挖(质量通病)→G01",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 14903,
+    "source_type": "TEXTBOOK",
+    "book": "ZL864考证宝典必刷500题2025",
+    "node_code": "1A434030",
+    "db_content_hash": "80f821694d3a457bdf22de28c40488cf5dd2a32893f0f6cddf4beb0eda5d8047",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "造成挖方边坡大面积塌方的原因可能有（　　）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "基坑（槽）开挖坡度不够"
+    },
+    {
+     "key": "B",
+     "value": "土方施工机械配置不合理"
+    },
+    {
+     "key": "C",
+     "value": "未采取有效的降排水措施"
+    },
+    {
+     "key": "D",
+     "value": "边坡顶部堆载过大"
+    },
+    {
+     "key": "E",
+     "value": "开挖次序、方法不当"
+    }
+   ],
+   "answer_key": "ACDE",
+   "analysis": "（1）基坑（槽）开挖坡度不够（2）在有地表水、地下水作用的土层开挖时，未采取有效的降排水措施（3）边坡顶部堆载过大，或受外力振动影响（4）土质松软，开挖次序方法不当",
+   "difficulty_anchor": "锚:G01 降水/开挖 kc 锚+2019:第7题族",
+   "content_sha256": "3393c46b5545fe95421c36f971c0cef60fdacec5c82ff9399982a1fc55c5d46d",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "G01-html-practice-html-q11-80b3b9adfcbb",
+    "source_anchor": "kc:1A413000_084_0157:2",
+    "note": "CONDITIONAL 相邻子点:降排水失效是塌方四成因之一"
+   }
+  },
+  {
+   "task_id": "M10",
+   "kind": "bank_transitional_multi",
+   "family": "防水",
+   "pack_id": null,
+   "dimension": "core_knowledge",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "transitional": true,
+   "transitional_note": "过渡题:第三方练习册原题(非真题原题、非变式)。v2.1 由变体拼装器+双签的真变式多选替换。",
+   "family_basis": "leaf 1A413030 地下卷材防水→F02",
+   "source": {
+    "kind": "questions_bank",
+    "qb_id": 18224,
+    "source_type": "textbook_exercise",
+    "book": "WW千锤百炼2025",
+    "node_code": "1A413050",
+    "db_content_hash": "cc265ab48f1baff19135bf40dfef2ed9ff45534238aaf3f3905248575d09c868",
+    "snapshot": "docs/plan/测评题库与考试模块/s2-form-compilation/qb_multi_snapshot_v2.json"
+   },
+   "stem": "关于地下卷材防水层施工要求的说法，正确的是（    ）。",
+   "options": [
+    {
+     "key": "A",
+     "value": "卷材防水层宜用于经常处于地下水环境"
+    },
+    {
+     "key": "B",
+     "value": "铺贴卷材严禁在雨天、雪天、五级及以上大风中施工"
+    },
+    {
+     "key": "C",
+     "value": "冷粘法、自粘法施工的环境气温不宜低于10℃"
+    },
+    {
+     "key": "D",
+     "value": "热熔法、焊接法施工的环境气温不宜低于-15℃"
+    },
+    {
+     "key": "E",
+     "value": "卷材防水层应铺设在混凝土结构的迎水面上"
+    }
+   ],
+   "answer_key": "ABE",
+   "analysis": "CD选项，冷粘法、自粘法施工的环境气温不宜低于5℃，热熔法、焊接法施工的环境气温不宜低于-10℃。",
+   "difficulty_anchor": "锚:F02 q5 同点真题 exam:2018:第14题",
+   "content_sha256": "f68f1569bae91cd0405fa31cba9fa01b62ba67faef405d25d6a0738e8ee9626c",
+   "retest_pair": {
+    "kind": "compiled_practice_item",
+    "variant_id": "F02-html-practice-html-q5-920d4b8af544",
+    "source_anchor": "exam:2018:第14题",
+    "note": "同采分点(地下卷材铺设与工法),锚 exam:2018:第14题"
+   }
+  },
+  {
+   "task_id": "CA1",
+   "kind": "case_error_correction_variant",
+   "family": "主体结构",
+   "pack_id": "C01",
+   "dimension": "construction_logic",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "material": "CASE_A",
+   "source": {
+    "kind": "real_exam_case_variant",
+    "year": 2018,
+    "exam_anchor": "案例分析(三)问题3",
+    "v1_task": "T5",
+    "sidecar": "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   },
+   "stem": "指出《后浇带施工专项方案》①~⑤中的不妥之处。(多选;多答不得分)",
+   "options": [
+    {
+     "key": "A",
+     "value": "①采用微膨胀混凝土浇筑",
+     "correct": false,
+     "cause": "concept_boundary",
+     "source": "官方答案技术措施(3)——正确做法并入方案作干扰"
+    },
+    {
+     "key": "B",
+     "value": "②模板独立支设",
+     "correct": true,
+     "cause": "condition_misread",
+     "source": "官方答案不妥之处①(原题措辞逐字保留)"
+    },
+    {
+     "key": "C",
+     "value": "③剔除模板用钢丝网",
+     "correct": true,
+     "cause": "knowledge_gap",
+     "source": "官方答案不妥之处②(应保留钢丝网)"
+    },
+    {
+     "key": "D",
+     "value": "④基础底板后浇带12d后封闭",
+     "correct": true,
+     "cause": "knowledge_gap",
+     "source": "官方答案不妥之处③(应≥28d;10d→12d 换数不改性质)"
+    },
+    {
+     "key": "E",
+     "value": "⑤浇筑后保持至少14d湿润养护",
+     "correct": false,
+     "cause": "concept_boundary",
+     "source": "官方答案技术措施(5)——正确做法并入方案作干扰"
+    }
+   ],
+   "answer_key": "BCD",
+   "content_sha256": "efb6e09cdcda49ce634023cb7140f1d4c7492202ff40bbeeb68d634f7b01cb6a",
+   "difficulty": "真题2018案例锚(案例分析(三)问题3,score 5.5)",
+   "retest_pair": {
+    "variant_id": "C01-html-practice-html-q12-01ffccfd9bec",
+    "source_anchor": "exam:2018:案例分析(三)问题3",
+    "note": "封闭时间子点;backup vbank D-postpour(14变体)覆盖模板/钢丝网子点"
+   }
+  },
+  {
+   "task_id": "CA2",
+   "kind": "case_scoring_point_variant",
+   "family": "主体结构",
+   "pack_id": "C01",
+   "dimension": "case_scoring_point",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "material": "CASE_A",
+   "source": {
+    "kind": "compiled_practice_item_variant",
+    "base_variant_id": "C01-html-practice-html-q13-1ea21c18131e",
+    "base_content_sha256": "2fff9335ca534a7cb9a52e0e74e0be19c7e182b8018f3c7caf1c08eee3a083c7",
+    "base_source_anchor": "exam:2018:案例分析(三)问题3",
+    "rewrite": "保留六环采分链(整理钢筋→冲洗→微膨胀→提高一级→≥14d养护→接缝按施工缝处理)与四选项错误码结构,选项表面重写",
+    "sidecar": "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   },
+   "stem": "针对该工程基础底板后浇带,写出后浇带混凝土施工的主要技术措施,选出最完整、能得分的作答。",
+   "options": [
+    {
+     "key": "A",
+     "value": "把好材料关与工序关,浇筑前后精心组织、加强养护管理,确保后浇带部位一次验收合格。",
+     "correct": false,
+     "cause": "E04 口号化表达",
+     "source": "q13 E04 选项换面(空话无采分点)"
+    },
+    {
+     "key": "B",
+     "value": "先整理外露钢筋、冲洗松动石子,采用微膨胀混凝土,强度比原结构提高一级,浇后≥14d湿润养护,接缝按施工缝处理。",
+     "correct": true,
+     "cause": null,
+     "source": "q13 正确项换面(官方六环采分链齐全)"
+    },
+    {
+     "key": "C",
+     "value": "采用与两侧底板同强度等级的混凝土连续浇筑、振捣密实,表面清理干净后覆盖并浇水养护。",
+     "correct": false,
+     "cause": "E07 概念混淆",
+     "source": "q13 E07 选项换面(把后浇带当普通缝)"
+    },
+    {
+     "key": "D",
+     "value": "整理外露钢筋、选用微膨胀混凝土并保证≥14d湿润养护,其余环节按常规混凝土工艺执行。",
+     "correct": false,
+     "cause": "E02 采分点遗漏",
+     "source": "q13 E02 选项换面(漏冲洗/提高一级/接缝处理)"
+    }
+   ],
+   "answer_key": "B",
+   "content_sha256": "49adbefc5a51961f5a400f90ab19e4086c5fe8b4cdf3c49e4a8a72bb125ba6e9",
+   "difficulty": "真题2018案例锚(同上)",
+   "retest_pair": {
+    "variant_id": "C01-html-practice-html-q11-4f752e82aefe",
+    "source_anchor": "exam:2018:案例分析(三)问题3",
+    "note": "强度等级子点;backup q10(材料)/q15(采分诊断)"
+   }
+  },
+  {
+   "task_id": "CB1",
+   "kind": "case_error_correction_variant",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "dimension": "construction_logic",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "material": "CASE_B",
+   "source": {
+    "kind": "real_exam_case_variant",
+    "year": 2023,
+    "exam_anchor": "案例一问题1",
+    "v1_task": "T7",
+    "sidecar": "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   },
+   "stem": "指出工程施工质量检测管理工作中的不妥之处。(本问题2项不妥,多答不得分;多选)",
+   "options": [
+    {
+     "key": "A",
+     "value": "工作①(建设单位委托有资质检测机构)",
+     "correct": false,
+     "cause": "concept_boundary",
+     "source": "案例原文,官方答案未列为不妥"
+    },
+    {
+     "key": "B",
+     "value": "工作②(试样送检时试验员向检测机构填报检测委托单)",
+     "correct": false,
+     "cause": "concept_boundary",
+     "source": "案例原文,官方答案未列为不妥(重排序后位置②)"
+    },
+    {
+     "key": "C",
+     "value": "工作③(试验员记录取样、现场检测情况并制作见证记录)",
+     "correct": true,
+     "cause": "knowledge_gap",
+     "source": "官方答案不妥①:应由见证人员记录并制作见证记录"
+    },
+    {
+     "key": "D",
+     "value": "工作④(总包项目部按季度向检测机构支付当期检测费用)",
+     "correct": true,
+     "cause": "knowledge_gap",
+     "source": "官方答案不妥②:检测费用应由建设单位单独列支并按约支付(每月→按季度换面,付费主体不妥不变)"
+    }
+   ],
+   "answer_key": "CD",
+   "content_sha256": "0aa90af28a15446302a9615a70723177841e6ca20f9b6dac8e6187fe5977d27c",
+   "difficulty": "真题2023案例锚(案例一问题1,score 7.0)",
+   "retest_pair": {
+    "variant_id": "A02-html-practice-html-q11-626ea542c1d5",
+    "source_anchor": "exam:2023:案例一",
+    "note": "见证主体同采分点"
+   }
+  },
+  {
+   "task_id": "CB2",
+   "kind": "case_scoring_point_variant",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "dimension": "case_scoring_point",
+   "answer_type": "multiple_choice",
+   "confidence_input": false,
+   "scored": true,
+   "material": "CASE_B",
+   "source": {
+    "kind": "real_exam_case_variant",
+    "year": 2023,
+    "exam_anchor": "案例一问题1",
+    "v1_task": "T8",
+    "rewrite": "正确项即官方记录内容清单(不可换面);变式=情境换面+选项重排+干扰项措辞对齐新材料",
+    "sidecar": "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   },
+   "stem": "混凝土试件制作与取样的见证记录内容,除取样情况外还应包括哪些?(多选)",
+   "options": [
+    {
+     "key": "A",
+     "value": "制样情况",
+     "correct": true,
+     "cause": null,
+     "source": "官方答案:制样"
+    },
+    {
+     "key": "B",
+     "value": "检测委托单编号",
+     "correct": false,
+     "cause": "condition_misread",
+     "source": "案例材料②的元素,官方记录内容不含——干扰项取自材料本身"
+    },
+    {
+     "key": "C",
+     "value": "标识、封志情况",
+     "correct": true,
+     "cause": null,
+     "source": "官方答案:标识、封志"
+    },
+    {
+     "key": "D",
+     "value": "检测费用支付情况",
+     "correct": false,
+     "cause": "condition_misread",
+     "source": "案例材料④的元素,官方记录内容不含——干扰项取自材料本身"
+    },
+    {
+     "key": "E",
+     "value": "送检情况",
+     "correct": true,
+     "cause": null,
+     "source": "官方答案:送检"
+    },
+    {
+     "key": "F",
+     "value": "现场检测情况",
+     "correct": true,
+     "cause": null,
+     "source": "官方答案:现场检测"
+    }
+   ],
+   "answer_key": "ACEF",
+   "content_sha256": "a92905aec0504774a15b37dfb29525bafbee54465163f4327114f6cb3c31e1fd",
+   "difficulty": "真题2023案例锚(同上)",
+   "retest_pair": {
+    "variant_id": "A02-html-practice-html-q12-45170f84cd3d",
+    "source_anchor": "exam:2019:第30题",
+    "note": "见证规则相邻子点;backup q21(采分句,exam:2017:第13题)"
+   }
+  },
+  {
+   "task_id": "CC1",
+   "kind": "case_calc_judgment_variant",
+   "family": "进度",
+   "pack_id": "N03",
+   "dimension": "construction_logic",
+   "answer_type": "single_choice",
+   "confidence_input": true,
+   "scored": true,
+   "material": "CASE_C",
+   "source": {
+    "kind": "real_exam_case_variant",
+    "year": 2023,
+    "exam_anchor": "第2题",
+    "v1_task": "T9",
+    "distractor_source": "N03 q2/q3 已签发错误选项结构(E07/E09 带 loss_reason),数值按 4,4,8,4 机械重算",
+    "sidecar": "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   },
+   "stem": "组织成倍节拍流水施工,流水步距K与专业施工队总数分别为多少?选出算式与依据都正确的一项。(单选)",
+   "options": [
+    {
+     "key": "A",
+     "value": "K取各节拍最大公约数=4个月;各过程队数=节拍÷K,共1+1+2+1=5个",
+     "correct": true,
+     "cause": null,
+     "source": "官方解法结构(K=gcd;队数=节拍÷K逐过程拆队),数面换算"
+    },
+    {
+     "key": "B",
+     "value": "K取最大节拍=8个月;四个施工过程共4个专业队(每过程1队)",
+     "correct": false,
+     "cause": "knowledge_gap",
+     "source": "N03-q2 E09(K取最大节拍)+q3 E07(不拆队)选项结构"
+    },
+    {
+     "key": "C",
+     "value": "K=(4+4+8+4)÷4=5个月;队数按施工过程数取4个",
+     "correct": false,
+     "cause": "knowledge_gap",
+     "source": "N03-q2 E09(平均值步距)选项结构"
+    },
+    {
+     "key": "D",
+     "value": "K取最小节拍=4个月以保证紧凑衔接;队数=总节拍÷K=(4+4+8+4)÷4=5个",
+     "correct": false,
+     "cause": "concept_boundary",
+     "source": "N03-q2 E07+q3 E07 选项结构——数值碰巧对但依据错,考「依据」辨析"
+    }
+   ],
+   "answer_key": "A",
+   "content_sha256": "07e58678d81e27240c0c38af0a027a4403be5eadf455b592ec0cd9359bdd2581",
+   "difficulty": "真题2023案例锚(第2题,score 6.0)",
+   "retest_pair": {
+    "variant_id": "N03-html-practice-html-q14-f318a76d28d9",
+    "source_anchor": "exam:2019:第2题",
+    "note": "同fact成倍节拍拆队队数,数面 3,3,9,6,6(exam:2019:第2题)——理想平行"
+   }
+  },
+  {
+   "task_id": "CC2",
+   "kind": "case_scoring_point_variant",
+   "family": "进度",
+   "pack_id": "N03",
+   "dimension": "case_scoring_point",
+   "answer_type": "single_choice",
+   "confidence_input": false,
+   "scored": true,
+   "material": "CASE_C",
+   "source": {
+    "kind": "compiled_practice_item_variant",
+    "base_variant_id": "N03-html-practice-html-q15-8f2328daa71d",
+    "base_content_sha256": "0c75a97d0983ba0e3cdcad9f7c9590f6d4c5122a5a5327c6201348a425a5dfc7",
+    "base_source_anchor": "exam:2023:第2题",
+    "rewrite": "保留四步采分链(判型→K→队数→工期)与选项错误码结构(E02/E09/E07),数面 4,4,8,4 机械重算",
+    "sidecar": "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   },
+   "stem": "按阅卷采分点写全答案(判型→K→队数→工期),选出四步采分句最完整的作答。(单选)",
+   "options": [
+    {
+     "key": "A",
+     "value": "直接报结果:流水步距K=4个月、专业队5个、总工期24个月,三个数值一次给全。",
+     "correct": false,
+     "cause": "E02 采分点遗漏",
+     "source": "q15 E02 选项换面(漏判型理由)"
+    },
+    {
+     "key": "B",
+     "value": "①节拍成倍数→等步距异节奏;②K=gcd(4,8)=4个月;③队数=节拍÷K=1+1+2+1=5,拆队后队数>工序数;④T=(M+N′−1)×K=(2+5−1)×4=24个月。",
+     "correct": true,
+     "cause": null,
+     "source": "q15 正确项换面(四步采分句齐全,数面机械重算)"
+    },
+    {
+     "key": "C",
+     "value": "判型等步距异节奏;K=4个月;队数4个(每工序1队);工期=4+4+8+4=20个月,四步依次写出。",
+     "correct": false,
+     "cause": "E09 计算错误",
+     "source": "q15 E09 选项换面(未拆队+工期机械相加)"
+    },
+    {
+     "key": "D",
+     "value": "判型等节奏流水;K=t=4个月;队数=工序数4个;工期按等节奏公式T=(2+4−1)×4=20个月。",
+     "correct": false,
+     "cause": "E07 概念混淆",
+     "source": "q15 E07 选项换面(判型地基错,连锁未拆队)"
+    }
+   ],
+   "answer_key": "B",
+   "content_sha256": "696460d2dfbfd0123e232aefe4d93f4ccab0deaff631f732a636ae5222e2dc79",
+   "difficulty": "真题2023案例锚(同上)",
+   "retest_pair": {
+    "variant_id": "N03-html-practice-html-q3-bdaf1c44f8bc",
+    "source_anchor": "exam:2023:第2题",
+    "note": "同fact队数子点(exam:2023:第2题);backup q4(工期子点,v1 先例)"
+   }
+  }
+ ]
+}

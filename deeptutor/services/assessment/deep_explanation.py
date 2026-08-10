@@ -30,7 +30,7 @@ def _record_assessment_explanation_duration(elapsed_ms: float) -> None:
     except Exception:  # pragma: no cover - defensive, never affects explanation
         logger.debug("assessment explanation duration metric skipped", exc_info=True)
 
-PROMPT_VERSION = "assessment-deep-explanation-llm-v1"
+PROMPT_VERSION = "assessment-deep-explanation-llm-v2"
 _MINIMUM_EXPLANATION_POINTS = 20
 _COST_POINT_SCALE = 1000
 
@@ -178,22 +178,31 @@ async def generate_llm_deep_explanation(
     ):
         started_at = time.monotonic()
         try:
-            raw = await complete(
-                prompt,
-                system_prompt=system_prompt,
-                temperature=0.2,
-                max_tokens=1200,
-                max_retries=2,
-                observation_name=_ASSESSMENT_EXPLANATION_OBSERVATION_NAME,
-            )
+            parsed: dict[str, Any] = {}
+            # 内容级重试一次:输出截断/非 JSON 时再要一遍。解析仍失败则显式抛错
+            # ——绝不吐罐头模板冒充付费解析(fail-closed-to-template 反模式;
+            # 2026-08-07 实测:v2 prompt 输出更长,1200 tokens 截断产出罐头还被
+            # 计费+缓存)。调用方不 capture、不缓存,前端提示稍后重试。
+            for _attempt in range(2):
+                raw = await complete(
+                    prompt,
+                    system_prompt=system_prompt,
+                    temperature=0.2,
+                    max_tokens=2400,
+                    max_retries=2,
+                    observation_name=_ASSESSMENT_EXPLANATION_OBSERVATION_NAME,
+                )
+                parsed = _parse_llm_json(raw)
+                if parsed:
+                    break
         finally:
             _record_assessment_explanation_duration((time.monotonic() - started_at) * 1000.0)
         usage_summary = observability.get_current_usage_summary()
-    parsed = _parse_llm_json(raw)
+    if not parsed:
+        raise RuntimeError("assessment_deep_explanation_generation_failed")
     return {
         "summary": _text(parsed.get("summary"))
-        or _text(question.get("simple_explanation"))
-        or "本题需要回到题干限定词和选项边界逐项核对。",
+        or _text(question.get("simple_explanation")),
         "learner_answer": str(learner_answer or ""),
         "correct_answer": str(correct_answer or ""),
         "key_terms": _string_list(parsed.get("key_terms"))[:6],
@@ -225,6 +234,9 @@ def _build_prompt(*, question: dict[str, Any], learner_answer: str, correct_answ
         "knowledge_points": question.get("knowledge_points") or question.get("knowledge_nodes") or [],
         "error_codes": question.get("error_codes") or [],
         "grading_key": question.get("grading_key") or {},
+        # v2: 签发教研诊断(逐选项 pitfall/why_missed/fix + model_answer + 采分点)
+        # 是内容事实权威——喂给模型作基准,防运行时现编与权威矛盾的解析。
+        "issued_diagnosis": question.get("answer_diagnosis") or {},
     }
     return (
         "请为学员生成一次付费 AI 详细解析。要求：\n"
@@ -232,7 +244,10 @@ def _build_prompt(*, question: dict[str, Any], learner_answer: str, correct_answ
         "2. 逐项解释选项为什么对/错，特别指出漏选、错选、多选。\n"
         "3. 给出采分点、易错点、记忆口诀和下一步练习建议。\n"
         "4. 不要说空话；每句话都要落到题干、选项或答案差异。\n"
-        "5. 严格输出 JSON，字段为 summary, key_terms, why_wrong, cause_analysis, "
+        "5. issued_diagnosis 是教研签发的诊断事实（采分点/逐选项易错点/纠错口径），"
+        "解析必须与其一致并在其基础上讲透讲细；它为空时才按题干与选项严谨推导，"
+        "不得编造教材条文或数值。\n"
+        "6. 严格输出 JSON，字段为 summary, key_terms, why_wrong, cause_analysis, "
         "scoring_points, option_reviews, pitfall, mnemonic, source_basis, next_action。\n"
         "option_reviews 每项字段为 key, status, status_label, review。\n\n"
         "题目信息：\n"

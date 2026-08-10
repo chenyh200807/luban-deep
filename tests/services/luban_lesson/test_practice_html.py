@@ -460,7 +460,10 @@ def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
         if (row.get("practice") or {}).get("status") == "unavailable"
     }
     assert len(compiled) == 40
-    assert unavailable == {"E01"}
+    # E06/Z01: 16ae6074c Layer-2 异源 jury 收口后 manifest 登记,practice 编译资产
+    # 未上 → 诚实标 unavailable(0810 里程碑合并对账:先证不变量"集合=manifest
+    # practice.status 投影"成立,再对齐钉的精确集)。
+    assert unavailable == {"E01", "E06", "Z01"}
 
 
 @pytest.mark.parametrize("pack_id", ["A01", "X01", "G03"])

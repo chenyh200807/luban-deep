@@ -3231,6 +3231,60 @@ def test_wechat_login_route_requires_phone_code(monkeypatch: pytest.MonkeyPatch)
     assert response.json()["detail"] == "phone_code is required"
 
 
+def test_wechat_login_basic_route_serves_openid_only_lane(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """拒绝手机号授权的学员必须有一条能拿到会话的路由（计划 §5.1 / §9.4 缺口 1）。"""
+    calls: list[str] = []
+
+    async def _fake_login(code: str) -> dict[str, object]:
+        calls.append(code)
+        return {"token": "openid_only_token", "user_id": "wx_openid_only", "phone": ""}
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _fake_login)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/wechat/mp/login-basic", json={"code": "wx-code-1"})
+
+    assert response.status_code == 200
+    assert calls == ["wx-code-1"]
+    assert response.json()["token"] == "openid_only_token"
+    assert response.json()["user_id"] == "wx_openid_only"
+
+
+def test_wechat_login_basic_route_maps_service_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _failing_login(_code: str) -> dict[str, object]:
+        raise RuntimeError("WeChat code2Session failed")
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _failing_login)
+
+    with TestClient(_build_app()) as client:
+        upstream = client.post("/api/v1/wechat/mp/login-basic", json={"code": "abc"})
+
+    assert upstream.status_code == 502
+    assert "code2Session" in upstream.json()["detail"]
+
+    async def _invalid_code(_code: str) -> dict[str, object]:
+        raise ValueError("code is required")
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _invalid_code)
+
+    with TestClient(_build_app()) as client:
+        missing = client.post("/api/v1/wechat/mp/login-basic", json={})
+
+    assert missing.status_code == 400
+    assert missing.json()["detail"] == "code is required"
+
+
+def test_wechat_login_basic_is_declared_public(monkeypatch: pytest.MonkeyPatch) -> None:
+    """匿名路由必须登记在 public manifest 上，否则运行时 route inventory 对不上账。"""
+    from deeptutor.api._public_manifest import is_public
+
+    assert is_public("POST", "/api/v1/wechat/mp/login-basic")
+
+
 def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         mobile_module,
@@ -5137,7 +5191,7 @@ def test_mobile_assessment_deep_explanation_delegates_without_chat_side_effects(
     calls: list[tuple[str, str, str]] = []
 
     class FakeMemberService:
-        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str, *, retry: bool = False):
             calls.append((user_id, quiz_id, question_id))
             return {
                 "quiz_id": quiz_id,
@@ -5171,7 +5225,7 @@ def test_mobile_assessment_deep_explanation_maps_billing_failures_to_402(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FakeMemberService:
-        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str, *, retry: bool = False):
             raise RuntimeError("assessment_deep_explanation_insufficient_balance")
 
     monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())

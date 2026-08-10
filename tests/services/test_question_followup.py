@@ -3242,3 +3242,118 @@ async def test_interpret_followup_action_facet_gated_by_flag(monkeypatch) -> Non
     assert "seeks_active_answer_help" in captured_prompts[-1]
     assert action_on is not None
     assert action_on["seeks_active_answer_help"] is False
+
+
+# --------------------------------------------------------------------------- #
+# 2026-08-10 F1 生产事故回归钉(尺与面收权:arity 单向闸 + 追问尺否定感知)。      #
+# --------------------------------------------------------------------------- #
+
+
+def _f1_stale_single_question_context() -> dict:
+    return {
+        "question_id": "q_stale",
+        "question": "大截面钢筋混凝土柱，混凝土强度等级不应低于（ ）。",
+        "question_type": "choice",
+        "options": {"A": "C15", "B": "C20", "C": "C25", "D": "C30"},
+        "correct_answer": "B",
+    }
+
+
+def test_resolve_submission_attempt_arity_gate_blocks_multi_answer_on_single_question() -> None:
+    """F1 钉:「1、c 2.c 3.c」对单题上下文绝不蒸馏成单字母 "C" 判旧题——
+    归 ambiguous(requires_question_index),下游转 needs_clarification。"""
+    _target, submission = resolve_submission_attempt(
+        "1、c    2.c    3.c", _f1_stale_single_question_context()
+    )
+    assert submission is not None
+    assert submission["kind"] == "ambiguous"
+    assert submission["requires_question_index"] is True
+    assert submission["arity_mismatch"]["submitted_segments"] == 3
+    assert submission["arity_mismatch"]["available_questions"] == 1
+
+
+def test_resolve_submission_attempt_partial_batch_not_blocked_by_arity_gate() -> None:
+    """arity 闸是单向的:答少于题(2 答对 3 题组)是合法部分提交,走 batch 不被拦。"""
+    question_set = {
+        "question_id": "quiz_set",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": f"q_{i}",
+                "question": f"第{i}题",
+                "question_type": "single_choice",
+                "options": {"A": "a", "B": "b", "C": "c", "D": "d"},
+                "grading_key": {"correct_answer": "A"},
+            }
+            for i in (1, 2, 3)
+        ],
+    }
+    _target, submission = resolve_submission_attempt("1、C    2.A", question_set)
+    assert submission is not None
+    assert submission["kind"] == "batch"
+    assert len(submission["answers"]) == 2
+
+
+def test_looks_like_question_followup_ignores_negated_explainer_markers() -> None:
+    """F1 钉:否定短语里的「解析」(「先只出题,不要提前给答案和解析」)不构成追问形状,
+    纯出题请求不再被误判成出题+追问双形状。"""
+    assert (
+        looks_like_question_followup(
+            "请围绕我刚才错的考点，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。",
+            _f1_stale_single_question_context(),
+        )
+        is False
+    )
+
+
+def test_looks_like_question_followup_keeps_non_negated_explainer() -> None:
+    """对照钉:非否定的「解析」(「下一题解析一下」)仍是追问形状(双形状交语义层)。"""
+    assert (
+        looks_like_question_followup("下一题解析一下", _f1_stale_single_question_context())
+        is True
+    )
+
+
+def test_looks_like_question_followup_ignores_deferred_feedback_markers() -> None:
+    """延迟从句钉:「等我作答后再批改」的「批改」被未来条件限定(本轮先不做),
+    不构成本轮追问形状——出题+延迟批改类请求仍走出题确定性快路径。"""
+    assert (
+        looks_like_question_followup(
+            "再给我相关的五道题，不要给答案，等我作答后再批改",
+            _f1_stale_single_question_context(),
+        )
+        is False
+    )
+
+
+def test_looks_like_question_followup_keeps_perfective_completion_grading_request() -> None:
+    """review F5 钉:完成体「我做完了,帮我批改」是即时判分请求,不得被延迟从句表误吞;
+    延迟折价必须同时有未来条件词+「再/然后」连接词紧邻 marker。"""
+    ctx = _f1_stale_single_question_context()
+    assert looks_like_question_followup("我做完了，帮我批改", ctx) is True
+    assert looks_like_question_followup("写完了，打分吧", ctx) is True
+    assert looks_like_question_followup("都答完了 请批改", ctx) is True
+
+
+def test_looks_like_question_followup_keeps_bare_continue() -> None:
+    """review F6 钉:裸「继续」是练题中极高频追问,保留追问形状;
+    「继续出5道」的「继续」由 carve-out 让位给出题尺,不双重计票。"""
+    ctx = _f1_stale_single_question_context()
+    assert looks_like_question_followup("继续", ctx) is True
+    assert looks_like_question_followup("继续出5道类似的", ctx) is False
+
+
+def test_resolve_submission_attempt_subjective_enumerated_answer_not_ambiguous() -> None:
+    """review F4 钉:主观题(无 options)的标准分点作答「1、… 2、…」是一份完整单答,
+    arity 闸只对选项/判断类上下文生效——真作答必判(硬约束40)。"""
+    case_ctx = {
+        "question_id": "c1",
+        "question_type": "case_study",
+        "question": "背景资料:某工程…问题1:指出不妥之处并说明理由。",
+    }
+    _target, submission = resolve_submission_attempt(
+        "1、施工单位应当组织专家论证。2、监理做法不妥,应报建设单位。", case_ctx
+    )
+    assert submission is not None
+    assert submission["kind"] != "ambiguous"

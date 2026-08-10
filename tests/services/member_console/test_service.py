@@ -3884,6 +3884,90 @@ def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
     assert result["score_summary"]["scored_count"] == 20
 
 
+def test_pass_readiness_create_and_submit_use_registered_blueprint(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=15,
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+    )
+
+    assert payload["assessment_type"] == "pass_readiness"
+    assert payload["blueprint_version"] == "pass_readiness_architecture_v2"
+    assert payload["topic_label"] == "一建过线体检"
+    assert payload["scored_count"] == 36
+    assert payload["profile_count"] == 3
+    assert payload["form_id"]
+    assert len(payload["questions"]) == 39
+    assert all("answer" not in question for question in payload["questions"])
+
+    result = service.submit_assessment(
+        "student_demo",
+        payload["quiz_id"],
+        {question["question_id"]: "A" for question in payload["questions"]},
+        time_spent_seconds=600,
+    )
+
+    assert result["schema_version"] == "pass-readiness-v1"
+    assert result["assessment_type"] == "pass_readiness"
+    assert result["blueprint_version"] == "pass_readiness_architecture_v2"
+    assert result["topic_label"] == "一建过线体检"
+    assert result["score_summary"]["scored_count"] == 36
+    block = result["pass_readiness"]
+    assert block["pass_line"] == 96
+    assert block["band_policy_version"] == "band-v2"
+    assert block["evidence_coverage"] in {"low", "medium", "high", "insufficient"}
+    if block["band_status"] == "ok":
+        assert block["band_lower"] % 5 == 0 and block["band_upper"] % 5 == 0
+
+
+def test_pass_readiness_completion_projection_flips_only_after_evidence_lands(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    assert service.get_pass_readiness_completion("student_demo")["completed"] is False
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=15,
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+    )
+    service.submit_assessment(
+        "student_demo",
+        payload["quiz_id"],
+        {question["question_id"]: "A" for question in payload["questions"]},
+        time_spent_seconds=600,
+    )
+
+    # Scored but evidence writeback not yet landed → still not completed (§5.2).
+    assert service.get_pass_readiness_completion("student_demo")["completed"] is False
+
+    service._assessment_session_repository.attach_writeback_refs(
+        "student_demo",
+        payload["quiz_id"],
+        learning_event_refs=[{"event_id": "evt_1", "question_id": "q1"}],
+        mistake_book_refs=[],
+        mark_scored=True,
+    )
+
+    projection = service.get_pass_readiness_completion("student_demo")
+    assert projection["completed"] is True
+    assert projection["quiz_id"] == payload["quiz_id"]
+    assert projection["source"] == "assessment_sessions.pass_readiness"
+
+
 def test_submit_assessment_different_body_retry_conflicts(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -4055,13 +4139,32 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
         _fake_generate_llm_deep_explanation,
     )
     monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
+    captured_points: list[dict[str, object]] = []
+    monkeypatch.setattr(
+        service,
+        "_capture_assessment_explanation_points",
+        lambda **kwargs: captured_points.append(kwargs) or {"status": "captured"},
+    )
 
-    result = asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
+    # 异步语义(owner 2026-08-07 防超时):首发秒回 generating,后台生成落缓存,
+    # 轮询同一入口拿 completed。
+    async def _flow() -> tuple[dict[str, object], dict[str, object]]:
+        first = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending)
+        second = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        return first, second
+
+    first, result = asyncio.run(_flow())
     stored = service.get_assessment_report("student_demo", session["quiz_id"])
 
-    assert result["cache_status"] == "generated"
-    assert result["billing"]["status"] == "captured"
-    assert result["billing"]["amount_points"] == 20
+    assert first["workflow_status"] == "generating"
+    assert first["stages"] and first["stage_index"] == 0
+    assert result["workflow_status"] == "completed"
+    assert result["cache_status"] == "cached"
+    # 计费在后台完成(非试驾卷走正常捕获)
+    assert captured_points and captured_points[0]["amount_points"] == 20
     assert result["explanation"]["score_mutation_allowed"] is False
     assert result["explanation"]["learner_answer"] == "B"
     assert result["explanation"]["correct_answer"] == "A"
@@ -4123,6 +4226,159 @@ def test_assessment_deep_explanation_checks_balance_before_llm_generation(
 
     with pytest.raises(RuntimeError, match="assessment_deep_explanation_insufficient_balance"):
         asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
+
+
+def test_pass_readiness_wrong_item_deep_explanation_is_trial_included(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """试驾面(owner 2026-08-07 拍板):过线体检错题的鲁班深解析免额度——
+    新用户 0 余额不得撞付费墙;免额度只覆盖本卷 wrong_items 内的题。"""
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_ids=[],
+        blueprint_version="pass_readiness_architecture_v2",
+        form_id="pass_readiness_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "施工缝题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "question_type": "single_choice",
+                "question_stem": "施工缝题",
+                "answer": "A",
+                "scored": True,
+                "simple_explanation": "先凿毛清理再浇筑。",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+    service.submit_assessment("student_demo", session["quiz_id"], {"q1": "B"}, time_spent_seconds=30)
+
+    def _empty_wallet(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "student_demo")
+        member["points_balance"] = 0
+
+    service._mutate(_empty_wallet)
+
+    async def _fake_generate(**kwargs: object) -> dict[str, object]:
+        return {
+            "summary": "先凿毛、清理、铺砂浆再浇筑。",
+            "learner_answer": kwargs["learner_answer"],
+            "correct_answer": kwargs["correct_answer"],
+            "score_mutation_allowed": False,
+            "source": "assessment_deep_explanation_llm",
+            "prompt_version": "assessment-deep-explanation-llm-v1",
+            "usage_summary": {"estimated_total_cost_usd": 0.001},
+        }
+
+    captured: list[dict[str, object]] = []
+    monkeypatch.setattr(member_service_module, "generate_llm_deep_explanation", _fake_generate)
+    monkeypatch.setattr(
+        service,
+        "_capture_assessment_explanation_points",
+        lambda **kwargs: captured.append(kwargs) or {"status": "captured"},
+    )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
+
+    async def _flow() -> tuple[dict[str, object], dict[str, object]]:
+        first = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending)
+        done = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        return first, done
+
+    first, result = asyncio.run(_flow())
+
+    # 0 余额也能起生成(试驾免额度);后台零计费捕获。
+    assert first["workflow_status"] == "generating"
+    assert result["workflow_status"] == "completed"
+    assert captured == []
+    assert "凿毛" in result["explanation"]["summary"]
+
+    # 结果缓存(owner 2026-08-07:同一题不得重复生成):再次调用命中缓存,
+    # 零 LLM 零计费,内容一致。
+    async def _must_not_regenerate(**_kwargs: object) -> dict[str, object]:
+        raise AssertionError("cached explanation must not regenerate")
+
+    monkeypatch.setattr(member_service_module, "generate_llm_deep_explanation", _must_not_regenerate)
+    second = asyncio.run(
+        service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+    )
+    assert second["cache_status"] == "cached"
+    assert second["billing"] == {"status": "cached", "amount_points": 0}
+    assert second["explanation"]["summary"] == result["explanation"]["summary"]
+
+
+def test_deep_explanation_failure_surfaces_failed_status_and_retry_respawns(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """后台生成失败 → 轮询得 workflow_status=failed(前端停轮询给重试);
+    带 retry=True 再点 → 忽略失败标记重新起任务。"""
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        topic_ids=[],
+        blueprint_version="pass_readiness_architecture_v2",
+        form_id="pass_readiness_form_1",
+        client_questions_public=[{"question_id": "q1", "question_stem": "题", "options": []}],
+        session_questions_private=[
+            {"question_id": "q1", "question_type": "single_choice", "question_stem": "题", "answer": "A", "scored": True, "options": []}
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+    service.submit_assessment("student_demo", session["quiz_id"], {"q1": "B"}, time_spent_seconds=30)
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
+
+    async def _boom(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("assessment_deep_explanation_generation_failed")
+
+    calls = {"n": 0}
+
+    async def _counting_boom(**kwargs: object) -> dict[str, object]:
+        calls["n"] += 1
+        return await _boom(**kwargs)
+
+    monkeypatch.setattr(member_service_module, "generate_llm_deep_explanation", _counting_boom)
+
+    async def _flow() -> tuple[dict[str, object], dict[str, object], dict[str, object]]:
+        first = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        polled = await service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+        retried = await service.get_assessment_deep_explanation(
+            "student_demo", session["quiz_id"], "q1", retry=True
+        )
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        return first, polled, retried
+
+    first, polled, retried = asyncio.run(_flow())
+    assert first["workflow_status"] == "generating"
+    assert polled["workflow_status"] == "failed"
+    assert retried["workflow_status"] == "generating"
+    assert calls["n"] == 2
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:
@@ -8901,3 +9157,248 @@ def test_corpus_pruning_migrations_are_idempotent(tmp_path: Path) -> None:
     migrations = service._load().get("migrations") or {}
     assert migrations.get("zero_chapter_practice_stats_pruned_v1") is True
     assert migrations.get("merged_member_payload_pruned_v1") is True
+
+
+# ---------------------------------------------------------------------------
+# 登录两缺口回归（计划 §5.1 拒绝路径 / §9.4 两条后端缺口）
+# ---------------------------------------------------------------------------
+
+
+def _stub_wechat_code_exchange(
+    service: MemberConsoleService,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    openid: str,
+) -> None:
+    async def _fake_exchange_code(_code: str) -> dict[str, str]:
+        return {"openid": openid, "unionid": "", "session_key": "session-key"}
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange_code)
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_grant_lane_still_binds_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) 授权手机号的正常车道：一次调用拿到 token 且手机号已绑定。"""
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_grant_lane_0001")
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911110001"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", lambda **_kwargs: None)
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    payload = await service.login_with_wechat_phone("wx-code-grant", "phone-code-grant")
+
+    assert payload["token"]
+    assert payload["bound"] is True
+    assert payload["phone"] == "13911110001"
+    member = service._ensure_member(service._load(), payload["user_id"])
+    assert member["phone"] == "13911110001"
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_decline_lane_logs_in_openid_only_and_can_assess(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) 拒绝手机号授权：openid-only 会话仍是正规身份，测评照常可开。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_decline_lane_0001")
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    payload = await service.login_with_wechat_code("wx-code-decline")
+
+    assert payload["token"]
+    openid_uid = str(payload["user_id"])
+    assert openid_uid
+    member = service._ensure_member(service._load(), openid_uid)
+    assert not service._is_meaningful_phone(member.get("phone")), "拒绝授权的学员不得凭空拿到手机号"
+
+    quiz = service.create_assessment(openid_uid, count=5)
+
+    assert quiz["quiz_id"]
+    stored = service._load()["assessment_sessions"][quiz["quiz_id"]]
+    assert stored["user_id"] == openid_uid
+
+
+def _isolate_learner_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """把 learner_state 落到 tmp 目录并断开 Supabase，返回可注入的 service。"""
+    from deeptutor.services.learner_state.service import LearnerStateService
+    from deeptutor.services.path_service import PathService
+
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(tmp_path / "user-data"))
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    PathService.reset_instance()
+    return LearnerStateService()
+
+
+
+@pytest.mark.asyncio
+async def test_merge_rekeys_assessment_sessions_and_memory_events_to_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) openid 期的证据必须随合并搬到 target uid，不得搁浅（计划 §9.4 不变量）。"""
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    learner_state = _isolate_learner_state(tmp_path, monkeypatch)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: learner_state)
+    _stub_wechat_code_exchange(service, monkeypatch, openid="openid_merge_case_0001")
+    monkeypatch.setattr(service, "_persist_phone_identity", lambda **_kwargs: None)
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", lambda **_kwargs: None)
+
+    login = await service.login_with_wechat_code("wx-code-merge-case")
+    openid_uid = str(login["user_id"])
+
+    quiz = service.create_assessment(openid_uid, count=5)
+    quiz_id = str(quiz["quiz_id"])
+    repository_session = service._assessment_session_repository.create_session(
+        user_id=openid_uid,
+        assessment_type="diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="diagnostic_v1",
+        form_id="form_merge_case",
+        client_questions_public=[],
+        session_questions_private=[],
+    )
+    repository_quiz_id = str(repository_session["quiz_id"])
+    event = learner_state.append_memory_event(
+        openid_uid,
+        source_feature="assessment",
+        source_id=quiz_id,
+        memory_kind="learning_evidence",
+        payload_json={"evidence_source": "pass_readiness_diagnostic", "quiz_id": quiz_id},
+    )
+
+    existing_member_uid = "member_owns_the_phone"
+
+    def _seed_existing_member(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, existing_member_uid)
+        member["phone"] = "13911112233"
+
+    service._mutate(_seed_existing_member)
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112233"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    result = await service.bind_phone_for_wechat(openid_uid, "phone-code-merge-case")
+
+    assert result["merged"] is True
+    target_uid = str(result["user_id"])
+    assert target_uid == existing_member_uid
+    assert target_uid != openid_uid
+
+    data = service._load()
+    assert data["assessment_sessions"][quiz_id]["user_id"] == target_uid
+    assert (
+        service._assessment_session_repository.private_session(target_uid, repository_quiz_id)["user_id"]
+        == target_uid
+    )
+    target_events = learner_state.list_memory_events(target_uid, limit=None)
+    assert [item.event_id for item in target_events] == [event.event_id]
+    assert target_events[0].user_id == target_uid
+    assert learner_state.list_memory_events(openid_uid, limit=None) == []
+
+
+@pytest.mark.asyncio
+async def test_merge_rekey_is_idempotent_across_repeated_merges(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(d) 重复合并既不重复搬运也不丢：第二次 re-key 计数归零、证据仍在 target。"""
+    learner_state = _isolate_learner_state(tmp_path, monkeypatch)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: learner_state)
+
+    source_uid = "wx_openid_only_source"
+    target_uid = "member_target_uid"
+
+    def _seed(data: dict[str, object]) -> None:
+        service._ensure_member(data, source_uid)
+        service._ensure_member(data, target_uid)
+
+    service._mutate(_seed)
+
+    quiz = service.create_assessment(source_uid, count=5)
+    quiz_id = str(quiz["quiz_id"])
+    repository_session = service._assessment_session_repository.create_session(
+        user_id=source_uid,
+        assessment_type="diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="diagnostic_v1",
+        form_id="form_idempotent",
+        client_questions_public=[],
+        session_questions_private=[],
+    )
+    event = learner_state.append_memory_event(
+        source_uid,
+        source_feature="assessment",
+        source_id=quiz_id,
+        memory_kind="learning_evidence",
+        payload_json={"evidence_source": "pass_readiness_diagnostic", "quiz_id": quiz_id},
+    )
+
+    first = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[source_uid],
+        operator="admin",
+        reason="rekey_idempotency",
+        idempotency_key="merge-rekey-1",
+    )
+    first_rekey = first["learning_ledger_rekey"]
+    assert first_rekey["assessment_sessions_local"] == 1
+    assert first_rekey["assessment_sessions_repository"] == 1
+    assert first_rekey["learner_memory_events_local"] == 1
+    assert first_rekey["errors"] == []
+
+    # 同 idempotency_key：整个 merge 走 dedupe，不再搬第二次。
+    deduped = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[source_uid],
+        operator="admin",
+        reason="rekey_idempotency",
+        idempotency_key="merge-rekey-1",
+    )
+    assert deduped["deduped"] is True
+
+    # 换 idempotency_key 再合一次：re-key 找不到 source 行，既不重复也不丢。
+    second = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[source_uid],
+        operator="admin",
+        reason="rekey_idempotency",
+        idempotency_key="merge-rekey-2",
+    )
+    second_rekey = second["learning_ledger_rekey"]
+    assert second_rekey["assessment_sessions_local"] == 0
+    assert second_rekey["assessment_sessions_repository"] == 0
+    assert second_rekey["learner_memory_events_local"] == 0
+    assert second_rekey["errors"] == []
+
+    data = service._load()
+    assert data["assessment_sessions"][quiz_id]["user_id"] == target_uid
+    assert (
+        service._assessment_session_repository.private_session(
+            target_uid, str(repository_session["quiz_id"])
+        )["user_id"]
+        == target_uid
+    )
+    target_events = learner_state.list_memory_events(target_uid, limit=None)
+    assert [item.event_id for item in target_events] == [event.event_id]

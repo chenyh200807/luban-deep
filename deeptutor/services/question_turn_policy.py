@@ -75,10 +75,6 @@ from deeptutor.services.question_lifecycle_skills import (
     mcq_grading_context_from_full_submission,
     split_full_case_answer_submission,
 )
-from deeptutor.services.semantic_router import (
-    has_explicit_practice_generation_intent,
-)
-
 
 @dataclass(frozen=True)
 class TurnPolicyDecision:
@@ -493,10 +489,12 @@ def _practice_generation_action_for_explicit_request(
 ) -> dict[str, Any] | None:
     if not looks_like_practice_generation_request(user_message):
         return None
-    if not has_explicit_practice_generation_intent(user_message):
-        return None
     normalized_context = normalize_question_followup_context(question_context)
     if normalized_context is None:
+        return None
+    # 2026-08-10 收权:双形状(出题+追问)复合消息不由确定性 action 抢答,
+    # 交语义层裁决;确定性层只拿无歧义形状(与 semantic_router/scene 权威同规则)。
+    if looks_like_question_followup(user_message, normalized_context):
         return None
     _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
     if submission is not None:

@@ -12,6 +12,8 @@ import re
 import uuid
 
 from deeptutor.services.assessment.blueprint import (
+    COMPILED_PRACTICE_SOURCE_TYPE,
+    MANIFEST_SOURCE_TYPE,
     MIN_FORM_ROTATION_COUNT,
     TARGET_FORM_ROTATION_COUNT,
     AssessmentBlueprint,
@@ -42,6 +44,15 @@ class AssessmentBlueprintUnavailable(RuntimeError):
     """Raised when a formal assessment cannot be created without breaking the blueprint."""
 
 
+class AssessmentFormStoreUnreachable(AssessmentBlueprintUnavailable):
+    """持久化表单库(Supabase)传输层失败:超时/连接错/5xx。
+
+    语义与「表单不存在」严格区分:表单在库里、只是这次没取到。
+    消费者(_get_or_build_form_bank)对它做有界重试后 fail-closed,
+    绝不滑进现场重建——manifest 精编表单被静默重建 = 权威漂移。
+    """
+
+
 @dataclass(frozen=True)
 class QuestionCandidate:
     source_question_id: str
@@ -55,6 +66,13 @@ class QuestionCandidate:
     source_chunk_id: str = ""
     node_code: str = ""
     source_meta: dict[str, Any] | None = None
+    # 报告面诊断(答案面):逐选项「易错诱因 / 为什么丢分 / 怎么补 / 教材出处」+ 题级解析。
+    # 各供给车道从自己的签发权威只读投影而来(编译 authority 逐选项 temptation/
+    # loss_reason/fix、questions_bank.analysis、manifest 案例逐选项 cause/source),
+    # 报告只做读取,永不现编——现编即伪造。
+    # ⚠ 单一去向纪律:本字段只进私有会话快照(``stored``)与持久化表单,
+    # **永不进 client 投影**——答题页拿到它就等于泄题。
+    answer_diagnosis: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -233,6 +251,11 @@ class SupabaseAssessmentQuestionProvider:
                     "correct_answer",
                     "difficulty",
                     "tags",
+                    # 报告面诊断列(答案面):题级解析 + 逐选项理由 + 陷阱类型。
+                    # 只进 answer_diagnosis(私有面),不进 client 投影。
+                    "analysis",
+                    "option_reasoning",
+                    "trap_type",
                 )
             ),
             "limit": str(max(limit, 1)),
@@ -288,7 +311,14 @@ class SupabaseAssessmentQuestionProvider:
                 payload = response.read().decode("utf-8")
         except error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
+            if exc.code >= 500 or exc.code == 429:
+                raise AssessmentFormStoreUnreachable(
+                    f"Supabase {table} transient failure: HTTP {exc.code} {body}"
+                ) from exc
             raise AssessmentBlueprintUnavailable(f"Supabase {table} query failed: HTTP {exc.code} {body}") from exc
+        except (error.URLError, TimeoutError, OSError) as exc:
+            # urllib 的超时/断连以 URLError/socket.timeout 抛出,原先未捕获 → 直接炸成 500。
+            raise AssessmentFormStoreUnreachable(f"Supabase {table} unreachable: {exc}") from exc
         return list(json.loads(payload or "[]"))
 
     def _rest_upsert(
@@ -375,6 +405,7 @@ class SupabaseAssessmentQuestionProvider:
             source_chunk_id=str(row.get("source_chunk_id") or "").strip(),
             node_code=str(row.get("node_code") or "").strip(),
             source_meta=dict(row.get("source_meta") or {}) if isinstance(row.get("source_meta"), dict) else {},
+            answer_diagnosis=_bank_answer_diagnosis(row),
         )
         if not _is_supported_click_assessment_candidate(candidate):
             return None
@@ -567,6 +598,48 @@ class AssessmentBlueprintService:
             "persisted": True,
         }
 
+    def generate_and_persist_forms_from_manifest(
+        self,
+        manifest_paths: list[str],
+        *,
+        replicate_to_min: bool = False,
+    ) -> dict[str, Any]:
+        """内容线 manifest 钉选表单 → 持久化表单库(替代自动组卷,签名纪律)。
+
+        逐题按 manifest 题源引用解析并做 sha 校验(见 manifest_form_import),
+        任一失配整表 fail;无 manifest 的调用方走 generate_and_persist_forms,
+        现行自动组卷行为不变。
+        """
+
+        from deeptutor.services.assessment import manifest_form_import as _mfi
+
+        form_bank = _mfi.build_manifest_form_bank(
+            list(manifest_paths),
+            blueprint=self._blueprint,
+            bank_row_resolver=_mfi.supabase_bank_row_resolver(self._provider),
+            question_bank_size=_provider_question_bank_size(self._provider),
+            replicate_to_min=replicate_to_min,
+        )
+        saver = getattr(self._provider, "save_form_bank", None)
+        if not callable(saver):
+            raise AssessmentBlueprintUnavailable("Assessment provider cannot persist form bank")
+        saver(self._blueprint, form_bank)
+        cache_key = self._form_cache_key()
+        if cache_key:
+            with _FORM_CACHE_LOCK:
+                _FORM_CACHE[cache_key] = form_bank
+        self._local_form_bank = form_bank
+        return {
+            "blueprint_version": self._blueprint.version,
+            "form_count": len(form_bank.forms),
+            "form_ids": [form.form_id for form in form_bank.forms],
+            "form_source": form_bank.form_source,
+            "question_bank_size": form_bank.question_bank_size,
+            "fallback_used": False,
+            "persisted": True,
+            "manifest_paths": [str(path) for path in manifest_paths],
+        }
+
     def create_session(
         self,
         *,
@@ -670,7 +743,16 @@ class AssessmentBlueprintService:
         if callable(persisted_loader):
             try:
                 form_bank = persisted_loader(self._blueprint)
+            except AssessmentFormStoreUnreachable:
+                # 传输层失败 ≠ 表单不存在:有界重试一次,仍不通就 fail-closed。
+                # 绝不滑进 _build_form_bank 现场重建——那条路对 manifest 精编
+                # blueprint 是权威漂移(即使建成功也不是签发的卷),且慢 30s+。
+                try:
+                    form_bank = persisted_loader(self._blueprint)
+                except AssessmentFormStoreUnreachable:
+                    raise
             except AssessmentBlueprintUnavailable:
+                # 真「库里没有表单」(未 seed / 行损坏)才允许落到现场重建(v1 语义)。
                 form_bank = None
             if form_bank is not None:
                 fallback_source = (
@@ -759,7 +841,8 @@ class AssessmentBlueprintService:
         exclude_source_ids: set[str] = set(bank_exclude_source_ids or set())
         exclude_semantic_signatures: set[str] = set(bank_exclude_semantic_signatures or set())
         avoid_scored_chapters: set[str] = set()
-        profile_probe_iter = iter(get_profile_probes())
+        profile_probe_pool = list(get_profile_probes())
+        used_probe_ids: set[str] = set()
         fallback_used = False
         used_source_ids: set[str] = set()
         used_semantic_signatures: set[str] = set()
@@ -814,11 +897,21 @@ class AssessmentBlueprintService:
                     avoid_scored_chapters.add(_chapter_key(candidate.chapter))
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=True, item=candidate))
             else:
-                for _ in range(section.count):
-                    try:
-                        probe = next(profile_probe_iter)
-                    except StopIteration as exc:
-                        raise AssessmentBlueprintUnavailable("Not enough built-in profile probes") from exc
+                # Probes are bound to their blueprint section by section_id —
+                # registry order is preserved inside a section, and a probe is
+                # never reused across sections within one form.
+                section_probes = [
+                    probe
+                    for probe in profile_probe_pool
+                    if probe.section_id == section.id and probe.id not in used_probe_ids
+                ]
+                if len(section_probes) < section.count:
+                    raise AssessmentBlueprintUnavailable(
+                        f"Not enough built-in profile probes for section {section.id}: "
+                        f"requires {section.count}, found {len(section_probes)}"
+                    )
+                for probe in section_probes[: section.count]:
+                    used_probe_ids.add(probe.id)
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=False, item=probe))
         return units, fallback_used, used_source_ids, used_semantic_signatures
 
@@ -836,6 +929,9 @@ def _choose_assessment_form(forms: tuple[_AssessmentForm, ...]) -> _AssessmentFo
 
 
 def _built_form_source(provider: AssessmentQuestionProvider) -> str:
+    label = str(getattr(provider, "form_source_label", "") or "")
+    if label:
+        return label
     if isinstance(provider, SupabaseAssessmentQuestionProvider):
         return "supabase_questions_bank"
     if isinstance(provider, StaticAssessmentQuestionProvider):
@@ -852,6 +948,28 @@ def _with_form_source(form_bank: _AssessmentFormBank, form_source: str) -> _Asse
         question_bank_size=form_bank.question_bank_size,
         form_source=normalized,
     )
+
+
+def _bank_answer_diagnosis(row: dict[str, Any]) -> dict[str, Any] | None:
+    """questions_bank 行 → 报告面诊断投影(只读,不改行)。
+
+    该库题级解析在 ``analysis`` 列;``option_reasoning`` 若为逐选项字典则一并
+    透出。两者皆空时返回 None——宁可让报告留白,也不编造解析。
+    """
+
+    explanation = str(row.get("analysis") or "").strip()
+    raw_reasoning = row.get("option_reasoning")
+    options: dict[str, dict[str, str]] = {}
+    if isinstance(raw_reasoning, dict):
+        for key, value in raw_reasoning.items():
+            letter = str(key or "").strip().upper()
+            text = str(value or "").strip()
+            if letter and text:
+                options[letter] = {"why_missed": text}
+    trap = str(row.get("trap_type") or "").strip()
+    if not explanation and not options and not trap:
+        return None
+    return {"explanation": explanation, "trap_type": trap, "options": options}
 
 
 def _form_to_persisted_row(
@@ -897,6 +1015,8 @@ def _form_unit_to_json(unit: _AssessmentFormUnit) -> dict[str, Any]:
             "source_chunk_id": item.source_chunk_id,
             "node_code": item.node_code,
             "source_meta": dict(item.source_meta or {}),
+            # 答案面诊断随持久化表单走(报告读它);client 投影另有裁剪,见 _build_scored_question。
+            "answer_diagnosis": dict(item.answer_diagnosis or {}),
         }
     item = unit.item
     if not isinstance(item, ProfileProbe):
@@ -983,6 +1103,11 @@ def _form_unit_from_json(item: dict[str, Any]) -> _AssessmentFormUnit:
             source_chunk_id=str(item.get("source_chunk_id") or "").strip(),
             node_code=str(item.get("node_code") or "").strip(),
             source_meta=dict(item.get("source_meta") or {}) if isinstance(item.get("source_meta"), dict) else {},
+            answer_diagnosis=(
+                dict(item.get("answer_diagnosis") or {})
+                if isinstance(item.get("answer_diagnosis"), dict)
+                else None
+            ),
         )
         if not _is_supported_click_assessment_candidate(candidate):
             raise AssessmentBlueprintUnavailable(
@@ -1035,8 +1160,20 @@ def _build_scored_question(
     section: AssessmentSection,
     candidate: QuestionCandidate,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    if candidate.source_type == "DEV_FALLBACK":
+        source_table = "dev_fallback"
+    elif candidate.source_type == COMPILED_PRACTICE_SOURCE_TYPE:
+        # 读侧聚合真相：编译轻练权威不是 questions_bank 行，provenance 如实指认。
+        source_table = "luban_compiled_practice_authority"
+    elif candidate.source_type == MANIFEST_SOURCE_TYPE:
+        # manifest 钉选案例变式：新内容不在任何库，provenance=manifest:<sha>。
+        source_table = str(
+            (candidate.source_meta or {}).get("provenance") or "form_manifest"
+        )
+    else:
+        source_table = "questions_bank"
     provenance = {
-        "source_table": "questions_bank" if candidate.source_type != "DEV_FALLBACK" else "dev_fallback",
+        "source_table": source_table,
         "question_id": candidate.source_question_id,
         "source_question_id": candidate.source_question_id,
         "source_type": candidate.source_type,
@@ -1060,6 +1197,8 @@ def _build_scored_question(
     stored = {
         **client,
         "answer": candidate.answer,
+        # 答案面诊断只住私有快照:报告按学员实选项读它,答题页永远看不到。
+        "answer_diagnosis": dict(candidate.answer_diagnosis or {}),
     }
     return client, stored
 
@@ -1217,6 +1356,29 @@ def _selection_offset(selection_seed: str, section_id: str) -> int:
     return 1000 + (int(digest[:8], 16) % 3000)
 
 
+# 真题标记键（§6.2-v2 拍板②「真题只做锚、不直接出」的选材闸）：练习册/教材行
+# 若 source_meta 携带任一真题溯源标记即视为真题原题换皮，多选过渡源不得选用。
+_REAL_EXAM_MARKER_KEYS = (
+    "based_on",
+    "based_on_source",
+    "based_on_question_id",
+    "source_exam",
+    "source_exam_id",
+    "exam_year",
+    "exam_source",
+    "real_exam_ref",
+)
+
+
+def _real_exam_marked(candidate: QuestionCandidate) -> bool:
+    if str(candidate.source_type or "").strip().upper() == "REAL_EXAM":
+        return True
+    meta = dict(candidate.source_meta or {})
+    if any(str(meta.get(key) or "").strip() for key in _REAL_EXAM_MARKER_KEYS):
+        return True
+    return "真题" in json.dumps(meta, ensure_ascii=False)
+
+
 def _select_diagnostic_candidates(
     candidates: list[QuestionCandidate],
     *,
@@ -1226,6 +1388,8 @@ def _select_diagnostic_candidates(
     avoid_chapters: set[str],
 ) -> list[QuestionCandidate]:
     filtered = list(candidates)
+    if section.exclude_real_exam_marked:
+        filtered = [candidate for candidate in filtered if not _real_exam_marked(candidate)]
     if section.strict_topics:
         filtered = [candidate for candidate in filtered if _section_topic_score(candidate, section) > 0]
     ordered = _prioritize_section_topics(

@@ -1307,11 +1307,31 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
                 )
                 has_answer_payload = bool(_gen_submission)
         if not has_answer_payload:
-            return "practice_generation"
+            # ② 双形状消歧 (2026-08-10, F1 收权): 同时命中追问形状的复合消息
+            # (「下一题解析一下」)不由确定性快路径硬判出题 scene——fall through
+            # 到下方 question_review 族,由持有上下文的语义层裁决。纯出题请求
+            # (含「…不要提前给答案和解析」——追问尺已否定感知)不受影响。
+            followup_shaped_context = question_context or normalize_question_followup_context(
+                metadata.get("question_followup_context") if isinstance(metadata, dict) else None
+            )
+            if not (
+                followup_shaped_context
+                and looks_like_question_followup(user_message, followup_shaped_context)
+            ):
+                return "practice_generation"
+            # review F3:双形状且无作答载荷的消息 defer 后不得坠入下方 free-text
+            # 判分探测器——它们凭表面词(批改/案例题)就硬钉判分 scene,而本消息
+            # 已确证无可判内容,钉上即 B1 no-authority 死锁。跳过探测器,落
+            # question_review 族/语义层。
+            dual_shape_no_answer = True
+        else:
+            dual_shape_no_answer = False
+    else:
+        dual_shape_no_answer = False
 
-    if _looks_like_free_text_mcq_grading(user_message):
+    if not dual_shape_no_answer and _looks_like_free_text_mcq_grading(user_message):
         return "mcq_grading"
-    if _looks_like_free_text_case_grading(user_message):
+    if not dual_shape_no_answer and _looks_like_free_text_case_grading(user_message):
         return "case_grading"
 
     question_context = question_context or normalize_question_followup_context(
@@ -1339,7 +1359,10 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
                 return "case_grading"
 
     if looks_like_practice_generation_request(user_message):
-        return "practice_generation"
+        # 双形状消歧同款护栏(2026-08-10,F1 收权):此处是同把尺在本函数的第二个
+        # 消费点(上方 B1 块 defer 后流到这里),必须同规则——复合消息交语义层。
+        if not (question_context and looks_like_question_followup(user_message, question_context)):
+            return "practice_generation"
 
     if any(phrase in user_message for phrase in _QUESTION_REVIEW_FREETEXT_PHRASES) or (
         _QUESTION_REVIEW_FREETEXT_RE.search(user_message) is not None

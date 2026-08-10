@@ -929,3 +929,55 @@ def test_t14_gate_ordinal_anchor_and_boundaries():
     assert f("第1题讲讲", single) is False         # single set (len<2)
     assert f("这道题讲讲", batch) is True          # demonstrative path intact
     assert f("看看历年真题有哪些", batch) is False  # genuine low-info
+
+
+# --------------------------------------------------------------------------- #
+# 2026-08-10 F1 生产事故回归钉:双形状消歧(确定性快路径只拿无歧义形状)。        #
+# --------------------------------------------------------------------------- #
+
+
+def test_f1_negated_explainer_practice_request_stays_practice_generation():
+    """F1 事故原文钉:「…先只出题,不要提前给答案和解析」是无歧义出题请求——
+    否定短语里的「解析」不再把出题轮吞进追问讲解链(题组零注册的 turn-0 病灶)。"""
+    ctx = _FakeContext(
+        user_message="请围绕我刚才错的考点，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。",
+        metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
+def test_dual_shape_compound_message_defers_to_semantic_layer():
+    """双形状(出题+追问)复合消息不由确定性快路径硬判出题 scene。"""
+    ctx = _FakeContext(
+        user_message="下一题解析一下",
+        metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) != "practice_generation"
+
+
+def test_answer_led_mixed_intent_keeps_grading_priority():
+    """「我选B,再出3题」:真作答优先于出题(硬约束:真作答必判,不被出题半句劫走)。"""
+    ctx = _FakeContext(
+        user_message="我选B，再出3题",
+        metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
+
+
+def test_multi_answer_on_single_question_context_never_misgrades():
+    """F1 钉:3 段序号作答对单题上下文不得判成 mcq_grading(曾蒸成单字母判旧题倒诬)。"""
+    ctx = _FakeContext(
+        user_message="1、c    2.c    3.c",
+        metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) is None
+
+
+def test_dual_shape_composite_does_not_deadlock_into_grading_scene():
+    """review F3 钉:双形状且无作答载荷的复合消息(「再出一道案例题,顺便批改上一题」)
+    defer 后不得坠入 free-text 判分探测器硬钉判分 scene(B1 no-authority 死锁)。"""
+    ctx = _FakeContext(
+        user_message="再出一道案例题，顺便批改一下上一题",
+        metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) not in {"case_grading", "mcq_grading"}

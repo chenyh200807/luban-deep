@@ -209,6 +209,51 @@ def test_list_redeemable_due_items_delegates_exact_probe_criteria() -> None:
     assert list_redeemable_due_items({}) == []
 
 
+def test_deferred_probe_filtered_from_redeemable_but_still_resolvable() -> None:
+    """defer 意志(declined→deferred)是展示侧过滤: 不进首页/计划 CTA,
+    但兑付资格不受影响——defer 后当日回头补做仍可完成(禁 fail-closed 藏卡)。"""
+    projection = {
+        "due": [
+            {
+                "pack_id": "N01",
+                "probe_id": "deferred-n01",
+                "cycle_anchor": "cycle-1",
+                "retest_available": True,
+                "probe_status": "deferred",
+            },
+            {
+                "pack_id": "N02",
+                "probe_id": "queued-n02",
+                "cycle_anchor": "cycle-2",
+                "retest_available": True,
+                "probe_status": "queued",
+            },
+        ]
+    }
+    assert [i["probe_id"] for i in list_redeemable_due_items(projection)] == ["queued-n02"]
+    resolved = resolve_due_review_probe(projection, pack_id="N01", probe_id="deferred-n01")
+    assert resolved is not None and resolved["probe_id"] == "deferred-n01"
+
+
+def test_declined_probe_ids_passthrough_marks_probe_status_deferred() -> None:
+    """declined 透传接线: caller 注入当日 defer 的 probe → due 行带
+    probe_status=deferred + next_available_at; 不注入 = 现行为(queued/active)。"""
+    events = _completion_pair("2026-07-03T22:00:00+08:00", "F16", completion_id="cmp_f16_d1")
+    base = build_review_due_projection(
+        user_id="u1", events=events, now_iso="2026-07-04T09:00:00+08:00",
+    )
+    assert [d["pack_id"] for d in base["due"]] == ["F16"]
+    assert base["due"][0]["probe_status"] in {"queued", "active"}
+    probe_id = base["due"][0]["probe_id"]
+
+    deferred = build_review_due_projection(
+        user_id="u1", events=events, now_iso="2026-07-04T09:00:00+08:00",
+        declined_probe_ids=[probe_id],
+    )
+    assert deferred["due"][0]["probe_status"] == "deferred"
+    assert deferred["due"][0]["next_available_at"] == "2026-07-05T09:00:00+08:00"
+
+
 def test_learned_yesterday_due_today_learned_today_not_due(pendingize_pack):
     # F16 于 2026-07-20 补题批签发;fail-closed 断言改用合成 pending 世界态守约。
     pendingize_pack("F16")

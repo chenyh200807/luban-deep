@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 SESSION_SCHEMA_VERSION = "assessment_session_v1"
 REPORT_SCHEMA_VERSION = "p0a-v1"
+PASS_READINESS_REPORT_SCHEMA_VERSION = "pass-readiness-v1"
+# Mirror of the DB CHECK constraint (supabase/migrations/20260805000100_*.sql).
+# Report envelopes must carry one of these persisted schema versions.
+SUPPORTED_REPORT_SCHEMA_VERSIONS = (REPORT_SCHEMA_VERSION, PASS_READINESS_REPORT_SCHEMA_VERSION)
 DEFAULT_TTL = timedelta(hours=24)
 DEFAULT_LEASE = timedelta(minutes=30)
 
@@ -201,6 +205,21 @@ class InMemoryAssessmentSessionRepository:
             return copy.deepcopy(row)
         return None
 
+    def latest_scored_session(self, user_id: str, assessment_type: str) -> dict[str, Any] | None:
+        """Latest scored session of one type — read-only canonical evidence probe."""
+
+        rows = [
+            row
+            for row in self._rows.values()
+            if str(row.get("user_id")) == str(user_id)
+            and str(row.get("assessment_type")) == str(assessment_type)
+            and str(row.get("status")) == "scored"
+        ]
+        if not rows:
+            return None
+        latest = max(rows, key=lambda row: str(row.get("scored_at") or row.get("created_at") or ""))
+        return copy.deepcopy(latest)
+
     def get_session_for_resume(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         self._expire_if_needed(row)
@@ -213,6 +232,16 @@ class InMemoryAssessmentSessionRepository:
     def private_session(self, user_id: str, quiz_id: str) -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         return copy.deepcopy(row)
+
+    def list_report_sessions(self, user_id: str, *, limit: int = 20) -> list[dict[str, Any]]:
+        """最近的已出报告 session（新→旧）。只读列举，零状态迁移。"""
+        rows = [
+            row
+            for row in self._rows.values()
+            if str(row.get("user_id")) == str(user_id) and row.get("result_report_json")
+        ]
+        rows.sort(key=lambda row: str(row.get("updated_at") or ""), reverse=True)
+        return [copy.deepcopy(row) for row in rows[: max(1, int(limit))]]
 
     def mark_submitted_once(
         self,
@@ -233,7 +262,7 @@ class InMemoryAssessmentSessionRepository:
             if row.get("submit_idempotency_key") == key:
                 return copy.deepcopy(row)
             raise AssessmentSessionConflict("assessment_submit_body_conflict")
-        if result_report_json.get("schema_version") != REPORT_SCHEMA_VERSION:
+        if result_report_json.get("schema_version") not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
             raise AssessmentSessionConflict("result_report_schema_version_required")
         now = self._now_fn()
         row["submitted_answer_snapshot"] = copy.deepcopy(submitted_answer_snapshot or {})
@@ -282,9 +311,55 @@ class InMemoryAssessmentSessionRepository:
         row["updated_at"] = _iso(self._now_fn())
         return copy.deepcopy(row)
 
+    def store_deep_explanation(
+        self,
+        user_id: str,
+        quiz_id: str,
+        *,
+        cache_key: str,
+        explanation: dict[str, Any],
+    ) -> dict[str, Any]:
+        """深解析结果落回报告快照(owner 2026-08-07:同一题不得重复生成)。
+
+        唯一存放点=result_report_json.deep_explanations[cache_key];cache_key 含
+        学员作答与 prompt 版本,内容变化自然换键,不做过期策略。"""
+
+        row = self._owned_row(user_id, quiz_id)
+        report = dict(row.get("result_report_json") or {})
+        if not report:
+            raise AssessmentSessionError(f"assessment_report_not_ready:{quiz_id}")
+        cached = dict(report.get("deep_explanations") or {})
+        cached[str(cache_key)] = copy.deepcopy(explanation or {})
+        report["deep_explanations"] = cached
+        row["result_report_json"] = report
+        row["result_report_hash"] = _report_hash(report)
+        row["updated_at"] = _iso(self._now_fn())
+        return copy.deepcopy(row)
+
     def expire_stale_sessions(self) -> None:
         for row in self._rows.values():
             self._expire_if_needed(row)
+
+    def rekey_user_sessions(self, *, source_user_id: str, target_user_id: str) -> int:
+        """Move every session row owned by ``source_user_id`` to ``target_user_id``.
+
+        Account merge invariant (plan §9.4): the assessment read path is strict
+        ``user_id`` equality, so a merged-away account's sessions would be
+        stranded unless the merge re-keys them. Idempotent: after the first run
+        no row matches the source id, so a repeated merge moves nothing.
+        """
+        source = str(source_user_id or "").strip()
+        target = str(target_user_id or "").strip()
+        if not source or not target or source == target:
+            return 0
+        moved = 0
+        for row in self._rows.values():
+            if str(row.get("user_id") or "").strip() != source:
+                continue
+            row["user_id"] = target
+            row["updated_at"] = _iso(self._now_fn())
+            moved += 1
+        return moved
 
     def renew_lease(self, user_id: str, quiz_id: str, *, device_id: str, heartbeat_seconds: int = 300) -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
@@ -541,6 +616,22 @@ class SupabaseAssessmentSessionRepository:
                 return copy.deepcopy(row)
         return None
 
+    def latest_scored_session(self, user_id: str, assessment_type: str) -> dict[str, Any] | None:
+        """Latest scored session of one type — read-only canonical evidence probe."""
+
+        rows = self._select(
+            {
+                "user_id": f"eq.{user_id}",
+                "assessment_type": f"eq.{assessment_type}",
+                "status": "eq.scored",
+                "order": "scored_at.desc.nullslast",
+            },
+            limit=1,
+        )
+        if not rows:
+            return None
+        return copy.deepcopy(rows[0])
+
     def get_session_for_resume(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
         row = self._owned_row(user_id, quiz_id)
         row = self._expire_if_needed(row)
@@ -552,6 +643,18 @@ class SupabaseAssessmentSessionRepository:
 
     def private_session(self, user_id: str, quiz_id: str) -> dict[str, Any]:
         return self._owned_row(user_id, quiz_id)
+
+    def list_report_sessions(self, user_id: str, *, limit: int = 20) -> list[dict[str, Any]]:
+        """最近的已出报告 session（新→旧）。PostgREST order 参数与 filter 同走 params。"""
+        rows = self._select(
+            {
+                "user_id": f"eq.{user_id}",
+                "result_report_json": "not.is.null",
+                "order": "updated_at.desc",
+            },
+            limit=max(1, int(limit)),
+        )
+        return [copy.deepcopy(row) for row in rows]
 
     def mark_submitted_once(
         self,
@@ -572,7 +675,7 @@ class SupabaseAssessmentSessionRepository:
             if row.get("submit_idempotency_key") == key:
                 return copy.deepcopy(row)
             raise AssessmentSessionConflict("assessment_submit_body_conflict")
-        if result_report_json.get("schema_version") != REPORT_SCHEMA_VERSION:
+        if result_report_json.get("schema_version") not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
             raise AssessmentSessionConflict("result_report_schema_version_required")
         now = self._now_fn()
         patch = {
@@ -641,6 +744,61 @@ class SupabaseAssessmentSessionRepository:
             patch["status"] = "scored"
             patch["degraded_reason"] = None
         return self._patch_owned(user_id, quiz_id, patch)
+
+    def store_deep_explanation(
+        self,
+        user_id: str,
+        quiz_id: str,
+        *,
+        cache_key: str,
+        explanation: dict[str, Any],
+    ) -> dict[str, Any]:
+        """深解析结果落回报告快照(与 InMemory 版同语义)。
+
+        读-改-写整列 JSONB;并发窗口=同一学员同秒点两张卡,丢失一条缓存的
+        后果只是下次点击重新生成一次,可接受,不为此上乐观锁。"""
+
+        row = self._owned_row(user_id, quiz_id)
+        report = dict(row.get("result_report_json") or {})
+        if not report:
+            raise AssessmentSessionError(f"assessment_report_not_ready:{quiz_id}")
+        cached = dict(report.get("deep_explanations") or {})
+        cached[str(cache_key)] = copy.deepcopy(explanation or {})
+        report["deep_explanations"] = cached
+        return self._patch_owned(
+            user_id,
+            quiz_id,
+            {
+                "result_report_json": report,
+                "result_report_hash": _report_hash(report),
+                "updated_at": _iso(self._now_fn()),
+            },
+        )
+
+    def rekey_user_sessions(self, *, source_user_id: str, target_user_id: str) -> int:
+        """Re-key merged-away sessions to the surviving uid (plan §9.4).
+
+        One PATCH over ``user_id=eq.<source>``; PostgREST returns the moved rows
+        so the caller can audit the count. Idempotent by construction — the
+        second call matches nothing.
+        """
+        source = str(source_user_id or "").strip()
+        target = str(target_user_id or "").strip()
+        if not source or not target or source == target:
+            return 0
+        self._ensure_configured()
+        try:
+            response = self._client_or_create().patch(
+                f"{self._base_url}/rest/v1/assessment_sessions",
+                headers=self._headers(prefer="return=representation"),
+                params={"user_id": f"eq.{source}"},
+                json={"user_id": target, "updated_at": _iso(self._now_fn())},
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AssessmentSessionError("assessment_sessions_unavailable") from exc
+        payload = response.json()
+        return len(payload) if isinstance(payload, list) else 0
 
     def expire_stale_sessions(self, *, user_id: str = "") -> None:
         filters = {"status": "eq.in_progress", "expires_at": f"lt.{_iso(self._now_fn())}"}

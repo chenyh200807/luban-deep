@@ -843,3 +843,32 @@ async def test_negated_practice_request_routes_to_chat_instead_of_generation() -
     assert routing.turn_semantic_decision is not None
     assert routing.turn_semantic_decision["next_action"] == "route_to_general_chat"
     assert routing.followup_action is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_f1_negated_explainer_routes_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """2026-08-10 F1 生产事故原文钉:「…先只出题,不要提前给答案和解析」是无歧义
+    出题请求,确定性快路径直接判 route_to_generation——不再被否定短语里的「解析」
+    击落进追问讲解链(那正是题组零注册、批量作答塌成旧单题的 turn-0 断裂点)。"""
+
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        raise AssertionError("无歧义出题请求应走确定性快路径,不应咨询 LLM interpreter")
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        _question_context(),
+        source_turn_id="turn-f1-incident",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "请围绕我刚才错的“地基基础 / 主体结构”，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。",
+        active_object,
+    )
+
+    assert action is not None
+    assert action["intent"] == "generate_more_questions"
+    assert decision is not None
+    assert decision["next_action"] == "route_to_generation"
+    assert decision["allowed_patch"] == ["set_active_object"]

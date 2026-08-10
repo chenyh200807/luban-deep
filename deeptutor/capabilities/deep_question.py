@@ -4952,7 +4952,11 @@ class DeepQuestionCapability(BaseCapability):
                     raw_user_message,
                     followup_question_context,
                 )
-                if target_context and submission:
+                # arity/单答歧义闸(2026-08-10 review F2):kind=ambiguous 不是可判分
+                # 提交——把它塌成单答会在 capability 层复现 F1 倒诬(多题作答被蒸馏
+                # 成单字母判 stale 单题)。ambiguous 一律不武装判分 action,落既有
+                # 澄清/追问路径。
+                if target_context and submission and submission.get("kind") != "ambiguous":
                     followup_question_context = target_context
                     followup_action = self._followup_action_from_submission(submission)
                     next_action = "route_to_grading"
@@ -5045,7 +5049,8 @@ class DeepQuestionCapability(BaseCapability):
                     raw_user_message,
                     followup_question_context,
                 )
-                if target_context and submission:
+                # 同上:ambiguous 提交不得塌成单答判分(F1 倒诬防线的 capability 侧)。
+                if target_context and submission and submission.get("kind") != "ambiguous":
                     action_context = apply_followup_action_to_context(
                         target_context,
                         self._followup_action_from_submission(submission),

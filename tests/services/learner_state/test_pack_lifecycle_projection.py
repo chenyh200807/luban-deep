@@ -268,7 +268,10 @@ def test_unmappable_practice_falls_into_unassigned_bucket() -> None:
 
 def test_full_40_pack_set_is_the_default_universe() -> None:
     projection = project_pack_lifecycle(events=[], claims=[])
-    assert len(projection["packs"]) == 41  # 40+D14(2026-07-04)——manifest 全集,加站时有意识 bump
+    # manifest 全集,加站时有意识 bump:40+D14(2026-07-04)+E06/Z01(16ae6074c,
+    # Layer-2 异源 jury 收口 manifest 登记;0810 里程碑合并时对账,先证不变量
+    # (全集=manifest)成立再对齐声明数)。
+    assert len(projection["packs"]) == 43
 
 
 def test_revalidation_queue_emits_zero_probe_for_unlearned_and_exposed() -> None:

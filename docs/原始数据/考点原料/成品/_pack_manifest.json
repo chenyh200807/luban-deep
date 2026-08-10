@@ -1,5 +1,5 @@
 {
- "pack_count": 41,
+ "pack_count": 43,
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
@@ -531,6 +531,29 @@
    "red_marker_count": 33,
    "review_level": "coarse_review",
    "title": "挣值法偏差分析"
+  },
+  {
+   "card_hosted": false,
+   "content_sha256": "90189226e98848856c6ed1bc5ec3830631b8e03274b7657dcbe6f3117ff60241",
+   "explicitly_barred_default_entry": false,
+   "file": "E06_工程量清单与合同价款约定2026.md",
+   "has_answer_layer": false,
+   "has_compiled_source": true,
+   "has_exam_evidence": true,
+   "jury_clean": true,
+   "jury_file": true,
+   "jury_high_confidence": 0,
+   "jury_high_confidence_unresolved": 0,
+   "jury_total": 5,
+   "needs_leaf_review": false,
+   "pack_id": "E06",
+   "practice": {
+    "status": "unavailable"
+   },
+   "published": false,
+   "red_marker_count": 6,
+   "review_level": "standard",
+   "title": "工程量清单与合同价款约定2026"
   },
   {
    "card_hosted": true,
@@ -1473,6 +1496,29 @@
    "red_marker_count": 28,
    "review_level": "coarse_review",
    "title": "文明绿色环保施工措施"
+  },
+  {
+   "card_hosted": false,
+   "content_sha256": "f2b6aba2fb7dfc7ed6a2deb8352efb8b74d2884236da95f69f81298e23dd22ec",
+   "explicitly_barred_default_entry": false,
+   "file": "Z01_智能建造与建筑机器人2026.md",
+   "has_answer_layer": false,
+   "has_compiled_source": true,
+   "has_exam_evidence": true,
+   "jury_clean": true,
+   "jury_file": true,
+   "jury_high_confidence": 0,
+   "jury_high_confidence_unresolved": 0,
+   "jury_total": 3,
+   "needs_leaf_review": false,
+   "pack_id": "Z01",
+   "practice": {
+    "status": "unavailable"
+   },
+   "published": false,
+   "red_marker_count": 6,
+   "review_level": "standard",
+   "title": "智能建造与建筑机器人2026"
   }
  ],
  "projection_green": [

@@ -39,6 +39,7 @@
         "pages/legal/terms",
         "pages/luban/stations/stations",
         "pages/luban/teaching-points/teaching-points",
+        "pages/luban/plan/plan",
         "pages/luban/review/review",
         "pages/luban/station/station",
         "pages/luban/handoff/handoff",
@@ -47,6 +48,9 @@
         "pages/luban/errorbank/errorbank",
         "pages/luban/gauntlet/gauntlet",
         "pages/luban/seethrough/seethrough",
+        "pages/luban/pass-readiness/landing/landing",
+        "pages/luban/pass-readiness/exam/exam",
+        "pages/luban/pass-readiness/report/report",
         "pages/first-run/first-run"
       ]
     },

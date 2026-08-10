@@ -11,6 +11,10 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/learn/learn": true,
   "pages/luban/concept-cards/concept-cards": true,
   "pages/luban/errorbank/errorbank": true,
+  "pages/luban/pass-readiness/landing/landing": true,
+  "pages/luban/plan/plan": true,
+  "pages/luban/pass-readiness/exam/exam": true,
+  "pages/luban/pass-readiness/report/report": true,
   "pages/luban/review/review": true,
   "pages/luban/station/station": true,
   "pages/luban/stations/stations": true,
@@ -128,6 +132,10 @@ module.exports = {
   lubanReview: function (query) {
     return withQuery("pages/luban/review/review", query);
   },
+  lubanPlan: function (query) {
+    // 计划页(跑道视图,AI 学习计划体系 P0)——诊断落点/跑道第一步接线用。
+    return withQuery("pages/luban/plan/plan", query);
+  },
   lubanConceptCards: function (query) {
     return withQuery("pages/luban/concept-cards/concept-cards", query);
   },
@@ -136,6 +144,16 @@ module.exports = {
   },
   lubanGauntlet: function (query) {
     return withQuery("pages/luban/gauntlet/gauntlet", query);
+  },
+  // 过线体检(S5)独立入口: 落地 → 测评 → 报告(九屏旅程)
+  lubanPassReadiness: function (query) {
+    return withQuery("pages/luban/pass-readiness/landing/landing", query);
+  },
+  lubanPassReadinessExam: function (query) {
+    return withQuery("pages/luban/pass-readiness/exam/exam", query);
+  },
+  lubanPassReadinessReport: function (query) {
+    return withQuery("pages/luban/pass-readiness/report/report", query);
   },
   profile: function () {
     return resolve("pages/profile/profile");

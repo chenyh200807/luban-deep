@@ -944,6 +944,102 @@ class LearnerStateService:
         self._maybe_auto_synthesize_learning_truth(event)
         return event
 
+    def rekey_memory_events(self, *, source_user_id: str, target_user_id: str) -> dict[str, int]:
+        """Move a merged-away account's memory events to the surviving uid.
+
+        Account merge invariant (plan §9.4): every learner-state read model is a
+        strict ``user_id`` equality read, so evidence written by an openid-only
+        learner would be stranded the moment a phone bind merges that account
+        into an existing member — unless the merge itself re-keys the ledger.
+        Both replicas move (local JSONL + durable core store).
+
+        Idempotent: the second run finds no source rows, and an event whose
+        ``event_id``/``dedupe_key`` already exists under the target is skipped
+        instead of duplicated.
+        """
+        source = _normalize_user_id(source_user_id)
+        target = _normalize_user_id(target_user_id)
+        if not source or not target or source == target:
+            return {"local_moved": 0, "remote_moved": 0}
+        local_moved = self._rekey_local_memory_events(source, target)
+        remote_moved = 0
+        rekeyer = getattr(self._core_store, "rekey_memory_events", None)
+        if bool(getattr(self._core_store, "is_configured", False)) and callable(rekeyer):
+            remote_moved = int(rekeyer(source_user_id=source, target_user_id=target) or 0)
+        self._remote_events_cache_invalidate(source)
+        self._remote_events_cache_invalidate(target)
+        return {"local_moved": local_moved, "remote_moved": remote_moved}
+
+    def _rekey_local_memory_events(self, source: str, target: str) -> int:
+        source_path = self._path(source, "events")
+        if not source_path.exists():
+            return 0
+        rows: list[dict[str, Any]] = []
+        try:
+            with source_path.open("r", encoding="utf-8") as handle:
+                for raw in handle:
+                    text = raw.strip()
+                    if not text:
+                        continue
+                    try:
+                        data = json.loads(text)
+                    except ValueError:
+                        continue
+                    if isinstance(data, dict):
+                        rows.append(data)
+        except OSError:
+            return 0
+
+        target_path = self._path(target, "events")
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        seen_event_ids: set[str] = set()
+        seen_dedupe_keys: set[str] = set()
+        if target_path.exists():
+            try:
+                with target_path.open("r", encoding="utf-8") as handle:
+                    for raw in handle:
+                        text = raw.strip()
+                        if not text:
+                            continue
+                        try:
+                            existing = json.loads(text)
+                        except ValueError:
+                            continue
+                        if not isinstance(existing, dict):
+                            continue
+                        seen_event_ids.add(str(existing.get("event_id") or ""))
+                        seen_dedupe_keys.add(str(existing.get("dedupe_key") or ""))
+            except OSError:
+                return 0
+
+        moved = 0
+        if rows:
+            with target_path.open("a", encoding="utf-8") as handle:
+                for data in rows:
+                    event_id = str(data.get("event_id") or "")
+                    dedupe_key = str(data.get("dedupe_key") or "")
+                    if event_id and event_id in seen_event_ids:
+                        continue
+                    if dedupe_key and dedupe_key in seen_dedupe_keys:
+                        continue
+                    data["user_id"] = target
+                    handle.write(_json_dump(data) + "\n")
+                    if event_id:
+                        seen_event_ids.add(event_id)
+                    if dedupe_key:
+                        seen_dedupe_keys.add(dedupe_key)
+                    moved += 1
+        try:
+            source_path.unlink()
+        except OSError:
+            logger.warning(
+                "learner memory events re-key could not drop source ledger: source=%s target=%s",
+                source,
+                target,
+                exc_info=True,
+            )
+        return moved
+
     def claim_retest_probe(
         self,
         *,

@@ -1,0 +1,2593 @@
+{
+  "empty_slots": [
+    {
+      "alignment_status": "direct",
+      "note": "预付款、进度款、结算款计算",
+      "pack_id": "E02",
+      "slot": "42",
+      "student_title": "预付款、起扣点、进度款细分"
+    },
+    {
+      "alignment_status": "coarse_review",
+      "note": "暂列/暂估未命中精确 leaf;需计价 source_ref",
+      "pack_id": "E03",
+      "slot": "43",
+      "student_title": "措施费、暂列金额、暂估价判断"
+    },
+    {
+      "alignment_status": "direct",
+      "note": "竣工结算、价款确定与调整",
+      "pack_id": "E04",
+      "slot": "44",
+      "student_title": "竣工结算与价款调整"
+    },
+    {
+      "alignment_status": "coarse_review",
+      "note": "工程变更有节点,签证需 source_ref 补证",
+      "pack_id": "K03",
+      "slot": "45",
+      "student_title": "工程变更与签证"
+    },
+    {
+      "alignment_status": "composite",
+      "note": "默认作为 K01/K06 的迁移包",
+      "pack_id": "K05",
+      "slot": "46",
+      "student_title": "工期顺延与费用补偿边界"
+    },
+    {
+      "alignment_status": "composite",
+      "note": "责任事件矩阵,吸收 K02",
+      "pack_id": "K06",
+      "slot": "47",
+      "student_title": "合同责任事件归属矩阵"
+    },
+    {
+      "alignment_status": "coarse_review",
+      "note": "疏散/防火构造有节点,耐火等级/防火分区缺精确 leaf",
+      "pack_id": "R02/R03",
+      "slot": "48",
+      "student_title": "耐火等级、疏散距离、防火分区基础数值判断"
+    },
+    {
+      "alignment_status": "composite",
+      "note": "可与 D13 联动,封堵需补 source_ref",
+      "pack_id": "R04",
+      "slot": "49",
+      "student_title": "防火封堵与幕墙层间防火"
+    },
+    {
+      "alignment_status": "composite",
+      "note": "前锋线有节点,时标网络需 source_ref",
+      "pack_id": "N04",
+      "slot": "50",
+      "student_title": "时标网络计划与前锋线判断"
+    },
+    {
+      "alignment_status": "direct",
+      "note": "基坑监测、报警条件、测量监测",
+      "pack_id": "G05",
+      "slot": "51",
+      "student_title": "支护结构监测报警与处置"
+    },
+    {
+      "alignment_status": "direct",
+      "note": "默认从 E04/K05 条件拆分",
+      "pack_id": "K04",
+      "slot": "52",
+      "student_title": "合同价款调整触发与计算边界"
+    },
+    {
+      "alignment_status": "merged_child",
+      "note": "默认并入 K06",
+      "pack_id": "K02",
+      "slot": "53",
+      "student_title": "不可抗力责任划分"
+    },
+    {
+      "alignment_status": "conditional_split",
+      "note": "默认并入 R01;独立需验收流程 source_ref",
+      "pack_id": "R05",
+      "slot": "54",
+      "student_title": "消防验收流程"
+    },
+    {
+      "alignment_status": "conditional_split",
+      "note": "场景变体,默认不独立锁定",
+      "pack_id": "X05",
+      "slot": "55",
+      "student_title": "季节性施工措施: 雨期/冬期/高温"
+    },
+    {
+      "alignment_status": "merged_child",
+      "note": "默认并入 A02,防水为场景",
+      "pack_id": "F06",
+      "slot": "56",
+      "student_title": "防水材料性能与进场复验"
+    },
+    {
+      "alignment_status": "merged_child",
+      "note": "默认并入 A02",
+      "pack_id": "D17",
+      "slot": "57",
+      "student_title": "装饰材料进场复验与见证取样"
+    },
+    {
+      "alignment_status": "merged_child",
+      "note": "默认并入 X03",
+      "pack_id": "X04",
+      "slot": "58",
+      "student_title": "绿色施工措施"
+    },
+    {
+      "alignment_status": "conditional_split",
+      "note": "从 D14 拆分需 source_ref",
+      "pack_id": "D15",
+      "slot": "59",
+      "student_title": "门窗安装、防渗漏质量控制细分候选"
+    },
+    {
+      "alignment_status": "conditional_split",
+      "note": "从 D14 拆分需 source_ref",
+      "pack_id": "D16",
+      "slot": "60",
+      "student_title": "地面基层与面层质量细分候选"
+    }
+  ],
+  "excluded_family": {
+    "answer_layer_missing_pack_ids": [],
+    "answer_layer_pack_count": 3,
+    "coarse_review_pack_ids": [],
+    "compiled_practice_pack_count": 2,
+    "eligible_question_total": 15,
+    "exam_evidence_missing_pack_ids": [],
+    "exam_evidence_pack_count": 3,
+    "family": "合同索赔",
+    "lesson_binding_rate": 0.6667,
+    "lesson_bound_pack_count": 2,
+    "lesson_unbound_pack_ids": [
+      "E01"
+    ],
+    "missing_from_manifest": [],
+    "pack_count": 3,
+    "pack_ids": [
+      "C02",
+      "E01",
+      "K01"
+    ],
+    "practice_authority_eligible_variant_total": 15,
+    "practice_authority_surface_total": 2,
+    "published_pack_count": 3,
+    "question_total": 23,
+    "retest_variant_bank_pack_count": 2,
+    "retest_variant_bank_pack_ids": [
+      "C02",
+      "E01"
+    ],
+    "retest_variant_total": 88,
+    "taxonomy_leaf_coverage": {
+      "distinct_taxonomy_refs": 9,
+      "leaf_coverage_rate_of_full_tree": 0.0044,
+      "leaves_covered": 9
+    }
+  },
+  "families": {
+    "主体结构": {
+      "answer_layer_missing_pack_ids": [
+        "C06"
+      ],
+      "answer_layer_pack_count": 6,
+      "coarse_review_pack_ids": [
+        "C06"
+      ],
+      "compiled_practice_pack_count": 7,
+      "eligible_question_total": 68,
+      "exam_evidence_missing_pack_ids": [],
+      "exam_evidence_pack_count": 7,
+      "family": "主体结构",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 7,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 7,
+      "pack_ids": [
+        "C01",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "Q01",
+        "Q02"
+      ],
+      "practice_authority_eligible_variant_total": 68,
+      "practice_authority_surface_total": 7,
+      "published_pack_count": 7,
+      "question_total": 114,
+      "retest_variant_bank_pack_count": 1,
+      "retest_variant_bank_pack_ids": [
+        "C01"
+      ],
+      "retest_variant_total": 41,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 24,
+        "leaf_coverage_rate_of_full_tree": 0.0116,
+        "leaves_covered": 24
+      }
+    },
+    "安全": {
+      "answer_layer_missing_pack_ids": [
+        "S01",
+        "S02"
+      ],
+      "answer_layer_pack_count": 5,
+      "coarse_review_pack_ids": [
+        "S07"
+      ],
+      "compiled_practice_pack_count": 7,
+      "eligible_question_total": 61,
+      "exam_evidence_missing_pack_ids": [
+        "S01",
+        "S02"
+      ],
+      "exam_evidence_pack_count": 5,
+      "family": "安全",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 7,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 7,
+      "pack_ids": [
+        "J01",
+        "R01",
+        "S01",
+        "S02",
+        "S05",
+        "S06",
+        "S07"
+      ],
+      "practice_authority_eligible_variant_total": 61,
+      "practice_authority_surface_total": 9,
+      "published_pack_count": 7,
+      "question_total": 137,
+      "retest_variant_bank_pack_count": 2,
+      "retest_variant_bank_pack_ids": [
+        "J01",
+        "S05"
+      ],
+      "retest_variant_total": 198,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 26,
+        "leaf_coverage_rate_of_full_tree": 0.0126,
+        "leaves_covered": 26
+      }
+    },
+    "装饰": {
+      "answer_layer_missing_pack_ids": [
+        "D14"
+      ],
+      "answer_layer_pack_count": 3,
+      "coarse_review_pack_ids": [],
+      "compiled_practice_pack_count": 4,
+      "eligible_question_total": 43,
+      "exam_evidence_missing_pack_ids": [],
+      "exam_evidence_pack_count": 4,
+      "family": "装饰",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 4,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 4,
+      "pack_ids": [
+        "D11",
+        "D12",
+        "D13",
+        "D14"
+      ],
+      "practice_authority_eligible_variant_total": 43,
+      "practice_authority_surface_total": 4,
+      "published_pack_count": 4,
+      "question_total": 61,
+      "retest_variant_bank_pack_count": 2,
+      "retest_variant_bank_pack_ids": [
+        "D11",
+        "D13"
+      ],
+      "retest_variant_total": 76,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 13,
+        "leaf_coverage_rate_of_full_tree": 0.0174,
+        "leaves_covered": 36
+      }
+    },
+    "质量验收": {
+      "answer_layer_missing_pack_ids": [
+        "Q03"
+      ],
+      "answer_layer_pack_count": 6,
+      "coarse_review_pack_ids": [
+        "Q03"
+      ],
+      "compiled_practice_pack_count": 7,
+      "eligible_question_total": 75,
+      "exam_evidence_missing_pack_ids": [
+        "A01"
+      ],
+      "exam_evidence_pack_count": 6,
+      "family": "质量验收",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 7,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 7,
+      "pack_ids": [
+        "A01",
+        "A02",
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "Q03"
+      ],
+      "practice_authority_eligible_variant_total": 75,
+      "practice_authority_surface_total": 7,
+      "published_pack_count": 7,
+      "question_total": 116,
+      "retest_variant_bank_pack_count": 2,
+      "retest_variant_bank_pack_ids": [
+        "A01",
+        "G03"
+      ],
+      "retest_variant_total": 177,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 24,
+        "leaf_coverage_rate_of_full_tree": 0.0174,
+        "leaves_covered": 36
+      }
+    },
+    "进度": {
+      "answer_layer_missing_pack_ids": [],
+      "answer_layer_pack_count": 4,
+      "coarse_review_pack_ids": [],
+      "compiled_practice_pack_count": 4,
+      "eligible_question_total": 32,
+      "exam_evidence_missing_pack_ids": [],
+      "exam_evidence_pack_count": 4,
+      "family": "进度",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 4,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 4,
+      "pack_ids": [
+        "E05",
+        "N01",
+        "N02",
+        "N03"
+      ],
+      "practice_authority_eligible_variant_total": 32,
+      "practice_authority_surface_total": 4,
+      "published_pack_count": 4,
+      "question_total": 55,
+      "retest_variant_bank_pack_count": 3,
+      "retest_variant_bank_pack_ids": [
+        "E05",
+        "N01",
+        "N03"
+      ],
+      "retest_variant_total": 131,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 11,
+        "leaf_coverage_rate_of_full_tree": 0.0053,
+        "leaves_covered": 11
+      }
+    },
+    "防水": {
+      "answer_layer_missing_pack_ids": [
+        "F04"
+      ],
+      "answer_layer_pack_count": 4,
+      "coarse_review_pack_ids": [
+        "F04"
+      ],
+      "compiled_practice_pack_count": 5,
+      "eligible_question_total": 48,
+      "exam_evidence_missing_pack_ids": [],
+      "exam_evidence_pack_count": 5,
+      "family": "防水",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 5,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 5,
+      "pack_ids": [
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F16"
+      ],
+      "practice_authority_eligible_variant_total": 48,
+      "practice_authority_surface_total": 5,
+      "published_pack_count": 5,
+      "question_total": 65,
+      "retest_variant_bank_pack_count": 3,
+      "retest_variant_bank_pack_ids": [
+        "F02",
+        "F03",
+        "F16"
+      ],
+      "retest_variant_total": 138,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 14,
+        "leaf_coverage_rate_of_full_tree": 0.0382,
+        "leaves_covered": 79
+      }
+    },
+    "防水+装饰": {
+      "answer_layer_missing_pack_ids": [
+        "D14",
+        "F04"
+      ],
+      "answer_layer_pack_count": 7,
+      "coarse_review_pack_ids": [
+        "F04"
+      ],
+      "compiled_practice_pack_count": 9,
+      "eligible_question_total": 91,
+      "exam_evidence_missing_pack_ids": [],
+      "exam_evidence_pack_count": 9,
+      "family": "防水+装饰",
+      "lesson_binding_rate": 1.0,
+      "lesson_bound_pack_count": 9,
+      "lesson_unbound_pack_ids": [],
+      "missing_from_manifest": [],
+      "pack_count": 9,
+      "pack_ids": [
+        "D11",
+        "D12",
+        "D13",
+        "D14",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F16"
+      ],
+      "practice_authority_eligible_variant_total": 91,
+      "practice_authority_surface_total": 9,
+      "published_pack_count": 9,
+      "question_total": 126,
+      "retest_variant_bank_pack_count": 5,
+      "retest_variant_bank_pack_ids": [
+        "D11",
+        "D13",
+        "F02",
+        "F03",
+        "F16"
+      ],
+      "retest_variant_total": 214,
+      "taxonomy_leaf_coverage": {
+        "distinct_taxonomy_refs": 27,
+        "leaf_coverage_rate_of_full_tree": 0.0552,
+        "leaves_covered": 114
+      }
+    }
+  },
+  "generated_from": {
+    "card_host_dir": "web/public/luban-preview",
+    "compiled_taxonomy": "deeptutor/services/taxonomy/compiled/construction_2026_taxonomy.compiled.json",
+    "pack_manifest": "docs/原始数据/考点原料/成品/_pack_manifest.json",
+    "pack_taxonomy_registry": "docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json",
+    "practice_authority_dir": "deeptutor/services/luban_lesson/compiled"
+  },
+  "packs": [
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": false,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/a01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "A01",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/a01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A434020-B018",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "检验批、分项、分部、主体结构验收",
+      "revoked_question_count": 0,
+      "slot": "7",
+      "student_title": "检验批/分部分项验收程序",
+      "taxonomy_refs": [
+        "1A434020-B018",
+        "1A434020-B006",
+        "1A434020-B001"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "检验批验收程序",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_A01_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 9,
+        "status": "signed",
+        "variant_count": 67
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 17,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/a02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "A02",
+      "practice_authority": {
+        "eligible_variant_id_count": 17,
+        "item_count": 24,
+        "path": "deeptutor/services/luban_lesson/compiled/a02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A434020-B018",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 24,
+      "registry_note": "验收、见证取样、材料进场合并包",
+      "revoked_question_count": 0,
+      "slot": "40",
+      "student_title": "隐蔽工程验收 + 材料进场复验/见证取样",
+      "taxonomy_refs": [
+        "1A434020-B018",
+        "1A422000-B061",
+        "1A422000-B150",
+        "1A438000-B060"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "隐蔽验收材料复验见证取样",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 12,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/b02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "B02",
+      "practice_authority": {
+        "eligible_variant_id_count": 12,
+        "item_count": 32,
+        "path": "deeptutor/services/luban_lesson/compiled/b02.practice.authority.json",
+        "present": true,
+        "surface_count": 2
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413022",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 32,
+      "registry_note": "支护、监测、降水、报警条件组合包",
+      "revoked_question_count": 0,
+      "slot": "5",
+      "student_title": "基坑支护选型与降水/监测",
+      "taxonomy_refs": [
+        "1A413022",
+        "1A413034",
+        "1A413036",
+        "1A413000-B033"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "基坑支护选型与降水监测",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 14,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/c01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "C01",
+      "practice_authority": {
+        "eligible_variant_id_count": 14,
+        "item_count": 17,
+        "path": "deeptutor/services/luban_lesson/compiled/c01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413040-R20",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 17,
+      "registry_note": "已有 C01 原型;施工缝/后浇带和接槎通病",
+      "revoked_question_count": 0,
+      "slot": "13",
+      "student_title": "施工缝留置与处理",
+      "taxonomy_refs": [
+        "1A413040-R20",
+        "1A413040-R29",
+        "1A434000-B037"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "施工缝留置与处理",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_C01_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 5,
+        "status": "signed",
+        "variant_count": 41
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/c02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "C02",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 8,
+        "path": "deeptutor/services/luban_lesson/compiled/c02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A432000-C17",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 8,
+      "registry_note": "进度款支付与计算公式",
+      "revoked_question_count": 0,
+      "slot": "4",
+      "student_title": "进度款/计量计价",
+      "taxonomy_refs": [
+        "1A432000-C17",
+        "1A432000-C19",
+        "1A432000-C24"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "进度款与计量计价",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_C02_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 11,
+        "status": "signed",
+        "variant_count": 47
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/c04/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "C04",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 17,
+        "path": "deeptutor/services/luban_lesson/compiled/c04.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413040-R25",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 17,
+      "registry_note": "拆除要求、要点、顺序和安全控制",
+      "revoked_question_count": 0,
+      "slot": "11",
+      "student_title": "模板拆除顺序与条件",
+      "taxonomy_refs": [
+        "1A413040-R25",
+        "1A413040-R26",
+        "1A413040-R27",
+        "1A436000-B114"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "模板拆除顺序与条件",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/c05/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "C05",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/c05.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413040-R44",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "钢筋连接与质量控制",
+      "revoked_question_count": 0,
+      "slot": "14",
+      "student_title": "钢筋连接选用",
+      "taxonomy_refs": [
+        "1A413040-R44",
+        "1A434000-B063"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "钢筋连接选用",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "coarse_review",
+      "eligible_question_count": 17,
+      "has_answer_layer": false,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/c06/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "C06",
+      "practice_authority": {
+        "eligible_variant_id_count": 17,
+        "item_count": 18,
+        "path": "deeptutor/services/luban_lesson/compiled/c06.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413081",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 18,
+      "registry_note": "留槎/构造柱缺精确 leaf;只能先锚砖砌体/填充墙/洞口留置",
+      "revoked_question_count": 0,
+      "slot": "15",
+      "student_title": "砌体留槎与构造柱",
+      "taxonomy_refs": [
+        "1A413081",
+        "1A413083",
+        "1A413042-R03",
+        "1A413030-G01"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "砌体留槎与构造柱",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/c07/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "C07",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/c07.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413043",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "钢结构施工、构件连接、高强螺栓安装与主控",
+      "revoked_question_count": 0,
+      "slot": "16",
+      "student_title": "钢结构连接: 焊接/高强螺栓",
+      "taxonomy_refs": [
+        "1A413043",
+        "1A413084",
+        "1A413040-R33",
+        "1A413040-R64",
+        "1A434000-B082"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "钢结构连接",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 11,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/d11/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "D11",
+      "practice_authority": {
+        "eligible_variant_id_count": 11,
+        "item_count": 14,
+        "path": "deeptutor/services/luban_lesson/compiled/d11.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A434030-E01",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 14,
+      "registry_note": "抹灰工程与交接处防裂",
+      "revoked_question_count": 0,
+      "slot": "21",
+      "student_title": "抹灰工序与质量控制",
+      "taxonomy_refs": [
+        "1A434030-E01",
+        "1A422000-B012"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "抹灰工序与质量控制",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_D11_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 8,
+        "status": "signed",
+        "variant_count": 42
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/d12/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "D12",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/d12.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413064",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "饰面工程、饰面砖、装饰质量通病",
+      "revoked_question_count": 0,
+      "slot": "22",
+      "student_title": "饰面砖/板施工质量与空鼓防治",
+      "taxonomy_refs": [
+        "1A413064",
+        "1A413130",
+        "1A434000-B054",
+        "1A434034"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "饰面砖板施工质量与空鼓防治",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 13,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/d13/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "D13",
+      "practice_authority": {
+        "eligible_variant_id_count": 13,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/d13.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413134",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "幕墙防火、防雷、构造要求",
+      "revoked_question_count": 0,
+      "slot": "23",
+      "student_title": "幕墙防火/防雷/层间封堵构造",
+      "taxonomy_refs": [
+        "1A413134",
+        "1A413065-R10",
+        "1A413065-R11",
+        "1A413065-R12"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "幕墙防火防雷层间封堵",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_D13_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 7,
+        "status": "signed",
+        "variant_count": 34
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 11,
+      "has_answer_layer": false,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/d14/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "D14",
+      "practice_authority": {
+        "eligible_variant_id_count": 11,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/d14.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413062",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "综合包;细拆 D15/D16 前不得混成一个评分点",
+      "revoked_question_count": 0,
+      "slot": "24",
+      "student_title": "吊顶/门窗/地面装饰质量综合",
+      "taxonomy_refs": [
+        "1A413062",
+        "1A413063",
+        "1A413061-R10",
+        "1A434034"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "吊顶门窗地面装饰质量综合",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": null,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": false,
+        "path": null
+      },
+      "manifest_card_hosted": false,
+      "pack_id": "E01",
+      "practice_authority": {
+        "eligible_variant_id_count": null,
+        "item_count": null,
+        "path": null,
+        "present": false,
+        "surface_count": null
+      },
+      "practice_eligibility_status": null,
+      "practice_status": "unavailable",
+      "primary_taxonomy_ref": "1A432000-B037",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": null,
+      "registry_note": "清单计价方式",
+      "revoked_question_count": null,
+      "slot": "41",
+      "student_title": "工程量清单计价",
+      "taxonomy_refs": [
+        "1A432000-B037",
+        "1A432000-B053"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "工程量清单计价",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_E01_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 10,
+        "status": "signed",
+        "variant_count": 41
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/e05/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "E05",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/e05.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A435020-B010",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "挣值法应用、计算、核心概念",
+      "revoked_question_count": 0,
+      "slot": "39",
+      "student_title": "挣值法/偏差分析",
+      "taxonomy_refs": [
+        "1A435020-B010",
+        "1A435020-B011",
+        "1A435020-B017"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "挣值法偏差分析",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_E05_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 4,
+        "status": "candidate",
+        "variant_count": 40
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/f02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "F02",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 8,
+        "path": "deeptutor/services/luban_lesson/compiled/f02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413103",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 8,
+      "registry_note": "屋面/卷材防水层施工",
+      "revoked_question_count": 0,
+      "slot": "30",
+      "student_title": "卷材防水施工顺序与搭接方向",
+      "taxonomy_refs": [
+        "1A413103",
+        "1A413051-R03",
+        "1A413112",
+        "1A422000-B021"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "卷材防水施工顺序与搭接方向",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_F02_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 5,
+        "status": "signed",
+        "variant_count": 38
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 17,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/f03/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "F03",
+      "practice_authority": {
+        "eligible_variant_id_count": 17,
+        "item_count": 18,
+        "path": "deeptutor/services/luban_lesson/compiled/f03.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413100",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 18,
+      "registry_note": "防水等级、基本要求、构造层次",
+      "revoked_question_count": 0,
+      "slot": "31",
+      "student_title": "防水构造层次: 屋面/地下",
+      "taxonomy_refs": [
+        "1A413100",
+        "1A413102",
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413112"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "防水构造层次屋面地下",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_F03_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 8,
+        "status": "signed",
+        "variant_count": 53
+      }
+    },
+    {
+      "alignment_status": "coarse_review",
+      "eligible_question_count": 7,
+      "has_answer_layer": false,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/f04/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "F04",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/f04.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413050-R07",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "细部节点缺专门 leaf;需 source_ref 明确节点",
+      "revoked_question_count": 0,
+      "slot": "32",
+      "student_title": "防水细部节点: 阴阳角/管根/女儿墙",
+      "taxonomy_refs": [
+        "1A413050-R07",
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413050-R23"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "防水细部节点阴阳角管根女儿墙",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/f05/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "F05",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/f05.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A434033",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "屋面防水通病、防水施工缝渗漏",
+      "revoked_question_count": 0,
+      "slot": "33",
+      "student_title": "渗漏治理诊断",
+      "taxonomy_refs": [
+        "1A434033",
+        "1A434000-B016",
+        "1A434000-B067"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "渗漏治理诊断",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/f16/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "F16",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 8,
+        "path": "deeptutor/services/luban_lesson/compiled/f16.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A434000",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 8,
+      "registry_note": "已有 F16 样板;现有 JSON 粗锚 `1A434000`,需补割补 source_ref",
+      "revoked_question_count": 0,
+      "slot": "29",
+      "student_title": "屋面防水起鼓割补",
+      "taxonomy_refs": [
+        "1A434000",
+        "1A434000-B016",
+        "1A413103"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "屋面防水起鼓割补",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_F16_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 5,
+        "status": "signed",
+        "variant_count": 47
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/g01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "G01",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/g01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413037",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "土方开挖、降水技术、深基坑开挖",
+      "revoked_question_count": 0,
+      "slot": "25",
+      "student_title": "基坑开挖与降水方法选择",
+      "taxonomy_refs": [
+        "1A413037",
+        "1A413036",
+        "1A413000-B081",
+        "1A413000-B071"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "基坑开挖与降水方法选择",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 14,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/g02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "G02",
+      "practice_authority": {
+        "eligible_variant_id_count": 14,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/g02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413039",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "回填、填筑压实、安全措施",
+      "revoked_question_count": 0,
+      "slot": "26",
+      "student_title": "土方回填压实与检测",
+      "taxonomy_refs": [
+        "1A413039",
+        "1A413000-B020",
+        "1A436000-B043"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "土方回填压实与检测",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 14,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/g03/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "G03",
+      "practice_authority": {
+        "eligible_variant_id_count": 14,
+        "item_count": 14,
+        "path": "deeptutor/services/luban_lesson/compiled/g03.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413032",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 14,
+      "registry_note": "桩基础、预制桩、灌注桩、检测",
+      "revoked_question_count": 0,
+      "slot": "27",
+      "student_title": "桩基施工与质量问题",
+      "taxonomy_refs": [
+        "1A413032",
+        "1A413067",
+        "1A413068",
+        "1A413069"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "桩基施工与质量问题",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_G03_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 19,
+        "status": "signed",
+        "variant_count": 110
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/g04/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "G04",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/g04.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413048",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "天然地基验槽与基坑验槽",
+      "revoked_question_count": 0,
+      "slot": "28",
+      "student_title": "地基验槽与地基处理",
+      "taxonomy_refs": [
+        "1A413048",
+        "1A413000-B041",
+        "1A413025"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "地基验槽与地基处理",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/j01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "J01",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/j01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A431030-E01",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "已有 J01 原型;主锚点用专家论证,范围/超过一定规模作辅锚",
+      "revoked_question_count": 0,
+      "slot": "1",
+      "student_title": "危大工程范围 + 专项方案 + 专家论证",
+      "taxonomy_refs": [
+        "1A431030-E01",
+        "1A436000-B029",
+        "1A436000-B158"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "危大工程专项方案专家论证",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_J01_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 10,
+        "status": "signed",
+        "variant_count": 123
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/k01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "K01",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/k01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A432000-B001",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "工期索赔、费用索赔、发包人原因、索赔计算",
+      "revoked_question_count": 0,
+      "slot": "9",
+      "student_title": "索赔成立与工期/费用计算",
+      "taxonomy_refs": [
+        "1A432000-B001",
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "索赔成立与计算",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/n01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "N01",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/n01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A433000-B041",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "已有 N01 原型;关键线路/时间参数主锚",
+      "revoked_question_count": 0,
+      "slot": "8",
+      "student_title": "双代号网络计划关键线路/总时差",
+      "taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-G03"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "网络计划关键线路",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_N01_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 7,
+        "status": "signed",
+        "variant_count": 43
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/n02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "N02",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 8,
+        "path": "deeptutor/services/luban_lesson/compiled/n02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A433000-B042",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 8,
+      "registry_note": "网络计划优化及关键线路基础",
+      "revoked_question_count": 0,
+      "slot": "20",
+      "student_title": "网络计划工期优化与赶工费用",
+      "taxonomy_refs": [
+        "1A433000-B042",
+        "1A433012",
+        "1A433000-B041"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "网络计划工期优化",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 9,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/n03/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "N03",
+      "practice_authority": {
+        "eligible_variant_id_count": 9,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/n03.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A433011",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "流水参数、组织形式、计算",
+      "revoked_question_count": 0,
+      "slot": "38",
+      "student_title": "流水施工参数与工期",
+      "taxonomy_refs": [
+        "1A433011",
+        "1A433000-B030",
+        "1A433000-B031",
+        "1A433000-B014"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "流水施工参数与工期",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_N03_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 6,
+        "status": "signed",
+        "variant_count": 48
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/q01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "Q01",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/q01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413040-R28",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "养护与温度测量,裂缝防治 source_ref 需补",
+      "revoked_question_count": 0,
+      "slot": "6",
+      "student_title": "混凝土养护与裂缝防治",
+      "taxonomy_refs": [
+        "1A413040-R28",
+        "1A413000-C10"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "混凝土养护与裂缝防治",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 9,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/q02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "Q02",
+      "practice_authority": {
+        "eligible_variant_id_count": 9,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/q02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A413074",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "大体积混凝土施工、测温与温控",
+      "revoked_question_count": 0,
+      "slot": "12",
+      "student_title": "大体积混凝土温控裂缝",
+      "taxonomy_refs": [
+        "1A413074",
+        "1A413033-R05",
+        "1A413033-R08",
+        "1A413033-R09"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "大体积混凝土温控",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "coarse_review",
+      "eligible_question_count": 7,
+      "has_answer_layer": false,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/q03/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "Q03",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/q03.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A434030",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "通病节点存在,蜂窝麻面缺精确 leaf;不得直接 production",
+      "revoked_question_count": 0,
+      "slot": "10",
+      "student_title": "质量通病: 蜂窝麻面/空鼓裂缝",
+      "taxonomy_refs": [
+        "1A434030",
+        "1A434032",
+        "1A434000-B037",
+        "1A434000-B011"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "质量通病防治",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/r01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "R01",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/r01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A437030",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "施工现场消防 + 消防审查验收规定",
+      "revoked_question_count": 0,
+      "slot": "37",
+      "student_title": "现场消防布置、动火、检查、验收流程",
+      "taxonomy_refs": [
+        "1A437030",
+        "1A437031",
+        "1A437032",
+        "1A437000-B060",
+        "1A437000-B061",
+        "1A422026"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "现场消防布置动火检查验收",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 17,
+      "has_answer_layer": false,
+      "has_exam_evidence": false,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/s01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "S01",
+      "practice_authority": {
+        "eligible_variant_id_count": 17,
+        "item_count": 41,
+        "path": "deeptutor/services/luban_lesson/compiled/s01.practice.authority.json",
+        "present": true,
+        "surface_count": 3
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A436032",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 41,
+      "registry_note": "脚手架安全、模板支架检查、脚手架构造三类节点合并",
+      "revoked_question_count": 0,
+      "slot": "2",
+      "student_title": "脚手架/高大模板支架验收",
+      "taxonomy_refs": [
+        "1A436032",
+        "1A436000-B005",
+        "1A413046-R03"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "脚手架模板支架验收",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": false,
+      "has_exam_evidence": false,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/s02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "S02",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 19,
+        "path": "deeptutor/services/luban_lesson/compiled/s02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A436000-B006",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 19,
+      "registry_note": "起重吊装检查、作业安全、安装拆卸范围",
+      "revoked_question_count": 0,
+      "slot": "3",
+      "student_title": "起重吊装安全",
+      "taxonomy_refs": [
+        "1A436000-B006",
+        "1A436000-B153",
+        "1A436000-B155"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "起重吊装安全",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 8,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/s05/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "S05",
+      "practice_authority": {
+        "eligible_variant_id_count": 8,
+        "item_count": 18,
+        "path": "deeptutor/services/luban_lesson/compiled/s05.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A431050",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 18,
+      "registry_note": "临电组织设计、管理、安全技术",
+      "revoked_question_count": 0,
+      "slot": "17",
+      "student_title": "临时用电: 三级配电两级保护",
+      "taxonomy_refs": [
+        "1A431050",
+        "1A431051",
+        "1A431052",
+        "1A431010-C03"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "临时用电三级配电",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 8,
+        "status": "signed",
+        "variant_count": 75
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/s06/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "S06",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/s06.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A436035",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "高处作业基本要求和隐患",
+      "revoked_question_count": 0,
+      "slot": "18",
+      "student_title": "高处作业/临边洞口防护",
+      "taxonomy_refs": [
+        "1A436035",
+        "1A436000-B177",
+        "1A436000-B180"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "高处作业临边洞口防护",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "coarse_review",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/s07/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "S07",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 12,
+        "path": "deeptutor/services/luban_lesson/compiled/s07.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A436000-B023",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 12,
+      "registry_note": "事故等级/分类可锚,上报程序需补 source_ref",
+      "revoked_question_count": 0,
+      "slot": "19",
+      "student_title": "安全事故等级判定与上报",
+      "taxonomy_refs": [
+        "1A436000-B023",
+        "1A436000-B066",
+        "1A436040",
+        "1A436041"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "安全事故等级判定与上报",
+      "variant_bank": {
+        "gate_pass_rate": null,
+        "path": null,
+        "present": false,
+        "rule_group_count": null,
+        "status": null,
+        "variant_count": null
+      }
+    },
+    {
+      "alignment_status": "direct",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/x01/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "X01",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/x01.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A431040",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "平面布置图设计和管理",
+      "revoked_question_count": 0,
+      "slot": "34",
+      "student_title": "施工平面布置原则",
+      "taxonomy_refs": [
+        "1A431040",
+        "1A431041",
+        "1A431042"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "施工平面布置原则",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_X01_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 9,
+        "status": "signed",
+        "variant_count": 111
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 7,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/x02/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "X02",
+      "practice_authority": {
+        "eligible_variant_id_count": 7,
+        "item_count": 16,
+        "path": "deeptutor/services/luban_lesson/compiled/x02.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A431040",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 16,
+      "registry_note": "平面布置叠加仓库/堆场/材料进场",
+      "revoked_question_count": 0,
+      "slot": "35",
+      "student_title": "临设、道路、材料堆场布置",
+      "taxonomy_refs": [
+        "1A431040",
+        "1A437000-B011",
+        "1A437000-B026",
+        "1A438000-B060"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "临设道路材料堆场布置",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_X02_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 3,
+        "status": "signed",
+        "variant_count": 20
+      }
+    },
+    {
+      "alignment_status": "composite",
+      "eligible_question_count": 14,
+      "has_answer_layer": true,
+      "has_exam_evidence": true,
+      "jury_clean": true,
+      "lesson": {
+        "hosted": true,
+        "path": "web/public/luban-preview/x03/lesson.html"
+      },
+      "manifest_card_hosted": true,
+      "pack_id": "X03",
+      "practice_authority": {
+        "eligible_variant_id_count": 14,
+        "item_count": 15,
+        "path": "deeptutor/services/luban_lesson/compiled/x03.practice.authority.json",
+        "present": true,
+        "surface_count": 1
+      },
+      "practice_eligibility_status": "eligible",
+      "practice_status": "compiled",
+      "primary_taxonomy_ref": "1A437020",
+      "primary_taxonomy_ref_provisional": true,
+      "published": true,
+      "question_count": 15,
+      "registry_note": "文明施工、绿色施工、环保要求合并",
+      "revoked_question_count": 0,
+      "slot": "36",
+      "student_title": "文明/绿色/环保施工措施",
+      "taxonomy_refs": [
+        "1A437020",
+        "1A437021",
+        "1A437023",
+        "1A437000-B071",
+        "1A437000-B087"
+      ],
+      "taxonomy_refs_unresolved": [],
+      "title": "文明绿色环保施工措施",
+      "variant_bank": {
+        "gate_pass_rate": 1.0,
+        "path": "docs/原始数据/考点原料/成品/_X03_variant_bank.v0.json",
+        "present": true,
+        "rule_group_count": 8,
+        "status": "signed",
+        "variant_count": 89
+      }
+    }
+  ],
+  "reconciliation": {
+    "all_match": true,
+    "baseline": "2026-08-05 初盘(学习计划 §5 / 诊断计划 §6.4)",
+    "rows": [
+      {
+        "actual": 41,
+        "check": "published_pack_count",
+        "expected": 41,
+        "match": true
+      },
+      {
+        "actual": 60,
+        "check": "registry_slot_count",
+        "expected": 60,
+        "match": true
+      },
+      {
+        "actual": 19,
+        "check": "empty_slot_count",
+        "expected": 19,
+        "match": true
+      },
+      {
+        "actual": 40,
+        "check": "compiled_practice_pack_count",
+        "expected": 40,
+        "match": true
+      },
+      {
+        "actual": 382,
+        "check": "eligible_question_total",
+        "expected": 382,
+        "match": true
+      },
+      {
+        "actual": 3,
+        "check": "合同索赔_pack_count",
+        "expected": 3,
+        "match": true
+      },
+      {
+        "actual": 7,
+        "check": "主体结构_pack_count",
+        "expected": 7,
+        "match": true
+      },
+      {
+        "actual": 68,
+        "check": "主体结构_eligible_questions",
+        "expected": 68,
+        "match": true
+      },
+      {
+        "actual": 7,
+        "check": "安全_pack_count",
+        "expected": 7,
+        "match": true
+      },
+      {
+        "actual": 61,
+        "check": "安全_eligible_questions",
+        "expected": 61,
+        "match": true
+      },
+      {
+        "actual": 4,
+        "check": "进度_pack_count",
+        "expected": 4,
+        "match": true
+      },
+      {
+        "actual": 32,
+        "check": "进度_eligible_questions",
+        "expected": 32,
+        "match": true
+      },
+      {
+        "actual": 7,
+        "check": "质量验收_pack_count",
+        "expected": 7,
+        "match": true
+      },
+      {
+        "actual": 75,
+        "check": "质量验收_eligible_questions",
+        "expected": 75,
+        "match": true
+      },
+      {
+        "actual": 5,
+        "check": "防水_pack_count",
+        "expected": 5,
+        "match": true
+      },
+      {
+        "actual": 48,
+        "check": "防水_eligible_questions",
+        "expected": 48,
+        "match": true
+      }
+    ]
+  },
+  "schema": "luban_supply_coverage_map.v0",
+  "taxonomy": {
+    "compiled_leaf_count": 2066,
+    "compiled_node_count": 2112,
+    "distinct_refs_all_slots": 169,
+    "distinct_refs_published": 133,
+    "drift_vs_registry_snapshot": -4,
+    "leaf_coverage_rate_all_slots": 0.136,
+    "leaf_coverage_rate_published": 0.1104,
+    "leaves_covered_all_slots": 281,
+    "leaves_covered_published": 228,
+    "registry_snapshot_leaf_count": 1976,
+    "registry_snapshot_node_count": 2116,
+    "unresolved_refs": []
+  },
+  "totals": {
+    "answer_layer_missing_pack_ids": [
+      "C06",
+      "D14",
+      "F04",
+      "Q03",
+      "S01",
+      "S02"
+    ],
+    "coarse_review_published_pack_ids": [
+      "C06",
+      "F04",
+      "Q03",
+      "S07"
+    ],
+    "compiled_practice_pack_count": 40,
+    "eligible_question_total": 382,
+    "empty_slot_count": 19,
+    "exam_evidence_missing_pack_ids": [
+      "A01",
+      "S01",
+      "S02"
+    ],
+    "lesson_hosted_pack_count": 40,
+    "lesson_unbound_published_pack_ids": [
+      "E01"
+    ],
+    "manifest_pack_count": 41,
+    "practice_unavailable_pack_ids": [
+      "E01"
+    ],
+    "published_pack_count": 41,
+    "question_total": 649,
+    "registry_slot_count": 60,
+    "retest_variant_bank_pack_count": 18,
+    "retest_variant_total": 1069
+  },
+  "unassigned": {
+    "answer_layer_missing_pack_ids": [],
+    "answer_layer_pack_count": 4,
+    "coarse_review_pack_ids": [],
+    "compiled_practice_pack_count": 4,
+    "eligible_question_total": 40,
+    "exam_evidence_missing_pack_ids": [],
+    "exam_evidence_pack_count": 4,
+    "family": "未归族",
+    "lesson_binding_rate": 1.0,
+    "lesson_bound_pack_count": 4,
+    "lesson_unbound_pack_ids": [],
+    "missing_from_manifest": [],
+    "pack_count": 4,
+    "pack_ids": [
+      "B02",
+      "X01",
+      "X02",
+      "X03"
+    ],
+    "practice_authority_eligible_variant_total": 40,
+    "practice_authority_surface_total": 5,
+    "published_pack_count": 4,
+    "question_total": 78,
+    "retest_variant_bank_pack_count": 3,
+    "retest_variant_bank_pack_ids": [
+      "X01",
+      "X02",
+      "X03"
+    ],
+    "retest_variant_total": 220,
+    "taxonomy_leaf_coverage": {
+      "distinct_taxonomy_refs": 15,
+      "leaf_coverage_rate_of_full_tree": 0.0073,
+      "leaves_covered": 15
+    }
+  },
+  "verdict": {
+    "all_pass": true,
+    "rows": [
+      {
+        "family": "主体结构",
+        "lesson_binding_rate": 1.0,
+        "pass": true,
+        "unbound": []
+      },
+      {
+        "family": "安全",
+        "lesson_binding_rate": 1.0,
+        "pass": true,
+        "unbound": []
+      },
+      {
+        "family": "进度",
+        "lesson_binding_rate": 1.0,
+        "pass": true,
+        "unbound": []
+      },
+      {
+        "family": "质量验收",
+        "lesson_binding_rate": 1.0,
+        "pass": true,
+        "unbound": []
+      },
+      {
+        "family": "防水",
+        "lesson_binding_rate": 1.0,
+        "pass": true,
+        "unbound": []
+      },
+      {
+        "family": "防水+装饰",
+        "lesson_binding_rate": 1.0,
+        "pass": true,
+        "unbound": []
+      }
+    ],
+    "scope": [
+      "主体结构",
+      "安全",
+      "进度",
+      "质量验收",
+      "防水",
+      "防水+装饰"
+    ],
+    "threshold": 0.8
+  }
+}

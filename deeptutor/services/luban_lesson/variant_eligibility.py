@@ -25,7 +25,12 @@
 - **fail-closed**：decision 块缺失/形状错/sha 失配/probe_role 非法/blocklist
   不可读/bank 未签发——一律不 eligible，绝不半开。
 
-本模块零写入：不写 bank、不写学习证据、不接 endpoint（消费接线是后续切片）。
+本模块零写入：不写 bank、不写学习证据。消费接线已落地（2026-08 现状，非
+「后续切片」）：``build_variant_probe_items`` / ``variant_probe_supply_identity``
+已由 ``api/routers/luban_lesson.py``、``learner_state/retest_writeback.py``、
+``learner_state/learning_report_read_model.py`` 三处消费，在
+``_variant_probe_enabled()`` 旗标后接入复测探针链——终点是 luban_lesson
+复测探针，不是测评组卷。
 """
 from __future__ import annotations
 

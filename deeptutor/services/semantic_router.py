@@ -70,36 +70,6 @@ _LOW_SIGNAL_CONTINUATION_MARKERS = {
     "那个",
     "这个",
 }
-_EXPLICIT_PRACTICE_GENERATION_MARKERS = (
-    "出题",
-    "出一道",
-    "来一道",
-    "来一题",
-    "选择题",
-    "单选题",
-    "多选题",
-    "判断题",
-    "案例题",
-    "简答题",
-    "考我",
-    "刷题",
-    "测我",
-    "摸底测评",
-    "继续出",
-    "继续来一道",
-    "再来一道",
-    "再出一道",
-    "quiz me",
-    "test me",
-    "give me a question",
-    "give me one question",
-)
-_EXPLICIT_PRACTICE_GENERATION_PATTERNS = (
-    r"(给我|帮我|来|出)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:题|单选题|多选题|案例题|简答题|选择题|判断题)",
-    r"(给我|帮我|来|出).{0,16}(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道)",
-    r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
-    r"(?:先|来|做|开始|进行|帮我|给我|帮我做|安排)\s*(?:一次|一轮|个)?\s*(?:入门)?(?:摸底测评|摸底测试|摸底|小测|自测)",
-)
 _SHORT_PRACTICE_OFFER_ACCEPTANCES = {
     "要",
     "要的",
@@ -128,16 +98,6 @@ _REPEATED_PRACTICE_OFFER_RE = re.compile(
     re.IGNORECASE,
 )
 _ACCEPTED_PRACTICE_OFFER_TOPIC = "继续出同考点题目帮我巩固一下"
-_QUESTION_EXPLAINER_MARKERS = (
-    "为什么",
-    "为啥",
-    "解析",
-    "讲解",
-    "解释",
-    "错在哪",
-    "哪里错",
-    "怎么错",
-)
 _ORDINAL_INDEX_MAP = {
     "一": 1,
     "二": 2,
@@ -651,10 +611,15 @@ async def resolve_question_semantic_routing(
             followup_action=None,
         )
 
+    # 2026-08-10 收权:出题意图判据回归 scene 权威同款(looks_like + 无作答)。
+    # 原第二道显式闸 `_has_explicit_practice_generation_intent` 因「解析」裸子串
+    # 否定词表被"不要提前给答案和解析"假阳性击落(F1 生产事故),已整体退役。
+    # 双形状消歧:同时命中追问形状的复合消息(「下一题解析一下」)不走确定性
+    # 快路径,fall-through 语义层裁决;确定性层只拿无歧义高置信形状。
     if (
         question_context is not None
         and looks_like_practice_generation_request(user_message)
-        and _has_explicit_practice_generation_intent(user_message)
+        and not looks_like_question_followup(user_message, question_context)
     ):
         _target_context, submission = resolve_submission_attempt(user_message, question_context)
         if submission is None:
@@ -812,10 +777,7 @@ async def resolve_question_semantic_routing(
     if (
         llm_route == "practice_generation"
         and question_context is not None
-        and not (
-            looks_like_practice_generation_request(user_message)
-            and _has_explicit_practice_generation_intent(user_message)
-        )
+        and not looks_like_practice_generation_request(user_message)
     ):
         llm_decision = None
         llm_action = None
@@ -1118,28 +1080,6 @@ async def _resolve_from_suspended_stack(
     return None
 
 
-def _has_explicit_practice_generation_intent(user_message: str | None) -> bool:
-    text = str(user_message or "").strip().lower()
-    if not text:
-        return False
-    if _has_question_explainer_intent(text):
-        return False
-    if any(marker in text for marker in _EXPLICIT_PRACTICE_GENERATION_MARKERS):
-        return True
-    return any(re.search(pattern, text) for pattern in _EXPLICIT_PRACTICE_GENERATION_PATTERNS)
-
-
-def has_explicit_practice_generation_intent(user_message: str | None) -> bool:
-    return _has_explicit_practice_generation_intent(user_message)
-
-
-def _has_question_explainer_intent(user_message: str | None) -> bool:
-    text = str(user_message or "").strip().lower()
-    if not text:
-        return False
-    return any(marker in text for marker in _QUESTION_EXPLAINER_MARKERS)
-
-
 def _decision_from_fallback(
     *,
     user_message: str,
@@ -1172,9 +1112,9 @@ def _decision_from_fallback(
             )
         practice_request = looks_like_practice_generation_request(user_message)
         followup_request = looks_like_question_followup(user_message, question_context)
-        if practice_request and (
-            not followup_request or _has_explicit_practice_generation_intent(user_message)
-        ):
+        # 2026-08-10 收权:确定性降级保底只拿无歧义形状;出题+追问双形状在无 LLM 的
+        # 降级路径下保守判追问(不改状态),真正的仲裁在 scene 权威(routing 层)。
+        if practice_request and not followup_request:
             return build_turn_semantic_decision(
                 relation_to_active_object="continue_same_learning_flow",
                 next_action="route_to_generation",

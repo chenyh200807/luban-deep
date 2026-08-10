@@ -8,6 +8,9 @@
 # Runtime data (knowledge bases, tutorbot workspaces, memory, etc.)
 data/
 run_code_workspace/
+# Local eval-gate run artifacts and ad hoc analysis scratch (never tracked, no prior committed history)
+runs/
+scratchpad/
 deeptutor/agents/question/reference_papers/
 deeptutor/services/rag/eg_only_for_analysis/
 DeepTutor_arxiv-4/
@@ -376,6 +379,9 @@ credentials.json
 !/artifacts/
 /artifacts/*
 !/artifacts/luban_case_family_assets/
+# 内容线补锚工单(267 条空 source_anchor 的人审起点,签发闸前置输入)需入库流转。
+!/artifacts/pass_readiness_anchor_backfill_worklist.json
+!/artifacts/pass_readiness_scoring_point_naming_worklist.json
 
 # Official billing exports may contain API-key-level cost details.
 data/user/official_billing/
