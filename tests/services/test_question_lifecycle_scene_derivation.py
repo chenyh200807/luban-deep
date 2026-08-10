@@ -971,3 +971,13 @@ def test_multi_answer_on_single_question_context_never_misgrades():
         metadata={"question_followup_context": _mcq_followup_context()},
     )
     assert derive_question_lifecycle_scene(ctx) is None
+
+
+def test_dual_shape_composite_does_not_deadlock_into_grading_scene():
+    """review F3 钉:双形状且无作答载荷的复合消息(「再出一道案例题,顺便批改上一题」)
+    defer 后不得坠入 free-text 判分探测器硬钉判分 scene(B1 no-authority 死锁)。"""
+    ctx = _FakeContext(
+        user_message="再出一道案例题，顺便批改一下上一题",
+        metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) not in {"case_grading", "mcq_grading"}

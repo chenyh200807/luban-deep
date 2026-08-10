@@ -202,9 +202,11 @@ _FOLLOWUP_MARKERS = (
     "第1问",
     "下一问",
     "继续问",
-    # 2026-08-10 收权:裸「继续」退役——它是出题尺「继续出/继续练/继续做」的子串,
-    # 同一段文字被两把尺重复计票,把无歧义出题请求(「继续出5道类似的」)误判成
-    # 双形状。真追问形态保留具体词;裸「继续」属真歧义,交语义层带上下文裁决。
+    # 2026-08-10(review F6 改判):裸「继续」保留——练题中说「继续」是极高频消息,
+    # 退役会让 orchestrator demote guard 四项全 False、题组流被丢进普通聊天。
+    # 与出题尺的子串双重计票问题(「继续出5道」)由 _has_non_negated_marker 里的
+    # per-occurrence carve-out 解决(「继续」后接出/练/做/来时不给追问尺计票)。
+    "继续",
     "继续讲",
     "继续说",
     "我答",
@@ -1178,9 +1180,21 @@ def resolve_submission_attempt(
     # (「1、c 2.c 3.c」对单题上下文曾被蒸成 "C" 以 0.92 高置信判旧题倒诬)。
     # 方向是单向的:答少于题是合法部分提交,由上方 batch 解析正常消化,不拦。
     # 复用既有 ambiguous 形状,下游(scene 层)已消化该形状 → needs_clarification。
+    # 闸只对选项/判断类上下文生效(2026-08-10 review F4):主观题(简答/案例)的
+    # 标准分点作答「1、… 2、…」是一份完整单答,序号是答案内部结构不是多题作答段;
+    # 对其触发 ambiguous 会把真作答变成澄清,违反硬约束40(真作答必判)。
+    def _mcq_shaped(ctx: dict[str, Any]) -> bool:
+        if ctx.get("options"):
+            return True
+        q_type = str(ctx.get("question_type") or "").strip().lower()
+        return q_type in {"choice", "single_choice", "multiple_choice", "mcq", "judgment", "true_false"}
+
+    arity_gate_applicable = _mcq_shaped(normalized) or (
+        bool(items) and all(_mcq_shaped(item) for item in items if isinstance(item, dict))
+    )
     numbered_marker_count = len(list(_NUMBERED_BATCH_MARKER_RE.finditer(str(message or "").strip())))
     effective_question_count = len(items) if len(items) > 1 else 1
-    if numbered_marker_count >= 2 and numbered_marker_count > effective_question_count:
+    if arity_gate_applicable and numbered_marker_count >= 2 and numbered_marker_count > effective_question_count:
         distilled = _extract_single_submission(message, normalized)
         if distilled is not None:
             return normalized, {
@@ -3596,35 +3610,50 @@ def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
 # 长一套否定逻辑就是第二把尺病的温床(F1 事故:追问尺否定盲,把「不要提前给答案
 # 和解析」里的「解析」当真追问,复合形状误导整条出题链)。
 _NEGATION_PREFIXES = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
-# 延迟从句前缀:「等我作答后再批改」「做完再讲解」——追问词被未来条件限定,
-# 表达的是"本轮先不做",与否定同属"这轮不要求"语义,不构成本轮追问形状。
-# 注意裸「再」不入表(「再讲讲」是当下请求),必须带明确的未来条件词。
-_DEFERRED_FEEDBACK_PREFIXES = (
+# 延迟从句(2026-08-10,review F5 修形):「等我作答后再批改」「做完再讲解」——
+# 追问词被未来条件限定,表达"本轮先不做",与否定同属"这轮不要求"语义。
+# 判定必须同时满足两件事,缺一即按真追问计票:
+#   ① 前缀窗口以连接词「再/然后」紧邻 marker 结尾(「做完了,帮我批改」没有连接词,
+#      是完成体+即时请求,不折价——F5 教训:光看条件词会把完成体误吞);
+#   ② 窗口内含未来条件词(等我/做完/答完/写完/作答后/之后/以后)——排除
+#      「再讲讲」这类"当下再来一次"的裸「再」。
+_DEFERRED_FEEDBACK_CONDITIONS = (
     "等我",
     "等你",
     "作答后",
     "做完",
     "答完",
     "写完",
-    "之后再",
-    "以后再",
-    "然后再",
+    "之后",
+    "以后",
 )
 
 
+def _marker_in_deferred_clause(prefix: str) -> bool:
+    if not prefix.endswith(("再", "然后")):
+        return False
+    return any(token in prefix for token in _DEFERRED_FEEDBACK_CONDITIONS)
+
+
 def _has_non_negated_marker(text: str, markers: tuple[str, ...]) -> bool:
-    """marker 命中且前缀窗口内无「这轮不做」限定词(否定/延迟从句)才算数
+    """marker 命中且前缀窗口内无「这轮不做」限定(否定/延迟从句)才算数
     (与出题尺 `_has_negated_practice_generation_request` 同款 8 字符前缀窗口)。
     用于修复追问尺的否定盲/延迟盲,不新增第二把尺。"""
     compact = re.sub(r"\s+", "", text)
     if not compact:
         return False
-    discount_prefixes = _NEGATION_PREFIXES + _DEFERRED_FEEDBACK_PREFIXES
     for marker in markers:
         start = compact.find(marker)
         while start >= 0:
             prefix = compact[max(0, start - 8) : start]
-            if not any(token in prefix for token in discount_prefixes):
+            negated = any(token in prefix for token in _NEGATION_PREFIXES)
+            if not negated and not _marker_in_deferred_clause(prefix):
+                # 裸「继续」carve-out(review F6 配套):「继续出/练/做/来」的
+                # 「继续」属出题尺的更长 marker,不给追问尺重复计票;
+                # 「继续」单独出现或接讲/说/问仍是追问形状。
+                if marker == "继续" and compact[start + 2 : start + 3] in {"出", "练", "做", "来"}:
+                    start = compact.find(marker, start + len(marker))
+                    continue
                 return True
             start = compact.find(marker, start + len(marker))
     return False

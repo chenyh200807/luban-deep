@@ -1319,10 +1319,19 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
                 and looks_like_question_followup(user_message, followup_shaped_context)
             ):
                 return "practice_generation"
+            # review F3:双形状且无作答载荷的消息 defer 后不得坠入下方 free-text
+            # 判分探测器——它们凭表面词(批改/案例题)就硬钉判分 scene,而本消息
+            # 已确证无可判内容,钉上即 B1 no-authority 死锁。跳过探测器,落
+            # question_review 族/语义层。
+            dual_shape_no_answer = True
+        else:
+            dual_shape_no_answer = False
+    else:
+        dual_shape_no_answer = False
 
-    if _looks_like_free_text_mcq_grading(user_message):
+    if not dual_shape_no_answer and _looks_like_free_text_mcq_grading(user_message):
         return "mcq_grading"
-    if _looks_like_free_text_case_grading(user_message):
+    if not dual_shape_no_answer and _looks_like_free_text_case_grading(user_message):
         return "case_grading"
 
     question_context = question_context or normalize_question_followup_context(

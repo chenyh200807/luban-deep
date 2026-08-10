@@ -91,7 +91,7 @@ async def test_generation_loop_partial_delivery_on_budget_exhaustion(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """一题挂死不得拖垮整批:预算收束后交付其余 9 题 + shortfall typed marker。"""
-    monkeypatch.setattr(AgentCoordinator, "_GENERATION_COLLECT_BUDGET_S", 1.0)
+    monkeypatch.setattr(AgentCoordinator, "_GENERATION_PIPELINE_BUDGET_S", 1.0)
     ws_events: list[tuple[str, dict[str, Any]]] = []
     coordinator = _make_coordinator(
         monkeypatch, ws_events, _FakeGenerator(hang_question_id="q_3")
@@ -108,3 +108,52 @@ async def test_generation_loop_partial_delivery_on_budget_exhaustion(
     assert shortfall["requested"] == 10
     assert shortfall["delivered"] == 9
     assert shortfall["dropped_question_ids"] == ["q_3"]
+
+
+@pytest.mark.asyncio
+async def test_generation_loop_empty_templates_returns_gracefully(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """review F1 钉:空模板集不得触发 asyncio.wait 空集 ValueError,优雅归零。"""
+    ws_events: list[tuple[str, dict[str, Any]]] = []
+    coordinator = _make_coordinator(monkeypatch, ws_events, _FakeGenerator())
+    results = await coordinator._generation_loop(templates=[], user_topic="t", preference="")
+    assert results == []
+    complete = [p for e, p in ws_events if e == "progress" and p.get("stage") == "complete"]
+    assert complete and complete[-1]["completed"] == 0
+
+
+class _RecordingGenerator(_FakeGenerator):
+    def __init__(self) -> None:
+        super().__init__()
+        self.previous_seen: list[list[str] | None] = []
+
+    async def process(self, *, template: QuestionTemplate, previous_questions=None, **kwargs: Any) -> QAPair:
+        self.previous_seen.append(list(previous_questions) if previous_questions else None)
+        return await super().process(template=template, **kwargs)
+
+
+@pytest.mark.asyncio
+async def test_generation_loop_same_concentration_batch_keeps_serial_dedup_chain(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """review F9 钉:锚点路径 N 模板同考点时走串行 previous_questions 去重链,
+    防并行独立生成产出同批重复题。"""
+    ws_events: list[tuple[str, dict[str, Any]]] = []
+    generator = _RecordingGenerator()
+    coordinator = _make_coordinator(monkeypatch, ws_events, generator)
+    templates = [
+        QuestionTemplate(
+            question_id=f"q_{i}",
+            concentration="同一考点",
+            question_type="choice",
+            difficulty="medium",
+        )
+        for i in range(1, 6)
+    ]
+    results = await coordinator._generation_loop(templates=templates, user_topic="t", preference="")
+    assert len(results) == 5
+    # 串行链:第 1 题拿不到 previous,第 5 题必须能看到前 4 题题干。
+    assert generator.previous_seen[0] is None
+    assert generator.previous_seen[4] is not None
+    assert len(generator.previous_seen[4]) == 4
