@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-08-10 - 出题/判分/超时三族生产事故一次根因清剿（F1/F2/F3,三专家+指挥官）
+
+- 问题（两个生产 session,SHA 2496329）:①「出3道题…先只出题,不要提前给答案和解析」出题后,批量作答「1、c 2.c 3.c」被判到更早的 stale 旧单题(蒸馏成"C"、0.92 高置信 0 分倒诬),3 道新题一道没判;②9 分钟后问「第二题答案」,bot 对自己亲手出的题称「还没拿到题干」(逐字罐头模板);③「出10道第一章摸底」180s deadline 硬死,q_1..q_8 已生成合格被全量丢弃,用户见无类型「本轮生成失败」。
+- 根因:F1/F2 同一次 turn-0 断裂——`_has_explicit_practice_generation_intent` 的「解析」裸子串否定盲词表把出题意图一票否决(semantic_router:1125)→ scene 权威(判对,conf 1)向被毒化的确定性追问补位让位(orchestrator:397)→ followup 产线出题零注册 → 下游两次塌方(误判+断链)。追问尺 `looks_like_question_followup` 自身同款否定盲+延迟盲(「等我作答后再批改」)。F3 独立:`_generation_loop` 朴素 for 串行自 2026-02 未动,10 题重路径 39+9×13.7≈195s>180s 数学必死;并行样板早已存在(`_lightweight_batch_generate`)但被 N≤3 窄门挡死;deadline 处决无 typed kind。元病(指挥官):**防御被实现成终局**——护栏拥有无偿、无痕作废上游正确成果的权力(scene 判对被让位/LLM 判对被闸弃/8 题成品被清零)。
+- 失败的尝试/被否决的方案:①指挥官 F1① 原案「删 orchestrator 让位通道」——被既有金丝雀测试证伪(「那C呢」靠该通道由 LLM 追问判定纠正 scene-LLM 误判):**毒不在通道,在通道里流的确定性假语义水**,回滚保留通道;②「给词表加否定感知」——第 N+1 把尺,拒;③F2 6b「轮末输出解析注册题组」——与 F1 Step4 正面冲突(把语义事实降级成 regex,有 terse re-present 误注册回归通道),降级为 observe-only marker 待产数据;④d3c0dbf「未部署修复」线索——实查是 commit message 误复用,内容全是资产,部署它不改变结局。
+- 成功修法(两 commit):**7b15d20a0** 路由收权——第二把意图尺整体退役(4 消费点回归 looks_like+无作答);追问尺补「这轮不做」折价窗(否定+延迟从句同表同函数);裸「继续」marker 退役(出题尺「继续出」的子串双重计票);双形状(出题+追问)一律交语义层(4 消费点同规则,含 scene 权威 2 个出口);批量 arity 单向闸(序号段数>可判题数归 ambiguous,答少不拦);contracts/capability.md §44。**392cfd443** 交付合同——`_generation_loop` 并发化(Semaphore 4+asyncio.wait,样板=同文件 gather)+本地 150s 预算收束部分交付+`generation_shortfall` 发声;deadline 处决落 `turn_failure={kind:deadline_exceeded}`+律4 mapper 专属文案;入口 clamp 50→20;contracts/turn.md。PR3(撤 tutorbot 模板终局权 6a/6c+6b marker)按指挥官序最后、且防编造 live 异源钉不绿不上线——本轮只归档实施 spec(docs/audit/2026-08-10-出题判分超时三族根因/COMMANDER.md §3/§5),未动刀。
+- 验证(数字):服务层+runtime 549 passed;WS 套件 190 passed(改前 189+1F,「五道题+等我作答后再批改」由延迟盲修复转绿);新钉 13 枚(F1 原文快路径钉含"不咨询 LLM"断言、arity 双向、否定/延迟感知、双形状 defer、作答优先、并发全量交付顺序、单题挂死收束 9/10+shortfall、mapper 专属档);contract-guard [turn]/[capability] passed;scene 层六案手测全对。存量失败 5 例(deep_question 2/characterization golden 2/terminal free_trial spy 1)基线(HEAD~1)复核同挂,非本次引入。**live 回归未跑(未部署)**:test2 重放 F1 脚本三条件复现+「出10答10」全链耗时测量,在部署里程碑执行。
+- 教训:①同一句话从不同门进结局不同=架构病铁证(对照组走普通聊天入口判对);②修复中途工作树被外部 `git reset --hard` 清空(reflog 在案),所有编辑靠会话上下文完整重放——**收权改动落定即 commit,缩小裸奔窗口**;③金丝雀测试挂掉时先怀疑裁决而非测试(F1① 被测试证伪是本轮最有价值的一次改判);④「否定盲」是词表类判据的家族病:同一病根一天内在三把不同的尺上现形(退役词表/追问尺否定/追问尺延迟)。
+
 ## 2026-07-30 - tier1/2 可达性 1b：门死锁+exact 恒 miss 全链根因（四层剥洋葱）
 
 - 问题：批1a 前置了 prefetch 管道后，live 探针（在库案例粘贴）判分仍恒 tier3（derived_from_stem）、零检索观测。业务事实=「粘贴题库内案例题必须拿到题库判分权威」在四个不同层各断一刀。
