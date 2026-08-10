@@ -312,3 +312,53 @@ def test_tutor_state_router_rejects_overlay_patch_without_admin() -> None:
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Admin access required"
+
+
+def _patch_wm_via_admin_router(monkeypatch, calls: dict, *, actor: str = "student_demo"):
+    class FakeOverlayService:
+        def patch_overlay(self, bot_id, user_id, patch, *, source_feature, source_id):
+            calls["patch"] = {"patch": patch, "source_id": source_id}
+            return {"ok": True}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.tutor_state.get_bot_learner_overlay_service",
+        lambda: FakeOverlayService(),
+    )
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1/tutor-state")
+    app.dependency_overrides[get_current_user] = lambda: _ctx(actor, is_admin=True)
+    with TestClient(app) as client:
+        return client.patch(
+            f"/api/v1/tutor-state/{actor or 'student_demo'}/overlay/review-bot",
+            json={
+                "operations": [
+                    {"op": "set", "field": "working_memory_projection", "value": "运营手工修正的记忆"}
+                ]
+            },
+        )
+
+
+def test_tutor_state_admin_overlay_stamps_working_memory_provenance(monkeypatch) -> None:
+    """task#32：admin 写 working_memory 由**边界**盖章，不再被静默丢弃（假成功）。"""
+    calls: dict[str, object] = {}
+
+    response = _patch_wm_via_admin_router(monkeypatch, calls, actor="admin_zhang")
+
+    assert response.status_code == 200
+    operation = calls["patch"]["patch"]["operations"][0]
+    assert operation["field"] == "working_memory_projection"
+    assert operation["provenance"]["source_kind"] == "admin_override"
+    assert operation["provenance"]["actor"] == "admin_zhang"
+    assert operation["provenance"]["turn_id"] == "admin:admin_zhang"
+    assert operation["provenance"]["source_event_type"] == "tutor_state_admin_overlay"
+
+
+def test_tutor_state_admin_overlay_rejects_working_memory_without_actor(monkeypatch) -> None:
+    """身份不可解析时显式 400，而不是静默丢弃 + 200。"""
+    calls: dict[str, object] = {}
+
+    response = _patch_wm_via_admin_router(monkeypatch, calls, actor="")
+
+    assert response.status_code == 400
+    assert "authenticated actor" in response.json()["detail"]
+    assert "patch" not in calls  # 没有把一个会被丢弃的写入放进权威

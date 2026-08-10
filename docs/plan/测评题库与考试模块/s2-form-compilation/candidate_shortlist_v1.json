@@ -1,0 +1,2296 @@
+{
+ "schema": "luban_s2_candidate_shortlist.v1",
+ "method": "pack关键词主题吻合 + 答案/join质量过滤 + 族内去重限额;计分题终选逐题人核另列",
+ "pack_keywords": {
+  "C01": [
+   "施工缝",
+   "后浇带"
+  ],
+  "C04": [
+   "拆模",
+   "模板拆除",
+   "拆除底模",
+   "底模",
+   "快拆"
+  ],
+  "C05": [
+   "钢筋连接",
+   "机械连接",
+   "焊接接头",
+   "绑扎搭接",
+   "套筒"
+  ],
+  "C07": [
+   "钢结构",
+   "高强螺栓",
+   "焊缝"
+  ],
+  "Q01": [
+   "养护",
+   "混凝土裂缝",
+   "裂缝防治"
+  ],
+  "Q02": [
+   "大体积",
+   "温控",
+   "水化热",
+   "入模温度"
+  ],
+  "J01": [
+   "危大",
+   "专项方案",
+   "专家论证",
+   "危险性较大"
+  ],
+  "R01": [
+   "动火",
+   "灭火",
+   "消防",
+   "防火"
+  ],
+  "S05": [
+   "临时用电",
+   "配电",
+   "漏电",
+   "照明电压",
+   "开关箱",
+   "安全电压"
+  ],
+  "S06": [
+   "高处作业",
+   "临边",
+   "洞口",
+   "安全网",
+   "防护栏",
+   "安全带"
+  ],
+  "N01": [
+   "网络计划",
+   "关键线路",
+   "总时差",
+   "双代号",
+   "自由时差"
+  ],
+  "N02": [
+   "工期优化",
+   "赶工",
+   "压缩"
+  ],
+  "N03": [
+   "流水",
+   "节拍",
+   "步距"
+  ],
+  "A02": [
+   "复验",
+   "见证",
+   "取样",
+   "进场检验",
+   "隐蔽"
+  ],
+  "G01": [
+   "基坑",
+   "降水",
+   "支护",
+   "土钉"
+  ],
+  "G02": [
+   "回填",
+   "压实"
+  ],
+  "G03": [
+   "桩",
+   "灌注桩",
+   "沉桩"
+  ],
+  "G04": [
+   "验槽",
+   "地基处理",
+   "换填"
+  ],
+  "F02": [
+   "卷材",
+   "搭接",
+   "铺贴"
+  ],
+  "F03": [
+   "防水等级",
+   "设防",
+   "抗渗",
+   "构造层次",
+   "防水混凝土",
+   "倒置式"
+  ],
+  "F05": [
+   "渗漏",
+   "堵漏",
+   "防水堵漏"
+  ],
+  "F16": [
+   "起鼓",
+   "割补",
+   "鼓泡"
+  ],
+  "D11": [
+   "抹灰"
+  ],
+  "D12": [
+   "饰面砖",
+   "空鼓",
+   "粘结强度"
+  ],
+  "D13": [
+   "幕墙"
+  ]
+ },
+ "total": 69,
+ "by_family": {
+  "主体结构": 16,
+  "安全": 12,
+  "进度": 5,
+  "质量验收": 14,
+  "防水": 14,
+  "装饰备": 8
+ },
+ "candidates": [
+  {
+   "candidate_id": "C01-2015-第26题",
+   "family": "主体结构",
+   "pack_id": "C01",
+   "type": "multiple_choice",
+   "year": "2015",
+   "exam_anchor": "第26题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于防水混凝土施工的说法，正确的有(  )。 A. 连续性浇筑，少留施工缝 B. 宜采用高频机械分层振捣密实 C. 施工",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 41,
+    "practice_eligible": 14,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C01-2019-案例一(一)背景资料",
+   "family": "主体结构",
+   "pack_id": "C01",
+   "type": "case_study",
+   "year": "2019",
+   "exam_anchor": "案例一(一)背景资料",
+   "taxonomy_node": "1A413030",
+   "difficulty": "hard",
+   "score": 5.5,
+   "stem_60": "【背景资料】 某工程钢筋混凝土基础底板，长度120m，宽度10m，厚度2.0m。混凝土设计强度等级P6C35，设计无后浇",
+   "gates": {
+    "G1_syllabus": "PASS(1A413030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "hard/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 41,
+    "practice_eligible": 14,
+    "chapter_same_section": 31
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C01-2021-第8题",
+   "family": "主体结构",
+   "pack_id": "C01",
+   "type": "multiple_choice",
+   "year": "2021",
+   "exam_anchor": "第8题",
+   "taxonomy_node": "1A415041",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "混凝土施工缝留置位置正确的有（）。  A.柱在梁、板顶面 B.单向板在平行于板长边的任何位置 C.有主次梁的楼板在次梁跨",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 41,
+    "practice_eligible": 14,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+    "docs/原始数据/考点原料/_C01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C04-2015-第10题",
+   "family": "主体结构",
+   "pack_id": "C04",
+   "type": "single_choice",
+   "year": "2015",
+   "exam_anchor": "第10题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "某跨度8m 的混凝土楼板，设计强度等级C30，模板采用快拆支架体系，支架立杆间距 2m，拆模时混凝土的最低强度是(  )",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_C04_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C04-2021-第9题",
+   "family": "主体结构",
+   "pack_id": "C04",
+   "type": "single_choice",
+   "year": "2021",
+   "exam_anchor": "第9题",
+   "taxonomy_node": "1A415041",
+   "difficulty": "easy",
+   "score": 1.0,
+   "stem_60": "跨度 6m、设计混凝土强度等级 C30 的板，拆除底模时的同条件养护标准立方体试块抗压强度值至少应达到()。  A.15",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+    "docs/原始数据/考点原料/_C04_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C04-2024-第10题",
+   "family": "主体结构",
+   "pack_id": "C04",
+   "type": "single_choice",
+   "year": "2024",
+   "exam_anchor": "第10题",
+   "taxonomy_node": "1A413030",
+   "difficulty": "hard",
+   "score": 1.0,
+   "stem_60": "下列构件中，达到底模拆除要求的是（ ）。  A. 跨度 5m 的板，混凝土立方体抗压强度达到设计标准值的 50% B. ",
+   "gates": {
+    "G1_syllabus": "PASS(1A413030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "hard/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 31
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2024.json",
+    "docs/原始数据/考点原料/_C04_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C04-2025-第26题",
+   "family": "主体结构",
+   "pack_id": "C04",
+   "type": "multiple_choice",
+   "year": "2025",
+   "exam_anchor": "第26题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "铝合金模板优点有（　　）。 A.模板承载力大 B.设计时对消防用电的设计要求低 C.施工技术简单 D.模板拆除后混凝土表",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+    "docs/原始数据/考点原料/_C04_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C05-2018-案例分析(三)问题2",
+   "family": "主体结构",
+   "pack_id": "C05",
+   "type": "case_study",
+   "year": "2018",
+   "exam_anchor": "案例分析(三)问题2",
+   "taxonomy_node": "1A434000",
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】  某新建高层住宅工程建筑面积 16000 m²，地下一层，地上十二层。二层以下为现浇钢筋混凝土结构，二层以",
+   "gates": {
+    "G1_syllabus": "PASS(1A434000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2018.json",
+    "docs/原始数据/考点原料/_C05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C05-2019-第8题",
+   "family": "主体结构",
+   "pack_id": "C05",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第8题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "直接承受动力荷载的结构构件中，直径为20mm纵向受力钢筋的连接宜选用（　　）。 A. 绑扎连接 B. 直螺纹套筒连接 C",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_C05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C05-2022-第14题",
+   "family": "主体结构",
+   "pack_id": "C05",
+   "type": "single_choice",
+   "year": "2022",
+   "exam_anchor": "第14题",
+   "taxonomy_node": "1A413030",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "【问题】宜采用绑扎搭接接头的是（　）。 A.直径28mm受拉钢筋 B.直径25mm受压钢筋 C.析架拉杆纵向受力钢筋 D",
+   "gates": {
+    "G1_syllabus": "PASS(1A413030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 31
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2022.json",
+    "docs/原始数据/考点原料/_C05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C05-2022-第14题",
+   "family": "主体结构",
+   "pack_id": "C05",
+   "type": "single_choice",
+   "year": "2022",
+   "exam_anchor": "第14题",
+   "taxonomy_node": "1A414010",
+   "difficulty": null,
+   "score": null,
+   "stem_60": "宜采用绑扎搭接接头的是（　　）。 A.直径28mm受拉钢筋 B.直径25mm受压钢筋 C.桁架拉杆纵向受力钢筋 D.行车",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "MISSING/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2022.json",
+    "docs/原始数据/考点原料/_C05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C05-2022-第28题",
+   "family": "主体结构",
+   "pack_id": "C05",
+   "type": "multiple_choice",
+   "year": "2022",
+   "exam_anchor": "第28题",
+   "taxonomy_node": "1A414010",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "混凝土预制构件钢筋套筒灌浆连接的灌浆料强度试件要求有（　）。 A.每工作班应制作1组 B.边长70.7mm立方体 C.每",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2022.json",
+    "docs/原始数据/考点原料/_C05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C07-2015-案例2",
+   "family": "主体结构",
+   "pack_id": "C07",
+   "type": "case_study",
+   "year": "2015",
+   "exam_anchor": "案例2",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护 结构为玻璃幕墙和石材幕墙，外墙保温材",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "CONDITIONAL(解析空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_C07_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C07-2016-第9题",
+   "family": "主体结构",
+   "pack_id": "C07",
+   "type": "single_choice",
+   "year": "2016",
+   "exam_anchor": "第9题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "下列钢结构防火涂料类别中，不属于按使用厚度进行分类的是(  )。 A. B 类 B. CB 类 C. H 类 D. N ",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+    "docs/原始数据/考点原料/_C07_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C07-2016-案例2",
+   "family": "主体结构",
+   "pack_id": "C07",
+   "type": "case_study",
+   "year": "2016",
+   "exam_anchor": "案例2",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构 网架屋盖，地下一层，地上四层，地下室顶",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "CONDITIONAL(解析空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+    "docs/原始数据/考点原料/_C07_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "C07-2017-第27题",
+   "family": "主体结构",
+   "pack_id": "C07",
+   "type": "multiple_choice",
+   "year": "2017",
+   "exam_anchor": "第27题",
+   "taxonomy_node": "1A412000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于钢结构工程中防腐涂料与防火涂料涂装的说法，正确的有（　　）。  A. 施工环境温度不低于0℃ B. 做好操作面的通风",
+   "gates": {
+    "G1_syllabus": "PASS(1A412000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2017.json",
+    "docs/原始数据/考点原料/_C07_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "J01-2021-第5题",
+   "family": "安全",
+   "pack_id": "J01",
+   "type": "multiple_choice",
+   "year": "2021",
+   "exam_anchor": "第5题",
+   "taxonomy_node": "1A431022",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "需要进行专家论证的危险性较大的分部分项工程有（）  A.开挖深度 6m 的基坑工程 B.搭设跨度 15m 的模板支撑工程",
+   "gates": {
+    "G1_syllabus": "PASS(1A431022)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 123,
+    "practice_eligible": 7,
+    "chapter_same_section": 3
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+    "docs/原始数据/考点原料/_J01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "J01-2021-案例三",
+   "family": "安全",
+   "pack_id": "J01",
+   "type": "case_study",
+   "year": "2021",
+   "exam_anchor": "案例三",
+   "taxonomy_node": "1A433000",
+   "difficulty": "medium",
+   "score": 6.0,
+   "stem_60": "【背景资料】 某施工单位承建一高档住宅楼工程。钢筋混凝土剪力墙结构，地下2层，地上26层，建筑面积36000㎡。  施工",
+   "gates": {
+    "G1_syllabus": "PASS(1A433000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 123,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+    "docs/原始数据/考点原料/_J01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "J01-2023-第28题",
+   "family": "安全",
+   "pack_id": "J01",
+   "type": "multiple_choice",
+   "year": "2023",
+   "exam_anchor": "第28题",
+   "taxonomy_node": "1A431030",
+   "difficulty": "easy",
+   "score": 2.0,
+   "stem_60": "危大工程专家论证的主要内容有（ ）。  A. 专项方案内容是否完整、可行 B. 专项方案计算书和验算依据、施工图是否符合",
+   "gates": {
+    "G1_syllabus": "PASS(1A431030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 123,
+    "practice_eligible": 7,
+    "chapter_same_section": 7
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2023.json",
+    "docs/原始数据/考点原料/_J01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "J01-2024-第20题",
+   "family": "安全",
+   "pack_id": "J01",
+   "type": "single_choice",
+   "year": "2024",
+   "exam_anchor": "第20题",
+   "taxonomy_node": "1A430000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "危险性较大的登高焊割动火申请表报（　　）审批后，方可动火。 A. 项目安全管理部 B. 企业安全部门 C. 项目负责人 ",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 123,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2024.json",
+    "docs/原始数据/考点原料/_J01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "R01-2015-第18题",
+   "family": "安全",
+   "pack_id": "R01",
+   "type": "single_choice",
+   "year": "2015",
+   "exam_anchor": "第18题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "气焊电石起火时，可以采用的灭火材料或器材是(  )。 A. 干砂 B. 水 C. 四氯化碳灭火器 D. 泡沫灭火器",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_R01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "R01-2015-第30题",
+   "family": "安全",
+   "pack_id": "R01",
+   "type": "multiple_choice",
+   "year": "2015",
+   "exam_anchor": "第30题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于施工现场消防管理的说法，正确的有(  )。 A. 动火证当日有效 B. 施工现场严禁吸烟 C. 应配备义务消防人员 ",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_R01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "R01-2018-第5题",
+   "family": "安全",
+   "pack_id": "R01",
+   "type": "case_study",
+   "year": "2018",
+   "exam_anchor": "第5题",
+   "taxonomy_node": "1A436000",
+   "difficulty": "medium",
+   "score": 6.0,
+   "stem_60": "【背景资料】  图5：标准层临时消防设施布置示意图  - 立管DN100，1根 - 消防箱，1套 - 消防栓接口，4个 ",
+   "gates": {
+    "G1_syllabus": "PASS(1A436000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2018.json",
+    "docs/原始数据/考点原料/_R01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "R01-2020-第17题",
+   "family": "安全",
+   "pack_id": "R01",
+   "type": "single_choice",
+   "year": "2020",
+   "exam_anchor": "第17题",
+   "taxonomy_node": "1A420000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "施工现场负责审查批准一级动火作业的（　　）。 A. 项目负责人 B. 项目生产负责人 C. 项目安全管理部门 D. 企业",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_R01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "S05-2016-第13题",
+   "family": "安全",
+   "pack_id": "S05",
+   "type": "single_choice",
+   "year": "2016",
+   "exam_anchor": "第13题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "下列施工场所中，照明电压不得超过12V 的是(  )。 A. 地下车库 B. 潮湿场所 C. 金属容器内 D. 人防工程",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 75,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+    "docs/原始数据/考点原料/_S05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "S05-2017-第18题",
+   "family": "安全",
+   "pack_id": "S05",
+   "type": "single_choice",
+   "year": "2017",
+   "exam_anchor": "第18题",
+   "taxonomy_node": "1A412000",
+   "difficulty": "easy",
+   "score": 1.0,
+   "stem_60": "关于室内装饰装修材料使用的说法，符合《建筑内部装修设计防火规范》规定的是（　　）。 A. 顶棚采用多孔塑料板时，其厚度不",
+   "gates": {
+    "G1_syllabus": "PASS(1A412000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 75,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2017.json",
+    "docs/原始数据/考点原料/_S05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "S05-2018-第17题",
+   "family": "安全",
+   "pack_id": "S05",
+   "type": "single_choice",
+   "year": "2018",
+   "exam_anchor": "第17题",
+   "taxonomy_node": "1A432000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "关于施工现场临时用电管理的说法, 正确的是（）  A. 现场电工必须经相关部门考核合格后, 持证上岗 B. 用电设备拆除",
+   "gates": {
+    "G1_syllabus": "PASS(1A432000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 75,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2018.json",
+    "docs/原始数据/考点原料/_S05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "S05-2020-第15题",
+   "family": "安全",
+   "pack_id": "S05",
+   "type": "single_choice",
+   "year": "2020",
+   "exam_anchor": "第15题",
+   "taxonomy_node": "1A435000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "施工现场临时用电配电箱金属箱门与金属箱体的连接材料，正确的是（　　）。 A. 单股铜线 B. 绝缘多股铜线 C. 编织软",
+   "gates": {
+    "G1_syllabus": "PASS(1A435000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 75,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_S05_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "N01-2025-案例背景(二)",
+   "family": "进度",
+   "pack_id": "N01",
+   "type": "case_study",
+   "year": "2025",
+   "exam_anchor": "案例背景 (二)",
+   "taxonomy_node": "1A433000",
+   "difficulty": "hard",
+   "score": 20.0,
+   "stem_60": "【案例背景】某学校学术交流中心工程，地下 2 层，地上 5 层，钢框架-钢筋混凝土剪力墙结构，总建筑面积 1.6 万平方",
+   "gates": {
+    "G1_syllabus": "PASS(1A433000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "hard/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 43,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+    "docs/原始数据/考点原料/_N01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "N01-2025-参考答案(二)",
+   "family": "进度",
+   "pack_id": "N01",
+   "type": "case_study",
+   "year": "2025",
+   "exam_anchor": "参考答案 (二)",
+   "taxonomy_node": "1A433000",
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】 某学校学术交流中心工程，地下2层，地上5层，钢框架-钢筋混凝土剪力墙结构，总建筑面积1.6万平方米。项目部",
+   "gates": {
+    "G1_syllabus": "PASS(1A433000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 43,
+    "practice_eligible": 7,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+    "docs/原始数据/考点原料/_N01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "N03-2015-第16题",
+   "family": "进度",
+   "pack_id": "N03",
+   "type": "single_choice",
+   "year": "2015",
+   "exam_anchor": "第16题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "关于等节奏流水施工的说法，错误的是( )。 A. 各施工过程在各个施工段流水节拍相等 B. 相邻施工过程的流水步距相等 ",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 48,
+    "practice_eligible": 9,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "N03-2021-案例二背景",
+   "family": "进度",
+   "pack_id": "N03",
+   "type": "case_study",
+   "year": "2021",
+   "exam_anchor": "案例二背景",
+   "taxonomy_node": "1A433000",
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】某工程项目，地上15~18层，地下2层，钢筋混凝土剪力墙结构，总建筑面积57000㎡。施工单位中标后成立项目",
+   "gates": {
+    "G1_syllabus": "PASS(1A433000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 48,
+    "practice_eligible": 9,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+    "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "N03-2023-第2题",
+   "family": "进度",
+   "pack_id": "N03",
+   "type": "case_study",
+   "year": "2023",
+   "exam_anchor": "第2题",
+   "taxonomy_node": "1A433000",
+   "difficulty": "hard",
+   "score": 6.0,
+   "stem_60": "【背景资料】某新建商品住宅项目，建筑面积2.4万平方米，地下二层，地上十六层，由两栋结构类型与建筑规模完全相同的单体建筑",
+   "gates": {
+    "G1_syllabus": "PASS(1A433000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "hard/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 48,
+    "practice_eligible": 9,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2023.json",
+    "docs/原始数据/考点原料/_N03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2016-第17题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "single_choice",
+   "year": "2016",
+   "exam_anchor": "第17题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "成型钢筋在进场时无需复验的项目是(  )。 A. 抗拉强度 B. 弯曲性能 C. 伸长率 D. 重量偏差",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2017-第13题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "single_choice",
+   "year": "2017",
+   "exam_anchor": "第13题",
+   "taxonomy_node": "1A434010",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "关于施工现场材料检验的说法, 正确的是（　　）。 A. 建筑材料复试送检的检测试样可以在施工现场外抽取 B. 工程取样送",
+   "gates": {
+    "G1_syllabus": "PASS(1A434010)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 2
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2017.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2017-第20题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "single_choice",
+   "year": "2017",
+   "exam_anchor": "第20题",
+   "taxonomy_node": "1A432000",
+   "difficulty": "hard",
+   "score": 1.0,
+   "stem_60": "根据《建筑工程资料管理规程》(JGJ/T185-2009)，某工程地上二层混凝土楼板钢筋隐蔽工程记录表的编号，正确的是（",
+   "gates": {
+    "G1_syllabus": "PASS(1A432000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "hard/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2017.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2019-第30题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "multiple_choice",
+   "year": "2019",
+   "exam_anchor": "第30题",
+   "taxonomy_node": "1A434010",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于试验见证与送样的说法, 正确的有（　　）。 A. 见证人员变化时, 应办理书面变更手续 B. 见证人员应填写见证记录",
+   "gates": {
+    "G1_syllabus": "PASS(1A434010)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 2
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2020-第29题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "multiple_choice",
+   "year": "2020",
+   "exam_anchor": "第29题",
+   "taxonomy_node": "1A434000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于土方回填的说法，正确的是（ ）。 A. 回填料应控制含水率 B. 根据回填土的要求，确定压实遍数 C. 下层的压实系",
+   "gates": {
+    "G1_syllabus": "PASS(1A434000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2020-第30题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "multiple_choice",
+   "year": "2020",
+   "exam_anchor": "第30题",
+   "taxonomy_node": "1A434000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "屋面工程中使用的保温材料，必须进场复验的技术指标有（ ）。 A. 导热系数 B. 密度 C. 抗拉强度 D. 燃烧性能 ",
+   "gates": {
+    "G1_syllabus": "PASS(1A434000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2020-第23题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "multiple_choice",
+   "year": "2020",
+   "exam_anchor": "第23题",
+   "taxonomy_node": "1A413070",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "建筑幕墙的防雷做法正确的有（　　）。 A. 避雷接地一般每三层与均压环连接 B. 防雷构造连接不必进行隐蔽工程验收 C.",
+   "gates": {
+    "G1_syllabus": "PASS(1A413070)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 6
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "A02-2022-第22题",
+   "family": "质量验收",
+   "pack_id": "A02",
+   "type": "multiple_choice",
+   "year": "2022",
+   "exam_anchor": "第22题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "墙体保温砌块进场复验的内容有（　　）。 A. 导热系数 B. 单位面积质量 C. 抗压强度 D. 吸水率 E. 拉伸粘结",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2022.json",
+    "docs/原始数据/考点原料/_A02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "G01-2015-第9题",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "type": "single_choice",
+   "year": "2015",
+   "exam_anchor": "第9题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "针对渗透系数较大的土层，适宜采用的降水技术是(  ) 降水。 A. 真空井点 B. 轻型井点 C. 喷射井点 D. 管井",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "G01-2016-第24题",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "type": "multiple_choice",
+   "year": "2016",
+   "exam_anchor": "第24题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "可以起到防止深基坑坑底突涌的措施有(  )。 A. 集水明排 B. 钻孔减压 C. 井点降水 D. 井点回灌 E. 水平",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+    "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "G01-2019-第7题",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第7题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "不宜用于填土土质的降水方法是（　　）。 A. 轻型井点 B. 降水管井 C. 喷射井点 D. 电渗井点",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "G01-2019-第27题",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "type": "multiple_choice",
+   "year": "2019",
+   "exam_anchor": "第27题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "基坑土钉墙施工需遵循的原则有（　　）。 A. 同步支护 B. 分层分段 C. 多层施作 D. 限时封闭 E. 严禁超挖",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "G01-2020-第20题",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "type": "single_choice",
+   "year": "2020",
+   "exam_anchor": "第20题",
+   "taxonomy_node": "1A413030",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "基坑开挖深度8m，基坑侧壁安全等级为一级，基坑支护结构形式宜选（　　）。 A. 水泥土墙 B. 原状土放坡 C. 土钉墙",
+   "gates": {
+    "G1_syllabus": "PASS(1A413030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 31
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "G01-2021-第10题",
+   "family": "质量验收",
+   "pack_id": "G01",
+   "type": "single_choice",
+   "year": "2021",
+   "exam_anchor": "第10题",
+   "taxonomy_node": "1A415024",
+   "difficulty": "easy",
+   "score": 1.0,
+   "stem_60": "深基坑工程无支护结构挖土方案是()。  A.中心岛式 B.逆作法 C.盆式 D.放坡",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+    "docs/原始数据/考点原料/_G01_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2016-第27题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "multiple_choice",
+   "year": "2016",
+   "exam_anchor": "第27题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于房面卷材防水施工要求的说法，正确的有(  )。 A. 先施工细部，在施工大面 B. 平行屋脊搭接缝应顺流方向 C. ",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2018-第14题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "single_choice",
+   "year": "2018",
+   "exam_anchor": "第14题",
+   "taxonomy_node": "1A413020",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "地下室室外墙卷材防水层施工做法中, 正确的是（）  A. 卷材防水层铺设在外墙的迎水面上 B. 卷材防水层铺设在外墙的背",
+   "gates": {
+    "G1_syllabus": "PASS(1A413020)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 66
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2018.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2019-第9题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第9题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "高强度螺栓广泛采用的连接形式是（　　）。 A. 平接连接 B. T形连接 C. 搭接连接 D. 摩擦连接",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2022-第24题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "multiple_choice",
+   "year": "2022",
+   "exam_anchor": "第24题",
+   "taxonomy_node": "1A412000",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "改性沥青防水卷材胎基材料有（　　）。 A. 聚酯毡 B. 合成橡胶 C. 玻纤毡 D. 合成树脂 E. 纺织物",
+   "gates": {
+    "G1_syllabus": "PASS(1A412000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2022.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2023-第19题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "single_choice",
+   "year": "2023",
+   "exam_anchor": "第19题",
+   "taxonomy_node": "1A415010",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "受持续振动的地下工程防水不应采用（　　）。 A. 防水混凝土 B. 水泥砂浆防水层 C. 卷材防水层 D. 涂料防水层",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2023.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2023-第26题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "multiple_choice",
+   "year": "2023",
+   "exam_anchor": "第26题",
+   "taxonomy_node": "1A434030",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于抹灰工程的做法，正确的有（ ）。  A. 室内抹灰的环境温度一般不低于 0℃ B. 抹灰总厚度＞35mm 时，应采取",
+   "gates": {
+    "G1_syllabus": "PASS(1A434030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 8
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2023.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2024-第26题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "multiple_choice",
+   "year": "2024",
+   "exam_anchor": "第26题",
+   "taxonomy_node": "1A413022",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "关于吊顶的说法正确的（　　）。 A. 在吊顶施工前，应进行水管试压检验合格 B. 吊杆长度2700mm，应设置反支撑 C",
+   "gates": {
+    "G1_syllabus": "PASS(1A413022)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 66
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2024.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2025-第13题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "single_choice",
+   "year": "2025",
+   "exam_anchor": "第13题",
+   "taxonomy_node": "1A413000",
+   "difficulty": "easy",
+   "score": 1.0,
+   "stem_60": "地下室防水卷材采用外防内贴法时做法正确的是（　　）。 A.铺立面时，先铺大面，后铺转角 B.上下两层，互相垂直铺贴 C.",
+   "gates": {
+    "G1_syllabus": "PASS(1A413000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F02-2025-第23题",
+   "family": "防水",
+   "pack_id": "F02",
+   "type": "multiple_choice",
+   "year": "2025",
+   "exam_anchor": "第23题",
+   "taxonomy_node": "1A414010",
+   "difficulty": "easy",
+   "score": 2.0,
+   "stem_60": "防水卷材的防水性能包括（　　）  A.拉力 B.不透水性 C.耐老化性 D.抗渗透性 E.柔性",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 38,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+    "docs/原始数据/考点原料/_F02_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F03-2019-第12题",
+   "family": "防水",
+   "pack_id": "F03",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第12题",
+   "taxonomy_node": "1A413020",
+   "difficulty": "easy",
+   "score": 1.0,
+   "stem_60": "地下工程防水等级分为（　　）。  A. 二级 B. 三级 C. 四级 D. 五级",
+   "gates": {
+    "G1_syllabus": "PASS(1A413020)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 53,
+    "practice_eligible": 17,
+    "chapter_same_section": 66
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_F03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F03-2019-第1题",
+   "family": "防水",
+   "pack_id": "F03",
+   "type": "case_study",
+   "year": "2019",
+   "exam_anchor": "第1题",
+   "taxonomy_node": "1A434000",
+   "difficulty": "medium",
+   "score": 5.5,
+   "stem_60": "【背景资料】  某新建住宅工程，建筑面积22000㎡，地下一层，地上十六层，框架-剪力墙结构，抗震设防烈度7度。  施工",
+   "gates": {
+    "G1_syllabus": "PASS(1A434000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 53,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_F03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F03-2020-第12题",
+   "family": "防水",
+   "pack_id": "F03",
+   "type": "single_choice",
+   "year": "2020",
+   "exam_anchor": "第12题",
+   "taxonomy_node": "1A413040",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "倒置式屋面基本构造自下而上顺序（　　）。 ①结构层、②保温层、③保护层、④找坡层、⑤找平层、⑥防水层 A. ①②④⑤⑥③",
+   "gates": {
+    "G1_syllabus": "PASS(1A413040)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 53,
+    "practice_eligible": 17,
+    "chapter_same_section": 65
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+    "docs/原始数据/考点原料/_F03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F03-2023-第22题",
+   "family": "防水",
+   "pack_id": "F03",
+   "type": "multiple_choice",
+   "year": "2023",
+   "exam_anchor": "第22题",
+   "taxonomy_node": "1A411020",
+   "difficulty": "medium",
+   "score": 2.0,
+   "stem_60": "墙体防水、防潮规定正确的有（　　）。 A. 砌筑墙体应在室外地面以上设置连续的水平防水层 B. 砌筑墙体应在室内地面垫层",
+   "gates": {
+    "G1_syllabus": "PASS(1A411020)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 53,
+    "practice_eligible": 17,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2023.json",
+    "docs/原始数据/考点原料/_F03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "F03-2024-第14题",
+   "family": "防水",
+   "pack_id": "F03",
+   "type": "single_choice",
+   "year": "2024",
+   "exam_anchor": "第14题",
+   "taxonomy_node": "1A412030",
+   "difficulty": "easy",
+   "score": 1.0,
+   "stem_60": "下列混凝土中，优先选用火山灰水泥的是（ ）。  A. 有耐磨性要求的混凝土 B. 在干燥环境中的混凝土 C. 有抗渗要求",
+   "gates": {
+    "G1_syllabus": "PASS(1A412030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 53,
+    "practice_eligible": 17,
+    "chapter_same_section": 28
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2024.json",
+    "docs/原始数据/考点原料/_F03_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D11-2024-第14页",
+   "family": "装饰备",
+   "pack_id": "D11",
+   "type": "case_study",
+   "year": "2024",
+   "exam_anchor": "第14页",
+   "taxonomy_node": "1A434000",
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】某施工单位中标新建教学楼工程，建筑面积2.46万平方米，地上4层钢筋混凝土框架-剪力墙结构，部分楼板采用预制",
+   "gates": {
+    "G1_syllabus": "PASS(1A434000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 42,
+    "practice_eligible": 11,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2024.json",
+    "docs/原始数据/考点原料/_D11_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D12-2019-第2题",
+   "family": "装饰备",
+   "pack_id": "D12",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第2题",
+   "taxonomy_node": "1A412000",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "影响钢筋与混凝土之间粘结强度的因素有（　　）。  A. 混凝土强度 B. 钢筋抗拉强度 C. 钢筋抗压强度 D. 钢筋屈",
+   "gates": {
+    "G1_syllabus": "PASS(1A412000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_D12_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D12-2019-第13题",
+   "family": "装饰备",
+   "pack_id": "D12",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第13题",
+   "taxonomy_node": "1A413030",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "抗震设防烈度7度地区, 采用满粘法施工的外墙饰面砖粘贴工程高度不应大于（　　）  A. 24m B. 50m C. 54",
+   "gates": {
+    "G1_syllabus": "PASS(1A413030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 31
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_D12_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D12-2019-第13题",
+   "family": "装饰备",
+   "pack_id": "D12",
+   "type": "single_choice",
+   "year": "2019",
+   "exam_anchor": "第13题",
+   "taxonomy_node": "1A413030",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "抗震设防烈度7度地区，采用满粘法施工的外墙饰面砖粘贴工程高度不应大于（　　）  A. 24m B. 50m C. 54m",
+   "gates": {
+    "G1_syllabus": "PASS(1A413030)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 31
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+    "docs/原始数据/考点原料/_D12_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D12-2025-第29题",
+   "family": "装饰备",
+   "pack_id": "D12",
+   "type": "multiple_choice",
+   "year": "2025",
+   "exam_anchor": "第29题",
+   "taxonomy_node": "1A434000",
+   "difficulty": "easy",
+   "score": 2.0,
+   "stem_60": "禁止使用的施工工艺有（　　）。 A.现场简易制作钢筋保护层垫块 B.基桩人工挖孔 C.墙面饰面砖水泥砂浆粘贴 D.卷扬机",
+   "gates": {
+    "G1_syllabus": "PASS(1A434000)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "多选风险/知识边界",
+    "G4_difficulty_anchor": "easy/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "practice_pool",
+   "pairing_detail": {
+    "vbank": 0,
+    "practice_eligible": 8,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+    "docs/原始数据/考点原料/_D12_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D13-2015-第15题",
+   "family": "装饰备",
+   "pack_id": "D13",
+   "type": "single_choice",
+   "year": "2015",
+   "exam_anchor": "第15题",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "通常情况下，玻璃幕墙上悬开启窗最大的开启角度是(  )。 A. 30° B. 40° C. 50° D. 60°",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 34,
+    "practice_eligible": 13,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_D13_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D13-2015-案例3",
+   "family": "装饰备",
+   "pack_id": "D13",
+   "type": "case_study",
+   "year": "2015",
+   "exam_anchor": "案例3",
+   "taxonomy_node": null,
+   "difficulty": "medium",
+   "score": 5.0,
+   "stem_60": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高 58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预",
+   "gates": {
+    "G1_syllabus": "PASS(pack注册表锚定)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "案例识别/采分点(需纯点选转写)",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "CONDITIONAL(解析空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 34,
+    "practice_eligible": 13,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+    "docs/原始数据/考点原料/_D13_exam_evidence.json"
+   ]
+  },
+  {
+   "candidate_id": "D13-2017-第12题",
+   "family": "装饰备",
+   "pack_id": "D13",
+   "type": "single_choice",
+   "year": "2017",
+   "exam_anchor": "第12题",
+   "taxonomy_node": "1A411040",
+   "difficulty": "medium",
+   "score": 1.0,
+   "stem_60": "关于建筑幕墙施工的说法, 正确的是（　　）。 A. 槽型预埋件应用最为广泛 B. 平板式预埋件的直锚筋与锚板不宜采用 T",
+   "gates": {
+    "G1_syllabus": "PASS(1A411040)",
+    "G2_exam_source": "PASS(11年真题)",
+    "G3_ability": "知识边界/条件判断",
+    "G4_difficulty_anchor": "medium/真题实证sidecar",
+    "G5_scoring": "PASS(答案+解析非空)",
+    "G6_coverage": "表单级一题一维绑定(编制时定)"
+   },
+   "pairing_verdict": "vbank_first",
+   "pairing_detail": {
+    "vbank": 34,
+    "practice_eligible": 13,
+    "chapter_same_section": 0
+   },
+   "screen_level": "machine_screened",
+   "source_refs": [
+    "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2017.json",
+    "docs/原始数据/考点原料/_D13_exam_evidence.json"
+   ]
+  }
+ ]
+}

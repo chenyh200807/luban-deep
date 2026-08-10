@@ -308,6 +308,9 @@ function trackProductBehavior(eventName, payload) {
       // spike 命门判别位：forward(学习轮当天轻练)/review(复习轮次日复测)。
       // 必须在此跳显式导出,否则固定 metadata 会静默丢掉——D1 留存即读不出。
       practice_mode: data.practiceMode || "",
+      // 过线体检漏斗验证维度(pass_readiness_* 事件): phone_granted | openid_only。
+      // 同 practice_mode: 不在此跳显式导出会被固定 metadata 静默丢掉。
+      identity_state: data.identityState || "",
     },
   });
 }

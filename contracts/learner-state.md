@@ -301,10 +301,57 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 - `teaching_policy_override`
 - `heartbeat_override`
 - `working_memory_projection`
+- `working_memory_provenance`（service-managed，见下）
 - `channel_presence_override`
 - `local_notebook_scope_refs`
 - `engagement_state`
 - `promotion_candidates`
+
+### working_memory 出处链化（task#32，2026-08-02）
+
+2026-08-01 吸收态 SEV（安全模板投影进 working_memory → 下轮注入 → 闸自证有罪 →
+拒答回写 → 死循环）的结构病因是该字段**无出处、无审计**。纪律对齐上游 DeepTutor
+“L2 必须引用 L1”：
+
+1. **无出处不入记（fail-closed 且发声）**：`working_memory_projection` 的非空
+   `set` 必须在 op 上携带 `provenance`（至少 `turn_id` + `source_kind`）。缺出处
+   时该 op 被丢弃（同批其余 op 照常生效，不连坐），并落
+   `overlay_working_memory_rejected` 审计事件 + `working_memory_write_rejected`
+   logger.warning marker——绝不静默。#638 的安全模板拒入同样必须经
+   `record_working_memory_rejection` 发声。
+2. **出处 service-managed**：`working_memory_provenance` 只能由
+   `BotLearnerOverlayService.patch_overlay` 在写 projection 时伴生落盘（补章
+   `written_at` / `source_feature` / `source_id` / `content_sha256` /
+   `content_chars`）；任何外部 op 直接 set/merge/clear 该字段一律 `ValueError`。
+   投影与出处同生同灭（clear / 空 set / 72h decay 都同时清两者）。
+3. **出处是审计元数据，不是 prompt 内容**：`build_context_fragment` 与
+   turn_runtime 的 overlay 注入面都不得把 `working_memory_provenance` 渲染进
+   LLM prompt（进 prompt 反而新增注入面）。
+   - 已知缺口（有意暂缓）：注入面目前**不带**出处 trace，即无法从 turn 侧回答
+     "本轮注入的是哪条记忆"。需要时的正确做法是给 context candidate 加
+     metadata（`deeptutor/services/session/turn_runtime.py` 的 overlay candidate
+     构造处），**勿渲染进 prompt**。别当没这回事。
+3b. **admin 写入由边界盖章，不得静默丢弃**：admin 手工写 working_memory 是**合法**
+   业务动作，出处强制的立法目的是"可回溯"而非"禁止 admin 写"。因此两个 admin
+   入口——`api/routers/tutor_state.py` 的 PATCH overlay 与
+   `member_console.patch_member_overlay`（覆盖 `api/routers/member.py` 与
+   `api/routers/bi.py` 两条路由）——必须调用唯一实现
+   `stamp_admin_working_memory_provenance(...)` 在**入口**补
+   `provenance={source_kind:"admin_override", actor:<已认证操作者>,
+   turn_id:"admin:<actor>", source_event_type:<入口名>}`，不得要求调用方自带、
+   也不得各写一份盖章逻辑。
+   - **拿不到 actor 身份时必须显式 4xx**（stamper 抛 ValueError，三条路由均已转
+     400），**绝不静默丢弃**：静默丢弃 + HTTP 200 = 假成功，是本项目反复吃亏的
+     形态；写入方会以为写成功了，事故要到下一次读记忆才暴露。
+   - 新增任何 admin/运维写 working_memory 的入口，必须复用同一 stamper 并登记
+     在此条款下。
+4. **存量宽限读**：出处强制上线前的无出处记忆读取时合成
+   `working_memory_provenance = {"legacy_no_provenance": true}`，内容照常可用，
+   禁止一刀切清空；72h decay + 每轮整体覆盖使 legacy 存量自愈。
+5. **审计可视**：拒入事件经 `/api/v1/tutor-state/{user_id}/overlay/{bot_id}/events|audit`
+   与只读脚本 `scripts/audit_working_memory.py` 可见。Supabase 镜像表
+   `bot_learner_overlays` 暂不加 provenance 列（不做 DDL）；出处随
+   `overlay_event_row.payload_json.overlay_snapshot` 进镜像，不丢失。
 
 ### Overlay 明确禁止承载
 
@@ -482,6 +529,17 @@ Overlay 必须支持：
   `home_personalization` 的最近事件选择器必须过滤 `lesson_viewed`（不顶替
   today_focus）；`learning_state_projection` 以 `lesson_view_count` 显式分类（不计入
   legacy_count）。
+- plan_preference 意志族（AI 学习计划体系计划 §3.1/§3.3，2026-08-05 登记，意志通道
+  收敛——禁四通道并存）：`pin` / `defer` / `time_budget` 三类 `learning_signal_type`
+  走既有唯一意志写器 `record_learner_signal`（同 `source_feature="learner_signal"`
+  通道），受 `LUBAN_EXAM_PREP_PLAN_ENABLED` 灰度（旗标关 = 三类被拒，逐字节旧行为）。
+  硬不变量：这些事件被 `evidence_lifecycle.is_learning_evidence_record` 排除——学员
+  意志只作用于排序与日程，**绝不进学习证据编译器 / 掌握度 / 得分**（出现此类读路径
+  = stop condition，立即收权）。复习任务的 defer（payload 带 `probe_id`）唯一落点 =
+  `revalidation_queue` 既有 declined 机制（读侧 `declined_probe_ids_from_events`，
+  当日 UTC+8 生效、次日自然失效），不得在 plan 层另记复习推迟状态；`deferred` 是
+  展示侧过滤（不进首页/计划 CTA），兑付资格（`resolve_due_review_probe`）不受影响。
+  命名纪律：禁 `learning_plan_*` 前缀（Guided Learning 已占）。
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
@@ -564,6 +622,35 @@ Overlay 必须支持：
 职责：
 
 - 学员级 heartbeat 调度主表
+
+### Exam-Prep Plan Projection（AI 学习计划体系计划 §3.1，2026-08-05 登记）
+
+`exam_prep_plan_projection`（`learner_state/exam_prep_plan.py`）是既有学情权威
+（证据、处方、复习调度、学序、供给）的 **7 天展开投影 + 学员意志叠加**——不是
+第二处方、第二调度器、第二学序，零自有存储、零 IO（全部输入由 composition root
+注入）。硬约束：
+
+1. 今日首任务仲裁**不复制**：day 0 首任务直接消费 `build_home_next_step_projection`
+   输出（四臂语义 review 占位 > practice 承接 > learn 学序推进 > fallback 逐字段
+   保留）。机器验收：flag on ∧ 无 plan_preference 时，计划首任务与旧四臂输出
+   逐字段相等（shadow parity）；同证据集固定 `now_iso` 重放产生同一计划。
+2. 未来天复习任务的到期日期**只准消费** `revalidation_queue.
+   build_review_horizon_projection` 读面，禁自行外推 due_at。
+3. 排序政策 = 计划 §3.2 公式，确定性、版本化 `PLAN_POLICY_VERSION`
+   （因子变更必须 bump）；学员意志（pin/defer/time_budget）只作用排序与日程，
+   绝不动证据结论；pin 不静默覆盖调度、后果可见（`consequence` 字段）。
+4. 供给硬过滤：无 published/retest 供给的 intent 进 `supply_gaps`（教研缺口输出），
+   不排假任务。每任务必带 `{task, source_authority, evidence_refs, expected_time,
+   completion_condition, retest_condition, why}` + 四臂兼容四字段（可审计）。
+5. 计划内容不落库为死文档（投影现算）。接入面与 serve 开关（composition root
+   收权，§3.1 权威点 1）：`member_console._build_home_next_step` 内的
+   `_assemble_home_plan_inputs` 是**唯一 composition root**——旧四臂与计划展开
+   在同一次组装内 shadow 双算，`LUBAN_EXAM_PREP_PLAN_ENABLED`（默认 off，已登记
+   `contracts/env_registry.yaml`）决定对外 serve 哪个，差异打点
+   （`exam_prep_plan_shadow_parity` 日志行）。禁止在该 root 之外组装计划/
+   next_step 输入；计划空 → fail-closed 回旧仲裁，不 serve 空卡。已知债（刻意
+   保留，flag 转正后独立工单收敛）：outcomes/lifecycle 读 ≤100 snapshot 窗、
+   review 读全量证据——parity 灰度期内不动老臂读口径，防污染 parity 基线。
 
 ### Home Next-Step Projection（融合计划 §3，2026-07-03 登记）
 
@@ -679,6 +766,12 @@ Overlay 必须支持：
    `exam_date` 唯一读源 = member profile，读侧透传、不复制。profile 成功且日期为空是合法的
    “未设置”；profile 读取异常是 horizon unknown，必须 fail-closed，不得伪装成空日期或回退
    `home_dashboard.learner_settings` / learner profile 镜像。
+   **7 天到期预报读面**（AI 学习计划体系计划 §3.1 权威点 2，2026-08-05 登记）：
+   `build_review_horizon_projection(days=7)` 同居本模块——候选=`_candidate_rows`、
+   到期时刻只由 `derive_review_due_at` 派生、逐日容量与当日队列同一实现
+   （`_apply_daily_capacity`）。exam_prep_plan 投影与诊断报告「这个点 X 天后会安排
+   复验」的日期**只准消费该读面**；在任何别处拿 due_at 自行外推 = 第二调度器，禁止。
+   day 0 桶 ⊇ 当日已到期集合（窗投影含当日晚些到期的预报项）；零写入、确定性重放。
 4. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
    只消费 `pack_lifecycle_projection` 的 terminal facts、做粒度桥接与绿灯 join，零调度
    逻辑（禁第二调度器）；`probe_id` 必须包含当前 cycle anchor，避免旧 verified outcome

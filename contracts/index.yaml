@@ -410,6 +410,9 @@ domains:
       - tests/api/test_rate_limit.py
       - tests/api/test_unified_ws_connection_cap.py
       - tests/services/citations/test_quality.py
+      # 引用公开面的唯一防线由 CitationPolicy.surface 把守(见该测试模块 docstring):
+      # 新增任何 reviewer/internal 装配调用点、或把 surface 参数化,即红。
+      - tests/services/citations/test_surface_authority_gate.py
       - tests/api/test_mobile_router.py
       - tests/api/test_mobile_first_run.py
       - tests/api/test_mobile_event_loop_discipline.py
@@ -687,6 +690,10 @@ domains:
       # 方案 C / C3 题级组取全（contracts/rag.md 45）：seed 不变量 + 冲突洞
       # fail-closed + whole_question 零组查询 + 无组键零回归 + lean 共存。
       - tests/services/rag/test_case_group_bundle.py
+      # 供给层软删收权（contracts/rag.md 47）：questions_bank REST 单一谓词
+      # 构造点(_select 注入 retired_at=is.null，可证伪) + RPC/库内读者 9 对象
+      # migration 穷举钉子 + 组卷通道谓词。
+      - tests/services/rag/test_questions_bank_soft_delete_filter.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -724,6 +731,9 @@ domains:
       # Battle2 S3-T2: factory.stream Langfuse export (usage + completion_start_time
       # first-chunk wall-clock, observe-only fail-open).
       - tests/services/llm/test_factory_langfuse_usage.py
+      # task#33 凭证隔离：model_catalog 落盘脱敏 fail-safe（默认脱敏 + 读侧
+      # [REDACTED] 视同未配置 + 0600 落盘），protected 面的 domain 测试。
+      - tests/services/test_model_catalog.py
     schema_files: []
 
   product_behavior_playback:
@@ -757,6 +767,15 @@ domains:
 
   learner_state:
     summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
+    # 身份 metadata 字段表是单一权威:唯一定义源是
+    # deeptutor/services/member_console/external_auth.py 的 _IDENTITY_METADATA_FIELD_MODES。
+    # 写侧(normalize_identity_metadata)由它驱动,读侧(service._EXPLICIT_IDENTITY_METADATA_FIELDS)
+    # 从它派生,禁止任一侧自持副本 —— 2026-07-26 的注册渠道归因静默丢失
+    # (0a0387983 删了写侧的 reg_channel/reg_scene,读侧表毫不知情)正是两表分裂造成的,
+    # 且 BI 消费端 fail-open,空桶不报错。归因字段(reg_channel/reg_scene)必须走
+    # token/digits 保真通道,不得并入会改写大小写与连字符的 marker 一族:
+    # 渠道值是与外部投放系统对账的键。不变量由
+    # tests/services/member_console/test_service.py::test_identity_metadata_field_table_is_single_authority 钉住。
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
@@ -845,6 +864,7 @@ domains:
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
       - tests/services/learner_state/test_revalidation_queue.py
+      - tests/services/learner_state/test_exam_prep_plan.py
       - tests/services/learner_state/test_mistake_clustering.py
       - tests/services/learner_state/test_learning_state_scenario_matrix.py
       - tests/services/learner_state/test_evidence_story_pii_redaction.py
@@ -858,6 +878,8 @@ domains:
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_home_event_window.py
+      - tests/services/member_console/test_home_next_step_composition_root.py
+      - tests/services/member_console/test_exam_prep_plan_read.py
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
       - tests/services/member_console/test_rbac.py
@@ -918,6 +940,7 @@ domains:
       - deeptutor/services/construction_grading/per_question_grading_judge.py
       - deeptutor/services/construction_grading/case_rubric_pgo_supply.py
       - deeptutor/services/construction_grading/rubric_grader_v1.py
+      - deeptutor/services/construction_grading/grading_result_cache.py
       - deeptutor/services/construction_grading/learning_evidence.py
       - scripts/build_luban_pgo_runtime_supply.py
       - scripts/verify_luban_pgo_runtime_supply.py
@@ -929,6 +952,7 @@ domains:
       - tests/services/construction_grading/test_per_question_grading_judge.py
       - tests/services/construction_grading/test_case_rubric_pgo_supply.py
       - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/services/construction_grading/test_grading_result_cache.py
       - tests/scripts/test_build_luban_pgo_runtime_supply.py
       - tests/scripts/test_verify_luban_pgo_runtime_supply.py
       - tests/scripts/test_luban_pgo_stage5_canary_gate.py
@@ -939,6 +963,9 @@ domains:
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
       # L4 渐进吐字（turn.md「渐进发射不改变终态」）：时序 + 终态等价 + 宣传门断言面守门。
       - tests/tutorbot/test_case_grading_sequenced_emit.py
+      # L4 通用道渐进吐字（turn.md「渐进发射不改变终态」扩到通用 agent-loop）：
+      # 慢 LLM 下首答窗口有内容发射 + 逐轮解除武装保住严格后缀 + kill switch 关掉逐字节回旧。
+      - tests/tutorbot/test_general_lane_sequenced_emit.py
       # L1 瘦身检索（rag.md 44）：直通轮 lean 仍必须落 exact 身份、不注入正文、
       # 不毒化饱和台账、不点亮降级闸；kill switch off 逐字节回旧形状。
       - tests/tutorbot/test_case_direct_lean_rag.py

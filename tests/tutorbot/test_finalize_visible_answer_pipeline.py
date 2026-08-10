@@ -9,7 +9,7 @@
 1. **不可变 golden**(T0 先行、T1 后原样通过): prefetched 分支新纳入的 2 个修正器对该分支的
    代表性输入是可证明 no-op(返回 ''，链约定 ``X(...) or final`` 保持原文)，以及 case_grading
    缺 V1 权威时降级模板与 runtime_metadata 副作用键逐一锁定。这些断言 T1 前后一字不改。
-2. **结构 golden**(T1 落地后新增): 单一管道按 canonical 8 步顺序驱动 + 四处调用点收敛证据。
+2. **结构 golden**(T1 落地后新增): 单一管道按 canonical 9 步顺序驱动 + 四处调用点收敛证据。
 
 全 hermetic: ``AgentLoop.__new__(AgentLoop)`` + monkeypatch，不触网络/LLM/磁盘。
 """
@@ -236,6 +236,9 @@ _CANONICAL_ORDER = [
     "normalize_anchor_terms",
     "case_exact_authority",
     "apply_v1_or_case",
+    # 口诀权威收权（2026-08-01，r6 宣传门 A3）：必须排在 apply_v1_or_case **之后** ——
+    # V1 判分链自己已按同一权威渲染过口诀，本层只管它没接管的自由作文道。
+    "case_mnemonic_authority",
     "degraded_exact_claim",
     "degraded_mcq",
     "content_truth",
@@ -270,6 +273,7 @@ def _install_recording_correctors(monkeypatch: pytest.MonkeyPatch, loop: AgentLo
 
     loop._case_exact_authority_fallback = _rec("case_exact_authority")  # type: ignore[method-assign]
     loop._apply_v1_or_case_fallback = _apply  # type: ignore[method-assign]
+    loop._case_mnemonic_authority_guard = _rec("case_mnemonic_authority")  # type: ignore[method-assign]
     loop._degraded_exact_answer_claim_response = _rec("degraded_exact_claim")  # type: ignore[method-assign]
     loop._degraded_mcq_grading_response = _rec("degraded_mcq")  # type: ignore[method-assign]
     loop._content_truth_guard = _rec("content_truth")  # type: ignore[method-assign]
@@ -290,7 +294,7 @@ def test_finalize_visible_answer_runs_canonical_eight_step_order(
     monkeypatch: pytest.MonkeyPatch, finalize_path: str
 ) -> None:
     """T1 收权凭证: 四条 finalize 分支全部经同一 ``_finalize_visible_answer`` 管道,按 canonical
-    8 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
+    9 步顺序驱动(prefetched 不再是漂移的 6 步)。finalize_path 仅观测标签,不改变链行为。"""
 
     loop = _loop()
     calls = _install_recording_correctors(monkeypatch, loop)
@@ -311,7 +315,7 @@ def test_finalize_visible_answer_runs_canonical_eight_step_order(
 
 def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     """收权 tripwire: 修正链修正器只许在单一管道内出现一次,四处 finalize 分支只留一行调用。
-    防止未来分支再内联复刻 8 级链(补丁螺旋回归)。"""
+    防止未来分支再内联复刻 9 级链(补丁螺旋回归)。"""
 
     source = _LOOP_SOURCE_PATH.read_text(encoding="utf-8")
     # 这些修正器唯一的调用点就是单一管道——四处 finalize 分支不再各内联一遍。
@@ -320,6 +324,7 @@ def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     assert source.count("self._degraded_exact_answer_claim_response(") == 1
     assert source.count("self._degraded_mcq_grading_response(") == 1
     assert source.count("self._content_truth_guard(") == 1
+    assert source.count("self._case_mnemonic_authority_guard(") == 1
     assert source.count("self._strip_leading_meta_narration(") == 1
     # _case_exact_authority_fallback 有 2 处:管道内 1 处 + ``_run_agent_loop`` 内层 seam 1 处
     # (line ~2326,非 finalize 分支,设计明确冻结不纳入管道)。
@@ -417,6 +422,35 @@ def test_strip_leading_meta_narration_never_eats_answer_bearing_first_sentence()
         "我检索到的信息显示，答案选B。理由是水泥强度等级不符。",
         "我掌握的资料表明正确答案是ACD。因为脚手架连墙件设置不符合规范。",
         "我整理了三处不妥的信息：不妥一是坡度偏小。不妥二是消火栓间距超限。",
+    ):
+        assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
+
+
+def test_strip_leading_meta_narration_strips_c3_retrieval_monologue() -> None:
+    """2026-08-01 C3 重放实证形态（非批改链）：服务端落库正文逐字以这句独白开头。
+
+    见 `docs/原始数据/数据盘点/2026-08-01-历史错误逐案重放回归.md` §7.2。族1/族2 的动词集
+    都够不着「我注意到…让我补充检索…」，这条钉死族3。
+    """
+    md: dict = {}
+    out = AgentLoop._strip_leading_meta_narration(
+        "我注意到检索证据中未直接给出表6.0.15的具体数值和甲醛限值，让我补充检索这两个关键参数。"
+        "\n\n根据《民用建筑工程室内环境污染控制标准》GB50325-2020，标准间的甲醛限值为 "
+        "0.07mg/m³；检测点数按房间使用面积确定，100~500m² 时不少于 3 个点。",
+        runtime_metadata=md,
+    )
+    assert out.startswith("根据《民用建筑工程室内环境污染控制标准》")
+    assert "我注意到" not in out
+    assert md["leading_meta_narration_stripped"] is True
+
+
+def test_strip_leading_meta_narration_keeps_observation_about_the_learner() -> None:
+    """族3 的危险边界：观察句是**讲评**（谈学生作答）时一律保持原文，只有同句里同时出现
+    证据侧名词 + 自述取证动作才算独白。"""
+    for text in (
+        "我注意到你的第3问漏了一个采分点，这里补一下。\n\n专项施工方案必须经过专家论证。",
+        "我发现你把安全网的层间距记成了 15m。\n\n正确做法是每隔 10m 设置一道水平安全网。",
+        "我注意到这道题的证据链其实很清楚。\n\n施工单位应当在开工前编制专项方案并报监理审批。",
     ):
         assert AgentLoop._strip_leading_meta_narration(text, runtime_metadata={}) == ""
 

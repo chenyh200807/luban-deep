@@ -732,3 +732,112 @@ def test_authority_export_keys_single_source_across_all_sinks() -> None:
     )
     for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS:
         assert event["metadata"].get(key) == sentinel[key], key
+
+
+def test_langfuse_terminal_state_metadata_carries_the_whole_authority_family() -> None:
+    """task#19 终点黑洞：Langfuse 是终态事件的第二个消费面，白名单仍只有一张。
+
+    第四个 sink 不得再长出第四张名单——本投影函数只 re-shape
+    ``_build_terminal_turn_observation_event`` 的产物，因此增一个 marker 仍然只改
+    CASE_GRADING_AUTHORITY_EXPORT_KEYS 一处。
+    """
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+    )
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    sentinel = {key: f"v::{key}" for key in CASE_GRADING_AUTHORITY_EXPORT_KEYS}
+    sentinel["execution_path"] = "v::execution_path"
+    event = _build_terminal_turn_observation_event(
+        session_id="session-lf",
+        turn_id="turn-lf",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=2500.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "bot_id": "construction-exam-coach",
+            "context_route": "case_grading",
+            "source": "wechat_miniprogram",
+            "user_id": "user-lf",
+            "trace_id": "trace-lf",
+            **sentinel,
+        },
+        usage_summary={"total_tokens": 4096, "total_calls": 3},
+    )
+
+    metadata = _langfuse_terminal_state_metadata(event)
+
+    for key, value in sentinel.items():
+        assert metadata.get(key) == value, key
+    # 终态判别位：状态/身份/时延都必须在同一条观测上，否则 ClickHouse 侧还是要跨表 join。
+    assert metadata["turn_status"] == "completed"
+    assert metadata["turn_id"] == "turn-lf"
+    assert metadata["session_id"] == "session-lf"
+    assert metadata["trace_id"] == "trace-lf"
+    assert metadata["capability"] == "tutorbot"
+    assert metadata["latency_ms"] == 2500.0
+    assert metadata["token_total"] == 4096
+
+
+def test_langfuse_terminal_state_metadata_marks_failed_turns() -> None:
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-lf",
+        turn_id="turn-lf",
+        status="failed",
+        capability_name="tutorbot",
+        duration_ms=10.0,
+        trace_metadata={"execution_engine": "tutorbot_runtime", "source": "ws"},
+        usage_summary=None,
+    )
+
+    metadata = _langfuse_terminal_state_metadata(event)
+
+    assert metadata["turn_status"] == "failed"
+    assert metadata["error_type"] == "failed"
+
+
+def test_langfuse_terminal_state_metadata_tolerates_a_broken_event() -> None:
+    from deeptutor.services.session.turn_runtime import _langfuse_terminal_state_metadata
+
+    assert _langfuse_terminal_state_metadata({}) == {"turn_status": "unknown"}
+    assert _langfuse_terminal_state_metadata(None) == {}  # type: ignore[arg-type]
+
+
+def test_mnemonic_authority_source_reaches_summary_and_terminal_event() -> None:
+    """口诀权威收权（r6 宣传门 A3，2026-08-01）的观测底座。
+
+    ``mnemonic_authority_source``（"lecture_pack:<unit_ids>" | "demoted_no_authority"）
+    是「真口诀挂载率 / 无出处降级率」唯一的数据来源。它走 content-truth 那条
+    **scene 无关**的载体——判分侧的 ``case_mnemonic_source`` 被 scene==case_grading
+    门控，而本守卫只在非判分轮（exact_fast_path / agent_loop 自由作文道）动手。
+    turn_runtime 这两张白名单漏一张，该 sink 就永久 0 命中。"""
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "execution_path": "tutorbot_exact_fast_path",
+                    "mnemonic_authority_source": "demoted_no_authority",
+                },
+            }
+        ]
+    )
+    assert summary["mnemonic_authority_source"] == "demoted_no_authority"
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-mn",
+        turn_id="turn-mn",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=100.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "execution_path": "tutorbot_exact_fast_path",
+            "mnemonic_authority_source": "lecture_pack:U-57",
+        },
+        usage_summary={"total_tokens": 1, "total_calls": 1},
+    )
+    assert event["metadata"]["mnemonic_authority_source"] == "lecture_pack:U-57"

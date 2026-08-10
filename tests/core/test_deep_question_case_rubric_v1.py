@@ -781,6 +781,151 @@ def test_summarize_pgo_query_result_all_scorable_flags_no_unscorable():
     assert summary["has_unscorable_points"] is False
 
 
+def _cache_ctx(qid: str = "cache-1", answer: str = "编制专项方案并组织专家论证") -> dict:
+    return {
+        "question_id": qid,
+        "user_answer": answer,
+        "construction_grading_result": {"type": "case", "max_score": 2.0},
+    }
+
+
+def test_grade_one_case_v1_replays_same_question_same_answer_without_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Same question + same answer must cost ZERO adjudication calls the second time and produce a
+    field-equivalent event (codex 判分核不变量审计 §3.2, I-11). The seam lives in rubric_grader_v1;
+    this asserts the CAPABILITY caller actually reaches it and feeds it real authority material."""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")  # opt-in 合流裁决
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []},
+        {"point_id": "P2", "text": "点2", "score": 1.0, "policy": "list", "required_terms": []},
+    ])
+    calls = 0
+
+    async def _counting_batch(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        nonlocal calls
+        calls += 1
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _counting_batch)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    first = asyncio.run(dq._grade_one_case_v1(
+        _cache_ctx(), student_id="stu_a", complete=_noop_complete, key="k", _G=G,
+        provider_authority="deepseek:https://api.deepseek.com"))
+    second = asyncio.run(dq._grade_one_case_v1(
+        _cache_ctx(), student_id="stu_b", complete=_noop_complete, key="k", _G=G,
+        provider_authority="deepseek:https://api.deepseek.com"))
+
+    assert calls == 1, "the replayed grading must not re-adjudicate"
+    assert first["grading_cache"] == "miss" and second["grading_cache"] == "hit"
+    assert second["awarded_score"] == first["awarded_score"] == 1.0
+    assert second["student_id"] == "stu_b"  # cached fact is identity-free, rebound to THIS turn
+
+
+def test_grade_one_case_v1_cache_key_tracks_provider_and_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A different provider binding or a semantically different answer must NOT replay: the caller's
+    authority material is real key input, not decoration (audit §3.3 risk 2)."""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")  # opt-in 合流裁决
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+    calls = 0
+
+    async def _counting_batch(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        nonlocal calls
+        calls += 1
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _counting_batch)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    def _grade(*, provider: str, answer: str) -> dict:
+        return asyncio.run(dq._grade_one_case_v1(
+            _cache_ctx(answer=answer), student_id="stu", complete=_noop_complete, key="k", _G=G,
+            provider_authority=provider))
+
+    base = _grade(provider="deepseek:https://api.deepseek.com", answer="作答甲")
+    other_provider = _grade(provider="dashscope:https://dashscope.aliyuncs.com", answer="作答甲")
+    other_answer = _grade(provider="deepseek:https://api.deepseek.com", answer="作答乙")
+
+    assert calls == 3
+    for event in (base, other_provider, other_answer):
+        assert event["grading_cache"] == "miss"
+
+
+def test_grade_case_batch_v1_reports_bundle_cache_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The bundle is composed from FINALIZED children (audit §3.3 risk 9) and only counts as a hit
+    when EVERY child replayed; its key is the ordered hash of child keys, never the parent qid."""
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "1")  # opt-in 合流裁决
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    graded_context = {
+        "construction_grading_result": {"type": "batch"},
+        "items": [
+            {"question_id": "b1", "user_answer": "a1",
+             "construction_grading_result": {"type": "case", "max_score": 1.0}},
+            {"question_id": "b2", "user_answer": "a2",
+             "construction_grading_result": {"type": "case", "max_score": 1.0}},
+        ],
+    }
+    first = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+    second = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+
+    assert first["grading_cache"] == "miss"
+    assert second["grading_cache"] == "hit"
+    assert second["awarded_score"] == first["awarded_score"]
+    assert len(second["grading_cache_key"]) == 16
+
+
+def test_grade_one_case_v1_kill_switch_bypasses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_GRADING_RESULT_CACHE", "0")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+    calls = 0
+
+    async def _counting_batch(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        nonlocal calls
+        calls += 1
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _counting_batch)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    for _ in range(2):
+        event = asyncio.run(dq._grade_one_case_v1(
+            _cache_ctx(), student_id="stu", complete=_noop_complete, key="k", _G=G))
+        assert event["grading_cache"] == "bypass"
+    assert calls == 2
+
+
 @pytest.mark.asyncio
 async def test_case_rubric_v1_score_total_mismatch_marker(monkeypatch: pytest.MonkeyPatch) -> None:
     """C2 分值对账（1b 一致性闸观测期，best-effort 非 blocking）：编译 rubric 总分与
@@ -1400,6 +1545,186 @@ async def test_od005_single_subquestion_reference_keeps_legacy_shape(
 
 
 # ---------------------------------------------------------------------------
+# R2（task#26 2026-08-01）：判分分母的权威阶梯（canonical > bundle > stem > 参考侧）
+# ---------------------------------------------------------------------------
+# 病灶：deep_question 自持案例路径（practice / 直调 capability）的 ctx **没有**
+# ``case_stem_subquestion_count``——那个键只有 TutorBot 侧的 ctx 构建器
+# （loop.py ``_build_v1_case_ctx``）会写。于是旧式
+# ``_sub_n = max(ctx.case_stem_subquestion_count, len(参考侧))`` 恒塌成
+# ``len(参考侧)``：纯参考侧计数、与题面零交叉核对。参考侧是检索装配的产物
+# （C3 取全成不成、兄弟行重复、答案冲突是否被 C2 裁决都会改变它），拿它当分母
+# = 让检索运气决定「这道题有几问」，参考多一项学生每一问就被稀释一份分。
+
+
+# 参考侧 5 项（第 5 项是幽灵：兄弟行重复 / 跨题串入），题面只有 4 问。
+_R2_PHANTOM_SUBQ_REFERENCES = [
+    {"index": str(i), "answer": f"官方答案{i}"} for i in range(1, 6)
+]
+
+
+def _r2_self_hosted_ctx(**overrides: Any) -> dict[str, Any]:
+    """自持路径 ctx 的真实形状：**没有** ``case_stem_subquestion_count``。"""
+    ctx: dict[str, Any] = {
+        "question_id": "",
+        "user_answer": _od005_answer(1),
+        "question_stem": _OD005_STEM,
+        "user_stem": _OD005_STEM,
+        "correct_answer": "\n".join(s["answer"] for s in _R2_PHANTOM_SUBQ_REFERENCES),
+        "case_reference_subquestions": [dict(s) for s in _R2_PHANTOM_SUBQ_REFERENCES],
+        "case_reference_covered_count": 5,
+        "construction_grading_result": {"type": "case", "max_score": 10},
+    }
+    ctx.update(overrides)
+    return ctx
+
+
+def test_r2_denominator_prefers_stem_over_reference_side_count() -> None:
+    """R2 主证伪测：**参考侧 5 项但题面 4 问 → 分母 4，不是 5**。
+
+    旧口径 ``max(ctx.case_stem_subquestion_count, len(refs))`` 在这个 ctx 上恒等于
+    ``max(0, 5) = 5``（该键自持路径不存在）——本用例的 5≠4 就是它的反例。
+    """
+    from deeptutor.capabilities.deep_question import _resolve_case_denominator
+
+    ctx = _r2_self_hosted_ctx()
+    assert "case_stem_subquestion_count" not in ctx, "自持路径 ctx 不带这个键（病灶前提）"
+
+    denominator, source = _resolve_case_denominator(ctx, reference_count=5)
+
+    assert (denominator, source) == (4, "stem"), (
+        f"题面 4 问必须压过参考侧 5 项，实得 {denominator}（来源 {source}）"
+    )
+    # 旧口径的同进程反证：它会给出 5。
+    assert max(int(ctx.get("case_stem_subquestion_count") or 0), 5) == 5
+
+
+def test_r2_denominator_canonical_bank_outranks_stem_and_reference() -> None:
+    """①canonical431：认出题级组时，分母出自编译期治理裁决过的题面结构。
+
+    只读 nominal 表的结构事实（每案例几问），不读采分点内容——那份 bank 的
+    ``production_authorized=false``，分值权威一分钱都不许进判分。
+    """
+    from deeptutor.capabilities.deep_question import _resolve_case_denominator
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        canonical_case_subquestion_counts,
+    )
+
+    counts = canonical_case_subquestion_counts()
+    assert counts, "canonical431 nominal 表必须可读（阶梯①的供给前提）"
+    group_id, expected = next(
+        (gid, n) for gid, n in sorted(counts.items()) if n not in (0, 4)
+    )
+
+    denominator, source = _resolve_case_denominator(
+        _r2_self_hosted_ctx(case_group_id=group_id), reference_count=5
+    )
+    assert (denominator, source) == (expected, "canonical")
+
+    # 题级组也可以从复合 qid 认出（``{year}-case{n}::E{k}``）。
+    denominator2, source2 = _resolve_case_denominator(
+        _r2_self_hosted_ctx(question_id=f"{group_id}::E1"), reference_count=5
+    )
+    assert (denominator2, source2) == (expected, "canonical")
+
+
+def test_r2_denominator_falls_to_bundle_surface_then_reference_with_marker() -> None:
+    """②C3 bundle surface 计数；④全不可得才退参考侧，**并且必须发声**。"""
+    from deeptutor.capabilities.deep_question import _resolve_case_denominator
+
+    bundle_ctx = _r2_self_hosted_ctx(
+        question_stem="", user_stem="", stem="",
+        case_bundle={
+            "covered_subquestions": [
+                {"display_index": str(i), "stem": f"【问题】{i}. …"} for i in range(1, 4)
+            ]
+        },
+    )
+    assert _resolve_case_denominator(bundle_ctx, reference_count=5) == (3, "bundle")
+
+    # 题面/组/bundle 全不可得 —— 分母只能数参考侧，这是降级，必须带 marker。
+    blind_ctx = _r2_self_hosted_ctx(question_stem="", user_stem="", stem="")
+    assert _resolve_case_denominator(blind_ctx, reference_count=5) == (
+        5, "reference_fallback",
+    )
+
+
+@pytest.mark.asyncio
+async def test_r2_phantom_reference_row_does_not_dilute_each_subquestion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """端到端：幽灵参考行不得稀释每一问的上限，且分母来源上事件。
+
+    同一份「只答问 1」的作答：题面 4 问 → 问 1 上限 10/4 = 2.5。旧口径分母 5 →
+    上限 10/5 = 2.0，学生凭空少 0.5 分，而且**看不出为什么**（无 marker）。
+    """
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _od005_install_fakes(monkeypatch)
+    event = await _grade_one_case_v1(
+        _r2_self_hosted_ctx(), student_id="s1", complete=None, key="k", _G=G
+    )
+
+    assert event["event_type"] == "case_grading_completed"
+    assert event["case_denominator_source"] == "stem"
+    assert event["case_per_subq_grading"].endswith("/4"), (
+        f"分母必须是题面的 4，实得 {event['case_per_subq_grading']}"
+    )
+    assert abs(event["awarded_score"] - 2.5) <= 0.02, (
+        f"答对的那一问按 10/4 足额给分，实得 {event['awarded_score']}（旧口径会给 2.0）"
+    )
+    assert event["max_score"] == 10.0, "对外分母恒为整题名义满分"
+
+
+def test_r2_denominator_source_marker_is_registered_on_the_export_whitelist() -> None:
+    """marker 必须进 CASE_GRADING_AUTHORITY_EXPORT_KEYS —— 漏一张名单 = 该 sink 永久 0 命中。"""
+    from deeptutor.services.construction_grading.case_output_policy import (
+        CASE_GRADING_AUTHORITY_EXPORT_KEYS,
+        CASE_GRADING_TURN_METADATA_KEYS,
+    )
+
+    assert "case_denominator_source" in CASE_GRADING_AUTHORITY_EXPORT_KEYS
+    assert "case_denominator_source" in CASE_GRADING_TURN_METADATA_KEYS
+
+
+def test_r2_canonical_denominator_reader_never_touches_scoring_content() -> None:
+    """治理边界：读分母不得让未授权 bank 变成判分权威。
+
+    - ``canonical_case_subquestion_counts`` 只吐 ``{case_group_id: 小问数}`` 整数；
+    - 在服判分 bank 仍是 legacy/authorized（登记 canonical431 slot 没有把它上服）。
+    """
+    from deeptutor.services.construction_grading import rubric_grader_v1 as _G2
+
+    counts = _G2.canonical_case_subquestion_counts()
+    assert counts and all(
+        isinstance(k, str) and isinstance(v, int) and v > 0 for k, v in counts.items()
+    ), "分母表只许是 {case_group_id: 小问数}"
+
+    _G2._rubric_bank()
+    identity = _G2.active_bank_identity()
+    assert identity["slot"] == "legacy" and identity["governance"] == "authorized", (
+        f"默认（无 env 显式切换）在服 bank 必须仍是授权的 legacy，实得 {identity}"
+    )
+
+    # 2026-08-01 授权翻转（#654）后：canonical431 的 pointer 显式携带
+    # production_authorized=true，闸**咨询授权位后**合法放行——不变量不再是
+    # "恒被拒"，而是"放行必须有 pointer 授权依据"（撤权必拒见
+    # test_canonical431_scoring_content_never_bypasses_the_governance_gate）。
+    import json as _json
+    from pathlib import Path as _Path
+
+    bank, reason = _G2._load_bank_slot("canonical431")
+    assert reason == "ok" and isinstance(bank, dict)
+    _slot_dir, _ = _G2._RUBRIC_BANK_SLOTS["canonical431"]
+    _pointer = _json.loads(
+        (_Path(_G2.__file__).parent / "runtime_supply" / _slot_dir / "canonical_pointer.json")
+        .read_text("utf-8")
+    )
+    assert _pointer.get("production_authorized") is True and _pointer.get("authorization_note"), (
+        "放行必须以 pointer 显式授权为依据，不是闸放水"
+    )
+
+
+# ---------------------------------------------------------------------------
 # OD-005 补刀：每问的**题面**也必须是自己那一问（live 22:09 轮取证）
 # ---------------------------------------------------------------------------
 
@@ -1546,3 +1871,363 @@ async def test_od005b_missing_own_stem_falls_back_to_slicing_then_to_no_stem(
         f"退化档不得顶替兄弟问题面：{[x[:30] for x in stems_seen[1:]]}"
     )
     assert event["awarded_score"] <= 2.51
+
+
+# ---------------------------------------------------------------------------
+# canonical431 tier-1 键接线（Lane 2, 2026-08-01）
+#
+# 治的病：tier-1 只按 ``ctx["question_id"]`` 平查一个字符串，而 canonical431 bank
+# 的键是 ``{case_group_id}::E{n}``——不接这条路径，库装上去命中率是 0
+# （Lane 1 §4.1 实证）。本组断言守住三件事：
+#   ①命中时逐问按**真实** nominal 封顶（不是「整题满分 ÷ 小问数」的均分）；
+#   ②未命中/未授权 slot 时**行为零变化**（可证伪：同一 ctx 两跑分数逐字段相等）；
+#   ③分母走样组（nominal_authority_disputed）fail-closed 剔除。
+# ---------------------------------------------------------------------------
+
+# 2024-case1 的真实分值分布（Lane 1 §3.2 实证）：5/4/4/3/4 —— 均分会给每问 4.0，
+# E1 少 1 分、E4 多 1 分。q4 的点池 6.0 > 满分 3.0，用来把「按真实满分封顶」
+# 与「按均分封顶」拉开可证伪的距离（3.0 vs 4.0）。
+_C431_NOMINALS = {1: 5.0, 2: 4.0, 3: 4.0, 4: 3.0, 5: 4.0}
+_C431_POOLS = {1: [2.5, 2.5], 2: [2.0, 2.0], 3: [2.0, 2.0], 4: [3.0, 3.0], 5: [2.0, 2.0]}
+
+
+def _c431_bank(group: str = "2024-case1", *, disputed: bool = False) -> dict[str, list[dict[str, Any]]]:
+    """按 canonical431 的记录形制造库（字段名与 by_q 白名单透传后的运行时 point 一致）。"""
+    bank: dict[str, list[dict[str, Any]]] = {}
+    for index, scores in _C431_POOLS.items():
+        bank[f"{group}::E{index}"] = [
+            {
+                "point_id": f"{group}::E{index}::p{seq}",
+                "text": f"{group} 问{index} 采分点{seq}",
+                "score": score,
+                "policy": "list",
+                "required_terms": [],
+                "question_no": index,
+                "subquestion_index": index,
+                "official_total_score": _C431_NOMINALS[index],
+                "official_total_score_authority": "training_org_analysis_yousen",
+                "case_group_id": group,
+                "source_schema": "luban_case_rubric_canonical431.v1",
+                **({"nominal_authority_disputed": True} if disputed else {}),
+            }
+            for seq, score in enumerate(scores, 1)
+        ]
+    return bank
+
+
+def _install_c431_fakes(
+    monkeypatch: pytest.MonkeyPatch,
+    bank: dict[str, list[dict[str, Any]]],
+    *,
+    hit_point_ids: set[str] | None = None,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [dict(p) for p in bank.get(str(qid), [])])
+
+    async def _fake_judge(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {
+            str(p.get("point_id")): {
+                "status": (
+                    G.HIT
+                    if hit_point_ids is None or str(p.get("point_id")) in hit_point_ids
+                    else G.MISS
+                )
+            }
+            for p in points
+        }
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_judge)
+
+
+def _c431_ctx(**overrides: Any) -> dict[str, Any]:
+    ctx: dict[str, Any] = {
+        "question_id": "17371",  # 平查键：canonical 命中时它必须**不被使用**
+        "user_answer": "问题1：…… 问题2：…… 问题3：…… 问题4：…… 问题5：……",
+        "question_stem": "【背景资料】某工程。\n问题1：A？",
+        "user_stem": "【背景资料】某工程。\n问题1：A？\n问题2：B？\n问题3：C？\n问题4：D？\n问题5：E？",
+        "correct_answer": "",
+        "case_group_id": "2024-case1",
+        "case_canonical_subquestion_indexes": [1, 2, 3, 4, 5],
+        "construction_grading_result": {"type": "case", "max_score": 20},
+    }
+    ctx.update(overrides)
+    return ctx
+
+
+@pytest.mark.asyncio
+async def test_canonical431_key_hit_caps_by_real_per_subquestion_nominal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """canonical 键命中 → 逐问按**真实** nominal 封顶（5/4/4/3/4，不是均分 4）。
+
+    可证伪判据：只命中问 4（点池 6.0）时，按真实满分封顶得 **3.0**；若代码退回
+    「整题 20 ÷ 5 问 = 4.0」的均分，同一输入会得 4.0。分母是**实际采纳小问的
+    真实满分之和** = 20.0（不是整题满分 × 覆盖比，那是双重缩放）。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    bank = _c431_bank()
+    _install_c431_fakes(
+        monkeypatch, bank,
+        hit_point_ids={"2024-case1::E4::p1", "2024-case1::E4::p2"},
+    )
+    event = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+
+    assert event["event_type"] == "case_grading_completed"
+    assert event["rubric_provenance"] == "compiled_rubric"
+    # 命中发声：5 个小问全部按 canonical 键命中。
+    assert event["case_canonical_key_hit"] == "5/5"
+    # 逐问上限是真实值，不是均分 4.0 —— 这一行就是本 lane 的全部意义。
+    assert event["case_subq_score_caps"] == "q1:5.0,q2:4.0,q3:4.0,q4:3.0,q5:4.0"
+    assert "q4" in str(event.get("case_subq_score_capped") or ""), "问4 点池 6.0 必须被 3.0 封顶"
+    assert event["awarded_score"] == 3.0, (
+        f"只答对问4：真实满分封顶=3.0，均分封顶会给 4.0；实得 {event['awarded_score']}"
+    )
+    assert event["max_score"] == 20.0, "分母=Σ实际采纳小问的真实满分"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_full_hit_never_exceeds_paper_structure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """全中 = 20/20（卷面结构：2024 案例一 20 分），逐问封顶把 22.0 的点池压回 20.0。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank())
+    event = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+    assert event["awarded_score"] == 20.0
+    assert event["max_score"] == 20.0
+    assert event["case_canonical_key_hit"] == "5/5"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_partial_index_set_denominator_is_adopted_subquestions_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """只采纳 2 个小问时，分母 = 这 2 问的真实满分之和（4.0+3.0），不是整题 20。
+
+    scope_ratio 必须是 1.0：分母已经只算采纳的小问了，再乘一次覆盖比 = 双重缩放。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank())
+    event = await _grade_one_case_v1(
+        _c431_ctx(case_canonical_subquestion_indexes=[2, 4]),
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event["case_canonical_key_hit"] == "2/2"
+    assert event["case_subq_score_caps"] == "q2:4.0,q4:3.0"
+    assert event["max_score"] == 7.0
+    assert event["awarded_score"] == 7.0
+    assert event["scoring_scope_max"] == 7.0, "scope_ratio 必须是 1.0，不得二次缩放"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_disputed_nominal_is_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """分母走样组（2024-case3 Σ=22 vs 卷面 20；2025-case5 Σ=28.5 vs 30）必须整问剔除。
+
+    走样的满分去封顶比不封顶更危险 —— fail-closed 退回旧路径，并把剔除量发声
+    （``0/5:disputed5``），否则「拒用」和「没这个库」长得一模一样。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank(disputed=True))
+    event = await _grade_one_case_v1(
+        _c431_ctx(question_id=""),  # 平查也查不到 → 走 tier2/3
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+    assert event.get("case_canonical_key_hit") == "0/5:disputed5"
+    assert event.get("case_subq_score_caps") is None or "q1:5.0" not in str(
+        event.get("case_subq_score_caps")
+    ), "被拒的分母不得进封顶表"
+    assert event.get("rubric_provenance") != "compiled_rubric", "拒用后必须退回非 tier-1"
+    # 拒用 marker 必须在**降级返回**上也带出来（没有 marker 的降级等于没发生过）。
+    assert event.get("status") in ("unavailable", "no_reference", "degraded")
+
+    # 纯函数层同一条不变量：走样组一个点都不许进封顶链。
+    from deeptutor.capabilities.deep_question import _canonical_case_rubric_lookup
+
+    points, caps, marker = _canonical_case_rubric_lookup(_c431_ctx(), G)
+    assert (points, caps, marker) == ([], {}, "0/5:disputed5")
+
+
+@pytest.mark.asyncio
+async def test_canonical431_unauthorized_slot_is_byte_identical_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """未授权 slot（legacy/pgo 在服）下行为**逐字节不变**。
+
+    可证伪构造：同一份 ctx 跑两次，一次带 canonical 组键与索引集，一次完全不带；
+    库里只有平查键 ``17371``（模拟 legacy bank——canonical 键在它里面恒不命中）。
+    两次的分数三字段必须逐字段相等，且不得出现 canonical marker。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    legacy_bank = {
+        "17371": [
+            {"point_id": "L1", "text": "legacy 采分点1", "score": 5.0, "policy": "list",
+             "required_terms": []},
+            {"point_id": "L2", "text": "legacy 采分点2", "score": 5.0, "policy": "list",
+             "required_terms": []},
+        ]
+    }
+    _install_c431_fakes(monkeypatch, legacy_bank)
+
+    with_keys = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+    without = await _grade_one_case_v1(
+        _c431_ctx(case_group_id="", case_canonical_subquestion_indexes=[]),
+        student_id="s1", complete=None, key="k", _G=G,
+    )
+
+    assert "case_canonical_key_hit" not in without
+    # 组键在场但 canonical 键在 legacy 库里零命中 → marker 记 0/5（可观测的失败信号），
+    # 但**分数一个字节都不许动**。
+    assert with_keys.get("case_canonical_key_hit") == "0/5"
+    for field in ("awarded_score", "max_score", "rubric_provenance"):
+        assert with_keys.get(field) == without.get(field), (
+            f"未命中时 {field} 必须与不带组键的旧路径逐字相等："
+            f"{with_keys.get(field)} != {without.get(field)}"
+        )
+    # tier-1 未走 canonical 分母时，仍然不进 finalize（既有法条不变）。
+    assert "scoring_scope_max" not in without
+
+
+@pytest.mark.asyncio
+async def test_canonical431_2022_group_is_unreachable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """2022 组不可命中：佑森抽的是**补考卷**、questions_bank 是**正考卷**，
+    110 点已在编译期隔离。这里守的是运行时侧的同一条不变量——即便 ctx 带着
+    2022 组键，逐问查库也必须查不到，绝不能拿错卷答案判分。"""
+    from deeptutor.capabilities.deep_question import _canonical_case_rubric_lookup
+
+    bank = _c431_bank()  # 2024-case1；2022 键一个都没有（编译期隔离的运行时体现）
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [dict(p) for p in bank.get(str(qid), [])])
+    points, caps, marker = _canonical_case_rubric_lookup(
+        {"case_group_id": "2022-case1", "case_canonical_subquestion_indexes": [1, 2, 3]}, G
+    )
+    assert points == [] and caps == {}
+    assert marker == "0/3", "零命中必须发声，不能静默"
+
+
+def test_canonical431_lookup_is_pure_and_fail_closed_without_provable_indexes() -> None:
+    """无组键 / 无索引集 / 索引不可解析 → 一次库都不查，返回空（调用方回落平查）。"""
+    from deeptutor.capabilities.deep_question import _canonical_case_rubric_lookup
+
+    calls: list[str] = []
+
+    class _Spy:
+        @staticmethod
+        def load_rubric(qid: str) -> list[dict[str, Any]]:
+            calls.append(qid)
+            return []
+
+    for ctx in (
+        {},
+        {"case_group_id": "2024-case1"},
+        {"case_group_id": "", "case_canonical_subquestion_indexes": [1, 2]},
+        {"case_group_id": "2024-case1", "case_canonical_subquestion_indexes": []},
+        {"case_group_id": "2024-case1", "case_canonical_subquestion_indexes": ["", "x", "0", "-1"]},
+    ):
+        assert _canonical_case_rubric_lookup(ctx, _Spy) == ([], {}, "")
+    assert calls == [], f"不可证的索引集绝不许构键查库，实际查了 {calls}"
+
+
+@pytest.mark.asyncio
+async def test_canonical431_emits_distinct_denominator_source_from_r2_ladder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """调和（#651 R2 × Lane 2）：tier-1 canonical 命中也发 `case_denominator_source`，
+    但取值是 **canonical_rubric**，与 R2 阶梯的 `canonical` 刻意不同名。
+
+    两者是不同级的权威：R2 的 `canonical` = 结构小问数（只读 nominal_table、不读
+    采分点、走 require_production_authorization=False 的逃生口）；这里的
+    `canonical_rubric` = 每问真实满分（读 records、需 production_authorized）。
+    同名会让它们在分组统计里被合并成一个 —— 那正是要防的。"""
+    from deeptutor.capabilities.deep_question import _grade_one_case_v1
+
+    _install_c431_fakes(monkeypatch, _c431_bank())
+    event = await _grade_one_case_v1(_c431_ctx(), student_id="s1", complete=None, key="k", _G=G)
+    assert event["case_denominator_source"] == "canonical_rubric"
+    assert event["case_denominator_source"] != "canonical", (
+        "不得与 R2 阶梯的结构小问数同名"
+    )
+
+
+def test_canonical431_lookup_consumes_the_single_case_group_id_reader() -> None:
+    """调和：组键读取吃 R2 的 `_case_group_id_from_ctx`，不自建第二读者。
+
+    可证伪：ctx 没有顶层 `case_group_id`、只把组键放在嵌套 bundle 里时，
+    R2 读者认得出来，裸读 `ctx["case_group_id"]` 认不出来。"""
+    from deeptutor.capabilities.deep_question import (
+        _canonical_case_rubric_lookup,
+        _case_group_id_from_ctx,
+    )
+
+    nested_ctx = {
+        "_prefetched_exact_question": {"case_group_id": "2024-case1"},
+        "case_canonical_subquestion_indexes": [1, 2],
+    }
+    assert _case_group_id_from_ctx(nested_ctx) == "2024-case1"
+
+    seen: list[str] = []
+
+    class _Spy:
+        @staticmethod
+        def load_rubric(qid: str) -> list[dict[str, Any]]:
+            seen.append(qid)
+            return []
+
+    _canonical_case_rubric_lookup(nested_ctx, _Spy)
+    assert seen == ["2024-case1::E1", "2024-case1::E2"], (
+        f"必须用 R2 读者认出的组键构键，实际查了 {seen}"
+    )
+
+
+def test_canonical431_scoring_content_never_bypasses_the_governance_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """调和红线：判分内容（records）只许走**默认授权**的装载路径。
+
+    #651 给 `_load_bank_slot` 开了 `require_production_authorization=False` 的
+    逃生口，立法目的仅限「读结构事实、不读判分内容」的分母读者。采分点与分值
+    是治理闸要管的东西（佑森估分、NOT_official）—— 让它从逃生口进场，就是
+    pgo 未授权覆写服役六周那一族的病。
+
+    这条断言把边界钉成机器可证的：①默认值必须是 True；②闸咨询的是 pointer
+    授权位——同一份内容、pointer 撤权 → 默认路径必拒（fail-closed 不随
+    2026-08-01 授权翻转衰减）；③逃生口对撤权 slot 依旧只放行结构读者。"""
+    import inspect
+    import json as _json
+    import shutil
+    from pathlib import Path as _Path
+
+    from deeptutor.services.construction_grading import rubric_grader_v1 as RG
+
+    sig = inspect.signature(RG._load_bank_slot)
+    assert sig.parameters["require_production_authorization"].default is True
+
+    # 授权翻转（#654）后合法放行——但必须走闸，且撤权立刻拦住（见下）。
+    assert RG._load_bank_slot("canonical431")[1] == "ok"
+
+    # 同内容撤权夹具：整目录拷贝，仅把 pointer 的 production_authorized 翻 false。
+    slot_dir, bank_name = RG._RUBRIC_BANK_SLOTS["canonical431"]
+    real_dir = _Path(RG.__file__).parent / "runtime_supply" / slot_dir
+    tampered_dir = tmp_path / "tampered431"
+    shutil.copytree(real_dir, tampered_dir)
+    pointer_p = tampered_dir / "canonical_pointer.json"
+    pointer = _json.loads(pointer_p.read_text("utf-8"))
+    pointer["production_authorized"] = False
+    pointer_p.write_text(_json.dumps(pointer, ensure_ascii=False), "utf-8")
+    monkeypatch.setitem(RG._RUBRIC_BANK_SLOTS, "tampered431", (str(tampered_dir), bank_name))
+
+    assert RG._load_bank_slot("tampered431")[1] == "unauthorized"
+    # 免授权逃生口只放行结构读者，且它拿到的是「几问」不是采分点。
+    bundle, reason = RG._load_bank_slot("canonical431", require_production_authorization=False)
+    assert reason == "ok" and isinstance(bundle, dict)
+    counts = RG.canonical_case_subquestion_counts()
+    assert counts.get("2024-case1") == 5
+    assert all(isinstance(v, int) for v in counts.values()), "结构读者只许吐整数计数"
+
+    RG._rubric_bank.cache_clear()
+    try:
+        # 判分内容路径：未授权 → 零采分点可达（不是「拿到了但不用」，是根本拿不到）。
+        assert RG.load_rubric("2024-case1::E1") == []
+    finally:
+        RG._rubric_bank.cache_clear()

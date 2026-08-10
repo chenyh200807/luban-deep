@@ -540,6 +540,28 @@ class LearnerStateSupabaseSyncCoreStore:
                 offset += len(page)
         return list(reversed(rows))
 
+    def rekey_memory_events(self, *, source_user_id: str, target_user_id: str) -> int:
+        """Re-key a merged-away account's memory events to the surviving uid.
+
+        Account merge invariant (plan §9.4): every learner-state read model is a
+        strict ``user_id`` equality read, so the merge must move the ledger. One
+        PATCH over ``user_id=eq.<source>``; idempotent because the second call
+        matches no rows.
+        """
+        source = str(source_user_id or "").strip()
+        target = str(target_user_id or "").strip()
+        if not self.is_configured or not source or not target or source == target:
+            return 0
+        response = self._client_or_create().patch(
+            f"{self._base_url.rstrip('/')}/rest/v1/learner_memory_events",
+            headers=_rest_headers(self._service_key),
+            params={"user_id": f"eq.{source}"},
+            json={"user_id": target},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        return len(payload) if isinstance(payload, list) else 0
+
     def read_learning_evidence_event(self, user_id: str, event_id: str) -> dict[str, Any] | None:
         if not self.is_configured:
             return None

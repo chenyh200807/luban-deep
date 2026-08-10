@@ -166,6 +166,12 @@ def test_home_projection_still_canonicalizes_free_text_alias_to_textbook_section
 
 
 def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
+    inference_calls: list[tuple[dict[str, object], list[str]]] = []
+
+    def unexpected_inferer(payload: dict[str, object], candidates: list[str]) -> str:
+        inference_calls.append((payload, candidates))
+        return "施工质量管理"
+
     projection = build_home_personalization_projection_from_learning_signal(
         {
             "event_type": "learning_evidence",
@@ -173,10 +179,12 @@ def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
             "error_codes": ["质量计划和质量保证混淆"],
             "event_id": "evt_quality_plan",
             "subject_id": "construction_exam_1",
-        }
+        },
+        llm_topic_inferer=unexpected_inferer,
     )
 
     assert projection is not None
+    assert inference_calls == []
     assert [item["prompt_type"] for item in projection["recommended_prompts"]] == [
         "practice_prompt",
         "mistake_review",

@@ -342,3 +342,100 @@ def test_first_run_script_events_registered():
         record = validate_product_behavior_event(name, meta)
         assert record["event_name"] == name
         assert record["module"] == "first_run"
+
+
+def test_pass_readiness_funnel_events_are_registered_with_identity_state() -> None:
+    from deeptutor.services.observability.product_behavior_catalog import (
+        PRODUCT_BEHAVIOR_EVENT_NAMES,
+        validate_product_behavior_event,
+    )
+
+    expected = {
+        "pass_readiness_landing_view",
+        "pass_readiness_login_prompt_viewed",
+        "pass_readiness_login_completed",
+        "pass_readiness_started",
+        "pass_readiness_completed",
+        "pass_readiness_result_viewed",
+        "pass_readiness_evidence_opened",
+        "pass_readiness_deep_explanation_started",
+        "pass_readiness_lesson_started",
+        "pass_readiness_lesson_completed",
+        "pass_readiness_retest_started",
+        "pass_readiness_retest_completed",
+        "pass_readiness_phone_auth_prompted",
+        "pass_readiness_phone_auth_completed",
+        "pass_readiness_report_saved",
+        "pass_readiness_plan_viewed",
+        "pass_readiness_report_shared",
+        "pass_readiness_subscribe_prompted",
+        "pass_readiness_subscribe_granted",
+    }
+    assert expected <= PRODUCT_BEHAVIOR_EVENT_NAMES
+    assert len(expected) == 19
+
+    record = validate_product_behavior_event(
+        "pass_readiness_login_completed",
+        {
+            "module": "pass_readiness",
+            "action": "authorize",
+            "result": "phone_declined",
+            "identity_state": "openid_only",
+            "entry_source": "qr_community",
+            "visit_id": "v1",
+            "surface": "wechat_miniprogram",
+        },
+    )
+    assert record["module"] == "pass_readiness"
+    assert record["identity_state"] == "openid_only"
+    assert record["entry_source"] == "qr_community"
+
+    shared = validate_product_behavior_event(
+        "pass_readiness_report_shared",
+        {
+            "module": "pass_readiness",
+            "action": "share",
+            "object_type": "question",
+            "object_id": "real_exam_2023_public",
+            "identity_state": "phone_granted",
+            "visit_id": "v1",
+        },
+    )
+    assert shared["action"] == "share"
+
+    saved = validate_product_behavior_event(
+        "pass_readiness_report_saved",
+        {"module": "pass_readiness", "action": "save", "visit_id": "v1"},
+    )
+    assert saved["action"] == "save"
+    assert saved["identity_state"] == ""
+
+
+def test_pass_readiness_events_reject_bad_identity_state_and_answer_payloads() -> None:
+    import pytest
+
+    from deeptutor.services.observability.product_behavior_catalog import (
+        validate_product_behavior_event,
+    )
+
+    with pytest.raises(ValueError):
+        validate_product_behavior_event(
+            "pass_readiness_started",
+            {
+                "module": "pass_readiness",
+                "action": "start_probe",
+                "identity_state": "anonymous",  # deleted identity lane must not sneak back
+                "visit_id": "v1",
+            },
+        )
+
+    with pytest.raises(ValueError):
+        validate_product_behavior_event(
+            "pass_readiness_result_viewed",
+            {
+                "module": "pass_readiness",
+                "action": "view",
+                "visit_id": "v1",
+                "complete_subjective_answer": "泄漏的答案文本",
+            },
+        )

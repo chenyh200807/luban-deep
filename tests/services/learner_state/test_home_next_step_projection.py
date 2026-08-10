@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
 from deeptutor.services.learner_state.home_next_step_projection import (
     MODE_FALLBACK,
     MODE_LEARN,
@@ -264,9 +266,10 @@ def test_no_green_supply_is_honest_unavailable() -> None:
 def test_module_is_pure_no_ledger_write_no_intent_generation() -> None:
     # 铁律源码 pin（廉价 tripwire，保留）：禁写 ledger / 禁生成 training_intent /
     # 禁改 revalidation。
-    source = Path("deeptutor/services/learner_state/home_next_step_projection.py").read_text(
-        encoding="utf-8"
-    )
+    source = (
+        REPO_ROOT
+        / "deeptutor/services/learner_state/home_next_step_projection.py"
+    ).read_text(encoding="utf-8")
     assert "append_memory_event" not in source
     assert "build_learning_training_intent" not in source
     assert "write_" not in source

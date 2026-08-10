@@ -1,7 +1,10 @@
+import json
+
 from deeptutor.services.assessment.blueprint import get_assessment_blueprint
 from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
+    AssessmentFormStoreUnreachable,
     _AssessmentForm,
     _AssessmentFormBank,
     _AssessmentFormUnit,
@@ -37,6 +40,31 @@ def test_real_exam_simulation_mini_has_20_scored_items_and_safe_identity() -> No
     assert blueprint.scored_count == 20
     assert blueprint.profile_count == 0
     assert all(section.scored for section in blueprint.sections)
+
+
+def test_pass_readiness_v1_is_pure_tap_with_12_scored_3_probes() -> None:
+    blueprint = get_assessment_blueprint("pass_readiness_architecture_v1")
+
+    assert blueprint.version == "pass_readiness_architecture_v1"
+    assert blueprint.assessment_type == "pass_readiness"
+    assert blueprint.subject_id == "construction_exam"
+    assert blueprint.requested_count == 15
+    assert blueprint.scored_count == 12
+    assert blueprint.profile_count == 3
+    # Binding pure-tap constraint: every scored task is an option-tap
+    # interaction; no free text, drag-sort, case_study, or calculation types.
+    allowed = {"single_choice", "multi_choice"}
+    for section in blueprint.sections:
+        if not section.scored:
+            assert section.question_types == ("profile_probe",)
+            continue
+        assert set(section.question_types) <= allowed, section.id
+        assert set(section.fallback_question_types) <= allowed, section.id
+    # Preparation context: 3 non-scored probes, structurally outside scoring.
+    prep = next(section for section in blueprint.sections if not section.scored)
+    assert prep.id == "pr_prep_context"
+    assert prep.count == 3
+    assert prep.topics == ("attempt_history", "recent_score_band", "weekly_study_hours")
 
 
 def test_calculation_is_optional_and_structured_judgment_is_fallback() -> None:
@@ -397,6 +425,55 @@ def test_blueprint_service_uses_persisted_forms_without_candidate_generation() -
     assert len(payload["questions"]) == 20
 
 
+class FlakyThenHealthyPersistedProvider(PersistedOnlyAssessmentProvider):
+    """首次持久化读抛传输层失败, 重试即成功(模拟 Supabase REST 抖动)。"""
+
+    def __init__(self, form_bank: _AssessmentFormBank) -> None:
+        super().__init__(form_bank)
+        self.load_calls = 0
+
+    def load_persisted_form_bank(self, blueprint):
+        self.load_calls += 1
+        if self.load_calls == 1:
+            raise AssessmentFormStoreUnreachable("Supabase assessment_forms unreachable: timed out")
+        return self.form_bank
+
+
+class AlwaysUnreachablePersistedProvider(PersistedOnlyAssessmentProvider):
+    def __init__(self, form_bank: _AssessmentFormBank) -> None:
+        super().__init__(form_bank)
+        self.load_calls = 0
+
+    def load_persisted_form_bank(self, blueprint):
+        self.load_calls += 1
+        raise AssessmentFormStoreUnreachable("Supabase assessment_forms unreachable: timed out")
+
+
+def test_persisted_store_transient_failure_retries_then_serves_persisted_forms() -> None:
+    provider = FlakyThenHealthyPersistedProvider(_persisted_form_bank_for_blueprint())
+    service = AssessmentBlueprintService(provider=provider, allow_dev_fallback=False)
+
+    payload = service.create_session(user_id="student_demo", count=20)
+
+    assert provider.load_calls == 2
+    assert provider.get_candidate_calls == 0, "传输抖动重试成功后不得触发现场重建"
+    assert payload["form_source"] == "persisted"
+
+
+def test_persisted_store_unreachable_fails_closed_without_rebuild() -> None:
+    provider = AlwaysUnreachablePersistedProvider(_persisted_form_bank_for_blueprint())
+    service = AssessmentBlueprintService(provider=provider, allow_dev_fallback=False)
+
+    try:
+        service.create_session(user_id="student_demo", count=20)
+        raise AssertionError("store unreachable 必须 fail-closed")
+    except AssessmentFormStoreUnreachable:
+        pass
+
+    assert provider.load_calls == 2, "应当恰好重试一次"
+    assert provider.get_candidate_calls == 0, "store 不可达时禁止滑进现场重建(权威漂移)"
+
+
 def test_blueprint_service_reports_static_form_source_when_supabase_falls_back() -> None:
     service = AssessmentBlueprintService(
         provider=UnavailableSupabaseAssessmentProvider(),
@@ -570,3 +647,67 @@ def test_blueprint_service_fails_closed_when_scored_candidates_are_short() -> No
         assert "requires" in str(exc)
     else:  # pragma: no cover - assertion guard
         raise AssertionError("Expected blueprint service to fail closed")
+
+
+# ── 答案面单一去向红线(2026-08-07):诊断只进私有面,永不进答题页 ──────────
+
+
+def test_answer_diagnosis_never_reaches_the_exam_client_projection() -> None:
+    from deeptutor.services.assessment.blueprint import get_assessment_blueprint
+    from deeptutor.services.assessment.blueprint_service import _build_scored_question
+
+    blueprint = get_assessment_blueprint("diagnostic_v1")
+    section = blueprint.sections[0]
+    candidate = QuestionCandidate(
+        source_question_id="src_leak_probe",
+        question_stem="题干",
+        question_type="single_choice",
+        chapter="章节",
+        options=(("A", "对的"), ("B", "错的")),
+        answer="A",
+        source_type="REAL_EXAM",
+        answer_diagnosis={
+            "options": {"B": {"why_missed": "这句话一旦出现在答题页就是泄题"}},
+        },
+    )
+
+    client, stored = _build_scored_question("q01", section, candidate)
+
+    assert "answer_diagnosis" not in client, "答案面诊断泄露到答题页投影"
+    assert "answer" not in client, "正确答案泄露到答题页投影"
+    assert stored["answer_diagnosis"]["options"]["B"]["why_missed"]
+    serialized = json.dumps(client, ensure_ascii=False)
+    assert "泄题" not in serialized, "诊断文本经由其他字段泄露到答题页"
+
+
+def test_persisted_form_round_trip_preserves_answer_diagnosis() -> None:
+    candidates = [
+        QuestionCandidate(
+            source_question_id=f"q_{index}",
+            question_stem=f"题干 {index}",
+            question_type="case_study",
+            chapter=f"诊断章节 {index}",
+            options=(("A", "选项 A"), ("B", "选项 B"), ("C", "选项 C"), ("D", "选项 D")),
+            answer="A",
+            difficulty=("easy", "medium", "hard")[index % 3],
+            source_type="REAL_EXAM",
+            answer_diagnosis={"options": {"B": {"fix": f"补这一点 {index}"}}},
+        )
+        for index in range(1, 80)
+    ]
+    service = AssessmentBlueprintService(
+        provider=StaticAssessmentQuestionProvider(candidates),
+        allow_dev_fallback=False,
+    )
+    form_bank = service._build_form_bank()
+    form = form_bank.forms[0]
+
+    row = _form_to_persisted_row(
+        service.blueprint.version, form, question_bank_size=form_bank.question_bank_size
+    )
+    restored = _form_from_persisted_row(row, service.blueprint)
+
+    scored = [unit for unit in restored.units if unit.scored]
+    assert scored, "表单应含计分题"
+    # 诊断随持久化表单往返:seed 一次,报告随时读得到。
+    assert all(unit.item.answer_diagnosis["options"]["B"]["fix"] for unit in scored)

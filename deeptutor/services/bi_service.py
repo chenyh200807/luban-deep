@@ -3736,6 +3736,25 @@ class BIService:
         )
 
     @staticmethod
+    def _commerce_recharge_amount_state(row: dict[str, Any]) -> str:
+        """Classify payment-shaped credits without inventing a CNY amount."""
+        if not BIService._is_commerce_recharge_row(row):
+            return "not_recharge"
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        raw_amount_cny = metadata.get("amount_cny")
+        if "amount_cny" not in metadata or raw_amount_cny is None or raw_amount_cny == "":
+            return "unpriced"
+        try:
+            amount_cny = float(raw_amount_cny)
+        except (TypeError, ValueError):
+            return "unpriced"
+        if amount_cny > 0:
+            return "confirmed"
+        if amount_cny == 0:
+            return "zero_value_grant"
+        return "unpriced"
+
+    @staticmethod
     def _is_commerce_reversal_row(row: dict[str, Any]) -> bool:
         metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
         amount_cny = _safe_float(metadata.get("amount_cny"))
@@ -3813,8 +3832,7 @@ class BIService:
         # amount_cny proves that a recharge-like event happened, but cannot prove
         # the CNY amount.  Do not let the UI collapse that unknown into ¥0.
         has_unpriced_recharge = any(
-            cls._is_commerce_recharge_row(row) and cls._commerce_revenue_cny(row) == 0
-            for row in recharge_rows
+            cls._commerce_recharge_amount_state(row) == "unpriced" for row in recharge_rows
         )
         provider_settled_count = 0
         operator_confirmed_count = 0
@@ -3972,7 +3990,14 @@ class BIService:
             if self._is_operational_commerce_row(row)
         ]
         ledger_rows = sorted(operational_rows, key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
-        recharge_rows = [row for row in ledger_rows if self._is_commerce_recharge_row(row)][:safe_limit]
+        recharge_candidates = [
+            row for row in ledger_rows if self._is_commerce_recharge_row(row)
+        ][:safe_limit]
+        recharge_rows = [
+            row
+            for row in recharge_candidates
+            if self._commerce_recharge_amount_state(row) == "confirmed"
+        ]
         recharge_records = [self._commerce_recharge_record(row) for row in recharge_rows]
         revenue_evidence_rows = [
             row
@@ -3982,8 +4007,9 @@ class BIService:
         revenue_summary = self._build_commerce_revenue_summary(revenue_evidence_rows)
         if wallet_status != "ok":
             revenue_summary["revenue_status"] = "authority_unavailable"
-        elif wallet_truncated:
-            revenue_summary["revenue_status"] = "insufficient_evidence"
+        # Truncation limits the denominator, not the validity of amounts inside
+        # the slice. Keep confirmed/empty values visible and carry the bounded
+        # scope explicitly so the UI can warn without collapsing it to unknown.
         revenue_summary.update(
             {
                 "evidence_scope": "latest_wallet_ledger_slice",
@@ -4009,7 +4035,18 @@ class BIService:
         non_recharge_credit_count = sum(
             1
             for row in ledger_rows
-            if _safe_float(row.get("amount")) > 0 and not self._is_commerce_recharge_row(row)
+            if _safe_float(row.get("amount")) > 0
+            and self._commerce_recharge_amount_state(row) == "not_recharge"
+        )
+        zero_value_grant_count = sum(
+            1
+            for row in recharge_candidates
+            if self._commerce_recharge_amount_state(row) == "zero_value_grant"
+        )
+        unpriced_recharge_count = sum(
+            1
+            for row in recharge_candidates
+            if self._commerce_recharge_amount_state(row) == "unpriced"
         )
         warnings = []
         if wallet_status != "ok":
@@ -4023,6 +4060,14 @@ class BIService:
         if non_recharge_credit_count:
             warnings.append(
                 f"{non_recharge_credit_count} 条赠点/初始化/人工授信流水仅计入钱包流水，不计入充值记录。"
+            )
+        if zero_value_grant_count:
+            warnings.append(
+                f"{zero_value_grant_count} 条 ¥0 人工授权仅计入钱包流水，不计入充值、付费会员或收入。"
+            )
+        if unpriced_recharge_count:
+            warnings.append(
+                f"{unpriced_recharge_count} 条付款引用缺少可核验金额，暂不计入充值或付费会员。"
             )
         if not recharge_records:
             warnings.append("未发现可展示的充值记录；支付/订单 authority 尚未上线或无订单写入。")

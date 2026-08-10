@@ -1,0 +1,85 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 过线体检 · 测评页 — token 全走 paper-ink */
+.pr-page { height: 100vh; position: relative; overflow: hidden; }
+
+.pr-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; }
+.pr-nav-inner { height: 88rpx; display: flex; align-items: center; padding: 0 24rpx; gap: 12rpx; }
+.pr-nav-back {
+  width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--pk-card); border: 1rpx solid var(--pk-bd);
+}
+.pr-nav-arrow { font-size: 42rpx; color: var(--pk-t1); font-weight: 300; }
+.pr-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+.pr-nav-progress { font-size: 26rpx; color: var(--pk-t3); font-variant-numeric: tabular-nums; }
+
+.pr-body { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1; }
+.pr-quiz { padding: 20rpx 32rpx; }
+.pr-progress { margin-bottom: 20rpx; }
+
+.pr-sheet { padding: 22rpx 24rpx; margin-bottom: 20rpx; }
+.pr-sheet-meta { display: flex; justify-content: space-between; margin-bottom: 14rpx; }
+.pr-sheet-title { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
+.pr-sheet-count { font-size: 24rpx; color: var(--pk-t3); }
+.pr-sheet-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.pr-chip {
+  width: 64rpx; height: 64rpx; border-radius: 16rpx;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pk-gauge); border: 1rpx solid var(--pk-bd);
+}
+.pr-chip-txt { font-size: 24rpx; color: var(--pk-t2); font-weight: 700; }
+.pr-chip.answered { background: var(--pk-accent-soft); border-color: var(--pk-accent-border); }
+.pr-chip.answered .pr-chip-txt { color: var(--pk-grn); }
+.pr-chip.current { border-color: var(--pk-grn); border-width: 2rpx; }
+
+.pr-question { padding: 28rpx 26rpx; }
+.pr-q-header { display: flex; align-items: center; gap: 12rpx; margin-bottom: 18rpx; }
+.pr-q-type {
+  font-size: 22rpx; font-weight: 800; color: var(--pk-grn);
+  background: var(--pk-accent-soft); padding: 6rpx 16rpx; border-radius: 999rpx;
+}
+.pr-q-case {
+  font-size: 22rpx; font-weight: 800; color: var(--pk-t2);
+  background: var(--pk-gauge); padding: 6rpx 16rpx; border-radius: 999rpx;
+}
+.pr-q-unscored { font-size: 22rpx; color: var(--pk-t3); }
+.pr-q-material {
+  display: block; font-size: 24rpx; line-height: 1.7; color: var(--pk-t2);
+  background: var(--pk-gauge); border-radius: 16rpx; padding: 18rpx 20rpx; margin-bottom: 18rpx;
+}
+.pr-q-stem { display: block; font-size: 30rpx; line-height: 1.6; font-weight: 700; color: var(--pk-t1); }
+
+.pr-options { margin-top: 24rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.pr-option {
+  display: flex; align-items: flex-start; gap: 18rpx; padding: 22rpx 20rpx;
+  border-radius: 20rpx; border: 1rpx solid var(--pk-bd); background: var(--pk-card);
+}
+.pr-option.selected { border-color: var(--pk-grn); background: var(--pk-accent-soft); }
+.pr-opt-key {
+  width: 52rpx; height: 52rpx; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pk-gauge); border: 1rpx solid var(--pk-bd);
+}
+.pr-option.selected .pr-opt-key { background: var(--pk-grn); border-color: var(--pk-grn); }
+.pr-opt-key-txt { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); }
+.pr-option.selected .pr-opt-key-txt { color: var(--pk-card); }
+.pr-opt-text { flex: 1; font-size: 27rpx; line-height: 1.6; color: var(--pk-t1); padding-top: 4rpx; }
+
+.pr-quiz-nav { display: flex; gap: 20rpx; margin-top: 28rpx; }
+.pr-quiz-btn { flex: 1; }
+.pr-quiz-btn.disabled { opacity: 0.4; }
+
+/* 中场检查点 */
+
+/* 加载/错误 */
+.pr-loading { padding: 200rpx 32rpx; display: flex; flex-direction: column; align-items: center; gap: 26rpx; }
+.pr-spinner {
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  border: 6rpx solid var(--pk-gauge); border-top-color: var(--pk-grn);
+  animation: prSpin 0.9s linear infinite;
+}
+@keyframes prSpin { to { transform: rotate(360deg); } }
+.pr-loading-txt { font-size: 26rpx; color: var(--pk-t2); }
+.pr-error { padding: 200rpx 48rpx; display: flex; flex-direction: column; align-items: center; gap: 30rpx; }
+.pr-error-txt { font-size: 26rpx; color: var(--pk-t2); text-align: center; line-height: 1.7; }
+.pr-error-btn { width: 100%; }

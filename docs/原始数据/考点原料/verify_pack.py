@@ -6,7 +6,7 @@
 若不给 source.json, 按同目录 _<PACKID>_compiled_source.json 推导。
 
 机械验 3 件硬事 (任一不过 = FAIL):
-  1. 引用的 point_id (ca:/kc:/m35:) 是否真存在于源料
+  1. 引用的 point_id (ca:/kc:/cc:/m35:) 是否真存在于源料
   2. 引用的 error_code (E/M码) 是否真在 ERROR_CODE_REGISTRY
   3. 三色标注是否存在且 🟢 项不为零
 另出软报告 (warning, 不判 FAIL): 🟢 占比、疑似🟢无source行、真题年份引用。
@@ -81,7 +81,7 @@ def main():
     # --- 检查1: point_id ---
     valid_pids = load_source_point_ids(src) if src and os.path.exists(src) else set()
     # point_id 含中文(如 -罚则), 缩写 :P5/P6 拆开核
-    raw = re.findall(r"(?:ca|kc|m35):[0-9A-Za-z_\-一-鿿]+(?::[0-9A-Za-z_\-一-鿿]+(?:/[0-9A-Za-z]+)*)?", text)
+    raw = re.findall(r"(?:ca|kc|cc|m35):[0-9A-Za-z_\-一-鿿]+(?::[0-9A-Za-z_\-一-鿿]+(?:/[0-9A-Za-z]+)*)?", text)
     cited_pids = set()
     for p in raw:
         if "/" in p.rsplit(":", 1)[-1]:  # 拆 :P5/P6 -> :P5, :P6
@@ -90,6 +90,12 @@ def main():
                 cited_pids.add(head + ":" + t)
         else:
             cited_pids.add(p)
+    # cc: 逐字原文锚 2026-08 起入闸。但历史 pack 的 §9 jury 日志(append-only)里存在
+    # 被截断转述的 cc id(如 J01 "cc:1A437000_010_00")——只核**完整形态** cc:<chunk>:<idx>,
+    # 不完整形态不判 FAIL、出软警告(免于把 jury 日志引文当引用错杀)。
+    malformed_cc = sorted(p for p in cited_pids
+                          if p.startswith("cc:") and not re.fullmatch(r"cc:[^:]+:[0-9A-Za-z一-鿿]+", p))
+    cited_pids -= set(malformed_cc)
     bad_pids = sorted(p for p in cited_pids if p not in valid_pids and p.rsplit(":",1)[0] not in valid_pids)
     if not src:
         print("[point_id] ⚠ 未找到源料文件, 跳过 (无法验证!)")
@@ -116,10 +122,12 @@ def main():
     print(f"=== 机器闸: {os.path.basename(pack)} ===")
     print(f"源料: {os.path.basename(src) if src else '(缺)'}  源料point_id数: {len(valid_pids)}")
     print(f"[1 point_id] 引用 {len(cited_pids)} 个, 不存在 {len(bad_pids)} 个" + (f" ✗ {bad_pids}" if bad_pids else " ✓"))
+    if malformed_cc:
+        print(f"[软警告] 不完整 cc 引用(未核, 多见于 jury 日志引文): {malformed_cc}")
     print(f"[2 error_code] 引用 {sorted(cited_codes)}, 非法 {len(bad_codes)} 个" + (f" ✗ {bad_codes}" if bad_codes else " ✓"))
     print(f"[3 三色] 🟢{g} 🔵{b} 🔴{r}  (🟢占比 {g*100//max(g+b+r,1)}%)")
     # 启发式: 含🟢但同段无 source token 的行 (软警告)
-    src_tok = re.compile(r"(ca|kc|m35):|真题\s?20\d\d|source_ref|node_code|教材|规范")
+    src_tok = re.compile(r"(ca|kc|cc|m35):|真题\s?20\d\d|source_ref|node_code|教材|规范")
     sus = [i+1 for i,l in enumerate(text.splitlines()) if "🟢" in l and not src_tok.search(l)]
     print(f"[软警告] 疑似🟢无source行: {len(sus)} 行 {('(行号 '+str(sus[:8])+'…)') if sus else ''} — 需Layer2/3核")
     yrs = sorted(set(re.findall(r"真题\s?(20\d\d)", text)))

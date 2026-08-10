@@ -1,0 +1,267 @@
+<!-- 过线体检 · 报告页(屏 3-9, section 驱动, 每屏一个主 CTA) -->
+<view class="pr-page paper {{isDark?'':'light'}} pk-paper-bg">
+
+  <view class="pr-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="pr-nav-inner">
+      <view class="pr-nav-back" bindtap="goBack"><text class="pr-nav-arrow">‹</text></view>
+      <text class="pr-nav-title">过线体检报告</text>
+    </view>
+  </view>
+
+  <scroll-view class="pr-body" scroll-y style="top:{{navHeight}}px">
+
+    <!-- ═══ 加载 / 错误 ═══ -->
+    <view class="pr-loading" wx:if="{{stage === 'loading'}}">
+      <view class="pr-spinner"></view>
+      <text class="pr-loading-txt">正在读取报告…</text>
+    </view>
+    <view class="pr-error" wx:elif="{{stage === 'error'}}">
+      <text class="pr-error-txt">{{errorText}}</text>
+      <view class="pr-error-btn pk-btn-ink" bindtap="onRetry"><text>重试</text></view>
+      <view class="pr-error-link" bindtap="onStartNewDiagnostic"><text>做一次新的过线体检 ›</text></view>
+    </view>
+
+    <block wx:elif="{{stage === 'ready'}}">
+
+      <!-- ═══ 屏 3: 结果首屏 ═══ -->
+      <view class="pr-section" wx:if="{{section === 'result'}}">
+        <view class="pr-card pk-card">
+          <text class="pk-kicker">预估得分带 · 过线线对照</text>
+
+          <block wx:if="{{result.bandAvailable}}">
+            <view class="pr-band-head">
+              <text class="pr-band-value">{{result.bandText}}</text>
+              <text class="pr-band-selfreport" wx:if="{{result.selfReportedScoreLabel}}">{{result.selfReportedScoreLabel}}</text>
+            </view>
+            <view class="pr-scale" wx:if="{{result.geometry}}">
+              <view class="pr-scale-band" style="left:{{result.geometry.bandLeftPct}}%;width:{{result.geometry.bandWidthPct}}%"></view>
+              <view class="pr-scale-passline" style="left:{{result.geometry.passLinePct}}%"></view>
+              <text class="pr-scale-passlabel" style="left:{{result.geometry.passLinePct}}%">{{result.passLine}}</text>
+            </view>
+            <text class="pr-gap-line" wx:if="{{result.gapLine}}">{{result.gapLine}} · {{result.passLineLabel}}</text>
+          </block>
+          <block wx:else>
+            <text class="pr-band-missing">{{result.bandUnavailableCopy}}</text>
+          </block>
+
+          <view class="pr-meta-row">
+            <view class="pr-meta">
+              <text class="pr-meta-label">风险带</text>
+              <text class="pr-meta-value">{{result.riskLine || '—'}}</text>
+            </view>
+            <view class="pr-meta">
+              <text class="pr-meta-label">就绪度</text>
+              <text class="pr-meta-value">{{result.readinessTier}}{{result.readinessRange ? ' (' + result.readinessRange + ')' : ''}}</text>
+            </view>
+            <view class="pr-meta">
+              <text class="pr-meta-label">证据覆盖</text>
+              <text class="pr-meta-value">{{result.evidenceCoverageLabel || '—'}}</text>
+            </view>
+          </view>
+
+          <text class="pr-reference" wx:if="{{result.showReferenceInterval}}">参考过线区间 {{result.referencePassInterval}}（同一专家规则的次要口径）</text>
+          <text class="pr-diagnosis" wx:if="{{result.diagnosis}}">{{result.diagnosis}}</text>
+          <text class="pr-disclaimer">{{result.disclaimer}}</text>
+        </view>
+
+        <!-- 「接下来你会看到」预告:点名真实定位到的采分点,给出继续的理由。
+             无供给 → 整卡不渲染(不摆空架子)。 -->
+        <view class="pr-card pk-card pr-preview" wx:if="{{result.nextPreview.available}}">
+          <text class="pk-kicker">{{result.nextPreview.kicker}}</text>
+          <view class="pr-preview-row" wx:for="{{result.nextPreview.points}}" wx:key="*this">
+            <view class="pr-preview-dot"></view>
+            <text class="pr-preview-txt">{{item}}<text class="pr-preview-tail">·丢在哪 / 怎么补</text></text>
+          </view>
+          <text class="pr-preview-more" wx:if="{{result.nextPreview.moreCount}}">…等共 {{result.nextPreview.count}} 处失分点,逐条可点开</text>
+        </view>
+
+        <view class="pr-cta pk-btn-ink" bindtap="onPrimaryCta"><text>{{result.primaryCta}}</text></view>
+      </view>
+
+      <!-- ═══ 屏 4: 证据屏 ═══ -->
+      <view class="pr-section" wx:elif="{{section === 'evidence'}}">
+        <view class="pr-card pk-card" wx:if="{{evidence.isEmpty}}">
+          <text class="pr-empty-txt">{{evidence.emptyCopy}}</text>
+        </view>
+        <view class="pr-card pk-card pr-evidence-card" wx:for="{{evidence.items}}" wx:key="index">
+          <text class="pk-kicker">失分采分点证据 {{item.index}}</text>
+          <text class="pr-ev-stem">{{item.questionStem}}</text>
+          <view class="pr-ev-row" wx:if="{{item.learnerAnswerDisplay}}">
+            <text class="pr-ev-label">你的作答</text>
+            <text class="pr-ev-value pr-ev-wrong-pick">{{item.learnerAnswerDisplay}}</text>
+          </view>
+          <view class="pr-ev-row" wx:if="{{item.correctAnswerDisplay}}">
+            <text class="pr-ev-label">正确答案</text>
+            <text class="pr-ev-value pr-ev-right-pick">{{item.correctAnswerDisplay}}</text>
+          </view>
+          <!-- 采分点=标签+规则句双槽:任一在场即渲染(规则句是记忆角色,
+               与正确答案行的对照角色并存,owner 2026-08-07 拍板) -->
+          <view class="pr-ev-block" wx:if="{{item.scoringPoint || item.scoringWording}}">
+            <text class="pr-ev-label">采分点</text>
+            <text class="pr-ev-text" wx:if="{{item.scoringPoint}}">{{item.scoringPoint}}</text>
+            <text class="pr-ev-text pr-ev-wording" wx:if="{{item.scoringWording}}">{{item.scoringWording}}</text>
+          </view>
+          <!-- 无签发诊断则整块不渲染(omitted-rather-than-faked):
+               宁可少一行,也不用「整理中」占位撑满每张卡。 -->
+          <view class="pr-ev-block" wx:if="{{item.pitfallAvailable}}">
+            <text class="pr-ev-label">易错点</text>
+            <text class="pr-ev-text">{{item.pitfall}}</text>
+          </view>
+          <view class="pr-ev-block" wx:if="{{item.whyMissed}}">
+            <text class="pr-ev-label">为什么丢分</text>
+            <text class="pr-ev-text">{{item.whyMissed}}</text>
+          </view>
+          <view class="pr-ev-block" wx:if="{{item.fix}}">
+            <text class="pr-ev-label">怎么补回来</text>
+            <text class="pr-ev-text">{{item.fix}}</text>
+          </view>
+          <!-- 逐选项点评(鲁班答题形式):签发权威全量逐选项诊断,零现编 -->
+          <view class="pr-ev-block" wx:if="{{item.optionReviews.length}}">
+            <text class="pr-ev-label">逐选项点评</text>
+            <view class="pr-ev-deep-option" wx:for="{{item.optionReviews}}" wx:for-item="review" wx:key="key">
+              <text class="pr-ev-deep-option-key {{review.roleClass}}">{{review.key}}{{review.roleLabel ? ' · ' + review.roleLabel : ''}}</text>
+              <text class="pr-ev-option-text">{{review.text}}</text>
+              <text class="pr-ev-text pr-ev-review-pitfall" wx:if="{{review.pitfall}}">诱惑点：{{review.pitfall}}</text>
+              <text class="pr-ev-text" wx:if="{{review.review}}">{{review.review}}</text>
+            </view>
+          </view>
+          <view class="pr-ev-block" wx:if="{{item.source}}">
+            <text class="pr-ev-label">依据来源</text>
+            <text class="pr-ev-text">{{item.source}}</text>
+          </view>
+          <!-- 鲁班深解析(试驾时刻): 异步 workflow——点按钮秒回生成中,阶段面板
+               实时可见(owner 2026-08-07: 不然客户以为系统卡住了) -->
+          <view class="pr-ev-deep-cta pk-btn-ink" wx:if="{{item.questionId && !item.deepExplanation && !item.deepWorkflow}}"
+                bindtap="onDeepExplanation" data-question-id="{{item.questionId}}" data-idx="{{index}}"
+                data-retry="{{item.deepError ? '1' : ''}}">
+            <text>{{item.deepError ? '重试鲁班详细解析' : '看鲁班详细解析'}}</text>
+          </view>
+          <view class="pr-ev-workflow" wx:if="{{item.deepWorkflow}}">
+            <view class="pr-ev-workflow-head">
+              <view class="pr-ev-workflow-dot" />
+              <text class="pr-ev-workflow-title">鲁班解析中</text>
+            </view>
+            <view class="pr-ev-workflow-stage" wx:for="{{item.deepWorkflow.stages}}" wx:for-item="stageName" wx:for-index="stageIdx" wx:key="*this">
+              <text class="pr-ev-workflow-mark {{stageIdx < item.deepWorkflow.stageIndex ? 'is-done' : (stageIdx === item.deepWorkflow.stageIndex ? 'is-active' : '')}}">{{stageIdx < item.deepWorkflow.stageIndex ? '✓' : (stageIdx === item.deepWorkflow.stageIndex ? '●' : '○')}}</text>
+              <text class="pr-ev-workflow-txt {{stageIdx === item.deepWorkflow.stageIndex ? 'is-active' : ''}}">{{stageName}}</text>
+            </view>
+            <text class="pr-ev-workflow-note">约需半分钟，可先看其他卡片，回来时结果就在这。</text>
+          </view>
+          <text class="pr-ev-deep-error" wx:if="{{item.deepError}}">{{item.deepError}}</text>
+          <view class="pr-ev-deep" wx:if="{{item.deepExplanation}}">
+            <view class="pr-ev-deep-terms" wx:if="{{item.deepExplanation.keyTerms.length}}">
+              <text class="pr-ev-deep-term pk-chip" wx:for="{{item.deepExplanation.keyTerms}}" wx:for-item="term" wx:key="*this">{{term}}</text>
+            </view>
+            <view class="pr-ev-block" wx:for="{{item.deepExplanation.blocks}}" wx:for-item="block" wx:key="label">
+              <text class="pr-ev-label">{{block.label}}</text>
+              <text class="pr-ev-text">{{block.text}}</text>
+            </view>
+            <view class="pr-ev-block" wx:if="{{item.deepExplanation.optionReviews.length}}">
+              <text class="pr-ev-label">逐选项点评</text>
+              <view class="pr-ev-deep-option" wx:for="{{item.deepExplanation.optionReviews}}" wx:for-item="review" wx:key="key">
+                <text class="pr-ev-deep-option-key {{review.status === 'correct' ? 'pr-ev-right-pick' : (review.status === 'learner_wrong' || review.status === 'wrong' ? 'pr-ev-wrong-pick' : '')}}">{{review.key}}{{review.statusLabel ? ' · ' + review.statusLabel : ''}}</text>
+                <text class="pr-ev-text">{{review.review}}</text>
+              </view>
+            </view>
+          </view>
+          <!-- 屏 6 入口: 有绑定才渲染按钮(禁 dead button);无绑定时整行不渲染 -->
+          <view class="pr-ev-lesson pk-btn-ink" wx:if="{{item.lessonPackId}}" bindtap="onOpenLesson" data-pack-id="{{item.lessonPackId}}">
+            <text>{{evidence.lessonCta}}</text>
+          </view>
+          <view class="pr-ev-retest" wx:if="{{item.retestPackId}}" bindtap="onOpenRetest" data-pack-id="{{item.retestPackId}}">
+            <text class="pr-ev-retest-txt">{{evidence.retestCta}} ›</text>
+          </view>
+        </view>
+        <view class="pr-card pk-card" wx:if="{{evidence.readinessDetail.available}}">
+          <text class="pk-kicker">就绪度明细</text>
+          <text class="pr-ev-text">{{evidence.readinessDetail.text}}</text>
+        </view>
+        <view class="pr-cta pk-btn-ghost" bindtap="onEvidenceContinue"><text>看接下来的三优先计划</text></view>
+      </view>
+
+      <!-- ═══ 屏 5: 三优先计划预览(二波接数据, loading 态零假数据) ═══ -->
+      <view class="pr-section" wx:elif="{{section === 'plan'}}">
+        <view class="pr-card pk-card">
+          <text class="pk-kicker">三优先计划</text>
+          <block wx:if="{{plan.status === 'pending'}}">
+            <view class="pr-plan-slot" wx:for="{{plan.slots}}" wx:key="index">
+              <text class="pr-plan-index">{{item.index}}</text>
+              <view class="pr-plan-copy">
+                <text class="pr-plan-title">{{item.roleLabel}}</text>
+                <text class="pr-plan-desc">{{item.desc}}</text>
+              </view>
+              <view class="pr-plan-skeleton"></view>
+            </view>
+            <text class="pr-plan-pending">{{plan.pendingCopy}}</text>
+          </block>
+          <block wx:else>
+            <view class="pr-plan-slot" wx:for="{{plan.items}}" wx:key="index">
+              <text class="pr-plan-index">{{item.index}}</text>
+              <view class="pr-plan-copy">
+                <text class="pr-plan-title">{{item.title}}</text>
+                <text class="pr-plan-desc">{{item.desc}}</text>
+                <text class="pr-plan-meta" wx:if="{{item.expectedTime || item.date}}">{{item.date}}{{item.date && item.expectedTime ? ' · ' : ''}}{{item.expectedTime}}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+        <view class="pr-cta pk-btn-ink" bindtap="onPlanContinue"><text>保存报告，稍后领取完整计划</text></view>
+      </view>
+
+      <!-- ═══ 屏 7: 复测证明收据 ═══ -->
+      <view class="pr-section" wx:elif="{{section === 'receipt'}}">
+        <view class="pr-card pk-card pr-receipt">
+          <text class="pr-receipt-headline">{{receipt.headline}}</text>
+          <text class="pr-receipt-subline">{{receipt.subline}}</text>
+        </view>
+        <view class="pr-cta pk-btn-ink" bindtap="onReceiptContinue"><text>{{receipt.cta}}</text></view>
+      </view>
+
+      <!-- ═══ 屏 8: 保存屏 ═══ -->
+      <view class="pr-section" wx:elif="{{section === 'save'}}">
+        <view class="pr-card pk-card" wx:if="{{save}}">
+          <text class="pk-kicker">保存报告</text>
+          <text class="pr-save-title">{{save.title}}</text>
+          <text class="pr-save-desc">{{save.desc}}</text>
+          <view class="pr-err" wx:if="{{saveErrorMsg}}"><text class="pr-err-txt">{{saveErrorMsg}}</text></view>
+          <block wx:if="{{save.mode === 'direct'}}">
+            <view class="pr-cta pk-btn-ink" bindtap="onSaveDirect"><text>{{save.cta}}</text></view>
+          </block>
+          <block wx:else>
+            <button
+              class="pr-cta pk-btn-ink pr-save-phone-btn"
+              open-type="getPhoneNumber"
+              bindgetphonenumber="handleSavePhoneNumber"
+              disabled="{{phoneBinding}}"
+            >
+              <text>{{phoneBinding ? '绑定中…' : save.cta}}</text>
+            </button>
+            <text class="pr-save-decline">{{save.declineNote}}</text>
+          </block>
+        </view>
+      </view>
+
+      <!-- ═══ 保存成功态(新用户完成后的当前落点) ═══ -->
+      <view class="pr-section" wx:elif="{{section === 'saved'}}">
+        <view class="pr-card pk-card pr-saved">
+          <text class="pr-saved-title">报告已保存</text>
+          <text class="pr-saved-desc">复测和后续学习会写入同一份学习记录，随时可以回来看这份报告和新的对比。</text>
+        </view>
+        <view class="pr-cta pk-btn-ink" bindtap="onSavedContinue"><text>看接下来怎么继续提分</text></view>
+      </view>
+
+      <!-- ═══ 屏 9: 会员 handoff ═══ -->
+      <view class="pr-section" wx:elif="{{section === 'member'}}">
+        <view class="pr-card pk-card">
+          <text class="pk-kicker">继续提分</text>
+          <text class="pr-member-copy">{{member.copy}}</text>
+          <text class="pr-member-personal" wx:if="{{member.personalization}}">{{member.personalization}}</text>
+        </view>
+        <view class="pr-cta pk-btn-ink" bindtap="onMembershipCta"><text>{{member.cta}}</text></view>
+      </view>
+
+    </block>
+
+    <view style="height:120rpx"></view>
+  </scroll-view>
+</view>

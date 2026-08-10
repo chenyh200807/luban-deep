@@ -113,6 +113,10 @@
   - `fast` 是 `kb_first + single_shot_with_prefetch`，允许模型 fallback 和已启用的 `web_search` 预取，但不得进入完整 deep agent loop。
   - `deep` 是 `kb_first + full_agent_loop`，保留 TutorBot 原有多轮工具执行能力。
   - 常规 `execution_path` 使用 `tutorbot_kb_first_fast_policy` 或 `tutorbot_kb_first_full_agent_policy`；exact authority shortcut 可继续记录为 `tutorbot_exact_fast_path`。
+- **口诀单一权威 / 无出处不得自称口诀（2026-08-01，r6 宣传门 A3 收权）**：学生可见回答里任何以「口诀」名义出现的内容，必须来自编译讲义资产（唯一解析器 `rubric_grader_v1.resolve_case_answer_method_for_render`，high 置信带 + topic≥4 字二闸），并由唯一渲染器 `rubric_grader_v1.render_answer_method_mnemonic_lines` 输出（自带出处引用与「展开：」要点行）。判分直批链与由模型自己写正文的 `tutorbot_exact_fast_path` / agent loop 道共用这同一对函数，**不得各自长出第二套口诀权威**。
+  - 命中不了编译资产时，回答**不得**以「口诀」名义输出顿号拼接的漏点标题列表（live 实证：`每个字对应：取样、制样、标识、封志、送检、现场检测`——非资产、无出处、学生照背即背错）。自由作文道由 `_finalize_visible_answer` 链上的 `_case_mnemonic_authority_guard` 把措辞降级为「记忆提示」：只降名号，不删改内容，不新增模板句。
+  - 该守卫的门只看结构化事实（正文含「口诀」+ `case_mnemonic_source` 未发声 + `_build_v1_case_ctx` 给得出题面），`finalize_path` 仍只是观测标签不得门控；判分轮由 V1 自己按同一权威决定，本层不得改二遍。
+  - 升降必发声：`mnemonic_authority_source`（`lecture_pack:<unit_ids>` | `demoted_no_authority`）是 observe-only turn metadata，沿 content-truth 那条 **scene 无关**的载体上 result 事件与 turn summary（判分侧的 `case_mnemonic_source` 被 `scene==case_grading` 门控，非判分轮会被 strip，不得复用）。
 - `llm_selection` 只允许携带 catalog 内的 `profile_id` / `model_id`，用于本次 turn 的 request-scoped LLM 解析；provider secret、endpoint、binding 仍由服务端 model catalog 唯一持有。它可以进入 request snapshot 和 session preferences 作为审计/恢复提示，但不得改写全局 catalog，也不得成为第二套 LLM authority。
 - session `preferences.runtime_state` 只允许作为内部 runtime 恢复态保存；对外 session detail/list payload 不得把它当成公开 preferences contract 暴露出去。
 - mobile conversation id 与 TutorBot internal session id 可能同时存在于历史数据中；adapter 只能把它们归一为同一个用户可见 conversation read-model，并在删除/归档等操作中覆盖同一 owner scope 下的 direct 与 mirror variants，不能让 mirror session 成为第二套会话真相。
@@ -121,6 +125,8 @@
   - 语义主语确实是整段信封的消费点（注入上下文只消毒不拦的 `sanitize_untrusted_context`、纯观测标签、跨轮术语归一化、skill 预装）属于合法豁免，但必须在 `tests/tutorbot/test_surface_authority_registry.py` 显式登记并写明理由——豁免要具名，不许沉默。
   - 同一事实只许一把尺子：小问计数=`rubric_grader_v1._extract_case_question_titles`（经 `_extract_case_question_titles_for_scope`）、作答标记=`CASE_ANSWER_MARKER_PATTERN`、分数写者=`finalize_case_score`。权威数不出来时**不报数**，禁止用"更宽松的 fallback 正则"兜底——报一个判分分母不会用的数字比不报数坏。
   - 违反本条的代价是**离线复现不出来**的生产事故：信封随账号历史逐轮变化，用干净存档跑 eval 永远绿。2026-08-01 一天内五张脸（判分 ctx / 直批探针 / 入口安全闸吸收态 SEV / narration 尺 / narration 面）全部属于本条。
+- **working_memory 投影必须带出处（task#32，2026-08-02）**：turn_runtime post-turn 把助教回答投影进 `overlay.working_memory_projection` 时，op 必须携带 `provenance`（`turn_id` + `source_kind`，以及 session/capability/bot 指针）；出处强制与拒入发声的单一权威是 `BotLearnerOverlayService.patch_overlay`（fail-closed，无出处不入记，拒入落 `overlay_working_memory_rejected` 事件），turn_runtime 不得另建第二道闸。安全模板拒入（#638）不再静默，必须经 `record_working_memory_rejection` 发声。admin 面写入由入口 `stamp_admin_working_memory_provenance` 盖章（拿不到 actor 显式 4xx，绝不静默丢弃）。详细条款见 `contracts/learner-state.md` §working_memory 出处链化。
+  - **已知缺口（有意暂缓，别当没这回事）**：注入面（turn_runtime 把 `working_memory_projection` 组装成 `### 局部工作记忆投影` EVIDENCE candidate 处）目前不携带出处 trace，因此无法从 turn 侧回答"本轮注入的是哪条记忆、它来自哪一轮"。需要时的正确做法是给该 context candidate 加 metadata（与既有 observe-only turn metadata 同性质），**不得把出处渲染进 prompt 正文**——出处是审计元数据，进 prompt 只会扩大注入面。
 
 ## Hosted Luban 教学卡上下文
 
@@ -146,7 +152,7 @@
 - 客户端可以把 `internal` 事件投影成用户可见的安全处理摘要，但普通用户 UI 禁止渲染 raw `content`、raw `metadata`、tool args、tool result 或内部 stage 原文。
 - `turn_runtime` 可以在统一 `/api/v1/ws` 内发送 `progress` + `metadata.status_kind=turn_status` 的 public-safe 进度投影（如 `understanding` / `writing`），用于降低首屏空等感。该事件只能表达“服务端正在处理到哪一段”，不得携带 hidden grading authority、不得成为 capability route / scoring / learner-state / billing authority，也不得替代 terminal `result.metadata.response`。
 - `result.metadata.response` 是 public `result` 事件里的 canonical final answer 投影；当本轮已经向学生发送 public final-answer `content` stream 时，`turn_runtime` 必须在持久化 / 发布 `result` 前把 `result.metadata.response` 对齐到已捕获的同源 public content stream，禁止后到的 stale / fallback `result.response` 覆盖学生实际看到的答案、历史 assistant message 或 replay read model。**同源后缀豁免**：capability 终态若是流文本的严格后缀（finalize 链剥掉了开头过程独白，同一来源的裁剪而非异源替换），保留 finalize 终态，不得用流文本把已剥离的独白前缀复活。只有没有 public content stream 时，capability 发出的 `result.metadata.response` 才作为终局答案来源。对 `subscribe_turn` / `resume_from` 回放的历史 public `result` 事件，若缺少 `metadata.response` 但已有同源 `assistant_content`，`turn_runtime` 必须在统一 WS 出口清洗后投影出同一份 `result.metadata.response`，用于旧客户端兼容。mobile surface 上不得让空 `done` 抢先成为终态；当 capability 尚未发出 public `result.metadata.response`、但 runtime 已捕获同源 authoritative final content 时，`done` 前必须合成 public `result.metadata.response`。非 mobile 的普通 `content` + `done` 流不得仅因 capability route（如 auto-selected `deep_question`）被强行升级为 `result`。该字段仍只是 canonical final answer 的公开投影，不得反向解析成评分、路由、learner-state 或 hidden authority。
-- **渐进发射不改变终态（sequenced emit，2026-08-01 L4）**：capability 允许在终局正文之前，向 public `content` stream 追加**进度叙述前缀**（如案例判分静默期的“已定位到原题 / 采分点拆好了 N 个 / 第 k 组判完”），用于压掉长链路的感知死寂。硬约束四条，缺一即违约：(a) 所有叙述必须严格发生在终局正文之前，使 capability 终态始终是流文本的**严格后缀**——终态由上一条的同源后缀豁免保住，`result.metadata.response`、持久化 assistant message、replay read model 与不做渐进发射时逐字节相同；(b) 叙述只复述**已经算完的结构化事实**，不得携带任何得分 / 命中 / 判定断言，也不得成为 scoring / routing / learner-state / billing authority（那些只属于终局正文与 result payload）；(c) **单写者**：叙述与终局正文共用同一个 content sink，任何心跳/后台叙述任务必须在终局正文首个 delta 之前停止，禁止两个写者交叉；(d) 叙述必须可一键关停（env kill switch），关停后流形状回到未改动前。渐进叙述属于 stream-only 表达层，`first_useful_content` 归因与计费判定不因它改变。
+- **渐进发射不改变终态（sequenced emit，2026-08-01 L4）**：**任何**存在感知死寂窗口的 capability 链路（判分链、通用 agent-loop 取证/首答窗口、其它长链路同理——不限于案例判分）允许在终局正文之前，向 public `content` stream 追加**进度叙述前缀**（如案例判分静默期的“已定位到原题 / 采分点拆好了 N 个 / 第 k 组判完”，或通用链的“正在检索教材与规范原文 / 第 N 组资料取回来了”），用于压掉长链路的感知死寂。硬约束四条，缺一即违约：(a) 所有叙述必须严格发生在终局正文之前，使 capability 终态始终是流文本的**严格后缀**——终态由上一条的同源后缀豁免保住，`result.metadata.response`、持久化 assistant message、replay read model 与不做渐进发射时逐字节相同；链路若**无法预先判定哪一段是终局正文**（如 agent-loop 要等本轮没有 tool_calls 才知道），必须改用**逐轮解除武装**兑现同一不变量：本轮出现任何真实正文 delta 的瞬间停止叙述，直到下一轮开始才重新武装，从而“叙述永不跟在同一轮的正文 delta 之后”，而终态恰是最后一轮正文；(b) 叙述只复述**已经算完的结构化事实**（已走到第几轮、在调哪个工具、第几组证据回来了、走了哪一档 rubric），不得携带任何得分 / 命中 / 判定断言，也不得成为 scoring / routing / learner-state / billing authority（那些只属于终局正文与 result payload）；(c) **单写者**：叙述与终局正文必须落在**同一个 public buffer、同一顺序**（可以有一条独立的 sanctioned-narration 入口用于向下游声明「这段字是服务端自己发的进度叙述、不是模型正文」，但它只改变准入判定，不得改变缓冲区或顺序），任何心跳/后台叙述任务必须在终局正文首个 delta 之前停止，禁止两个写者交叉；判定「终局正文是否已开始」必须以 **public 流上真的多了字**为准，provider 回调但被剥离（如 `<think>`）的 delta 不算正文开始，否则推理期会被整段噤声；(d) 叙述必须可一键关停（env kill switch，**每条链路各有一个**），关停后流形状回到未改动前；(e) **准入不得靠文案凑巧**：下游若有「像不像正经答案」的起流闸，sanctioned narration 必须显式绕闸（安全闸不绕），否则首条短叙述会被扣住直到后续文本把它冲开——2026-08-01 live 实测首答窗口因此空屏 17.3s。渐进叙述属于 stream-only 表达层，`first_useful_content` 归因与计费判定不因它改变。
 - Public final-answer `content` deltas、`result.metadata.response` 与持久化 assistant message 必须复用同一个 user-visible output sink：剥离未被合法 citation footer / bundle 支撑的 `〔N〕` marker、内部 prompt envelope / 参考证据 / 局部工作记忆 / 长期画像提示等非学生正文；`learner_summary`、`working_memory`、`active_object`、`question_followup_context`、`turn_semantic_decision` 等内部 source title / trace key 也不得作为学生可见正文或 citation 标题泄漏。`content` delta 清洗必须保留原始首尾 whitespace，不能破坏 markdown heading/list 渲染；有合法 footer 支撑的 citation marker 仍可保留。
 - `result.metadata.citation_bundle` 是 final answer 的公开引用投影，只允许包含 public-safe `citation_state / refs / claims / footer_text`，不得携带 hidden grading authority。
 - turn 终态 observer metadata（根 span=`turn.runtime` 的 trace 顶层）必须携带案例判分
@@ -164,9 +170,32 @@
   二次过滤成 0 命中）。**键清单单一权威 = `case_output_policy.CASE_GRADING_AUTHORITY_EXPORT_KEYS`**
   （2026-07-30 收权完成）：summarizer lift、终态白名单、per-turn 元组三个消费面
   全部从该常量派生，禁止任何消费面再内联复制键名清单——增键只改常量一处。
-  域测试 `test_authority_export_keys_single_source_across_all_sinks` 钉三面一致。已知系统性缺口（另立战役，不许当作
-  本契约已覆盖）：Langfuse 终点 update 黑洞——全部 turn 的终点键从未落
-  Langfuse span/trace，root span 仅存 start 指纹；合成复现全过、真实 turn 全灭。
+  域测试 `test_authority_export_keys_single_source_across_all_sinks` 钉三面一致。
+- **Langfuse 终点黑洞已收口（task#19，2026-08-01）**：此前全部 turn 的终点键从未落
+  Langfuse，root span 仅存 start 指纹。根因**不是 SDK 缺能力**，是
+  `langfuse_adapter._sanitize_value` 对每一层 dict 只保留前 20 个键，而
+  `sanitize_metadata` 是所有出站 metadata 的唯一入口——真实 turn 终态 metadata 有
+  60~100+ 个键、合并顺序 `skill_metadata → usage 汇总 → trace_metadata` 让前两组正好
+  占满 20 位，判分权威族每轮被静默剥光（连 `user_id` 都因排第 21 位被砍）。
+  「合成复现全过、真实 turn 全灭」正是这条：合成用例的 metadata 不足 20 键，永远踩不到截断。
+  收口三条，构成本段的新硬约束：
+  (a) `sanitize_metadata` 顶层键上限 = `_METADATA_TOP_LEVEL_KEY_LIMIT`（受 OTel 默认
+      128 span 属性硬顶约束），嵌套层仍限 `_METADATA_NESTED_KEY_LIMIT`；**截断必须发声**
+      ——真被砍时写入 `metadata_truncated_key_count` / `metadata_truncated_keys`，
+      不得再出现「查不到 = 分不清没发生还是被砍了」的二义。
+  (b) 终态查询面 = **独立观测** `turn.terminal_state`（`observability
+      .record_turn_terminal_state`），由 `_langfuse_terminal_state_metadata` 投影
+      `_build_terminal_turn_observation_event` 的产物而来。**它不是第四张白名单**：
+      只 re-shape、不重新派生键清单，增键仍只改 `CASE_GRADING_AUTHORITY_EXPORT_KEYS`
+      一处。失败轮带 `level=ERROR`。ClickHouse 侧 `WHERE name='turn.terminal_state'`
+      一行即可拿到整轮终态。
+  (c) trace **级**终态在 langfuse 4.x 上结构性不存在（v4 已删 `update_current_trace`；
+      替代品 `propagate_attributes` 是 span 开始前进入的 context manager，拿不到终态）。
+      因此终态只落 observation 面；任何「trace 顶层属性终态更新」的接线都是假接线，
+      getattr 防御只会把断线吞成静默 no-op，禁止再引入。
+  (d) 终态 emit 位于 `finally` 中、排在唤醒订阅者与摘除 execution **之前**，必须整段
+      被异常吞掉——观测异常逃逸会让 `subscribe_turn` 的订阅者永久挂住。观测永远不得
+      绑架回合终结（域测试 `test_broken_langfuse_terminal_emit_cannot_strand_the_turn`）。
 - `turn_runtime` 的 terminal observer metadata 可以携带 `latency_stages_ms`，用于把单轮耗时拆成 `context_route_preview`、`observability_start`、`context_build`、`capability_selection`、`user_message_persist`、`capability_stream` 等内部阶段，并由 runtime metrics / observer snapshot 聚合。该字段是运维观测投影，不是公开 stream contract、capability route、评分、计费或 learner-state authority；客户端不得依赖它做业务状态判断。
 - `context_pack_trace.build_stage_timings_ms` 与 terminal observer metadata 的 `context_build_stage_timings_ms` 可以携带 context build 内部子阶段耗时（如 `route_resolver`、`session_history`、`learner_state`、`source_loader_*`、`context_pack`、`pack_render`），用于定位首屏与上下文构建性能瓶颈。它们只属于 trace/observability projection，不得改变 context route、候选选择、token budget、learner-state truth、评分或计费 authority。
 - terminal observer metadata 可以携带 `start_turn_setup_stage_timings_ms`，用于拆解首个 `session` 事件前的准备阶段，如 `payload_normalize`、`active_object_lookup`、`followup_resolution`、`public_config_validation`、`bot_runtime_defaults`、`ensure_session`、`update_session_preferences`、`recover_orphaned_turns`、`cancel_active_turn`、`create_turn`、`register_execution`、`publish_session_event`。该字段只用于定位 first-visible 前置耗时，不得改变 turn 创建、session 偏好、active object、billing 或 follow-up authority。

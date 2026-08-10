@@ -62,11 +62,12 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 222            # +luban_playback_manifest.v1 runtime playback projection
+  full_set_count: 224            # +pass-readiness-v1 (diagnostic report envelope, admitted next to p0a-v1)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 38      # +compiled Practice static projection receipt
+    tier2_runtime_canonical: 40      # +pass-readiness-v1 (persisted pass-readiness report envelope)
+                                     #  +compiled Practice static projection receipt
                                      #  +luban_variant_decision.v1 (variant-probe consumption slice:
                                      #  now read at runtime by luban_lesson router + retest_writeback)
     tier3_ephemeral_artifact: 175    # +luban_variant_decision_candidates.v1
@@ -535,6 +536,15 @@ tier2_canonical_contracts:
     consumed_by: deeptutor/services/assessment/report_read_model.py (REPORT_SCHEMA_VERSION read-back)
     needs_field_canonicalization: true   # dash-format id (P0#2): collector now sees it via the namespace + dash-suffix
 
+  # — pass-readiness diagnostic report envelope (persisted schema_version; admitted alongside p0a-v1) —
+  - name: pass-readiness-v1
+    status: runtime_canonical
+    owner: assessment
+    canonical_for: pass-readiness diagnostic report envelope schema version (persisted; admitted by the assessment_sessions report CHECK next to p0a-v1; plan 2026-08-04 过线体检 §11 Phase 2)
+    module: deeptutor/services/assessment/session_repository.py
+    consumed_by: deeptutor/services/assessment/report_read_model.py (SUPPORTED_REPORT_SCHEMA_VERSIONS read-back)
+    needs_field_canonicalization: true   # dash-format id, same collector lane as p0a-v1
+
   # — learner-state runtime read-model (P2: registry beyond grading) —
   - name: learning_report_read_model.v2
     status: runtime_canonical
@@ -678,6 +688,14 @@ tier2_canonical_contracts:
     module: deeptutor/services/construction_grading/case_rubric_pgo_supply.py
     consumed_by: deeptutor/services/construction_grading/rubric_grader_v1.py::_rubric_bank (LUBAN_CASE_RUBRIC_BANK_SLOT=pgo; default remains legacy)
     needs_field_canonicalization: true   # FIELD TODO: candidate bank record fields are validated by validate_pgo_runtime_supply; full canonical field pinning can follow once PGO lane is promoted
+
+  - name: luban_case_rubric_canonical431.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: canonical-431 case-rubric runtime supply bank (per-point real scores + per-subquestion nominal, keyed case_group_id::E{n}); hash-pinned by canonical_pointer, production_authorized=false until Lane-2 tier-1 wiring passes live regression
+    module: scripts/build_luban_canonical431_bank.py
+    consumed_by: deeptutor/services/construction_grading/rubric_grader_v1.py::_load_bank_slot (existing slot loader; slot not yet selected/authorized — same gating precedent as luban_case_rubric_scored_pgo.v1)
+    needs_field_canonicalization: true
 
   - name: luban_lecture_answer_skill_pack.v1
     status: runtime_canonical

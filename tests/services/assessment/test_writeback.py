@@ -306,3 +306,231 @@ def test_node_code_requires_taxonomy_resolver_existence(monkeypatch: pytest.Monk
     assert "taxonomy_code" not in free_text
     assert real_code["node_code"] == "1A413050"
     assert real_code["taxonomy_code"] == "1A413050"
+
+
+def _pass_readiness_scored_result() -> dict:
+    return {
+        "score_summary": {"score_pct": 50, "correct_count": 1, "scored_count": 2},
+        "measurement_confidence": {"level": "medium", "reasons": []},
+        "items": [
+            {
+                "question_id": "q1",
+                "source_question_id": "src_1",
+                "section_id": "pr_objective_single",
+                "learner_answer": "A",
+                "correct_answer": "A",
+                "is_correct": True,
+                "knowledge_points": ["主体结构"],
+                "simple_explanation": "作答正确。",
+                "error_codes": [],
+                "measurement_confidence": "medium",
+            },
+            {
+                "question_id": "q2",
+                "source_question_id": "src_2",
+                "section_id": "pr_case_quality",
+                "learner_answer": "B",
+                "correct_answer": "A",
+                "is_correct": False,
+                "knowledge_points": ["质量验收", "检验批"],
+                "simple_explanation": "验收程序错误。",
+                "error_codes": ["M01"],
+                "measurement_confidence": "medium",
+            },
+        ],
+    }
+
+
+def test_pass_readiness_writeback_carries_dimension_and_scoring_point_observations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_pr_1",
+        form_id="pass_readiness_architecture_v1_form_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        scored_result=_pass_readiness_scored_result(),
+        blueprint_version="pass_readiness_architecture_v1",
+    )
+
+    correct_payload = learner.events[0].payload_json
+    wrong_payload = learner.events[1].payload_json
+    assert learner.events[0].source_feature == "assessment_testset"
+    assert correct_payload["ability_dimension"] == "core_knowledge"
+    assert correct_payload["scoring_point_observations"] == [
+        {"scoring_point": "主体结构", "observed": "correct", "error_codes": []}
+    ]
+    assert wrong_payload["ability_dimension"] == "case_scoring_point_recognition"
+    assert wrong_payload["scoring_point_observations"] == [
+        {"scoring_point": "质量验收", "observed": "incorrect", "error_codes": ["M01"]},
+        {"scoring_point": "检验批", "observed": "incorrect", "error_codes": ["M01"]},
+    ]
+    # Canonical registry codes only; no display-bucket vocabulary persisted.
+    for payload in (correct_payload, wrong_payload):
+        for observation in payload["scoring_point_observations"]:
+            for code in observation["error_codes"]:
+                assert code in ERROR_CODE_REGISTRY
+        assert "display_bucket" not in str(payload)
+
+
+def test_non_pass_readiness_writeback_payload_shape_is_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_topic_1",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        scored_result=_scored_result(),
+        blueprint_version="topic_waterproof_v1",
+    )
+
+    for event in learner.events:
+        assert "ability_dimension" not in event.payload_json
+        assert "scoring_point_observations" not in event.payload_json
+
+
+def test_writeback_rejects_unregistered_error_codes_in_observations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, _learner, _mistake_book = _service(monkeypatch)
+    scored = _pass_readiness_scored_result()
+    scored["items"][1]["error_codes"] = ["X99"]
+
+    with pytest.raises(Exception):
+        service.writeback(
+            user_id="student_demo",
+            quiz_id="quiz_pr_bad_code",
+            form_id="pass_readiness_architecture_v1_form_1",
+            assessment_type="pass_readiness",
+            subject_id="construction_exam",
+            scored_result=scored,
+            blueprint_version="pass_readiness_architecture_v1",
+        )
+
+
+def test_single_item_failure_does_not_kill_whole_writeback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """2026-08-07 审计回归:错题本单题写入抛错曾中止整卷循环(3/30 写入即停,
+    后 27 题全部丢失)。逐题隔离后:失败题留痕计数,其余题照常写入。"""
+
+    service, learner, _ = _service(monkeypatch)
+
+    class _ExplodingMistakeBook:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def save_item(self, **kwargs):
+            self.calls += 1
+            raise RuntimeError("mistake_book_write_disabled")
+
+    exploding = _ExplodingMistakeBook()
+    service._mistake_book_service = exploding
+    scored = _scored_result()
+    # 两道错题夹一道对题:第一道错题炸掉后,后续题必须继续写。
+    scored["items"].append(
+        {
+            "question_id": "q3",
+            "source_question_id": "src_3",
+            "learner_answer": "C",
+            "correct_answer": "A",
+            "is_correct": False,
+            "knowledge_points": ["防水工程"],
+            "simple_explanation": "",
+            "error_codes": ["M01"],
+            "measurement_confidence": "medium",
+        }
+    )
+
+    refs = service.writeback(
+        user_id="u1",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        scored_result=scored,
+    )
+
+    # 两道错题都尝试过(没有在第一题就中止)
+    assert exploding.calls == 2
+    assert refs["failed_item_count"] == 2
+    # 对题的 learning_evidence 照常写入(q1 全量 + q2/q3 事件在 save_item 前已落)
+    assert len(refs["learning_event_refs"]) >= 1
+    assert refs["writeback_status"]["failed_item_count"] == 2
+    assert refs["mistake_book_refs"] == []
+
+
+def test_pass_readiness_wrong_compiled_items_emit_assigned_practice_intents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """体检错题→处方指派(owner 2026-08-08「诊断要驱动计划」):编译车道错题按
+    pack 派一条 assigned 处方事件(幂等,每 pack 一条);processing 走既有处方
+    read-model,练习臂/计划同源出现。无 pack 绑定的车道诚实不派。"""
+
+    from deeptutor.services.learner_state.prescription_outcome_read_model import (
+        build_prescription_outcomes_read_projection,
+        requires_active_practice,
+    )
+
+    service, learner, _ = _service(monkeypatch)
+    scored = _scored_result()
+    session_questions = [
+        {
+            "question_id": "q1",
+            "provenance": {"source_meta": {"aggregation": "compiled_practice_readside", "pack_id": "a01", "rule_group": "拆模强度·条件维"}},
+        },
+        {
+            "question_id": "q2",
+            "provenance": {"source_meta": {"aggregation": "compiled_practice_readside", "pack_id": "a01", "rule_group": "拆模强度·条件维"}},
+        },
+    ]
+    service.writeback(
+        user_id="u1",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="pass_readiness",
+        subject_id="construction_exam",
+        scored_result=scored,
+        session_questions=session_questions,
+    )
+
+    intent_events = [
+        e for e in learner.events
+        if str((e.payload_json or {}).get("training_intent_id") or "").startswith("ti_assessment:")
+    ]
+    # q1 对 q2 错,同 pack 只派一条;label 剥内部维度段
+    assert len(intent_events) == 1
+    payload = intent_events[0].payload_json
+    assert payload["training_intent_id"] == "ti_assessment:quiz_1:A01"
+    assert payload["prescription_phase"] == "assigned"
+    assert payload["target_pack_id"] == "A01"
+    assert payload["concept_label"] == "体检失分点·拆模强度"
+    # 幂等:重放不加倍
+    service.writeback(
+        user_id="u1", quiz_id="quiz_1", form_id="form_1",
+        assessment_type="pass_readiness", subject_id="construction_exam",
+        scored_result=scored, session_questions=session_questions,
+    )
+    assert len([e for e in learner.events if str((e.payload_json or {}).get("training_intent_id") or "").startswith("ti_assessment:")]) == 1
+    # 经同一处方 read-model → assigned → 练习臂激活
+    outcomes = build_prescription_outcomes_read_projection(events=learner.events)
+    target = next(o for o in outcomes if o["training_intent_id"] == "ti_assessment:quiz_1:A01")
+    assert target["status"] == "assigned"
+    assert requires_active_practice(target)
+    assert target["target_pack_id"] == "A01"
+
+    # 非体检类型不派
+    service.writeback(
+        user_id="u2", quiz_id="quiz_2", form_id="form_1",
+        assessment_type="topic_diagnostic", subject_id="construction_exam",
+        scored_result=_scored_result(), session_questions=session_questions,
+    )
+    assert not [
+        e for e in learner.events
+        if e.user_id == "u2" and str((e.payload_json or {}).get("training_intent_id") or "")
+    ]

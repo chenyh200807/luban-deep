@@ -1,0 +1,19 @@
+{
+  "_comment": "retirement batch manifest 模板（canonical431 canonical_pointer 模式最小移植）。每个退役批一份，文件名 = <batch_id>.json。执行器纪律：production_authorized is not True => 拒执行+ERROR 发声（治理链）；len(ids) != expected_row_count => 拒执行（完整性链）。两链分离，授权不减完整性校验。",
+  "batch_id": "B1_reingest_delete_safe_YYYYMMDD",
+  "created_at": "YYYY-MM-DDTHH:MM:SS+08:00",
+  "ids": [],
+  "expected_row_count": 0,
+  "retired_reason": "写进 questions_bank.retired_reason 的原因文本",
+  "superseded_by_map": {
+    "_comment": "可选：drop_id -> keep_id（重复家族正主指针，来源 reference_remap.json）；无正主的批（如纯污染行）留空对象"
+  },
+  "backup_ref": "DB 侧备份表名或备份文件路径（如 questions_bank_cleanup_backup_20260730）",
+  "rollback_sql": "update public.questions_bank set retired_at=null, retired_reason=null, retired_batch=null, superseded_by=null where retired_batch='<batch_id>'",
+  "verification": {
+    "post_retire": "select count(*) from public.questions_bank where retired_batch='<batch_id>' -- 预期 = expected_row_count",
+    "post_rollback": "同查询 -- 预期 = 0；另跑 exact-ilike / text RPC / vector RPC 三通道 smoke 确认回滚行重新可达"
+  },
+  "production_authorized": false,
+  "authorization_note": "待 owner 审批后翻 true 并写明授权语境（谁、何时、依据哪份审批单）"
+}

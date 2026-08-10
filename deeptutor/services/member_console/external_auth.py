@@ -64,15 +64,43 @@ _EVAL_RUNNER_USERNAME_MARKERS = (
     "-test",
     "测试",
 )
-_IDENTITY_METADATA_TEXT_FIELDS = (
-    "account_kind",
-    "actor_type",
-    "created_by",
-    "runner",
-    "agent_tool",
-    "eval_run_id",
+# 身份 metadata 的**唯一字段权威**:写侧(`normalize_identity_metadata`)与读侧
+# (`service._EXPLICIT_IDENTITY_METADATA_FIELDS`)都从这张表派生。
+#
+# 为什么必须是一张表:2026-07-24 `a7ebaab38` 往写侧加了 reg_channel/reg_scene,
+# 2026-07-26 `0a0387983`(跨 worker 锁重构)把相邻的那段又删掉了,而读侧的字段表
+# 毫不知情——注册渠道归因从此静默落 None,BI 侧 `(item.get("identity_metadata")
+# or {}).get("reg_channel")` 是 fail-open 的,空桶不报错,UI 全绿。两张表分裂
+# 就是那次静默丢失的结构性成因;合成一张表让"读侧认得、写侧不认"不再可能发生。
+#
+# 三种归一化模式:
+#   "marker" — 机器身份标记,做 lower + 连字符→下划线 的规整(便于跨源比对)。
+#   "bool"   — 真值标记。
+#   "token"  — **归因键,原样保真**:只做安全字符白名单过滤,绝不改大小写/连字符。
+#              这类值是与外部投放系统对账的键,静默规整会把"丢失病"换成"改名病"
+#              (`Campaign-7` → `campaign_7` 在 BI 里就对不上投放侧配置)。
+#   "digits" — 只保留数字(微信场景值)。
+_IDENTITY_METADATA_FIELD_MODES: tuple[tuple[str, str], ...] = (
+    ("account_kind", "marker"),
+    ("member_account_kind", "marker"),
+    ("actor_type", "marker"),
+    ("created_by", "marker"),
+    ("runner", "marker"),
+    ("agent_tool", "marker"),
+    ("eval_run_id", "marker"),
+    ("phone_binding_method", "marker"),
+    ("is_internal_test", "bool"),
+    ("is_test_account", "bool"),
+    ("reg_channel", "token"),
+    ("reg_scene", "digits"),
 )
-_IDENTITY_METADATA_BOOL_FIELDS = ("is_internal_test", "is_test_account")
+IDENTITY_METADATA_FIELDS: tuple[str, ...] = tuple(
+    field for field, _mode in _IDENTITY_METADATA_FIELD_MODES
+)
+_IDENTITY_METADATA_TOKEN_RE = re.compile(r"[^0-9A-Za-z_\-]")
+_IDENTITY_METADATA_MARKER_MAX = 64
+_IDENTITY_METADATA_TOKEN_MAX = 64
+_IDENTITY_METADATA_DIGITS_MAX = 8
 _PRIMARY_USERS_FILE = Path("/app/data/user/external_auth/users.json")
 _LEGACY_USERS_FILE = Path("/root/luban/.storage/users.json")
 _PRIMARY_SESSIONS_FILE = Path("/app/data/user/external_auth/sessions.json")
@@ -88,16 +116,14 @@ def _allow_legacy_external_auth_default() -> bool:
 def _store_lock_path() -> Path:
     """external_auth 存储的跨进程锁文件路径。
 
-    **必须不依赖文件是否已存在**:`get_external_auth_users_file()` 与
-    `_default_users_file()` 在文件不存在时都返回 None,而锁要在 users.json
-    首次创建之前就能拿到。所以这里解析的是「配置声明的位置」而非「已存在的位置」。
+    路径必须复用 writer 的有效 users store 决策：显式 env → 已存在且允许的
+    primary/legacy default → 首次创建的 primary。否则 writer 落 legacy、锁却落
+    primary 时，锁目录权限会让本可写的 legacy store 整体不可用。
 
-    锁的正确性只要求**所有 worker 进程算出同一个路径**,不要求锁与数据同目录——
-    即使运行时落在 legacy 路径,所有进程走的仍是这同一条解析逻辑。
+    ``_resolve_users_file_for_write`` 在文件尚不存在时仍确定性返回 primary，因此
+    首次创建不依赖 exists；所有 worker 走同一个 resolver，不另造路径 authority。
     """
-    raw = str(os.getenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE") or "").strip()
-    base = Path(raw) if raw else _PRIMARY_USERS_FILE
-    return base.with_name(".external_auth.lock")
+    return _resolve_users_file_for_write().with_name(".external_auth.lock")
 
 
 class _CrossProcessStoreLock:
@@ -316,20 +342,33 @@ def _normalize_optional_user_id(user_id: str | None) -> str:
     return value
 
 
-def _normalize_identity_metadata(identity_metadata: dict[str, Any] | None) -> dict[str, Any]:
+def normalize_identity_metadata(identity_metadata: dict[str, Any] | None) -> dict[str, Any]:
+    """身份 metadata 的唯一归一化入口,由 `_IDENTITY_METADATA_FIELD_MODES` 驱动。
+
+    调用方(external_auth 的写路径、member_console 的渠道归因构造)共用这一个实现,
+    因此不存在"某一侧认得某字段而另一侧把它过滤掉"的可能。
+    """
     if not isinstance(identity_metadata, dict):
         return {}
     normalized: dict[str, Any] = {}
-    for field in _IDENTITY_METADATA_TEXT_FIELDS:
-        value = str(identity_metadata.get(field) or "").strip().lower().replace("-", "_")
+    for field, mode in _IDENTITY_METADATA_FIELD_MODES:
+        raw = identity_metadata.get(field)
+        if mode == "bool":
+            if isinstance(raw, bool):
+                normalized[field] = raw
+            elif str(raw or "").strip().lower() in {"1", "true", "yes", "y"}:
+                normalized[field] = True
+            continue
+        text = str(raw or "").strip()
+        if mode == "marker":
+            value = text.lower().replace("-", "_")[:_IDENTITY_METADATA_MARKER_MAX]
+        elif mode == "token":
+            # 大小写与连字符原样保真——归因键要跟外部投放系统对账。
+            value = _IDENTITY_METADATA_TOKEN_RE.sub("", text)[:_IDENTITY_METADATA_TOKEN_MAX]
+        else:
+            value = "".join(ch for ch in text if ch.isdigit())[:_IDENTITY_METADATA_DIGITS_MAX]
         if value:
-            normalized[field] = value[:64]
-    for field in _IDENTITY_METADATA_BOOL_FIELDS:
-        value = identity_metadata.get(field)
-        if isinstance(value, bool):
             normalized[field] = value
-        elif str(value or "").strip().lower() in {"1", "true", "yes", "y"}:
-            normalized[field] = True
     return normalized
 
 
@@ -351,7 +390,7 @@ def _identity_metadata_for_user(
     username: str,
     identity_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    explicit = _normalize_identity_metadata(identity_metadata)
+    explicit = normalize_identity_metadata(identity_metadata)
     detected = _eval_runner_identity_from_username(username)
     merged = {**explicit, **detected}
     is_eval_runner = bool(detected) or any(

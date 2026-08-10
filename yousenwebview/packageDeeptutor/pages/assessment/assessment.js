@@ -84,7 +84,9 @@ var ASSESSMENT_I18N_KEYS = {
   deepExplanationUnavailable: "详细解析下个版本上线",
   resultNextActionFallback: "根据本次测评更新训练计划中，前往学习计划查看。",
   degraded: {
-    writeback_failed: "本次得分已生成，错题写入学习记录时遇到问题，系统会稍后重试。",
+    // 诚实文案:自动重试链路尚未上线,禁承诺「稍后重试」(2026-08-07 审计:retry 零调用方)
+    writeback_failed: "本次得分与报告已生成；部分作答暂未写入错题本，不影响本次报告。",
+    writeback_partial: "本次得分与报告已生成；少量作答暂未写入错题本，不影响本次报告。",
     scoring_partial: "本次报告生成不完整，请稍后刷新查看。",
     source_redaction_failed: "本次题目数据校验未通过，报告暂不可作为正式结果。",
     unknown: "本次报告有部分信息未完成同步，请稍后刷新查看。",

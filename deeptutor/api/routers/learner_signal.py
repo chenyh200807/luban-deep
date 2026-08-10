@@ -24,7 +24,8 @@ router = secure_router(tags=["learner_signal"])
 
 class LearnerSignalRequest(BaseModel):
     signal_type: str            # "subjective_focus" | "user_dispute" | "station_completed"(复习模块旗标后)
-    concept_id: str
+                                # | "pin" | "defer" | "time_budget"(exam_prep_plan 旗标后, 意志族)
+    concept_id: str = ""        # time_budget(全局意志)可空, 其余必填(写器校验)
     concept_label: str = ""
     error_code: str = ""
     ability_dimension: str = ""
@@ -32,7 +33,8 @@ class LearnerSignalRequest(BaseModel):
     completion_id: str = ""
     practice_mode: str = ""
     training_intent_id: str = ""
-    probe_id: str = ""
+    probe_id: str = ""          # defer 复习任务时必带(落 declined 机制)
+    time_budget_minutes: int = 0  # time_budget: 每日分钟预算(1..600)
 
 
 @router.post("/signal")
@@ -54,6 +56,7 @@ async def post_learner_signal(
             practice_mode=body.practice_mode,
             training_intent_id=body.training_intent_id,
             probe_id=body.probe_id,
+            time_budget_minutes=body.time_budget_minutes,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

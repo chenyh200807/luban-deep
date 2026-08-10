@@ -96,7 +96,7 @@ async def test_generate_llm_deep_explanation_observes_call(monkeypatch) -> None:
     )
 
     assert captured["observation_name"] == "assessment.deep_explanation"
-    assert captured["max_tokens"] == 1200
+    assert captured["max_tokens"] == 2400
     assert result["summary"] == "先判断构造层次。"
 
     entry = get_turn_runtime_metrics().snapshot()["assessment_explanation_ms"]
@@ -138,3 +138,29 @@ async def test_generate_llm_deep_explanation_records_duration_even_on_error(monk
     assert entry is not None
     assert entry["count"] == 1
     reset_turn_runtime_metrics()
+
+
+@pytest.mark.asyncio
+async def test_unparseable_llm_output_raises_instead_of_canned_template(monkeypatch) -> None:
+    """罐头模板反模式回归(2026-08-07):输出截断/非 JSON 时禁伪装成付费解析——
+    内容级重试一次后仍失败必须显式抛错(调用方不计费不缓存)。"""
+
+    calls = {"n": 0}
+
+    async def _garbage(*_args, **_kwargs):
+        calls["n"] += 1
+        return "对不起,我这次没能输出 JSON"
+
+    from deeptutor.services import llm as llm_module
+    from deeptutor.services.assessment.deep_explanation import generate_llm_deep_explanation
+
+    monkeypatch.setattr(llm_module, "complete", _garbage)
+    with pytest.raises(RuntimeError, match="assessment_deep_explanation_generation_failed"):
+        await generate_llm_deep_explanation(
+            question={"question_id": "q1", "question_stem": "题", "options": []},
+            learner_answer="B",
+            correct_answer="A",
+            quiz_id="quiz_x",
+            question_id="q1",
+        )
+    assert calls["n"] == 2

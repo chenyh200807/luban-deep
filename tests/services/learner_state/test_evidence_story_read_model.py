@@ -4,6 +4,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
 from deeptutor.services.learner_state.evidence_story_read_model import (
     build_evidence_story_read_model,
     redact_chat_text,
@@ -238,7 +240,9 @@ def test_sales_summary_uses_closed_enum_without_exaggerated_claims() -> None:
 
 
 def test_no_public_endpoint_added_for_evidence_story() -> None:
-    mobile_router = Path("deeptutor/api/routers/mobile.py").read_text(encoding="utf-8")
+    mobile_router = (REPO_ROOT / "deeptutor/api/routers/mobile.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "evidence_story" not in mobile_router
     assert "evidence-story" not in mobile_router

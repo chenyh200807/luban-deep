@@ -126,6 +126,15 @@ databases:
 
   - name: questions_bank
     purpose: 题库（governed 客观题 questions_bank，评分编译输入）
+    # 2026-08-02 task#31 测绘订正：本条目此前只覆盖 psycopg 直连的编译期读者，
+    # 漏了全部在服 REST/RPC 读者（它们走 SUPABASE_URL + service key，不在本
+    # checker 的 raw-connect 扫描面内）：
+    #   - RAG: deeptutor/services/rag/pipelines/supabase.py（REST ×4 + RPC ×2）
+    #   - 组卷: deeptutor/services/assessment/blueprint_service.py（REST ×2）
+    #   - 库内: 8 RPC + 1 视图（SQL 已版本化进 supabase/migrations/20260802000200）
+    # 软删纪律（contracts/rag.md §47）：retired_at 是行生命周期唯一判据，读侧
+    # 谓词权威 = deeptutor/services/questions_bank_liveness.py。全量读者清单见
+    # docs/原始数据/数据盘点/2026-08-02-questions_bank软删版本化读者测绘与设计.md §1。
     url_envs: [QUESTIONS_BANK_DB_URL]
     canonical_for_facts:
       - governed_objective_question

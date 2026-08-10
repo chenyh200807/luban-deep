@@ -17,6 +17,76 @@
 - 成功修法(两 commit):**7b15d20a0** 路由收权——第二把意图尺整体退役(4 消费点回归 looks_like+无作答);追问尺补「这轮不做」折价窗(否定+延迟从句同表同函数);裸「继续」marker 退役(出题尺「继续出」的子串双重计票);双形状(出题+追问)一律交语义层(4 消费点同规则,含 scene 权威 2 个出口);批量 arity 单向闸(序号段数>可判题数归 ambiguous,答少不拦);contracts/capability.md §44。**392cfd443** 交付合同——`_generation_loop` 并发化(Semaphore 4+asyncio.wait,样板=同文件 gather)+本地 150s 预算收束部分交付+`generation_shortfall` 发声;deadline 处决落 `turn_failure={kind:deadline_exceeded}`+律4 mapper 专属文案;入口 clamp 50→20;contracts/turn.md。PR3(撤 tutorbot 模板终局权 6a/6c+6b marker)按指挥官序最后、且防编造 live 异源钉不绿不上线——本轮只归档实施 spec(docs/audit/2026-08-10-出题判分超时三族根因/COMMANDER.md §3/§5),未动刀。
 - 验证(数字):服务层+runtime 549 passed;WS 套件 190 passed(改前 189+1F,「五道题+等我作答后再批改」由延迟盲修复转绿);新钉 13 枚(F1 原文快路径钉含"不咨询 LLM"断言、arity 双向、否定/延迟感知、双形状 defer、作答优先、并发全量交付顺序、单题挂死收束 9/10+shortfall、mapper 专属档);contract-guard [turn]/[capability] passed;scene 层六案手测全对。存量失败 5 例(deep_question 2/characterization golden 2/terminal free_trial spy 1)基线(HEAD~1)复核同挂,非本次引入。**live 回归未跑(未部署)**:test2 重放 F1 脚本三条件复现+「出10答10」全链耗时测量,在部署里程碑执行。
 - 教训:①同一句话从不同门进结局不同=架构病铁证(对照组走普通聊天入口判对);②修复中途工作树被外部 `git reset --hard` 清空(reflog 在案),所有编辑靠会话上下文完整重放——**收权改动落定即 commit,缩小裸奔窗口**;③金丝雀测试挂掉时先怀疑裁决而非测试(F1① 被测试证伪是本轮最有价值的一次改判);④「否定盲」是词表类判据的家族病:同一病根一天内在三把不同的尺上现形(退役词表/追问尺否定/追问尺延迟)。
+## 2026-08-08 - 计划反线性:体检错题经处方链驱动练习臂 + policy_v2 日内交错
+
+- 问题:owner 问「学习计划就只是练题吗?会不会太线性」。实测反转:新用户 7 天计划 21 任务**全是 learn_next**、零练习零复习——体检刚产出的 30 道错题诊断完全没进计划(获客叙事「诊断→计划补失分点」断裂),且学习站纯 registry 学序线性展开。
+- 根因:处方 read-model 只认带 training_intent_id 的事件;体检 writeback 事件不带 → practice 臂恒空。复习臂结构性首周为空(学过才有复习,诚实)。
+- 修法(零新权威,parity by construction):
+  1. **writeback 派处方**:体检错题按所属编译 pack(绑定权威=私有快照 provenance.source_meta.pack_id)每 pack 派一条 `assigned` 处方事件(training_intent_id=ti_assessment:{quiz}:{pack},concept_label=「体检失分点·×××」,dedupe 幂等)。走**同一事件流+同一 read-model**——首页四臂 practice 承接与计划 practice_retest 同源出现,四臂/计划都看见同样输入,parity 结构性保持。无 pack 绑定车道(题库/案例)诚实不派。
+  2. **policy_v2 日内交错**:practice/learn 轮转排(族内保权威序),打破整天同臂连排;§3.2 gap 全池重排退役;PLAN_POLICY_VERSION bump v2。
+  3. 弱项站排序**主动放弃**:练习任务已承载个性化,学序保留前置边安全序——不造同 pack 双任务。
+- 验证:writeback 16(+1 处方派生回归:同 pack 去重/幂等/read-model assigned/非体检不派)、exam_prep_plan 10(+1 交错回归)、assessment 193、contract guard 绿;本地端到端:同一用户从 21×learn → **10 practice+16 learn 日内交错**,reason=「继续练:体检失分点·×××,换个题面」,supply_gaps 0。
+- 踩坑实录:首次端到端验证在后台 writeback 线程完成前查计划 → 误判"没生效";第二坑=探针把 member dict 当 learner snapshot 传 _snapshot_memory_events(getattr 拿不到 memory_events 静默返回空)。教训:异步写后验读必须等落盘证据(直查 MEMORY_EVENTS.jsonl),探针要走与生产完全同名的读法。
+- 已知边界:处方闭环(学员做完复测→intent 转 completed/verified)依赖复测终端事件与 intent 的链接,未活体验证;若链接不上,任务 7 天后转 needs_followup 仍诚实活跃。列入灰度观察。
+
+## 2026-08-08 - 深解析同步超时治本:ensure/poll 异步化 + workflow 阶段面板
+
+- 问题:owner 实拍「请求超时,请稍后重试」——深解析是同步等 LLM(2400 tokens+内容级重试,最坏 60-90s),撞小程序请求超时窗;且等待期零反馈,「客户还以为系统卡住了」。owner 拍板对齐学习模块追问 AI 的 workflow status 形态。
+- 根因形状:长任务塞进同步请求-响应,超时后服务端其实常已完成并落缓存(再点秒出)——症状像故障,实为架构错位。
+- 修法(ensure/poll,复用缓存权威做跨 worker 汇合点):①点按钮 → 服务端把 `{"pending":true,"started_epoch"}` 落 report.deep_explanations[cache_key](跨 worker 单一权威,WORKERS=2 下第二 worker 不会重复起任务),起 asyncio 后台任务(生成+计费+落缓存全 to_thread),请求**秒回** `workflow_status=generating`+阶段(读取签发诊断→逐项核对→组织讲解,阶段名按 elapsed 推进,状态本身真实);②前端 7s 轮询同一入口(限流 10/min 窗内),阶段面板(鲁班解析中+三阶段勾选+「可先看其他卡片」),completed 渲染/failed 停轮询给重试按钮(?retry=1 忽略失败标记重生成);③pending 残留 180s 过期自愈;失败标记落同一存放点。追问 AI 的 WS 流式栈不复用(报告页拉 WS=过度工程),对齐的是形态不是传输。
+- 验证:member_console 深解析 4 用例(异步流/试驾/失败重试/余额门)+assessment 189+前端全套零失败;asyncio 扫描 service.py 零命中。
+- 教训:①billable 长任务永远不要塞同步 HTTP——客户端超时≠服务端失败,还会诱发重复点击双倍成本;②跨 worker 的 in-flight 标记不能放进程内存,落已有持久化权威(报告快照)最便宜;③「加载中」体验是获客页的一等需求,阶段可见性≥速度。
+
+## 2026-08-07 - 证据卡整卡对齐鲁班答题形式:逐选项点评全量投影 + 规则句常驻(设计反转)
+
+- 问题:owner 连环反馈收束成一句「按鲁班每次回答题目的形式去展现,系统性一点」——不是单槽位文案问题,是整卡信息密度与形式问题。
+- 两个根修:
+  1. **规则句常驻(设计反转实录)**:上一轮把签发 model_answer 按「与正确选项相近即复读」压掉——owner 实拍裁决推翻:正确答案行=对照角色(该点哪个),采分点规则句=记忆角色(该背什么),文本相近也必须各自在位。撤相似度压制,model_answer 一律透出;wxml 采分点块改 标签/规则句任一在场即渲染。
+  2. **逐选项点评全量投影**:签发权威三条车道全部带逐选项诊断(编译:每个选项 temptation/loss_reason/fix,正确选项 fix=得分要点;题库:option_reasoning;案例:逐选项 cause),此前投影只取学员实选一项=浪费权威。新增 _issued_option_reviews 按选项顺序全量投影(错误项 review=为什么错+诱惑点,正确项 review=得分要点),前端「逐选项点评」块按角色标色渲染——默认卡即鲁班答题形式,零 LLM 零现编;深解析按钮升级为口诀/关键词/下一步的增量层。
+- 验证:assessment 180(+1 逐选项投影回归)、前端全套零失败、页面契约绿;本地 36 卡 20 张带规则句。
+- 教训:①用户说「不满意某槽位」连续多轮时,病常在**整卡形式**而非那一个槽——要对照产品里已被认可的输出形式(鲁班答题)做全卡结构对齐;②「防重复渲染」类洁癖规则要拿真实阅读角色检验:同一文本在对照位与记忆位承担不同任务,不是重复;③签发权威的富数据只投影了零头=最常见的浪费形态,新增槽位前先盘点权威里还有什么没用上。
+
+## 2026-08-07 - 采分点内部速记直出清洗(「判型·条件维」不是给学员看的)
+
+- 问题:owner 追问「采分点太简单太敷衍解决了吗」——诚实答:没全解决。盘点 578 种 rule_group,大量是编题内部速记:维度分类段(条件维/程序维/计算表达维…347 处)+创作工序段(末题/上集/判断纠错…)。上一轮只清了「章节名冒充」,没清「速记直出」。
+- 修法:投影层 _learner_facing_scoring_point 单点清洗——按「·」分段剥内部段(「××维」+显式工序词表),剥完不足 3 字判速记留白(fail-closed)。全量效果:649 条中 86% 剥出真人话(「降水选型」「拆模强度」「留槎形式」),88 条(78 组)留白并产内容线命名工单 artifacts/pass_readiness_scoring_point_naming_worklist.json(附 model_answer 供提炼,签发闸流转)。
+- 深解析罐头病同轮治本(见 commit 5cdc311b4):v2 prompt 输出变长→1200 tokens 截断→JSON 解析失败→罐头模板被计费+缓存。max_tokens 2400+内容级重试一次+仍失败显式抛错(不计费不缓存),删罐头兜底串。
+- 教训:①「太简单」类反馈要拿全量分布说话(578 种标签一盘点,速记占比一目了然);②学员面文案的机器码闸要覆盖「半人话速记」,不只是蛇形英文;③LLM 输出上限与 prompt 演进要联动检查——prompt 变长,输出预算不动=静默截断。
+
+## 2026-08-07 - 证据卡质量三病 + 深解析缓存/签发诊断 grounding + 补锚工单
+
+- 问题:owner 实拍卡18/19「采分点和易错点太简单,整体质量太差」+ 拍板「深解析不得重复生成」+ 追问「267 空锚怎么解决」。
+- 根因(卡18 逐字还原出两个真病,不是文案问题):
+  1. **多选错因装配 bug**:build_evidence_items 按「学员实选字母」取首个有诊断的选项——多选漏选时实选的恰是**对的**选项(卡18 选 C 对,漏 A/D/E),把对选项的解读渲染成「为什么丢分」=答非所问。修法=错因锚定**错误字母集**(错选优先+漏选),多选逐项拼「错选 X：…;漏选 Y：…」,无解读时至少给选项原文;单选语义不变。
+  2. **章节标签冒充采分点**:题库车道无签发采分点时回落 knowledge_points[0](=「主体结构工程施工」章节名)——且前后端各有一个凑数回落点(ruler-and-surface)。修法=两侧回落全删,无签发采分点诚实留白;首屏预告同纪律。
+  3. **深解析重复生成**:cache_key 早已存在但从未有存取点(半截设计)。修法=唯一存放点 result_report_json.deep_explanations[cache_key](复用既有 JSONB 列,零迁移),两 repo 各加 store_deep_explanation,服务命中即回 cache_status=cached 零 LLM 零计费;写缓存失败留痕不拦结果。
+- 质量加固:prompt v2 把签发 answer_diagnosis(逐选项 pitfall/why_missed/fix+model_answer)喂进 prompt 作**事实基准**(解析不得与教研诊断矛盾,空时才自行推导、禁编造条文数值);PROMPT_VERSION bump 使缓存键自然换代。
+- 267 空锚裁决:全部来自讲义 HTML 编译车道(anchor=compiled_html:artifacts/... 无教材节点码);pack 级读侧兜底被数据否决(16/35 pack 跨多节点,张冠李戴风险);治本=内容线补锚。产出可审工单 artifacts/pass_readiness_anchor_backfill_worklist.json(267 条,词面匹配签发教材 bundle 建议锚,high 70/medium 55/low 142),人审确认后走编译管道+签发闸重签发,禁直写权威。
+- 验证:assessment 177(+2 多选/采分点回归)、快闸 529、member_console 全量+缓存回归、前端全套零失败、contract guard 绿。
+- 教训:①「质量差」的用户反馈要逐字还原到数据装配层——两张卡背后是装配 bug 和假内容,不是措辞问题;②cache_key 存在≠缓存存在,半截设计(键无store)是 unconsumed island 的变体;③多选题的「学员错误」=集合差,不是「学员选了什么」。
+
+## 2026-08-07 - 过线体检六项清剿:检查点下线/复读压制/来源人话化/回写隔离/试驾深解析/毒环境卸载
+
+- 问题:owner 六项遗留逐一清剿令 + 两条新拍板(①中场小结页不要,连续答题;②证据卡解析要展现鲁班能力,"评测=试驾")。四路专家 subagent 并行只读测绘,主控单写者实施。
+- 各项根因与修法:
+  1. **中场小结页全链下线**:专家测绘发现该页在 resume 路径本来就不生效(\_redacted_session 从不导出 checkpoint_after,恢复会话永不触发)=半死状态;判分档位用自有常量查表与 blueprint 字段零耦合;`checkpoints` 复数字段零消费者。全链删净(blueprint 字段/两处导出/前端触发+渲染+草稿位/midpoint 埋点),不留死导出。**计划 §6.2/§7.2 Deviation:owner 2026-08-07 拍板,回滚锚 a86f55e19**(计划文档不在本分支,Deviation 正文记于此+commit message,文档落 main 后补 Deviations 节)。
+  2. **得分表述反转**:14/30 覆盖不是病,病是反面——实测编译权威 649 条 model_answer 里 ~80% 是正确选项复读(86 全同+434 近重复),证据卡上和「正确答案」行重复渲染=ruler-and-surface 第二面。修法=投影层 difflib>0.75 判复读压空,只留真增量(工序链/查表口径)。效果 20→2,验收口径=「零复读第二面」而非覆盖率。
+  3. **来源人话化**:接线病非数据病。taxonomy_authority.taxonomy_label() 自宣学员面章节名单一权威(永不露码)且同层早已在用,report_read_model 没接而已。kc/ca/cc/m35 锚取节点码→「教材·章节名」,翻不出仍 fail-closed 留空。效果 7→20/36,机器锚 0。
+  4. **writeback_failed 定性纯本地环境病**(本地缺 DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED,生产 48h 零降级 refs 满额),但挖出三真缺陷同修:①service.py 裸 `except Exception:` 零日志(observability lie 重演)→ logger.exception 留痕;②前端文案承诺「系统会稍后重试」但 retry_assessment_writeback 零调用方(假承诺)→ 改诚实文案;③单题失败杀死整循环(实证 3/30 写入即停后 27 题全丢)→ 逐题 try/except 隔离+failed_item_count+writeback_partial 降级,dedupe 幂等保证补写安全。
+  5. **鲁班深解析接进证据卡(试驾时刻)**:deep_explanation 能力(路由/服务/计费全在)此前是端到端 unconsumed island——所有前端只渲染「详细解析下个版本上线」stub。接线=证据卡「看鲁班详细解析」按钮→既有 /items/{id}/explain(thin wrapper 零新能力);计费面:新会员 points_balance=0 必撞 20 分门 402,加 trial_included 通道——pass_readiness 卷内 wrong_items 免额度(单卷≤36 天然封顶+10/min·200/day 路由限流兜底),普通测评计费路径原样。埋点 pass_readiness_deep_explanation_started 入 catalog。
+  6. **毒环境卸载**:「site-packages 旧副本」真相=4 月 pip install -e 经 Documents symlink 指向 canonical 仓库,而 canonical 停在 7 月 codex 分支(无任何 pass_readiness 代码);editable finder 排 PathFinder 后兜底,脚本从 scratchpad 执行(sys.path[0]=脚本目录)时静默吃错。全机审计零活体消费者→ pip uninstall(从此吃错必响 ModuleNotFoundError)+根 conftest.py 四行闸(deeptutor.__file__ 必须在仓库树内)。
+- 失败的尝试:无重大弯路;wording 阈值 0.75 的 moderate 段(0.5-0.75 共 105/649)复读与增量混杂,保守替代方案(只压 exact)已弃——owner 抱怨的正是低质复读。
+- 验证:assessment+observability+redaction 527 passed;writeback 15 passed(+1 隔离回归);member_console 全量【见下条部署账】;前端全套 node 零失败(exam 契约测试改写为「连续作答不打断」断言);contract guard 绿;本地端到端 36 卡:人话来源 20/36 机器锚 0、wording 只留 2 条真增量、对照面 36/36。
+- 教训:①「半死功能」(只在部分路径生效的 UI)是删除阻力最小的信号——测绘先于争论;②覆盖率类指标(wording 14/30)不加语义质检就是假 KPI,复读把它撑高;③billable 能力接获客面必先查新用户默认余额,否则试驾变付费墙;④editable install + symlink + 停旧分支的 canonical = 三层叠加出静默毒环境,结构性卸载优于纪律条款。
+
+## 2026-08-07 - 过线体检证据卡对照面:正确答案/选项原文/得分表述断链（三连投诉根因）
+
+- 问题:owner 两轮实拍投诉（16:50、19:59）——证据卡有诊断文案但「看不出正确答案是哪个,没分析我为什么错」。业务事实=证据卡必须是**可对照的诊断**:我选了什么（内容）、正确是什么（内容）、能得分的表述、我为何丢分。前一轮修复（4ab23bdb6/fe68773e9）接通了诊断文案车道,但对照面三处断链:①后端投影发了 correct_answer,前端 view-model 直接丢弃、wxml 无渲染位;②「你的作答」只投字母 C,无选项原文,逐选项诊断读起来像答非所问;③计划 §7.3-3 的「能得分的确切表述」前端有 scoring_wording 槽,后端从不产出——数据（answer_diagnosis.model_answer）从 4ab23bdb6 起就躺在签发快照里没人消费。附带病:依据来源把机器锚 ca:1A413030_103_0196 原样示人（fe68773e9 的蛇形谓词拦不住带冒号锚）。
+- 根因形状:dormant slot + unconsumed island 成对出现（前端有槽没数据喂、权威有数据没人读）,接通即最小修法;来源机器码是 ruler-and-surface 病（人话面与排障面共用一个字段）。
+- 失败的尝试:首版让 correct_answer 优先读 scored item 转录,被测试 fixture 的合成值（correct_answer=B vs 快照 answer=A）当场证伪——按单一权威改为签发快照 answer 优先,scored 转录只作兜底。
+- 修法:report_read_model.build_evidence_items 增 learner_option_text/correct_option_text（从快照 options 查文本）、scoring_wording←diagnosis.model_answer、source 过 _learner_facing_source（exam:YYYY:第N题→「YYYY 年真题·第N题」,纯 ASCII 机器锚留空）、机器锚只留 source_ref;view-model 增 learnerAnswerDisplay/correctAnswerDisplay,source 不再回落 source_ref;wxml 增「正确答案」行（竹青）、作答行标赭。零新概念零新状态:全部是接通既有权威字段。
+- 验证:assessment 173 passed（新增 2 回归:对照面全字段+机器锚永不进人话面）;member_console 371 passed;前端 view-model+页面契约+全套 node 零失败;contract guard 全绿;本地端到端真签发数据 36 卡:36/36 有正确答案+双方选项原文、20/36 有得分表述（编译车道有 model_answer,其余车道诚实留白）、机器锚泄露 0。
+- 教训:①「内容线接通了」≠「对照面成立」——学员读卡的最小闭环是 选项内容×正确答案×错因 三者同屏,验收必须按学员视角逐屏读,不能按字段清单打勾;②前后端各有半套（槽位/数据）但从未握手的 dormant slot,用字段名跨前后端 grep 一查即现,值得进自查清单。
 
 ## 2026-07-30 - tier1/2 可达性 1b：门死锁+exact 恒 miss 全链根因（四层剥洋葱）
 

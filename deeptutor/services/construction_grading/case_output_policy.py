@@ -99,6 +99,23 @@ CASE_GRADING_AUTHORITY_EXPORT_KEYS: tuple[str, ...] = (
     #   满分的直接反证据面：没答的问命中为 0，答满的问也只能拿到自己那一份。
     "case_per_subq_grading",
     "case_subq_score_caps",
+    # R2 分母权威阶梯（task#26，2026-08-01）："canonical" | "bundle" | "stem" |
+    # "reference_fallback" —— 本轮的题面小问数（判分分母）到底出自哪一级权威。
+    # 治的病：自持案例路径（practice / 直调 capability）曾把分母塌成「参考侧计数」，
+    # 而参考侧是检索装配的产物，等于让检索运气决定「这道题有几问」，参考多一项
+    # 学生每一问就被稀释一份分。live 判据按它分组：canonical/bundle/stem 占比
+    # 应压倒 reference_fallback；reference_fallback 高发 = 题级组归属或题面缺位，
+    # 是供给问题不是判分问题。
+    # canonical431 接线补一个取值（Lane 2 2026-08-01）："canonical_rubric" ——
+    # tier-1 按 `{case_group_id}::E{n}` 命中 governed bank，分母 = Σ每问**真实满分**
+    # （分值权威，需 production_authorized）。与上面的 "canonical"（结构小问数，
+    # 只读 nominal_table、不读采分点）**刻意不同名**：两者不是同一级权威。
+    "case_denominator_source",
+    # canonical431 tier-1 键命中（Lane 2 2026-08-01）：形如 "4/4"、"3/4"、
+    # "0/5:disputed5"——本轮有几个小问真的按 `{case_group_id}::E{n}` 命中了
+    # governed bank。case_rubric_bank_slot 只证「装了哪个库」，它证「库到底
+    # 有没有被用上」：slot 切了却零命中（键没接通）在没有它时长得和成功一样。
+    "case_canonical_key_hit",
 )
 
 CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
@@ -112,6 +129,12 @@ CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
     "case_grading_adjudication_strategy",
     "case_grading_adjudication_group_count",
     "case_grading_adjudication_point_count",
+    # Grading-result cache receipt. Must stay in lockstep with the event→metadata mapping in
+    # tutorbot/agent/loop.py: a key written there but missing here is stripped from the turn
+    # projection (and vice versa it is never populated) — the cache hit rate would read as 0.
+    "case_grading_cache",
+    "case_grading_cache_key_version",
+    "case_grading_cache_key",
 )
 # An explicit case-style score *verdict* (not a bare 采分点 teaching label, a
 # rubric like "满分100分", or a unit price like "5分/平米"). Used only as the

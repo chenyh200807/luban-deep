@@ -507,6 +507,19 @@ function wxLogin(code) {
   });
 }
 
+/** openid-only 登录(过线体检拒绝车道, §5.1)
+ * 用户在微信手机号弹窗点「拒绝」后, 同一 handler 内直接走本端点继续进测评。
+ * 请求契约冻结为 {"code": "<wx.login code>"}; 响应=标准 auth 响应(token/user_id/openid)。 */
+function wxLoginBasic(code) {
+  return request({
+    url: "/api/v1/wechat/mp/login-basic",
+    method: "POST",
+    data: { code: code },
+    useGateway: true,
+    noAuth: true,
+  });
+}
+
 /** 手机号授权快速登录 */
 function wxLoginWithPhone(code, phoneCode) {
   var attribution = regAttribution();
@@ -966,6 +979,32 @@ function getLubanReviewDue(opts) {
   return requestStateGet("/api/v1/luban/review-due", opts);
 }
 
+/** 鲁班 — 备考计划投影(计划页/跑道视图, exam_prep_plan_projection 薄透传)。
+ * flag(LUBAN_EXAM_PREP_PLAN_ENABLED)关时服务端返 {enabled:false} → 页面隐藏入口(非 404)。 */
+function getLubanExamPrepPlan(opts) {
+  return requestStateGet("/api/v1/luban/exam-prep-plan", opts);
+}
+
+/** 鲁班 — 计划意志 defer(推迟)信号: 走唯一 learner-signal 写器(计划体系 §3.3)。
+ * 复习任务 defer 必带 probe_id(落 revalidation_queue declined 机制);
+ * learn 任务 defer 只带 concept_id(=pack_id)。意志只动排序日程, 绝不进掌握/得分。 */
+function postPlanDefer(packId, probeId, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/learner-signal/signal",
+        method: "POST",
+        data: {
+          signal_type: "defer",
+          concept_id: String(packId || "").trim(),
+          probe_id: String(probeId || "").trim(),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
 /** 鲁班 — 站完成信号(非 promoting): 复测调度的触发事实——交接时刻/复测完成时上报。
  * 走唯一 learner-signal 写入口, 不写掌握、不进证据编译器(contracts/learner-state.md)。 */
 function postStationCompleted(packId, packTitle, completionId, opts) {
@@ -1171,10 +1210,12 @@ function getAssessmentReport(quizId) {
   return requestStateGet("/api/v1/assessment/" + quizId + "/report");
 }
 
-/** 摸底测试 — 生成 AI 详细解析 */
-function requestAssessmentDeepExplanation(quizId, questionId) {
+/** 摸底测试 — 生成 AI 详细解析(异步 ensure/poll:秒回 generating,轮询取结果) */
+function requestAssessmentDeepExplanation(quizId, questionId, retry) {
   return request({
-    url: "/api/v1/assessment/" + quizId + "/items/" + questionId + "/explain",
+    url:
+      "/api/v1/assessment/" + quizId + "/items/" + questionId + "/explain" +
+      (retry ? "?retry=1" : ""),
     method: "POST",
   });
 }
@@ -1189,6 +1230,7 @@ module.exports = {
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
   wxLogin: wxLogin,
+  wxLoginBasic: wxLoginBasic,
   wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
   regAttribution: regAttribution,
@@ -1233,6 +1275,8 @@ module.exports = {
   getLubanRetestItems: getLubanRetestItems,
   completeLubanRetest: completeLubanRetest,
   getLubanReviewDue: getLubanReviewDue,
+  getLubanExamPrepPlan: getLubanExamPrepPlan,
+  postPlanDefer: postPlanDefer,
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,
   getLubanSeethrough: getLubanSeethrough,

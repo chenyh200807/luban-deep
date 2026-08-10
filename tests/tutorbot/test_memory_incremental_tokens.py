@@ -17,21 +17,8 @@ Assertion groups:
 from __future__ import annotations
 
 import asyncio
-import sys
-import types
-from types import SimpleNamespace
 
 import pytest
-
-fake_loguru = types.ModuleType("loguru")
-fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
-    info=lambda *args, **kwargs: None,
-    warning=lambda *args, **kwargs: None,
-    error=lambda *args, **kwargs: None,
-    debug=lambda *args, **kwargs: None,
-    exception=lambda *args, **kwargs: None,
-)
-sys.modules.setdefault("loguru", fake_loguru)
 
 import deeptutor.tutorbot.agent.memory as memory
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator

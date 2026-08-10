@@ -88,6 +88,8 @@ _RESULT_SAFE_DIAGNOSTIC_METADATA_KEYS = (
     "degraded_mcq_grading_guard_applied",
     "content_truth_guard_applied",
     "content_truth_low_confidence_claims",
+    # 口诀权威收权（2026-08-01，r6 宣传门 A3，observe-only）。
+    "mnemonic_authority_source",
     "release_id",
     "git_sha",
     "deployment_environment",
@@ -517,6 +519,49 @@ class TutorBotCapability(BaseCapability):
                 },
             )
 
+        async def _on_progress_narration(text: str) -> None:
+            """Sanctioned narration sink（渐进吐字专用，contracts/turn.md 渐进发射条款）。
+
+            与 `_on_content_delta` 落在**同一个** buffer / 同一顺序 —— 单写者与严格后缀
+            不变量因此原样成立。唯一的差别是**跳过起流闸**
+            (`_should_start_public_delta_stream`)：那道闸的前提是「这段字来自模型、可能
+            是独白，等它长得像正经答案再放行」，而进度叙述是我们自己从封闭文案权威里发
+            的确定性文本，前提不成立。2026-08-01 live 实证：不跳过时，首条叙述（单行、
+            20 字、无换行）永远开不了流，要等第二条叙述凑出换行才一起 flush —— 首答窗口
+            17.3s 空屏就是这么来的。
+            安全闸不放松：`guard_tutorbot_output` 仍然逐条跑；已被 block 的流不复活。
+            """
+            nonlocal public_stream_buffer
+            nonlocal streamed_public_text
+            nonlocal public_stream_started
+            if not text:
+                return
+            guarded = guard_tutorbot_output(text)
+            if guarded.blocked:
+                return
+            safe_text = str(guarded.content or text)
+            if not safe_text:
+                return
+            chunks.append(safe_text)
+            if not stream_public_deltas or public_stream_disabled:
+                return
+            public_stream_buffer += safe_text
+            public_stream_started = True
+            delta = public_stream_buffer[len(streamed_public_text):]
+            if not delta:
+                return
+            streamed_public_text += delta
+            await stream.content(
+                delta,
+                source=self.name,
+                stage="responding",
+                metadata={
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "progress_narration",
+                    "streaming_delta": True,
+                },
+            )
+
         async def _on_tool_call(tool_name: str, args: dict[str, Any]) -> None:
             await stream.tool_call(
                 tool_name,
@@ -629,6 +674,7 @@ class TutorBotCapability(BaseCapability):
                 on_content_delta=_on_content_delta,
                 on_tool_call=_on_tool_call,
                 on_tool_result=_on_tool_result,
+                on_progress_narration=_on_progress_narration,
                 mode=policy.effective_mode,
                 session_key=session_key,
                 session_metadata=session_metadata,
