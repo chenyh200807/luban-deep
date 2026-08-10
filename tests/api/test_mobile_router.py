@@ -5191,7 +5191,7 @@ def test_mobile_assessment_deep_explanation_delegates_without_chat_side_effects(
     calls: list[tuple[str, str, str]] = []
 
     class FakeMemberService:
-        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str, *, retry: bool = False):
             calls.append((user_id, quiz_id, question_id))
             return {
                 "quiz_id": quiz_id,
@@ -5225,7 +5225,7 @@ def test_mobile_assessment_deep_explanation_maps_billing_failures_to_402(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FakeMemberService:
-        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str, *, retry: bool = False):
             raise RuntimeError("assessment_deep_explanation_insufficient_balance")
 
     monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())

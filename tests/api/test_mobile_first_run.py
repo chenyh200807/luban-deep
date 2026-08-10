@@ -146,6 +146,10 @@ def test_assessment_profile_projects_first_run_completion_from_learner_state(
             assert user_id == "canonical-user"
             return {"level": "", "chapter_mastery": {}}
 
+        def get_pass_readiness_completion(self, user_id: str) -> dict[str, Any]:
+            assert user_id == "canonical-user"
+            return {"completed": False}
+
     class _LearnerState:
         def read_profile(self, user_id: str) -> dict[str, Any]:
             assert user_id == "canonical-user"
