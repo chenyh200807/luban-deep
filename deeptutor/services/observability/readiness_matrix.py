@@ -3,6 +3,8 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from deeptutor.services.observability.control_plane_freshness import record_is_fresh
+
 _PASS = "PASS"
 _FAIL = "FAIL"
 _WARN = "WARN"
@@ -79,16 +81,19 @@ def build_current_release_readiness_matrix_payload(
     except (FileNotFoundError, TypeError, ValueError):
         records = []
 
+    fresh_records = [
+        record for record in records if record_is_fresh(record, kind="readiness_checks")
+    ]
     anchor_release = dict(release or {})
     if not _release_has_signature(anchor_release):
-        for record in records:
+        for record in fresh_records:
             candidate_release = _record_release(record, _payload(record))
             if _release_has_signature(candidate_release):
                 anchor_release = candidate_release
                 break
 
     latest_by_check: dict[str, dict[str, Any]] = {}
-    for record in records:
+    for record in fresh_records:
         payload = _payload(record)
         check_id = str(payload.get("check_id") or record.get("check_id") or "").strip()
         if not check_id:

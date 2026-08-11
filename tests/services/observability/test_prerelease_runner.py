@@ -6,16 +6,43 @@ from pathlib import Path
 import httpx
 import pytest
 
-from deeptutor.services.observability import reset_control_plane_store, reset_turn_event_log
-from deeptutor.services.observability import get_control_plane_store
+from deeptutor.services.observability import (
+    get_control_plane_store,
+    reset_control_plane_store,
+    reset_turn_event_log,
+)
 from deeptutor.services.observability import prerelease_runner as prerelease_module
-from deeptutor.services.observability.prerelease_runner import load_metrics_snapshot
-from deeptutor.services.observability.prerelease_runner import run_prerelease_observability
+from deeptutor.services.observability.prerelease_runner import (
+    load_metrics_snapshot,
+    run_prerelease_observability,
+)
 
 
 def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_path, monkeypatch) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     reset_turn_event_log(events_dir=tmp_path / "events")
+    monkeypatch.setenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN", "eval-token")
+    release = {
+        "release_id": "rel-1",
+        "service_version": "1.0.0",
+        "git_sha": "abc123",
+        "deployment_environment": "staging",
+        "prompt_version": "prompt-v1",
+        "ff_snapshot_hash": "ff-1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "a" * 64,
+    }
+    monkeypatch.setattr(prerelease_module, "get_release_lineage_snapshot", lambda: dict(release))
+    monkeypatch.setattr(
+        prerelease_module,
+        "resolve_governed_metrics_urls",
+        lambda: ("https://runtime.example/metrics",),
+    )
+
+    async def fake_verify_eval_runner_identity(**_kwargs):
+        return {"verified": True, "reason": "verified"}
+
+    monkeypatch.setattr(prerelease_module, "verify_eval_runner_identity", fake_verify_eval_runner_identity)
 
     async def fake_run_unified_ws_smoke(**kwargs):
         return {
@@ -59,12 +86,19 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
             {
                 "release": {
                     "release_id": "rel-1",
+                    "service_version": "1.0.0",
                     "git_sha": "abc123",
-                    "deployment_environment": "dev",
+                    "deployment_environment": "staging",
                     "prompt_version": "prompt-v1",
                     "ff_snapshot_hash": "ff-1",
                     "git_dirty": "false",
-                    "deploy_manifest_hash": "manifest-1",
+                    "deploy_manifest_hash": "a" * 64,
+                },
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                    "status_code": 200,
+                    "url": "https://runtime.example/metrics",
                 },
                 "readiness": {"ready": True},
                 "turn_runtime": {
@@ -100,18 +134,19 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
 
     async def fake_run_arr(**kwargs):
         assert kwargs["mode"] == "lite"
-        assert kwargs["api_base_url"] == "http://127.0.0.1:8001"
+        assert kwargs["api_base_url"] == "https://runtime.example"
         return {
             "run_id": "arr-lite-1",
             "mode": "lite",
             "release": {
                 "release_id": "rel-1",
+                "service_version": "1.0.0",
                 "git_sha": "abc123",
-                "deployment_environment": "dev",
+                "deployment_environment": "staging",
                 "prompt_version": "prompt-v1",
                 "ff_snapshot_hash": "ff-1",
                 "git_dirty": "false",
-                "deploy_manifest_hash": "manifest-1",
+                "deploy_manifest_hash": "a" * 64,
             },
             "suite_summaries": [],
             "case_results": [],
@@ -167,9 +202,8 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     def spy_build_oa_run(**kwargs):
         observer_payload = kwargs.get("observer_payload")
         change_impact_payload = kwargs.get("change_impact_payload")
-        assert observer_payload is not built_observer_payload["payload"]
-        assert observer_payload == get_control_plane_store().latest_payload("observer_snapshots")
-        assert change_impact_payload == get_control_plane_store().latest_payload("change_impact_runs")
+        assert observer_payload is built_observer_payload["payload"]
+        assert change_impact_payload["run_id"].startswith("change-impact-")
         return original_build_oa_run(**kwargs)
 
     monkeypatch.setattr(
@@ -182,7 +216,7 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     )
 
     result = run_prerelease_observability(
-        api_base_url="http://127.0.0.1:8001",
+        api_base_url="https://runtime.example",
         arr_mode="lite",
         ws_smoke_message="请回复 ok",
         surface_smoke="web",
@@ -216,6 +250,141 @@ def test_run_prerelease_observability_runs_pipeline_and_persists_outputs(tmp_pat
     assert result["artifacts"]["arr"]["json_path"].endswith("arr.json")
     assert result["artifacts"]["observer_snapshot"]["json_path"].endswith("raw_data_latest.json")
     assert result["artifacts"]["change_impact"]["json_path"].endswith(".json")
+
+
+def test_prerelease_blocks_before_synthetic_or_store_on_ungoverned_runtime(tmp_path, monkeypatch) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    local_release = {
+        "release_id": "rel-local",
+        "service_version": "1.0.0",
+        "git_sha": "abc123",
+        "deployment_environment": "local",
+        "prompt_version": "prompt-v1",
+        "ff_snapshot_hash": "ff-1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "local-manifest",
+    }
+    monkeypatch.setattr(prerelease_module, "get_release_lineage_snapshot", lambda: dict(local_release))
+    monkeypatch.setattr(
+        prerelease_module,
+        "resolve_governed_metrics_urls",
+        lambda: ("https://runtime.example/metrics",),
+    )
+    monkeypatch.setattr(
+        prerelease_module,
+        "load_metrics_snapshot",
+        lambda **_kwargs: {
+            "release": dict(local_release),
+            "observability_metrics_provenance": {
+                "source": "live_metrics_endpoint",
+                "fallback_used": False,
+                "status_code": 200,
+                "url": "https://runtime.example/metrics",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        prerelease_module,
+        "run_unified_ws_smoke",
+        lambda **_kwargs: pytest.fail("WS smoke ran before runtime authority PASS"),
+    )
+    monkeypatch.setattr(
+        prerelease_module,
+        "run_surface_ack_smoke",
+        lambda **_kwargs: pytest.fail("surface smoke ran before runtime authority PASS"),
+    )
+
+    with pytest.raises(RuntimeError, match="runtime_authority_blocked"):
+        run_prerelease_observability(
+            api_base_url="https://runtime.example",
+            ws_smoke_message="should not run",
+            surface_smoke="web",
+            output_dir=tmp_path / "artifacts",
+        )
+
+    assert get_control_plane_store().list_runs("om_runs") == []
+
+
+def test_prerelease_preserves_blocked_preflight_when_metrics_are_unavailable(tmp_path, monkeypatch) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        prerelease_module,
+        "load_metrics_snapshot",
+        lambda **_kwargs: (_ for _ in ()).throw(ConnectionRefusedError("refused")),
+    )
+    monkeypatch.setattr(
+        prerelease_module,
+        "run_unified_ws_smoke",
+        lambda **_kwargs: pytest.fail("WS smoke ran before metrics preflight"),
+    )
+
+    output_dir = tmp_path / "artifacts"
+    with pytest.raises(RuntimeError, match="runtime_authority_blocked"):
+        run_prerelease_observability(
+            api_base_url="http://127.0.0.1:8001",
+            ws_smoke_message="should not run",
+            output_dir=output_dir,
+        )
+
+    preflight = json.loads((output_dir / "runtime_authority_preflight.json").read_text(encoding="utf-8"))
+    assert preflight["status"] == "BLOCKED"
+    assert preflight["metrics_provenance"]["error_type"] == "ConnectionRefusedError"
+    assert get_control_plane_store().list_runs("om_runs") == []
+
+
+def test_prerelease_blocks_promotion_when_runtime_rolls_after_preflight(tmp_path, monkeypatch) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    release = {
+        "release_id": "rel-1",
+        "service_version": "1.0.0",
+        "git_sha": "abc123",
+        "deployment_environment": "staging",
+        "prompt_version": "prompt-v1",
+        "ff_snapshot_hash": "ff-1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "a" * 64,
+    }
+    foreign_release = {**release, "ff_snapshot_hash": "foreign"}
+    monkeypatch.setattr(
+        prerelease_module,
+        "resolve_governed_metrics_urls",
+        lambda: ("https://runtime.example/metrics",),
+    )
+    snapshots = iter(
+        [
+            {
+                "release": release,
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                    "status_code": 200,
+                    "url": "https://runtime.example/metrics",
+                },
+            },
+            {
+                "release": foreign_release,
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                    "status_code": 200,
+                    "url": "https://runtime.example/metrics",
+                },
+            },
+        ]
+    )
+    monkeypatch.setattr(prerelease_module, "get_release_lineage_snapshot", lambda: dict(release))
+    monkeypatch.setattr(prerelease_module, "load_metrics_snapshot", lambda **_kwargs: next(snapshots))
+
+    output_dir = tmp_path / "artifacts"
+    with pytest.raises(RuntimeError, match="runtime_authority_postflight_blocked"):
+        run_prerelease_observability(
+            api_base_url="https://runtime.example",
+            output_dir=output_dir,
+        )
+
+    postflight = json.loads((output_dir / "runtime_authority_postflight.json").read_text(encoding="utf-8"))
+    assert postflight["mismatched_fields"] == ["ff_snapshot_hash"]
+    assert get_control_plane_store().list_runs("om_runs") == []
 
 
 def test_load_metrics_snapshot_rejects_non_object_json(tmp_path) -> None:

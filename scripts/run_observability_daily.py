@@ -5,14 +5,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from datetime import datetime, timedelta
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 import time
-from datetime import datetime
-from datetime import timedelta
-from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -22,33 +21,61 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from deeptutor.services.benchmark.runner import run_benchmark  # noqa: E402
-from deeptutor.services.benchmark.runner import write_benchmark_artifacts  # noqa: E402
+from deeptutor.services.benchmark.runner import (
+    run_benchmark,  # noqa: E402
+    write_benchmark_artifacts,  # noqa: E402
+)
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 from deeptutor.services.observability.aae_composite import build_aae_composite_run  # noqa: E402
-from deeptutor.services.observability.arr_runner import run_arr  # noqa: E402
-from deeptutor.services.observability.arr_runner import write_arr_artifacts  # noqa: E402
-from deeptutor.services.observability.change_impact import DEFAULT_CHANGE_IMPACT_BASE_REF  # noqa: E402
-from deeptutor.services.observability.change_impact import build_change_impact_run  # noqa: E402
-from deeptutor.services.observability.change_impact import collect_git_changed_files  # noqa: E402
-from deeptutor.services.observability.change_impact import required_readiness_checks  # noqa: E402
-from deeptutor.services.observability.change_impact import render_change_impact_markdown  # noqa: E402
+from deeptutor.services.observability.arr_runner import (
+    run_arr,  # noqa: E402
+    write_arr_artifacts,  # noqa: E402
+)
+from deeptutor.services.observability.change_impact import (
+    DEFAULT_CHANGE_IMPACT_BASE_REF,  # noqa: E402
+    build_change_impact_run,  # noqa: E402
+    collect_git_changed_files,  # noqa: E402
+    render_change_impact_markdown,  # noqa: E402
+)
+from deeptutor.services.observability.control_plane_freshness import (
+    select_fresh_payload_for_release,  # noqa: E402
+)
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
-from deeptutor.services.observability.metrics_loader import load_metrics_snapshot as load_metrics_snapshot_shared  # noqa: E402
-from deeptutor.services.observability.om_snapshot import build_om_run  # noqa: E402
+from deeptutor.services.observability.metrics_loader import (
+    build_metrics_error_provenance,  # noqa: E402
+    resolve_governed_metrics_urls,  # noqa: E402
+)
+from deeptutor.services.observability.metrics_loader import (
+    load_metrics_snapshot as load_metrics_snapshot_shared,  # noqa: E402
+)
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
-from deeptutor.services.observability.observer_snapshot import build_observer_snapshot  # noqa: E402
-from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts  # noqa: E402
-from deeptutor.services.observability.plan_completion import build_plan_completion_audit  # noqa: E402
-from deeptutor.services.observability.plan_completion import render_plan_completion_markdown  # noqa: E402
-from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload  # noqa: E402
-from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot  # noqa: E402
-from deeptutor.services.observability.runtime_authority import evaluate_runtime_authority  # noqa: E402
-from deeptutor.services.observability.runtime_authority import release_identity_matches  # noqa: E402
+from deeptutor.services.observability.observer_snapshot import (
+    build_observer_snapshot,  # noqa: E402
+    write_observer_snapshot_artifacts,  # noqa: E402
+)
+from deeptutor.services.observability.om_snapshot import build_om_run  # noqa: E402
+from deeptutor.services.observability.plan_completion import (
+    build_plan_completion_audit,  # noqa: E402
+    render_plan_completion_markdown,  # noqa: E402
+)
+from deeptutor.services.observability.readiness_matrix import (
+    build_current_release_readiness_matrix_payload,  # noqa: E402
+)
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
-from deeptutor.services.observability.run_history import build_observability_run_history_from_dir  # noqa: E402
-from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke  # noqa: E402
-from deeptutor.services.observability.unified_ws_smoke import verify_eval_runner_identity  # noqa: E402
+from deeptutor.services.observability.release_lineage import (
+    get_release_lineage_snapshot,  # noqa: E402
+)
+from deeptutor.services.observability.run_history import (
+    build_observability_run_history_from_dir,  # noqa: E402
+)
+from deeptutor.services.observability.runtime_authority import (
+    evaluate_runtime_authority,  # noqa: E402
+    release_identity_matches,  # noqa: E402
+)
+from deeptutor.services.observability.unified_ws_smoke import (
+    run_unified_ws_smoke,  # noqa: E402
+    verify_eval_runner_identity,  # noqa: E402
+)
 
 DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
 DEFAULT_API_BASE_URL = "http://127.0.0.1:8001"
@@ -180,18 +207,7 @@ def _same_release(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
 
 
 def _current_release_payload(store, kind: str, *, release: dict[str, Any]) -> dict[str, Any] | None:
-    try:
-        records = store.list_runs(kind, limit=100)
-    except (FileNotFoundError, TypeError, ValueError):
-        records = []
-    for record in records:
-        payload = (record or {}).get("payload")
-        if isinstance(payload, dict) and _same_release(release, _payload_release(payload)):
-            return payload
-    latest_payload = store.latest_payload(kind, fallback=False)
-    if isinstance(latest_payload, dict) and _same_release(release, _payload_release(latest_payload)):
-        return latest_payload
-    return None
+    return select_fresh_payload_for_release(store=store, kind=kind, release=release)
 
 
 def _load_metrics_snapshot(
@@ -200,23 +216,10 @@ def _load_metrics_snapshot(
     metrics_json: str | None,
     metrics_token: str | None,
 ) -> dict[str, Any]:
-    if metrics_json:
-        payload = _load_json(metrics_json)
-        if not isinstance(payload, dict):
-            raise TypeError("metrics snapshot must be a JSON object")
-        payload["observability_metrics_provenance"] = {
-            "source": "metrics_json",
-            "url": "",
-            "fallback_used": False,
-            "status_code": None,
-            "error": "",
-        }
-        return payload
-
     try:
-        payload = load_metrics_snapshot_shared(
+        return load_metrics_snapshot_shared(
             api_base_url=api_base_url,
-            metrics_json=None,
+            metrics_json=metrics_json,
             metrics_token=metrics_token,
             timeout=5.0,
         )
@@ -228,14 +231,6 @@ def _load_metrics_snapshot(
                 "set DEEPTUTOR_METRICS_TOKEN or pass --metrics-token"
             ) from exc
         raise
-    payload["observability_metrics_provenance"] = {
-        "source": "live_metrics_endpoint",
-        "url": f"{api_base_url.rstrip('/')}/metrics",
-        "fallback_used": False,
-        "status_code": 200,
-        "error": "",
-    }
-    return payload
 
 
 def _ensure_om_payload(
@@ -245,12 +240,46 @@ def _ensure_om_payload(
     metrics_snapshot: dict[str, Any],
     api_base_url: str,
     unified_ws_smoke_timeout: float,
+    metrics_token: str | None,
+    runtime_authority_postflight_path: Path,
 ) -> dict[str, Any] | None:
-    del release
     unified_ws_smoke = _run_unified_ws_smoke_check(
         api_base_url=api_base_url,
         timeout_seconds=unified_ws_smoke_timeout,
     )
+    expected_metrics_url = f"{api_base_url.rstrip('/')}/metrics"
+    governed_metrics_urls = resolve_governed_metrics_urls()
+    try:
+        postflight_metrics_snapshot = _load_metrics_snapshot(
+            api_base_url=api_base_url,
+            metrics_json=None,
+            metrics_token=metrics_token,
+        )
+    except Exception as exc:
+        runtime_postflight = evaluate_runtime_authority(
+            expected_release=release,
+            metrics_snapshot=None,
+            metrics_error=build_metrics_error_provenance(
+                api_base_url=api_base_url,
+                exc=exc,
+            ),
+            expected_metrics_url=expected_metrics_url,
+            governed_metrics_urls=governed_metrics_urls,
+        )
+    else:
+        runtime_postflight = evaluate_runtime_authority(
+            expected_release=release,
+            metrics_snapshot=postflight_metrics_snapshot,
+            expected_metrics_url=expected_metrics_url,
+            governed_metrics_urls=governed_metrics_urls,
+        )
+    _write_json(runtime_authority_postflight_path, runtime_postflight)
+    if runtime_postflight["status"] != "PASS":
+        raise SystemExit(
+            f"runtime_authority_postflight_{str(runtime_postflight['status']).lower()}: "
+            f"{runtime_postflight['reason']}; evidence={runtime_authority_postflight_path}"
+        )
+    metrics_snapshot = postflight_metrics_snapshot
     payload = build_om_run(
         metrics_snapshot=metrics_snapshot,
         stack_health=[],
@@ -697,20 +726,6 @@ def build_daily_run_history(*, store_dir: str | Path, limit: int = 20) -> dict[s
     return build_observability_run_history_from_dir(store_dir=store_dir, limit=limit)
 
 
-def _metrics_error_provenance(*, api_base_url: str, exc: Exception) -> dict[str, Any]:
-    status_code = None
-    if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None:
-        status_code = int(exc.response.status_code)
-    return {
-        "source": "live_metrics_endpoint",
-        "url": f"{api_base_url.rstrip('/')}/metrics",
-        "fallback_used": False,
-        "status_code": status_code,
-        "error": f"{type(exc).__name__}: {exc}",
-        "error_type": type(exc).__name__,
-    }
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run DeepTutor daily observability control-plane spine")
     parser.add_argument("--base-ref", default=DEFAULT_BASE_REF)
@@ -736,6 +751,7 @@ def main() -> None:
     )
 
     runtime_authority_path = output_dir / "runtime_authority_preflight.json"
+    governed_metrics_urls = resolve_governed_metrics_urls()
     try:
         metrics_snapshot = _load_metrics_snapshot(
             api_base_url=args.api_base_url,
@@ -746,7 +762,9 @@ def main() -> None:
         runtime_authority = evaluate_runtime_authority(
             expected_release=current_release,
             metrics_snapshot=None,
-            metrics_error=_metrics_error_provenance(api_base_url=args.api_base_url, exc=exc),
+            metrics_error=build_metrics_error_provenance(api_base_url=args.api_base_url, exc=exc),
+            expected_metrics_url=f"{args.api_base_url.rstrip('/')}/metrics",
+            governed_metrics_urls=governed_metrics_urls,
         )
         _write_json(runtime_authority_path, runtime_authority)
         raise SystemExit(
@@ -755,6 +773,8 @@ def main() -> None:
     runtime_authority = evaluate_runtime_authority(
         expected_release=current_release,
         metrics_snapshot=metrics_snapshot,
+        expected_metrics_url=f"{args.api_base_url.rstrip('/')}/metrics",
+        governed_metrics_urls=governed_metrics_urls,
     )
     _write_json(runtime_authority_path, runtime_authority)
     if runtime_authority["status"] != "PASS":
@@ -769,7 +789,10 @@ def main() -> None:
         metrics_snapshot=metrics_snapshot,
         api_base_url=args.api_base_url,
         unified_ws_smoke_timeout=float(getattr(args, "unified_ws_smoke_timeout", 20.0) or 20.0),
+        metrics_token=getattr(args, "metrics_token", None),
+        runtime_authority_postflight_path=output_dir / "runtime_authority_postflight.json",
     )
+    metrics_snapshot = (om_payload or {}).get("metrics_snapshot") or metrics_snapshot
     arr_payload = _ensure_arr_payload(
         store=store,
         release=current_release,

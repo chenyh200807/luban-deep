@@ -201,10 +201,19 @@ python3.11 scripts/run_unified_ws_smoke.py \
 
 ```bash
 python3.11 scripts/run_prerelease_observability.py \
-  --api-base-url http://127.0.0.1:8001 \
+  --api-base-url https://<governed-runtime> \
   --ws-smoke-message "请只回复ok。" \
   --surface-smoke web
 ```
+
+Pre-release 会在任何 synthetic 或 control-plane 写入前、后各校验一次 live
+runtime authority。目标必须声明受管环境并提供 canonical deploy manifest；
+其公网 HTTPS base URL 还必须显式登记在
+`DEEPTUTOR_OBSERVABILITY_GOVERNED_API_BASE_URLS`（多个 URL 用逗号分隔）。
+通用 `WECHAT_QA_BASE_URL`、`TEST2_BASE_URL` 等测试配置不参与 release authority；
+普通本地 `127.0.0.1:8001` / demo runtime 只能用于开发诊断，不能产出 release
+truth。WS smoke 还必须提供已由目标 runtime 验证的
+`DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN` eval-runner 身份，否则标记 `DEFERRED`。
 
 一键链路顺序固定为：
 
@@ -275,7 +284,8 @@ curl -fsS "http://127.0.0.1:8001/api/v1/observability/control-plane/run-history?
 
 ## 5. 当前已知限制
 
-1. `OM` 的 live snapshot 仍依赖真实后端进程；若没有运行中的 `8001`，请用 `--metrics-json` 离线模式。
+1. `OM` 的 live snapshot 仍依赖真实后端进程；`--metrics-json` 只提供离线 artifact
+   分析，不能替代已登记公网 runtime 的 release truth。
 2. `AAE` 第一版仍以 proxy 为主，尤其是 `paid_student_satisfaction_score`。
 3. `ObserverSnapshot` 若没有 turn event log，会明确暴露 `missing_turn_event_log`，而不是用 OM/ARR 代理事实伪装成真实 turn 观测。
 4. `OA` 当前是规则化 observer，不是全自动高置信度根因系统。

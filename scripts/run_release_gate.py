@@ -4,20 +4,34 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
-import time
-import sys
 from pathlib import Path
+import sys
+import time
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from deeptutor.services.observability import get_control_plane_store  # noqa: E402
-from deeptutor.services.observability import get_release_lineage_snapshot  # noqa: E402
-from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
-from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload  # noqa: E402
+from deeptutor.services.observability import (
+    get_control_plane_store,  # noqa: E402
+    get_release_lineage_snapshot,  # noqa: E402
+)
+from deeptutor.services.observability.control_plane_freshness import (
+    record_is_fresh,  # noqa: E402
+    select_fresh_payload_for_release,  # noqa: E402
+)
+from deeptutor.services.observability.control_plane_store import (  # noqa: E402
+    unwrap_payload_document,
+)
+from deeptutor.services.observability.readiness_matrix import (
+    build_current_release_readiness_matrix_payload,  # noqa: E402
+)
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
+from deeptutor.services.observability.runtime_authority import (
+    release_identity_matches,  # noqa: E402
+)
 
 _RELEASE_SPINE_KEYS = (
     "release_id",
@@ -29,8 +43,28 @@ _RELEASE_SPINE_KEYS = (
 )
 
 
-def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict | None:
-    return load_payload_json(path, expected_kind=expected_kind)
+def _load_json(
+    path: str | None,
+    *,
+    expected_kind: str | None = None,
+    release: dict | None = None,
+) -> dict | None:
+    if not path:
+        return None
+    target = Path(path).expanduser().resolve()
+    if not target.exists():
+        raise FileNotFoundError(target)
+    raw = json.loads(target.read_text(encoding="utf-8"))
+    payload = unwrap_payload_document(raw, expected_kind=expected_kind)
+    if release is None:
+        return payload
+    if not isinstance(raw, dict) or not isinstance(raw.get("payload"), dict):
+        raise ValueError("explicit release-gate evidence must be a control-plane wrapper")
+    if not expected_kind or not record_is_fresh(raw, kind=expected_kind):
+        raise ValueError(f"explicit release-gate evidence is stale or missing recorded_at: {expected_kind}")
+    if not release_identity_matches(release, _payload_release(payload)):
+        raise ValueError(f"explicit release-gate evidence has foreign release identity: {expected_kind}")
+    return payload
 
 
 def _load_store_payload(kind: str, *, fallback: bool = True) -> dict | None:
@@ -38,20 +72,12 @@ def _load_store_payload(kind: str, *, fallback: bool = True) -> dict | None:
 
 
 def _load_store_payload_for_release(kind: str, *, release: dict, fallback: bool = True) -> dict | None:
-    store = get_control_plane_store()
-    try:
-        records = store.list_runs(kind, limit=100)
-    except (FileNotFoundError, TypeError, ValueError):
-        records = []
-    for record in records:
-        payload = (record or {}).get("payload")
-        if isinstance(payload, dict) and _same_release_spine(release, _payload_release(payload)):
-            return payload
-
-    payload = _load_store_payload(kind, fallback=fallback)
-    if isinstance(payload, dict) and _same_release_spine(release, _payload_release(payload)):
-        return payload
-    return None
+    del fallback
+    return select_fresh_payload_for_release(
+        store=get_control_plane_store(),
+        kind=kind,
+        release=release,
+    )
 
 
 def _payload_release(payload: dict | None) -> dict:
@@ -196,14 +222,25 @@ def main() -> None:
     args = parser.parse_args()
 
     current_release = get_release_lineage_snapshot()
-    explicit_om_payload = _load_json(getattr(args, "om_json", None), expected_kind="om_runs")
-    explicit_arr_payload = _load_json(getattr(args, "arr_json", None), expected_kind="arr_runs")
-    explicit_aae_payload = _load_json(getattr(args, "aae_json", None), expected_kind="aae_composite_runs")
-    explicit_oa_payload = _load_json(getattr(args, "oa_json", None), expected_kind="oa_runs")
-    explicit_incident_payload = _load_json(getattr(args, "incident_json", None), expected_kind="incident_ledger")
+    explicit_om_payload = _load_json(
+        getattr(args, "om_json", None), expected_kind="om_runs", release=current_release
+    )
+    explicit_arr_payload = _load_json(
+        getattr(args, "arr_json", None), expected_kind="arr_runs", release=current_release
+    )
+    explicit_aae_payload = _load_json(
+        getattr(args, "aae_json", None), expected_kind="aae_composite_runs", release=current_release
+    )
+    explicit_oa_payload = _load_json(
+        getattr(args, "oa_json", None), expected_kind="oa_runs", release=current_release
+    )
+    explicit_incident_payload = _load_json(
+        getattr(args, "incident_json", None), expected_kind="incident_ledger", release=current_release
+    )
     explicit_change_impact_payload = _load_json(
         getattr(args, "change_impact_json", None),
         expected_kind="change_impact_runs",
+        release=current_release,
     )
     scoped_report_only_inputs = args.report_only and _should_scope_report_only_inputs(current_release)
     if scoped_report_only_inputs:
@@ -225,25 +262,41 @@ def main() -> None:
             release=current_release,
         )
     else:
-        om_payload = explicit_om_payload or _load_store_payload("om_runs")
-        arr_payload = explicit_arr_payload or _load_store_payload("arr_runs")
-        benchmark_payload = _load_store_payload("benchmark_runs", fallback=False)
-        incident_payload = explicit_incident_payload or (
-            _load_store_payload_for_release("incident_ledger", release=current_release, fallback=False)
-            if args.report_only
-            else _load_store_payload("incident_ledger", fallback=False)
+        om_payload = explicit_om_payload or _load_store_payload_for_release(
+            "om_runs", release=current_release
         )
-        aae_payload = explicit_aae_payload or _load_store_payload("aae_composite_runs")
-        oa_payload = explicit_oa_payload or _load_store_payload("oa_runs")
-        change_impact_payload = explicit_change_impact_payload or _load_store_payload("change_impact_runs")
+        arr_payload = explicit_arr_payload or _load_store_payload_for_release(
+            "arr_runs", release=current_release
+        )
+        benchmark_payload = _load_store_payload_for_release(
+            "benchmark_runs", release=current_release, fallback=False
+        )
+        incident_payload = explicit_incident_payload or _load_store_payload_for_release(
+            "incident_ledger", release=current_release, fallback=False
+        )
+        aae_payload = explicit_aae_payload or _load_store_payload_for_release(
+            "aae_composite_runs", release=current_release
+        )
+        oa_payload = explicit_oa_payload or _load_store_payload_for_release(
+            "oa_runs", release=current_release
+        )
+        change_impact_payload = (
+            explicit_change_impact_payload
+            or _load_store_payload_for_release(
+                "change_impact_runs", release=current_release
+            )
+        )
     explicit_plan_completion_payload = _load_json(
         getattr(args, "plan_completion_json", None),
         expected_kind="plan_completion_audits",
+        release=current_release,
     )
     plan_completion_payload = explicit_plan_completion_payload or (
         _load_store_payload_for_release("plan_completion_audits", release=current_release)
         if scoped_report_only_inputs
-        else _load_store_payload("plan_completion_audits")
+        else _load_store_payload_for_release(
+            "plan_completion_audits", release=current_release
+        )
     )
     if args.report_only and explicit_plan_completion_payload is None:
         plan_completion_payload = _ensure_report_only_plan_completion_payload(

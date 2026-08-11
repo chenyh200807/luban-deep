@@ -6,11 +6,14 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 import pytest
 
-from deeptutor.services.observability.control_plane_store import get_control_plane_store
-from deeptutor.services.observability.control_plane_store import reset_control_plane_store
+from deeptutor.services.observability.control_plane_store import (
+    get_control_plane_store,
+    reset_control_plane_store,
+)
 
 
 def _load_script_module(script_name: str):
@@ -39,6 +42,11 @@ BENCHMARK_MODULE = _load_script_module("run_benchmark.py")
 def _install_live_metrics(monkeypatch: pytest.MonkeyPatch, release: dict) -> None:
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
+        "resolve_governed_metrics_urls",
+        lambda: ("https://runtime.example/metrics",),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
         "_load_metrics_snapshot",
         lambda **_kwargs: {
             "release": dict(release),
@@ -46,6 +54,7 @@ def _install_live_metrics(monkeypatch: pytest.MonkeyPatch, release: dict) -> Non
                 "source": "live_metrics_endpoint",
                 "fallback_used": False,
                 "status_code": 200,
+                "url": "https://runtime.example/metrics",
             },
         },
     )
@@ -173,11 +182,12 @@ def test_daily_observability_metrics_failure_writes_blocked_preflight_without_ad
     store = get_control_plane_store()
     release = {
         "release_id": "rel-1",
+        "service_version": "1.0.0",
         "git_sha": "abc",
         "deployment_environment": "production",
         "prompt_version": "prompt-1",
         "ff_snapshot_hash": "ff-1",
-        "deploy_manifest_hash": "manifest-1",
+        "deploy_manifest_hash": "a" * 64,
         "git_dirty": "false",
     }
     store.write_run(kind="om_runs", run_id="sentinel", release_id="old", payload={"run_id": "sentinel"})
@@ -221,6 +231,155 @@ def test_daily_observability_metrics_failure_writes_blocked_preflight_without_ad
     assert preflight["metrics_provenance"]["error_type"] == "ConnectionRefusedError"
 
 
+def test_daily_observability_rejects_matching_local_demo_without_advancing_store(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    local_release = {
+        "release_id": "rel-local",
+        "service_version": "1.0.0",
+        "git_sha": "abc",
+        "deployment_environment": "local",
+        "prompt_version": "prompt-1",
+        "ff_snapshot_hash": "ff-1",
+        "deploy_manifest_hash": "local-manifest",
+        "git_dirty": "false",
+    }
+    output_dir = tmp_path / "out"
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            base_ref="origin/main",
+            changed_file=[],
+            metrics_json=None,
+            metrics_token=None,
+            api_base_url="http://127.0.0.1:8001",
+            unified_ws_smoke_timeout=1.0,
+            event_days=1,
+            report_date="2026-07-15",
+            timezone="Asia/Shanghai",
+            output_dir=str(output_dir),
+        ),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "get_release_lineage_snapshot",
+        lambda: dict(local_release),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_load_metrics_snapshot",
+        lambda **_kwargs: {
+            "release": dict(local_release),
+            "observability_metrics_provenance": {
+                "source": "live_metrics_endpoint",
+                "fallback_used": False,
+                "status_code": 200,
+                "url": "http://127.0.0.1:8001/metrics",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_om_payload",
+        lambda **_kwargs: pytest.fail("OM must not run for an ungoverned runtime"),
+    )
+
+    with pytest.raises(SystemExit, match="runtime_authority_artifact_only"):
+        DAILY_OBSERVABILITY_MODULE.main()
+
+    assert not list((tmp_path / "control_plane").rglob("latest.json"))
+    preflight = json.loads((output_dir / "runtime_authority_preflight.json").read_text(encoding="utf-8"))
+    assert preflight["status"] == "ARTIFACT_ONLY"
+    assert preflight["governed_runtime"] is False
+    assert preflight["governed_target"] is False
+
+
+def test_daily_observability_blocks_promotion_when_runtime_rolls_after_smoke(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    release = {
+        "release_id": "rel-1",
+        "service_version": "1.0.0",
+        "git_sha": "abc",
+        "deployment_environment": "production",
+        "prompt_version": "prompt-1",
+        "ff_snapshot_hash": "ff-1",
+        "deploy_manifest_hash": "a" * 64,
+        "git_dirty": "false",
+    }
+    output_dir = tmp_path / "out"
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            base_ref="origin/main",
+            changed_file=[],
+            metrics_json=None,
+            metrics_token=None,
+            api_base_url="https://runtime.example",
+            unified_ws_smoke_timeout=1.0,
+            event_days=1,
+            report_date="2026-07-15",
+            timezone="Asia/Shanghai",
+            output_dir=str(output_dir),
+        ),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "get_release_lineage_snapshot",
+        lambda: dict(release),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "resolve_governed_metrics_urls",
+        lambda: ("https://runtime.example/metrics",),
+    )
+    snapshots = iter(
+        [
+            {
+                "release": dict(release),
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                    "status_code": 200,
+                    "url": "https://runtime.example/metrics",
+                },
+            },
+            {
+                "release": {**release, "deploy_manifest_hash": "b" * 64},
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                    "status_code": 200,
+                    "url": "https://runtime.example/metrics",
+                },
+            },
+        ]
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_load_metrics_snapshot",
+        lambda **_kwargs: next(snapshots),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_run_unified_ws_smoke_check",
+        lambda **_kwargs: {"name": "unified_ws_smoke", "ok": None, "status": "DEFERRED"},
+    )
+
+    with pytest.raises(SystemExit, match="runtime_authority_postflight_blocked"):
+        DAILY_OBSERVABILITY_MODULE.main()
+
+    assert not list((tmp_path / "control_plane").rglob("latest.json"))
+    postflight = json.loads((output_dir / "runtime_authority_postflight.json").read_text(encoding="utf-8"))
+    assert postflight["mismatched_fields"] == ["deploy_manifest_hash"]
+
+
 def test_daily_observability_metrics_auth_failure_is_not_silently_downgraded(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -250,11 +409,12 @@ def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monke
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-current",
+        "service_version": "1.0.0",
         "git_sha": "sha-current",
-        "deployment_environment": "dev",
+        "deployment_environment": "staging",
         "prompt_version": "p-current",
         "ff_snapshot_hash": "ff-current",
-        "deploy_manifest_hash": "manifest-current",
+        "deploy_manifest_hash": "a" * 64,
         "git_dirty": "false",
     }
     captured: dict[str, object] = {}
@@ -266,7 +426,7 @@ def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monke
             base_ref="origin/main",
             changed_file=[],
             metrics_json=None,
-            api_base_url="http://127.0.0.1:8001",
+            api_base_url="https://runtime.example",
             unified_ws_smoke_timeout=20.0,
             event_days=1,
             report_date="2026-06-16",
@@ -512,7 +672,7 @@ def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tm
     }
     explicit_payload = {
         "run_id": "plan-completion-explicit",
-        "release": {"release_id": "rel-explicit", "git_sha": "oldsha"},
+        "release": dict(current_release),
         "scope_mode": "report_only",
         "status": "WARN",
         "summary": {"total": 0},
@@ -524,8 +684,8 @@ def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tm
             {
                 "kind": "plan_completion_audits",
                 "run_id": "plan-completion-explicit",
-                "release_id": "rel-explicit",
-                "recorded_at": 1,
+                "release_id": "rel-current",
+                "recorded_at": int(time.time()),
                 "payload": explicit_payload,
             }
         ),
@@ -555,6 +715,41 @@ def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tm
     RELEASE_GATE_MODULE.main()
 
     assert captured["plan_completion_payload"] == explicit_payload
+
+
+def test_run_release_gate_rejects_explicit_stale_wrapper(tmp_path) -> None:
+    release = {
+        "release_id": "rel-current",
+        "git_sha": "abc123",
+        "deployment_environment": "production",
+        "prompt_version": "prompt-current",
+        "ff_snapshot_hash": "ff-current",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "a" * 64,
+    }
+    target = tmp_path / "stale-om.json"
+    target.write_text(
+        json.dumps(
+            {
+                "kind": "om_runs",
+                "run_id": "om-stale",
+                "release_id": "rel-current",
+                "recorded_at": 1,
+                "payload": {
+                    "run_id": "om-stale",
+                    "release": release,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="stale or missing recorded_at"):
+        RELEASE_GATE_MODULE._load_json(
+            str(target),
+            expected_kind="om_runs",
+            release=release,
+        )
 
 
 def test_run_release_gate_report_only_ignores_stale_incident_latest(tmp_path, monkeypatch) -> None:
@@ -922,6 +1117,85 @@ def test_run_prerelease_observability_cli_fails_closed_without_canary(monkeypatc
         PRERELEASE_MODULE.main()
 
 
+def test_run_release_gate_non_report_mode_uses_fresh_release_selector(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    release = {
+        "release_id": "rel-current",
+        "git_sha": "abc123",
+        "deployment_environment": "production",
+        "prompt_version": "prompt-1",
+        "ff_snapshot_hash": "ff-1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "a" * 64,
+    }
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: RELEASE_GATE_MODULE.argparse.Namespace(
+            om_json=None,
+            arr_json=None,
+            aae_json=None,
+            oa_json=None,
+            incident_json=None,
+            change_impact_json=None,
+            plan_completion_json=None,
+            report_only=False,
+        ),
+    )
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE,
+        "get_release_lineage_snapshot",
+        lambda: dict(release),
+    )
+    selected_kinds = []
+
+    def _select(kind, **_kwargs):
+        selected_kinds.append(kind)
+        return None
+
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "_load_store_payload_for_release", _select)
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE,
+        "_load_store_payload",
+        lambda *_args, **_kwargs: pytest.fail("unscoped latest reader must not feed a release gate"),
+    )
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE,
+        "build_current_release_readiness_matrix_payload",
+        lambda **_kwargs: {"rows": []},
+    )
+    monkeypatch.setattr(
+        RELEASE_GATE_MODULE,
+        "build_release_gate_report",
+        lambda **_kwargs: {
+            "run_id": "gate-1",
+            "release": release,
+            "final_status": "FAIL",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": ["missing_evidence"],
+        },
+    )
+    monkeypatch.setattr(sys, "argv", ["run_release_gate.py"])
+
+    with pytest.raises(SystemExit, match="release_gate_failed"):
+        RELEASE_GATE_MODULE.main()
+
+    assert set(selected_kinds) == {
+        "om_runs",
+        "arr_runs",
+        "benchmark_runs",
+        "incident_ledger",
+        "aae_composite_runs",
+        "oa_runs",
+        "change_impact_runs",
+        "plan_completion_audits",
+    }
+
+
 def test_run_observer_snapshot_load_json_accepts_metrics_raw_payload(tmp_path) -> None:
     payload = {"readiness": {"ready": True}, "turn_runtime": {"turns_started_total": 1}}
     target = tmp_path / "metrics.json"
@@ -1087,11 +1361,12 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-head",
+        "service_version": "1.0.0",
         "git_sha": "head123",
-        "deployment_environment": "local",
+        "deployment_environment": "staging",
         "prompt_version": "prompt-head",
         "ff_snapshot_hash": "ff-head",
-        "deploy_manifest_hash": "manifest-head",
+        "deploy_manifest_hash": "a" * 64,
         "git_dirty": "false",
     }
     monkeypatch.setattr(
@@ -1101,7 +1376,7 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
             base_ref="HEAD~1",
             changed_file=[],
             metrics_json=None,
-            api_base_url="http://127.0.0.1:8001",
+            api_base_url="https://runtime.example",
             unified_ws_smoke_timeout=12.0,
             event_days=1,
             output_dir=str(tmp_path / "out"),
@@ -1213,11 +1488,12 @@ def test_run_observability_daily_passes_current_release_through_spine(
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-head",
+        "service_version": "1.0.0",
         "git_sha": "head123",
-        "deployment_environment": "local",
+        "deployment_environment": "staging",
         "prompt_version": "prompt-head",
         "ff_snapshot_hash": "ff-head",
-        "deploy_manifest_hash": "manifest-head",
+        "deploy_manifest_hash": "a" * 64,
         "git_dirty": "false",
     }
     observed_releases: dict[str, dict[str, str]] = {}
@@ -1229,7 +1505,7 @@ def test_run_observability_daily_passes_current_release_through_spine(
             base_ref="HEAD~1",
             changed_file=["deeptutor/services/session/turn_runtime.py"],
             metrics_json=None,
-            api_base_url="http://127.0.0.1:8001",
+            api_base_url="https://runtime.example",
             unified_ws_smoke_timeout=12.0,
             event_days=1,
             output_dir=str(tmp_path / "out"),
@@ -1457,7 +1733,7 @@ def test_run_release_gate_cli_requires_canonical_benchmark_latest(tmp_path) -> N
     latest = json.loads((store_dir / "release_gate_runs" / "latest.json").read_text(encoding="utf-8"))
     p2 = next(item for item in latest["payload"]["gate_results"] if item["gate"] == "P2 Benchmark Regression")
     assert p2["status"] == "FAIL"
-    assert p2["summary"] == "canonical benchmark row missing"
+    assert p2["summary"] == "未提供 benchmark / ARR run"
 
 
 def test_run_release_gate_report_only_writes_plan_completion_placeholder(tmp_path) -> None:
@@ -1475,6 +1751,7 @@ def test_run_release_gate_report_only_writes_plan_completion_placeholder(tmp_pat
     }
     release = {
         "release_id": "rel-eval",
+        "service_version": "1.0.0",
         "git_sha": "abc123",
         "deployment_environment": "eval",
         "prompt_version": "prompt-eval",
@@ -1482,6 +1759,7 @@ def test_run_release_gate_report_only_writes_plan_completion_placeholder(tmp_pat
         "git_dirty": "false",
         "deploy_manifest_hash": "manifest-eval",
     }
+    now = int(time.time())
     benchmark_dir = store_dir / "benchmark_runs"
     om_dir = store_dir / "om_runs"
     plan_completion_dir = store_dir / "plan_completion_audits"
@@ -1494,7 +1772,7 @@ def test_run_release_gate_report_only_writes_plan_completion_placeholder(tmp_pat
                 "kind": "benchmark_runs",
                 "run_id": "benchmark-1",
                 "release_id": "rel-eval",
-                "recorded_at": 1,
+                "recorded_at": now,
                 "payload": {
                     "run_manifest": {"run_id": "benchmark-1", "requested_suites": ["pr_gate_core"]},
                     "release_spine": release,
@@ -1521,7 +1799,7 @@ def test_run_release_gate_report_only_writes_plan_completion_placeholder(tmp_pat
                 "kind": "om_runs",
                 "run_id": "om-1",
                 "release_id": "rel-eval",
-                "recorded_at": 1,
+                "recorded_at": now,
                 "payload": {
                     "run_id": "om-1",
                     "release": release,
@@ -1701,11 +1979,12 @@ def test_run_observability_daily_passes_manual_readiness_rows_to_release_gate(
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
         "release_id": "rel-head",
+        "service_version": "1.0.0",
         "git_sha": "head123",
-        "deployment_environment": "local",
+        "deployment_environment": "staging",
         "prompt_version": "prompt-head",
         "ff_snapshot_hash": "ff-head",
-        "deploy_manifest_hash": "manifest-head",
+        "deploy_manifest_hash": "a" * 64,
         "git_dirty": "false",
     }
 
@@ -1716,7 +1995,7 @@ def test_run_observability_daily_passes_manual_readiness_rows_to_release_gate(
             base_ref="HEAD~1",
             changed_file=[],
             metrics_json=None,
-            api_base_url="http://127.0.0.1:8001",
+            api_base_url="https://runtime.example",
             unified_ws_smoke_timeout=12.0,
             event_days=1,
             output_dir=str(tmp_path / "out"),
@@ -1847,6 +2126,7 @@ def test_run_release_gate_report_only_consumes_current_release_readiness_history
         "git_dirty": "false",
         "deploy_manifest_hash": "manifest-eval",
     }
+    now = int(time.time())
     benchmark_dir = store_dir / "benchmark_runs"
     om_dir = store_dir / "om_runs"
     readiness_dir = store_dir / "readiness_checks"
@@ -1859,7 +2139,7 @@ def test_run_release_gate_report_only_consumes_current_release_readiness_history
                 "kind": "benchmark_runs",
                 "run_id": "benchmark-1",
                 "release_id": "rel-eval",
-                "recorded_at": 1,
+                "recorded_at": now,
                 "payload": {
                     "run_manifest": {
                         "run_id": "benchmark-1",
@@ -1889,7 +2169,7 @@ def test_run_release_gate_report_only_consumes_current_release_readiness_history
                 "kind": "om_runs",
                 "run_id": "om-1",
                 "release_id": "rel-eval",
-                "recorded_at": 1,
+                "recorded_at": now,
                 "payload": {
                     "run_id": "om-1",
                     "release": release,
@@ -1905,7 +2185,7 @@ def test_run_release_gate_report_only_consumes_current_release_readiness_history
             "kind": "readiness_checks",
             "run_id": "playwright-1",
             "release_id": "rel-eval",
-            "recorded_at": 1,
+            "recorded_at": now,
             "payload": {
                 "run_id": "playwright-1",
                 "check_id": "playwright",
@@ -1922,7 +2202,7 @@ def test_run_release_gate_report_only_consumes_current_release_readiness_history
             "kind": "readiness_checks",
             "run_id": "wechat-1",
             "release_id": "rel-eval",
-            "recorded_at": 2,
+            "recorded_at": now,
             "payload": {
                 "run_id": "wechat-1",
                 "check_id": "wechat_devtools",
@@ -1939,7 +2219,7 @@ def test_run_release_gate_report_only_consumes_current_release_readiness_history
             "kind": "readiness_checks",
             "run_id": "contract-1",
             "release_id": "rel-eval",
-            "recorded_at": 3,
+            "recorded_at": now,
             "payload": {
                 "run_id": "contract-1",
                 "check_id": "contract_guard",

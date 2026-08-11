@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
-from deeptutor.services.observability.launch_readiness import build_launch_readiness_dashboard
-from deeptutor.services.observability.launch_readiness import build_launch_readiness_run
+from deeptutor.services.observability.launch_readiness import (
+    build_launch_readiness_dashboard,
+    build_launch_readiness_run,
+)
 
 
 def _write_check(
@@ -81,6 +83,8 @@ def test_launch_readiness_dashboard_merges_release_gate_manual_checks_and_langfu
             "release": release,
             "langfuse_trace_linkage": {
                 "trace_id_count": 3,
+                "verified_trace_count": 3,
+                "verification_status": "verified",
                 "langfuse_host": "https://langfuse.example.com",
             },
             "data_sources": {
@@ -105,6 +109,53 @@ def test_launch_readiness_dashboard_merges_release_gate_manual_checks_and_langfu
     assert rows["playwright"]["status"] == "PASS"
     assert rows["wechat_devtools"]["status"] == "PASS"
     assert rows["langfuse"]["status"] == "PASS"
+
+
+def test_launch_readiness_does_not_promote_trace_id_inventory_to_langfuse_linkage(tmp_path) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc123",
+        "deployment_environment": "production",
+    }
+    store.write_run(
+        kind="release_gate_runs",
+        run_id="release-gate-1",
+        release_id="rel-1",
+        payload={
+            "run_id": "release-gate-1",
+            "release": release,
+            "final_status": "PASS",
+            "recommendation": "canary",
+            "gate_results": [],
+            "blockers": [],
+        },
+    )
+    store.write_run(
+        kind="observer_snapshots",
+        run_id="observer-1",
+        release_id="rel-1",
+        payload={
+            "run_id": "observer-1",
+            "release": release,
+            "langfuse_trace_linkage": {
+                "trace_id_count": 3,
+                "verified_trace_count": 0,
+                "verification_status": "not_verified",
+            },
+            "data_sources": {
+                "langfuse_trace_linkage": {
+                    "has_data": False,
+                    "sample_count": 0,
+                }
+            },
+        },
+    )
+
+    payload = build_launch_readiness_dashboard(store=store)
+    row = {item["check_id"]: item for item in payload["rows"]}["langfuse"]
+    assert row["status"] == "FAIL"
+    assert "langfuse_trace_linkage_missing" in row["blockers"]
 
 
 def test_launch_readiness_rejects_stale_manual_and_langfuse_evidence(tmp_path) -> None:

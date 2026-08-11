@@ -38,10 +38,15 @@ python3 scripts/run_benchmark.py exploration_lab --output-dir tmp/benchmark/expl
 
 ```bash
 python3 scripts/run_prerelease_observability.py \
-  --api-base-url http://127.0.0.1:8001 \
+  --api-base-url https://<governed-runtime> \
   --ws-smoke-message "请只回复ok。" \
   --surface-smoke web
 ```
+
+该命令只接受完整 release identity 一致的受管 live runtime，并在 synthetic
+前后执行 authority 校验；目标 base URL 必须显式登记在
+`DEEPTUTOR_OBSERVABILITY_GOVERNED_API_BASE_URLS`，不会从通用 QA/Test2 URL
+继承。本地 `:8001` demo 不属于 release truth。
 
 `run_arr()` 现在是 canonical benchmark runner 的兼容 wrapper。`Release Gate` 的 `P2 Benchmark Regression` 优先读取 `benchmark_run_manifest / benchmark_case_results / baseline_diff`，`P4 Blind Spot Budget` 优先读取 benchmark blind spots。
 
