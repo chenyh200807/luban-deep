@@ -579,3 +579,32 @@ def test_full_case_split_recognizes_bracket_answer_markers() -> None:
     paste2 = paste.replace("【我的作答】", "我的作答：")
     stem2, answer2 = split_full_case_answer_submission(paste2)
     assert stem2 and "模板拆除过早" in answer2
+
+
+def test_redact_question_bank_answer_keys_strips_answers_keeps_stems():
+    """2026-08-11 数据面收口钉:低信息真题查询轮的题库检索文本必须剥掉【答案】/【解析】,
+    题面与选项原样保留——模型没有答案钥匙就无法把相似题冒充点名题号确定作答。"""
+    from deeptutor.services.question_lifecycle_skills import redact_question_bank_answer_keys
+
+    raw = (
+        "【题目】某跨度8m的混凝土楼板,拆模时混凝土的最低强度是( )MPa。\n"
+        "【选项】[{\"key\": \"A\", \"value\": \"15\"}]\n"
+        "【答案】A\n"
+        "【解析】正确答案: A,依据规范……\n"
+        "【题目】第二道题干\n"
+        "【选项】[\"B\"]\n"
+        "【答案】B"
+    )
+    out = redact_question_bank_answer_keys(raw)
+    assert "【答案】A" not in out and "【答案】B" not in out
+    assert "正确答案: A" not in out
+    assert "某跨度8m的混凝土楼板" in out and "第二道题干" in out
+    assert "【选项】" in out
+    assert "已隐藏" in out
+
+
+def test_redact_question_bank_answer_keys_noop_without_answer_sections():
+    from deeptutor.services.question_lifecycle_skills import redact_question_bank_answer_keys
+
+    plain = "教材原文:混凝土强度等级按立方体抗压强度标准值确定。"
+    assert redact_question_bank_answer_keys(plain) == plain

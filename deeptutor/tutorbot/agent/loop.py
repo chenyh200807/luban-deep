@@ -37,6 +37,7 @@ from deeptutor.services.question_lifecycle_skills import (
     case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
+    redact_question_bank_answer_keys,
     split_full_case_answer_submission,
 )
 from deeptutor.services.rag.exact_authority import (
@@ -3660,6 +3661,16 @@ class AgentLoop:
                             tool_trace_metadata["guardrail_signals"] = list(guarded_tool_result.signals)
                         if tool_call.name == "rag":
                             result = normalize_exact_authority_display_text(result)
+                            # 数据面收口(2026-08-11 live 钉实证,hint 治不了):
+                            # 低信息真题查询轮不把题库答案钥匙喂进上下文——没有
+                            # 【答案】模型就无法把相似题冒充点名题号确定作答。
+                            if (
+                                str(
+                                    runtime_metadata.get("exact_question_blocked_reason") or ""
+                                ).strip()
+                                == "low_information_exam_query"
+                            ):
+                                result = redact_question_bank_answer_keys(result)
                         if on_tool_result:
                             await on_tool_result(tool_call.name, result, tool_trace_metadata)
                         await narrator.stage("tool_result", index=len(tools_used))
