@@ -27,6 +27,13 @@ from deeptutor.services.compiled_knowledge.general_knowledge import (
     format_general_knowledge_grounding,
     resolve_general_knowledge_context,
 )
+from deeptutor.services.question_lifecycle_skills import (
+    strip_stale_question_lifecycle_turn_metadata,
+)
+from deeptutor.services.rag.retrieval_profiles import (
+    RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+    resolve_turn_retrieval_profile,
+)
 from deeptutor.services.compiled_knowledge.lecture_answer_methods import (
     format_lecture_answer_method_grounding,
     resolve_lecture_answer_method_context,
@@ -221,6 +228,24 @@ def _attach_general_knowledge_context(
     )
     if not pack:
         return
+    # 复审 F5(2026-08-11):第五条题面供给通路。锁权轮(low_information_exam_query,
+    # 学员指代的题无法锚定)编译教学 pack 的「真题」源不得注入 grounding——live 已
+    # 实证 prompt 标注(「仅供讲解,非官方答案」)约半数轮被无视,相似真题材料会被
+    # 冒充成点名题号的答案。消费同一单一事实权威 resolve_turn_retrieval_profile
+    # (lifecycle gate 唯一写,所有供给点只读);教材/规范/讲义源照常(概念讲解不降级)。
+    if (
+        resolve_turn_retrieval_profile(runtime_metadata)
+        == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+    ):
+        pack = dict(pack)
+        pack_sources = (
+            dict(pack.get("sources")) if isinstance(pack.get("sources"), dict) else {}
+        )
+        if pack_sources.pop("question", None) is not None:
+            runtime_metadata["luban_general_knowledge_context_status"] = (
+                "question_source_disarmed"
+            )
+        pack["sources"] = pack_sources
     grounding = format_general_knowledge_grounding(pack)
     if not grounding:
         return
@@ -987,6 +1012,11 @@ class TutorBotManager:
 
         session = await instance.agent_loop.sessions.get_or_create(effective_session_key)
         merged_metadata = dict(session.metadata or {})
+        # 复审 F1(2026-08-11):turn-scoped lifecycle 键(blocked 事实)的唯一入口是
+        # per-turn 的 session_metadata(orchestrator 本轮写/本轮 pop);下面这份 merged
+        # 会整体写回 session.metadata 持久化,不先剥掉持久层的陈旧拷贝,一次锁权就会
+        # 让该会话后续所有合法轮永久失去题库供给(与 turn_failure marker 同款纪律)。
+        strip_stale_question_lifecycle_turn_metadata(merged_metadata)
         if session_metadata:
             merged_metadata.update(session_metadata)
         merged_metadata.setdefault("conversation_id", effective_chat_id)

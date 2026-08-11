@@ -28,9 +28,13 @@ from deeptutor.services.rag.compiled_truth_source import materialize_compiled_tr
 from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
-from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
+from deeptutor.services.rag.retrieval_plan import (
+    build_retrieval_plan,
+    disable_question_surface_groups,
+)
 from deeptutor.services.rag.retrieval_profiles import (
     RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
+    RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
 )
 
 from .supabase_strategy import (
@@ -937,6 +941,23 @@ class SupabasePipeline:
                 # bank fanout 的调度判据是 `config.include_questions or question_like`；
                 # 身份检索必须无条件跑 bank，否则 exact 命脉断在调度层。
                 config.include_questions = True
+            question_surface_disarmed = (
+                retrieval_profile == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+            )
+            if question_surface_disarmed:
+                # 低信息真题查询锁权轮（2026-08-11 live 防冒充钉）：本轮没有任何
+                # 题目真值权威，题目面材料不得进入模型上下文冒充锚定。整轮不武装
+                # 题目面两通道——questions_bank（`search_questions_bank=False` 连锁
+                # 熄灭 exact 文本探针 / bank 向量 / question_exact_vector 派生 /
+                # case second pass / `exact_question` payload，它们全被下方
+                # `exact_probe` 与 `bank_search_scheduled` 的既有门把住）与 exam
+                # 卷面 chunk。textbook/standard 照常：模型仍有讲解依据，
+                # 这是供给收权，不是拒答降级。
+                source_plan.search_questions_bank = False
+                source_plan.search_exam_chunks = False
+                source_plan.selection_reasons.append(
+                    f"retrieval_profile={RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY}"
+                )
             retrieval_plan = build_retrieval_plan(
                 query,
                 include_questions_default=config.include_questions,
@@ -949,6 +970,13 @@ class SupabasePipeline:
                     or bool(routing_metadata.get("personalization_context_available")),
                 },
             )
+            if question_surface_disarmed:
+                # 复审 F8(观测诚实):build_retrieval_plan 内部自跑 select_sources,
+                # 看不见上面的 disarm 翻转——不修正,锁权轮 trace 会谎称查了题库/试卷。
+                retrieval_plan = disable_question_surface_groups(
+                    retrieval_plan,
+                    reason=f"retrieval_profile={RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY}",
+                )
             query_shape = rewritten.query_shape or classify_query_shape(query)
             exact_probe = (
                 prepare_exact_question_probe(query)

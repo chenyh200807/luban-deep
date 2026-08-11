@@ -581,30 +581,35 @@ def test_full_case_split_recognizes_bracket_answer_markers() -> None:
     assert stem2 and "模板拆除过早" in answer2
 
 
-def test_redact_question_bank_answer_keys_strips_answers_keeps_stems():
-    """2026-08-11 数据面收口钉:低信息真题查询轮的题库检索文本必须剥掉【答案】/【解析】,
-    题面与选项原样保留——模型没有答案钥匙就无法把相似题冒充点名题号确定作答。"""
-    from deeptutor.services.question_lifecycle_skills import redact_question_bank_answer_keys
+# 2026-08-11:redact_question_bank_answer_keys(sink 面文本剥离)已随收口方案退役——
+# live 复钉证实 fast 轮 prefetch 先行注入,in-loop sink 永不通电。真收口在检索供给层
+# (retrieval_profile=unanchored_exam_query,题目面通道整轮不武装),钉在
+# tests/tutorbot/test_low_information_bank_disarm.py 与
+# tests/services/rag/test_unanchored_exam_query_profile.py。
 
-    raw = (
-        "【题目】某跨度8m的混凝土楼板,拆模时混凝土的最低强度是( )MPa。\n"
-        "【选项】[{\"key\": \"A\", \"value\": \"15\"}]\n"
-        "【答案】A\n"
-        "【解析】正确答案: A,依据规范……\n"
-        "【题目】第二道题干\n"
-        "【选项】[\"B\"]\n"
-        "【答案】B"
+
+def test_strip_stale_question_lifecycle_turn_metadata_is_per_turn_discipline():
+    """复审 F1(2026-08-11):blocked 事实是 turn-start 决策,唯一写者是
+    orchestrator(本轮写/本轮 pop)。manager 会把 merged metadata 整份持久化进
+    session.metadata,陈旧拷贝若从持久层漏进后续轮,一次锁权就让该会话所有合法轮
+    永久失去题库供给。凡从 session 持久层继承,合并 per-turn 信道前必须先剥。"""
+    from deeptutor.services.question_lifecycle_skills import (
+        TURN_SCOPED_LIFECYCLE_METADATA_KEYS,
+        strip_stale_question_lifecycle_turn_metadata,
     )
-    out = redact_question_bank_answer_keys(raw)
-    assert "【答案】A" not in out and "【答案】B" not in out
-    assert "正确答案: A" not in out
-    assert "某跨度8m的混凝土楼板" in out and "第二道题干" in out
-    assert "【选项】" in out
-    assert "已隐藏" in out
 
+    assert "exact_question_blocked_reason" in TURN_SCOPED_LIFECYCLE_METADATA_KEYS
 
-def test_redact_question_bank_answer_keys_noop_without_answer_sections():
-    from deeptutor.services.question_lifecycle_skills import redact_question_bank_answer_keys
+    inherited = {
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "default_kb": "construction-exam",
+        "active_object": {"object_type": "question"},
+    }
+    strip_stale_question_lifecycle_turn_metadata(inherited)
+    assert "exact_question_blocked_reason" not in inherited
+    # 非 turn-scoped 键原样保留(session 持久层的合法背景不受影响)。
+    assert inherited["default_kb"] == "construction-exam"
+    assert inherited["active_object"] == {"object_type": "question"}
 
-    plain = "教材原文:混凝土强度等级按立方体抗压强度标准值确定。"
-    assert redact_question_bank_answer_keys(plain) == plain
+    # 非 dict 输入不炸(防御面:调用点在 manager/loop 热路径上)。
+    strip_stale_question_lifecycle_turn_metadata(None)  # type: ignore[arg-type]

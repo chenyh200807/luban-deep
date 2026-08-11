@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from deeptutor.services.rag.pipelines.supabase_strategy import (
@@ -36,6 +36,31 @@ class RetrievalSourceGroup:
 # retrieval-plan schema can never appear unregistered. Registered as T2 runtime-canonical
 # in contracts/schema_registry.yaml.
 SCHEMA_ID = "rag_retrieval_plan.v1"
+
+# 题目面 source group 的唯一名单(复审 F8/F7,2026-08-11):锁权 disarm 收的就是
+# 这两族——questions_bank 检索族与 exam 卷面 chunk。消费点 = supabase pipeline 的
+# 观测诚实修正与 service 层 fail-closed 的 plan 导出。
+QUESTION_SURFACE_SOURCE_GROUPS = ("questions_bank", "exam")
+
+
+def disable_question_surface_groups(plan: "RetrievalPlan", *, reason: str) -> "RetrievalPlan":
+    """把 plan 里的题目面 source group 标记为 disabled(观测诚实,复审 F8)。
+
+    `build_retrieval_plan` 内部自跑一次 select_sources,看不见调用方在
+    source_plan 上做的 disarm 翻转——锁权轮导出的 trace 会谎称查了题库/试卷,
+    把以 Langfuse trace 为定位权威的排障引到错误层。此函数让导出面与真实
+    fanout 一致;plan 不含题目面组时原样返回。
+    """
+    groups = dict(plan.source_groups)
+    changed = False
+    for name in QUESTION_SURFACE_SOURCE_GROUPS:
+        group = groups.get(name)
+        if group is not None and group.enabled:
+            groups[name] = RetrievalSourceGroup(name=name, enabled=False, reason=reason)
+            changed = True
+    if not changed:
+        return plan
+    return replace(plan, source_groups=groups, reasons=[*plan.reasons, reason])
 
 
 @dataclass(frozen=True, slots=True)

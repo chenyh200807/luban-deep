@@ -127,11 +127,34 @@
     某年某题=归属不诚实,与内容编造同级违规。prompt hint 单一权威 =
     `build_question_lifecycle_clarification_prompt_hint`,回归钉在
     `tests/services/test_question_lifecycle_skills.py`。
-    数据面强制（2026-08-11,hint 复钉 1/2 红实证 prompt≠terminal authority 后收口）：
-    low_information_exam_query 锁权轮,rag 工具结果在喂给模型前必须经
-    `redact_question_bank_answer_keys` 剥掉题库【答案】/【解析】段（题面/选项保留）——
-    模型没有答案钥匙即无法确定性冒充;消费点与 exact 展示归一化同一汇点
-    （tutorbot loop rag 工具结果后处理）,不得新增第二处 rag 结果改写点。
+    数据面强制（2026-08-11,live 3/3 红实证 prompt≠terminal authority、且 sink 面
+    redact 被 prefetch 通路绕过后,收口移到检索供给层;同日 16-agent 复审 F1-F8
+    收权修订）：low_information_exam_query 锁权轮,题目面材料（questions_bank 行与
+    exam 卷面 chunk）不得进入模型上下文——唯一决策权威 =
+    `retrieval_profiles.resolve_turn_retrieval_profile`（纯函数,per-turn 传参,
+    详见 contracts/rag.md §44:含 loop 侧三盖章点、service 层 provider 无关执法、
+    模型 kwarg 剥除、plan 观测诚实）。禁止任何 sink/prompt 面的题库文本改写器充当
+    第二权威（旧 `redact_question_bank_answer_keys` 已退役:接线正确但 fast 轮
+    prefetch 先行注入,sink 永不通电——供给层没给的东西才真正泄露不了）。
+    - **锁权键 per-turn 纪律**（复审 F1,与 turn_failure marker 同款）：
+      `exact_question_blocked_reason` 是 turn-start 决策,唯一写者 = orchestrator
+      `_record_lifecycle_decision`（本轮写/本轮 pop）,唯一入口 = per-turn 信道
+      （capability session_metadata → manager → msg.metadata）。manager 会把
+      merged metadata 整份持久化进 loop session.metadata,因此**凡从持久层继承,
+      合并 per-turn 信道前必须先经 `strip_stale_question_lifecycle_turn_metadata`
+      剥掉陈旧拷贝**（消费点 = manager.send_message 与
+      loop._build_turn_runtime_metadata）——一次锁权不得让该会话后续合法轮永久
+      失去题库供给。
+    - **general-knowledge 编译 pack 的「真题」源**（复审 F5,第五条题面供给通路）：
+      manager `_attach_general_knowledge_context` 消费同一决策权威,锁权轮把 pack
+      `sources.question` 过滤后再渲染 grounding（教材/规范/讲义源照常）,并发声
+      `luban_general_knowledge_context_status=question_source_disarmed`。
+    - 已知边界（复审 F6,PLAUSIBLE 低频,记档不改码）：textbook/standard 通道仍
+      武装,教材/讲义 chunk 内嵌的例题【答案】/【解析】可能进入上下文;归属诚实由
+      prompt hint 条款约束,无数据面强制。
+    回归钉:`tests/tutorbot/test_low_information_bank_disarm.py`、
+    `tests/services/rag/test_unanchored_exam_query_profile.py`、
+    `tests/services/test_question_lifecycle_skills.py`（per-turn 剥离）。
 
 ## Schema
 

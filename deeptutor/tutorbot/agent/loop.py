@@ -37,8 +37,8 @@ from deeptutor.services.question_lifecycle_skills import (
     case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
-    redact_question_bank_answer_keys,
     split_full_case_answer_submission,
+    strip_stale_question_lifecycle_turn_metadata,
 )
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
@@ -51,6 +51,7 @@ from deeptutor.services.rag.historical_questions import (
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
 from deeptutor.services.rag.retrieval_profiles import (
     RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
+    resolve_turn_retrieval_profile,
 )
 from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.services.security.tutorbot_guardrails import (
@@ -863,6 +864,45 @@ class AgentLoop:
                 self._mcp_stack = None
         finally:
             self._mcp_connecting = False
+
+    @staticmethod
+    def _build_turn_runtime_metadata(
+        session_metadata: dict[str, Any] | None,
+        inbound_metadata: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """本轮 runtime_metadata 的唯一装配 seam(复审 F1,2026-08-11)。
+
+        turn-scoped lifecycle 键(exact_question_blocked_reason)的唯一入口是
+        per-turn 信道(msg.metadata,由 orchestrator 本轮写/本轮 pop);manager 会把
+        merged metadata 整份持久化进 session.metadata,陈旧拷贝若从持久层漏进本轮,
+        一次锁权就会让后续所有合法轮永久失去题库供给。纪律与 turn_failure marker
+        同款:先剥持久层陈旧拷贝,再合并 per-turn 信道。
+        """
+        runtime_metadata = dict(session_metadata or {})
+        strip_stale_question_lifecycle_turn_metadata(runtime_metadata)
+        runtime_metadata.update(inbound_metadata or {})
+        return runtime_metadata
+
+    @staticmethod
+    def _prepare_rag_tool_args(
+        args: dict[str, Any] | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """模型自发 rag 调用的 args 收口(复审 F3/F4,2026-08-11)。
+
+        - F4:模型是不受信任方,其 args 里未在工具 schema 声明的 retrieval_profile
+          一律剥掉——否则锁权轮模型(或注入指令)发 {"retrieval_profile": "full"}
+          即可重新武装题库供给。
+        - F3:disarm 判据经 `resolve_turn_retrieval_profile`(纯函数)吃**本轮闭包里
+          的 runtime_metadata**,profile 随 args 传递——不走共享可变的
+          RAGAdapterTool._runtime_context(并发轮的 _set_tool_context 会覆盖它)。
+        """
+        prepared = dict(args or {})
+        prepared.pop("retrieval_profile", None)
+        resolved = resolve_turn_retrieval_profile(runtime_metadata)
+        if resolved:
+            prepared["retrieval_profile"] = resolved
+        return prepared
 
     def _set_tool_context(
         self,
@@ -3602,7 +3642,14 @@ class AgentLoop:
                             tool=tool_call.name,
                             index=sum(1 for name in tools_used if name == tool_call.name),
                         )
-                        result = await self.tools.execute(tool_call.name, tool_call.arguments)
+                        execute_args = (
+                            # 复审 F3/F4:rag 供给随本轮 args 盖章(剥模型 kwarg +
+                            # per-turn 锁权推导),不依赖共享 tool context。
+                            self._prepare_rag_tool_args(tool_call.arguments, runtime_metadata)
+                            if tool_call.name == "rag"
+                            else tool_call.arguments
+                        )
+                        result = await self.tools.execute(tool_call.name, execute_args)
                         tool_trace_metadata: dict[str, Any] | None = None
                         if tool is not None:
                             try:
@@ -3661,16 +3708,14 @@ class AgentLoop:
                             tool_trace_metadata["guardrail_signals"] = list(guarded_tool_result.signals)
                         if tool_call.name == "rag":
                             result = normalize_exact_authority_display_text(result)
-                            # 数据面收口(2026-08-11 live 钉实证,hint 治不了):
-                            # 低信息真题查询轮不把题库答案钥匙喂进上下文——没有
-                            # 【答案】模型就无法把相似题冒充点名题号确定作答。
-                            if (
-                                str(
-                                    runtime_metadata.get("exact_question_blocked_reason") or ""
-                                ).strip()
-                                == "low_information_exam_query"
-                            ):
-                                result = redact_question_bank_answer_keys(result)
+                            # 低信息真题查询锁权轮的题面收口不在这里：供给层单一
+                            # 权威 = RAGAdapterTool.execute 声明
+                            # retrieval_profile=unanchored_exam_query,pipeline 整轮
+                            # 不武装题目面通道(prefetch/in-loop/fast-path 三通路
+                            # 共用同一 execute 点)。此处不得再加第二个文本改写
+                            # sink——2026-08-11 live 实证:sink 面 redact 接得再对,
+                            # prefetch 通路照样绕过它(fast 轮 prefetch 先行注入,
+                            # 模型不再发起 in-loop rag,sink 永不通电)。
                         if on_tool_result:
                             await on_tool_result(tool_call.name, result, tool_trace_metadata)
                         await narrator.stage("tool_result", index=len(tools_used))
@@ -4235,6 +4280,15 @@ class AgentLoop:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
             preview_args = dict(preview_args)
+        # 复审 F3/F4:供给 profile 的唯一决策权威(纯函数,吃本轮闭包 metadata,
+        # 服务端锁权推导压过调用方声明);profile 随 args 传递,不走共享 tool context。
+        resolved_profile = resolve_turn_retrieval_profile(
+            runtime_metadata, preview_args.get("retrieval_profile")
+        )
+        if resolved_profile:
+            preview_args["retrieval_profile"] = resolved_profile
+        else:
+            preview_args.pop("retrieval_profile", None)
 
         result = await self.tools.execute("rag", preview_args)
         result_text = str(result or "").strip()
@@ -5088,6 +5142,15 @@ class AgentLoop:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
             preview_args = dict(preview_args)
+        # 复审 F3/F4 同款盖章。本路在锁权轮已被上方 blocked_reason 门整路否决,
+        # 此处的盖章是"所有 rag execute 均经唯一决策权威"的一致性保障(机械位,零决策)。
+        resolved_profile = resolve_turn_retrieval_profile(
+            runtime_metadata, preview_args.get("retrieval_profile")
+        )
+        if resolved_profile:
+            preview_args["retrieval_profile"] = resolved_profile
+        else:
+            preview_args.pop("retrieval_profile", None)
 
         result = await self.tools.execute("rag", preview_args)
         tool_trace_metadata: dict[str, Any] | None = None
@@ -5249,8 +5312,7 @@ class AgentLoop:
             key = f"{channel}:{chat_id}"
             session = await self.sessions.get_or_create(key)
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
-            runtime_metadata = dict(session.metadata or {})
-            runtime_metadata.update(msg.metadata or {})
+            runtime_metadata = self._build_turn_runtime_metadata(session.metadata, msg.metadata)
             self._set_tool_context(
                 channel,
                 chat_id,
@@ -5541,8 +5603,7 @@ class AgentLoop:
 
         await self.memory_consolidator.maybe_consolidate_by_tokens(session)
 
-        runtime_metadata = dict(session.metadata or {})
-        runtime_metadata.update(msg.metadata or {})
+        runtime_metadata = self._build_turn_runtime_metadata(session.metadata, msg.metadata)
         self._set_tool_context(
             msg.channel,
             msg.chat_id,
