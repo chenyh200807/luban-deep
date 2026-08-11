@@ -1,0 +1,30 @@
+{
+  "id": "t7_goldv2_low",
+  "question_group": "T7",
+  "form": "gold_v2_low",
+  "qid": "Q2023-03",
+  "title": "金标v2·Q2023-03低能力档作答(金标 expected_score_ratio=0.21)·弱答案不得满分",
+  "query_file": "queries/t7_goldv2_low.txt",
+  "official_full_score": 20,
+  "case_grading": true,
+  "gold_pack": "docs/原始数据/数据盘点/extractions/gold_pack_v2/student_army_gold.v2.pilot.json",
+  "gold_answer_id": "Q2023-03::low",
+  "gold_expected_score_ratio": 0.21,
+  "note": "2026-08-01 P0「兜底满分」事故的永久回归位:同形态此前真实入口给 10/10;修复后三轮 1.65/1.65/2.09(满分10)。",
+  "assertions": [
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "A9",
+      "max_score_ratio": 0.5,
+      "note": "金标真值 0.21;阈值 0.5 留足判分核波动余量(实测三轮 0.165~0.209)"
+    }
+  ]
+}

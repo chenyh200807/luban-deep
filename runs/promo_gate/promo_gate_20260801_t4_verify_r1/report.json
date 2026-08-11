@@ -1,0 +1,119 @@
+{
+  "run_id": "promo_gate_20260801_t4_verify_r1",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=79e21ed7a41e74ef138387d191c90678a92f5d5d\nDEEPTUTOR_RELEASE_ID=1.0.0+79e21ed7a41e74ef138387d191c90678a92f5d5d+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-07-31T02:04:22",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0
+  },
+  "scenarios": [
+    {
+      "id": "t4_q1_asis",
+      "title": "历史事故原文·#583拒答事故原题(办公楼5小问,只发题)",
+      "form": "question_only",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785434666908_55707c5656",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 79629.7,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3278(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "无口诀段(N/A)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=3278 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "## 结论\n\n这道题需要逐问拆解。我先按顺序给出完整作答框架和采分点。\n\n---\n\n## 问题1：现浇混凝土安全事故类型还有哪些？现浇混凝土安全控制主要内容还有哪些？\n\n**结论：** 安全事故类型还有高空坠落、物体打击、触电、机械伤害、脚手架失稳、重物吊装。安全控制主要内容还有模板支撑系统设计、模板施工、混凝土浇筑用电安全、混凝土浇筑施工、混凝土浇筑用电安全、模板拆除施工安全。\n\n**判断依据：**\n\n**安全事故类型（补充）：**\n- 高空坠落\n- 物体打击\n- 触电\n- 机械伤害\n- 脚手架失稳\n- 重物吊装\n\n**安全控制主要内容（补充）：**\n- 模板支撑系统设计\n- 模板施工（安装与拆除）\n- 混凝土浇筑施工安全\n- 混凝土浇筑用电安全\n- 模板拆除施工安全\n\n**采分点：**\n- 安全事故类型写出：高空坠落、物体打击、触电、机械伤害、脚手架失稳、重物吊装，每个 ==0.5分="
+    },
+    {
+      "id": "t4_q1_half",
+      "title": "历史事故原题·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785434750064_ae7a0f41bc",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 55384.0,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=4436(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "PASS",
+          "evidence": "miss用语['漏点', '漏掉', '漏/错'] + 点名漏点['问题3', '问题4', '问题5']"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(2.55, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1_diagnostic; grading_rubric_provenance=derived_from_stem"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1_diagnostic",
+        "grading_rubric_provenance": "derived_from_stem",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 1 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 1 个采分点，部分命中 3 个，还有 10 个需要补。后面我按小问逐一拆。\n\n**诊断得分预估：** 2.55 / 10 分。\n**采分情况：** 命中 1 个，部分命中 3 个，漏/错 10 个。\n\n**先看最该补的地方：**\n1. 第1问：现浇混凝土安全控制主要内容还包括：模板支撑系统搭设与拆除的安全控制、混凝土浇筑与振捣的安全控制、作业人员的安全防护、混凝土输送设备的安全使用\n2. 第2问：机械设备选择的依据还应包括：施工条件、施工进度计划、施工方案、工程量、设备性能参数\n3. 第2问：机械设备选择的原则还应包括：经济性、安全性、可靠性、维修方便性、环保性\n\n提示：未命中题库原题/标准答案，本轮是题干推导"
+    }
+  ],
+  "finished_at": "2026-07-31T02:06:48"
+}

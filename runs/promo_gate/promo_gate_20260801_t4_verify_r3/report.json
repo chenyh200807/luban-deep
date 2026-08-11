@@ -1,0 +1,119 @@
+{
+  "run_id": "promo_gate_20260801_t4_verify_r3",
+  "base_url": "https://test2.yousenjiaoyu.com",
+  "deploy_sha": "DEEPTUTOR_GIT_SHA=79e21ed7a41e74ef138387d191c90678a92f5d5d\nDEEPTUTOR_RELEASE_ID=1.0.0+79e21ed7a41e74ef138387d191c90678a92f5d5d+production\nDEEPTUTOR_GIT_DIRTY=false",
+  "started_at": "2026-07-31T02:08:46",
+  "eval_runner_agent": "claude_code",
+  "summary": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0
+  },
+  "scenarios": [
+    {
+      "id": "t4_q1_asis",
+      "title": "历史事故原文·#583拒答事故原题(办公楼5小问,只发题)",
+      "form": "question_only",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785434929507_03e3e5a6d5",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 47760.6,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=3299(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "L1",
+          "status": "PASS",
+          "evidence": "len=3299 (>=300)"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": null,
+        "grading_rubric_provenance": null,
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_kb_first_full_agent_policy",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "好，这道题题面较长，共5问。我先按你之前提交的作答继续批改，同时把后续各问的完整答案一起给你。\n\n---\n\n## 第1问：现浇混凝土安全事故类型还有哪些？安全控制主要内容还有哪些？\n\n### 你的答案\n\n> 安全事故类型还有：高处坠落、物体打击、机械伤害、触电。\n> 安全控制主要内容还有：模板拆除安全控制、泵送混凝土管路固定与作业安全、临边洞口防护。\n\n### 判分\n\n**安全事故类型（满分3分）**\n\n| 采分点 | 状态 | 得分 |\n|-------|------|:----:|\n| 高处坠落 | ✅ 命中 | 0.5 |\n| 物体打击 | ✅ 命中 | 0.5 |\n| 机械伤害 | ✅ 命中 | 0.5 |\n| 触电 | ✅ 命中 | 0.5 |\n| 脚手架失稳 | ❌ 漏写 | 0 |\n| 重物吊装 | ❌ 漏写 | 0 |\n\n**安全事故类型得分：2/3分**\n\n**安全控制主"
+    },
+    {
+      "id": "t4_q1_half",
+      "title": "历史事故原题·半答(只答问1-2,其余小问按规范补充)",
+      "form": "half",
+      "question_group": "T4",
+      "qid": null,
+      "verdict": "PASS",
+      "turn_id": "turn_1785434981366_d2eec77060",
+      "turn_status": "completed",
+      "attempts": 1,
+      "latency_ms": 63161.2,
+      "assertion_results": [
+        {
+          "id": "A0",
+          "status": "PASS",
+          "evidence": "turn status=completed; visible_len=5127(入口必须完成且回复非空)"
+        },
+        {
+          "id": "A1",
+          "status": "PASS",
+          "evidence": "miss用语['漏点', '漏掉', '漏/错'] + 点名漏点['问题3', '问题4', '问题5']"
+        },
+        {
+          "id": "A2",
+          "status": "PASS",
+          "evidence": "得分对 [(0.84, 10.0)] 全部 X<=Y 且不超官方满分"
+        },
+        {
+          "id": "A3",
+          "status": "PASS",
+          "evidence": "口诀段无出处但非顿号拼接形态(按模板句放行)"
+        },
+        {
+          "id": "A5",
+          "status": "PASS",
+          "evidence": "无罐头拒答用语"
+        },
+        {
+          "id": "A6",
+          "status": "PASS",
+          "evidence": "score_authority=rubric_scored_v1_diagnostic; grading_rubric_provenance=derived_from_stem"
+        },
+        {
+          "id": "A7",
+          "status": "PASS",
+          "evidence": "selected_mode=deep"
+        },
+        {
+          "id": "A8",
+          "status": "SKIP",
+          "evidence": "错因码分布断言,拍板后启用"
+        }
+      ],
+      "observed_metadata": {
+        "score_authority": "rubric_scored_v1_diagnostic",
+        "grading_rubric_provenance": "derived_from_stem",
+        "selected_mode": "deep",
+        "execution_path": "tutorbot_case_grading_v1_direct",
+        "turn_capability": "tutorbot"
+      },
+      "response_excerpt": "这道案例题我已经进入逐采分点批改，会按 1 个小问逐一核对。\n\n先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。\n\n## 批改结论\n这道题我先给你一个总判断：命中 3 个采分点，部分命中 0 个，还有 25 个需要补。后面我按小问逐一拆。\n\n**诊断得分预估：** 0.84 / 10 分。\n**采分情况：** 命中 3 个，部分命中 0 个，漏/错 25 个。\n\n**先看最该补的地方：**\n1. 第1问：现浇混凝土安全事故类型还包括：脚手架失稳\n2. 第1问：现浇混凝土安全事故类型还包括：重物吊装伤害\n3. 第1问：现浇混凝土安全控制主要内容还包括：混凝土浇筑施工方案\n\n提示：未命中题库原题/标准答案，本轮是题干推导诊断批改，不能作为正式阅卷成绩。\n\n## 问题1\n**你写的：** 已看到「临边洞口防护」，但还要补充「现浇混凝土安全事故类型还包括：脚手架失稳」。\n\n**判"
+    }
+  ],
+  "finished_at": "2026-07-31T02:10:47"
+}

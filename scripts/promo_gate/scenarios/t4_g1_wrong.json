@@ -1,0 +1,32 @@
+{
+  "id": "t4_g1_wrong",
+  "question_group": "T4",
+  "form": "wrong",
+  "title": "历史事故原题·答错版(机具/顺序/结论均改错)",
+  "query_file": "queries/t4_g1_wrong.txt",
+  "official_full_score": 30,
+  "case_grading": true,
+  "incident": "案例判分死亡事故(replay_g1_carbon)",
+  "assertions": [
+    {
+      "id": "A2"
+    },
+    {
+      "id": "A3"
+    },
+    {
+      "id": "A5"
+    },
+    {
+      "id": "A6"
+    },
+    {
+      "id": "A7"
+    },
+    {
+      "id": "A8",
+      "skip": true,
+      "note": "错因码分布断言,拍板后启用"
+    }
+  ]
+}
