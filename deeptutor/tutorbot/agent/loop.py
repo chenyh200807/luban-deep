@@ -33,6 +33,7 @@ from deeptutor.services.query_intent import (
     query_uses_learner_state_authority,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    build_question_lifecycle_clarification_prompt_hint,
     case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
@@ -4902,10 +4903,6 @@ class AgentLoop:
         # 一处注入两模生效。
         blocked_reason = str(metadata.get("exact_question_blocked_reason") or "").strip()
         if blocked_reason:
-            from deeptutor.services.question_lifecycle_skills import (
-                build_question_lifecycle_clarification_prompt_hint,
-            )
-
             clarification_hint = build_question_lifecycle_clarification_prompt_hint(blocked_reason)
             if clarification_hint:
                 parts.append(clarification_hint)

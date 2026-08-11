@@ -729,6 +729,52 @@ async def test_llm_scene_proposal_fills_semantic_question_review_gap(monkeypatch
     assert decision.source == "llm"
 
 
+@pytest.mark.asyncio
+async def test_threshold_dropped_llm_candidate_keeps_raw_scene_for_shadow_metric(monkeypatch):
+    """PR3-R4(F6)供给侧:0.72 阈值置空前把原始判定留档进 llm_scene_candidate
+    (raw_scene/raw_confidence,observe-only)。没有它,semantic_router_telemetry 的
+    `llm_verdict_gate_vetoed`(T1)整类恒被误分到 T2。路由用的 scene 仍是被砍除后的
+    None —— 零行为改动。"""
+
+    async def _fake_complete(**_kwargs):
+        return '{"scene":"question_review","confidence":0.55,"reason":"可能是想讲评"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="项目质量计划管理这个点，帮我练到会")
+    )
+
+    assert decision.scene is None, "阈值砍除后路由用的 scene 必须仍为 None"
+    assert not decision.selected_skill_names
+    assert decision.llm_scene_candidate == {
+        "scene": None,
+        "confidence": pytest.approx(0.55),
+        "reason": "可能是想讲评",
+        "raw_scene": "question_review",
+        "raw_confidence": pytest.approx(0.55),
+    }
+
+
+@pytest.mark.asyncio
+async def test_above_threshold_llm_candidate_carries_no_raw_keys(monkeypatch):
+    """PR3-R4 payload 守恒:未发生阈值砍除时不写 raw_* 两键——它们的**在场本身**
+    就是"砍除发生过"的信号。"""
+
+    async def _fake_complete(**_kwargs):
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"想练"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="项目质量计划管理这个点，帮我练到会")
+    )
+
+    assert decision.scene == "practice_generation"
+    assert "raw_scene" not in (decision.llm_scene_candidate or {})
+    assert "raw_confidence" not in (decision.llm_scene_candidate or {})
+
+
 def test_scene_derivation_import_does_not_require_skill_loader_dependency():
     """Pure scene routing must not import TutorBot's optional skill loader."""
     code = textwrap.dedent(

@@ -51,9 +51,14 @@ def _classify_scene_divergence(
     """
     has_candidate = isinstance(llm_candidate, dict)
     candidate_scene = str((llm_candidate or {}).get("scene") or "") if has_candidate else ""
+    # PR3-R4(F6):`scene` 已被 0.72 阈值置空的候选,原始判定活在 `raw_scene`
+    # (question_lifecycle_skills._propose_scene_with_llm 置空前留档)。判 gate 否决
+    # **优先用 raw_scene** ——否则"LLM 本来判了 scene、被闸否决"整类恒被误分到 T2。
+    raw_candidate_scene = str((llm_candidate or {}).get("raw_scene") or "") if has_candidate else ""
+    gate_vetoed_candidate_scene = raw_candidate_scene or candidate_scene
     gate_blocked = business_gate_result.startswith(_BLOCKED_GATE_PREFIX)
     final = str(final_scene or "")
-    if candidate_scene and gate_blocked:
+    if gate_vetoed_candidate_scene and gate_blocked:
         return "llm_verdict_gate_vetoed"          # T1(F2 形态)
     if candidate_scene:
         return "agreement" if candidate_scene == final else "llm_scene_conflicts_final"

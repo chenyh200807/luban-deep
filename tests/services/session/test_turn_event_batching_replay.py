@@ -357,6 +357,84 @@ async def test_registered_question_set_suppresses_marker(store, runtime) -> None
     assert "unregistered_question_set_emitted" not in result_row["metadata"]
 
 
+_THREE_ITEM_FOLLOWUP_CONTEXT = {
+    "question_id": "quiz_1",
+    "question": "三题组",
+    "question_type": "choice",
+    "items": [
+        {"question_id": "q_1", "question": "题1", "correct_answer": "B"},
+        {"question_id": "q_2", "question": "题2", "correct_answer": "B"},
+        {"question_id": "q_3", "question": "题3", "correct_answer": "B"},
+    ],
+}
+
+
+@pytest.mark.asyncio
+async def test_re_presentation_turn_uses_restored_active_object_as_denominator(
+    store, runtime
+) -> None:
+    """PR3-R3(F4)分母修形:「把刚才三道题再发一遍」这类复述轮的 RESULT 不重带
+    question_followup_context —— 只数事件局部会让分母塌成 0 → 3>0 纯假阳。
+    分母并入 turn 运行时内存中轮初恢复的那份题组(volatile question context)后
+    3>3 为假,marker 不落。"""
+    execution = await _new_execution(store, runtime, "session-6b-represent")
+    # turn-START 恢复点写入的那份(_set_volatile_question_context 是唯一写者)
+    runtime._set_volatile_question_context(
+        execution.session_id, dict(_THREE_ITEM_FOLLOWUP_CONTEXT)
+    )
+
+    await runtime._persist_and_publish(execution, _result_event(_THREE_QUESTION_RESPONSE))
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    assert "unregistered_question_set_emitted" not in result_row["metadata"]
+
+
+@pytest.mark.asyncio
+async def test_re_presentation_turn_uses_trace_metadata_active_object_as_denominator(
+    store, runtime
+) -> None:
+    """PR3-R3:第二个内存来源 —— turn-START 恢复的 active_object 在 RESULT payload 上的
+    trace_metadata 投影。同样只读进程内内存,零新增 DB 读。"""
+    execution = await _new_execution(store, runtime, "session-6b-represent-trace")
+
+    await runtime._persist_and_publish(
+        execution,
+        _result_event(
+            _THREE_QUESTION_RESPONSE,
+            {
+                "trace_metadata": {
+                    "active_object": {
+                        "object_type": "question_set",
+                        "object_id": "quiz_1",
+                        "state_snapshot": dict(_THREE_ITEM_FOLLOWUP_CONTEXT),
+                    }
+                }
+            },
+        ),
+    )
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    assert "unregistered_question_set_emitted" not in result_row["metadata"]
+
+
+@pytest.mark.asyncio
+async def test_marker_declares_its_denominator_sources(store, runtime) -> None:
+    """PR3-R3:marker 如实声明分母口径与两个来源的分项值(生产判读需要区分
+    "事件局部没带" vs "轮初真的没有")。"""
+    execution = await _new_execution(store, runtime, "session-6b-denominator")
+    await runtime._persist_and_publish(execution, _result_event(_THREE_QUESTION_RESPONSE))
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    marker = result_row["metadata"]["unregistered_question_set_emitted"]
+    assert marker["denominator"] == "max(event_local,restored_active_object)"
+    assert marker["registered_count_event_local"] == 0
+    assert marker["registered_count_restored_active_object"] == 0
+    assert marker["registered_question_count"] == 0
+
+
 @pytest.mark.asyncio
 async def test_single_question_re_presentation_does_not_mark(store, runtime) -> None:
     """(c) 单题复述(1 块)→ 无 marker(f5d95d0df 家族防误报:判据 ≥2 块)。"""

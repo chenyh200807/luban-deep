@@ -447,18 +447,24 @@ class ChatOrchestrator:
             context.metadata["semantic_router_selected_capability"] = cap_name
             return cap_name
         if lifecycle_decision.needs_clarification:
-            # PR3(2026-08-10 三族根因 §3 6a 修形):needs_clarification 不再是
-            # capability 选择权——gate 结果只活在 metadata(attach 阶段
-            # _record_lifecycle_decision 已写 business_gate_result /
-            # exact_question_blocked_reason / trace),数据面权限否决由 loop 侧
-            # exact_question_blocked_reason 消费点执行。路由交还 fall-through
-            # 唯一选择器;主 LLM 经 prompt 提示知悉 gate 结果。
+            # PR3(2026-08-10 三族根因 §3 6a):本刀只撤"话语终局权"(罐头模板),
+            # **不撤路由**。blocked/needs_clarification 轮必须落到默认聊天能力
+            # (tutorbot)——那里同时住着 exact_question_blocked_reason 的数据面
+            # 读者(prefetch/fast-path/authority override 三锁)与澄清 prompt hint
+            # 注入点。若在此 fall-through 到唯一选择器,该轮会被主路由改判成
+            # deep_question(→ 拿 blocked 的真题请求去出题)或裸 chat(→ 三锁与
+            # hint 全部失联),并覆写 mode/mode_reason 的 blocked_* 语义。
+            # 因此路由与早退与 b853d9ef4 保持逐字一致;本 PR 在该分支的净变化
+            # 仅剩"不再吐模板"。
+            cap_name = self._default_chat_capability(context)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
                 lifecycle_decision.business_gate_result or "needs_clarification"
             )
             context.metadata["semantic_router_shadow_decision"] = {}
             context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
         return await self._select_capability_after_lifecycle(context, routing_user_message)
 
     async def _select_capability_after_lifecycle(

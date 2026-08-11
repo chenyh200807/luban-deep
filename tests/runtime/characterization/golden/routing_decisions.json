@@ -11,19 +11,12 @@
     "question_lifecycle_scene_source": "deterministic",
     "question_lifecycle_skill_names": [],
     "required_anchor_status": "missing_active_question",
-    "semantic_router_mode": "primary",
-    "semantic_router_mode_reason": "semantic_router_primary",
-    "semantic_router_scope_match": true,
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "blocked_unanchored_answer_submission",
     "semantic_router_selected_capability": "chat",
     "semantic_router_shadow_route": "",
     "suspended_object_stack": [],
-    "turn_semantic_decision": {
-      "allowed_patch": [
-        "no_state_change"
-      ],
-      "next_action": "route_to_general_chat",
-      "relation_to_active_object": "out_of_scope_chat"
-    }
+    "turn_semantic_decision": null
   },
   "bare_answer_multi": {
     "_capability": "chat",
@@ -40,19 +33,12 @@
     "question_lifecycle_scene_source": "deterministic",
     "question_lifecycle_skill_names": [],
     "required_anchor_status": "missing_active_question",
-    "semantic_router_mode": "primary",
-    "semantic_router_mode_reason": "semantic_router_primary",
-    "semantic_router_scope_match": true,
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "blocked_unanchored_answer_submission",
     "semantic_router_selected_capability": "chat",
     "semantic_router_shadow_route": "",
     "suspended_object_stack": [],
-    "turn_semantic_decision": {
-      "allowed_patch": [
-        "no_state_change"
-      ],
-      "next_action": "route_to_general_chat",
-      "relation_to_active_object": "temporary_detour"
-    }
+    "turn_semantic_decision": null
   },
   "case_answer_empty": {
     "_capability": "chat",
@@ -171,19 +157,12 @@
     "question_lifecycle_scene_source": "deterministic",
     "question_lifecycle_skill_names": [],
     "required_anchor_status": "missing_question_anchor",
-    "semantic_router_mode": "primary",
-    "semantic_router_mode_reason": "semantic_router_primary",
-    "semantic_router_scope_match": true,
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "blocked_low_information_exam_query",
     "semantic_router_selected_capability": "chat",
     "semantic_router_shadow_route": "",
     "suspended_object_stack": [],
-    "turn_semantic_decision": {
-      "allowed_patch": [
-        "no_state_change"
-      ],
-      "next_action": "route_to_general_chat",
-      "relation_to_active_object": "out_of_scope_chat"
-    }
+    "turn_semantic_decision": null
   },
   "numbered_batch_multi": {
     "_capability": "deep_question",

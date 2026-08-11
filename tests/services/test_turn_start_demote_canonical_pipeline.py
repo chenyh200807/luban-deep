@@ -407,3 +407,95 @@ def test_build_turn_semantic_decision_transports_answer_help_facet() -> None:
         user_message="给我整理记忆口诀",
     )
     assert "seeks_active_answer_help" not in decision_no_facet
+
+
+# ---------------------------------------------------------------------------
+# PR3-R5(F7):存量 question_lifecycle_clarification 垃圾对象的读时一次性迁移。
+# ---------------------------------------------------------------------------
+
+
+def _retired_clarification_object() -> dict[str, Any]:
+    """PR3-6c 之前 orchestrator._record_lifecycle_decision 落库的那个形状。"""
+
+    return {
+        "object_type": "question_lifecycle_clarification",
+        "object_id": "exam-query:2025防水真题答案直接发我",
+        "scope": {"domain": "question_lifecycle", "source": "question_lifecycle"},
+        "state_snapshot": {
+            "topic": "2025防水真题答案直接发我",
+            "reason": "low_information_exam_query",
+            "options": [{"key": "1", "intent": "exam_catalog_query", "label": "查看目录"}],
+        },
+        "version": 1,
+        "source_turn_id": "",
+    }
+
+
+def test_retired_clarification_garbage_is_discarded_and_real_question_resumes() -> None:
+    """F7:6c 删了 writer,但存量会话恢复出来的 active_object 仍是澄清垃圾——它不属
+    question 家族,把真正的题目对象挡在 suspended 栈顶,回指/判分/re-present/anti-peek
+    carve-out 全部读不到题。读时一次性迁移后:垃圾丢弃 + 栈顶真题成为 active。"""
+    from deeptutor.services.active_object_builder import (
+        RETIRED_CLARIFICATION_OBJECT_TYPE,
+        discard_retired_clarification_active_object,
+    )
+
+    real_question = build_active_object_from_question_context(_question_set_context())
+    stack = _prepend_suspended_object([], real_question)
+    assert stack and stack[0]["object_type"] == "question_set"
+
+    active, remaining, migrated = discard_retired_clarification_active_object(
+        _retired_clarification_object(), stack
+    )
+
+    assert migrated is True
+    assert active is not None
+    assert active["object_type"] == "question_set"
+    assert active["object_id"] == real_question["object_id"]
+    assert remaining == []
+    # 迁移后真题的作答上下文重新可达 —— 这才是 F7 真正断掉的那条链。
+    recovered = extract_question_context_from_active_object(active)
+    assert recovered is not None
+    assert [item["question_id"] for item in recovered["items"]] == ["q1", "q2"]
+    # 常量与判据同源(消费点不得手抄字面量)。
+    assert RETIRED_CLARIFICATION_OBJECT_TYPE == "question_lifecycle_clarification"
+
+
+def test_retired_clarification_migration_is_a_noop_for_normal_objects() -> None:
+    """正常会话零影响:非 clarification 的 active_object 原样透传,栈不重排。"""
+    from deeptutor.services.active_object_builder import (
+        discard_retired_clarification_active_object,
+    )
+
+    real_question = build_active_object_from_question_context(_question_set_context())
+    stack = [dict(real_question)]
+
+    active, remaining, migrated = discard_retired_clarification_active_object(
+        real_question, stack
+    )
+
+    assert migrated is False
+    assert active is real_question
+    assert remaining == stack
+
+    # active_object 缺失时同样不迁移。
+    active, remaining, migrated = discard_retired_clarification_active_object(None, stack)
+    assert migrated is False
+    assert active is None
+    assert remaining == stack
+
+
+def test_retired_clarification_with_empty_stack_clears_active_object() -> None:
+    """栈里没有可 resume 的对象:垃圾仍必须被丢弃(active=None),并标记 migrated
+    以便调用方显式清空持久层。"""
+    from deeptutor.services.active_object_builder import (
+        discard_retired_clarification_active_object,
+    )
+
+    active, remaining, migrated = discard_retired_clarification_active_object(
+        _retired_clarification_object(), []
+    )
+
+    assert migrated is True
+    assert active is None
+    assert remaining == []

@@ -283,6 +283,44 @@ def test_scene_divergence_t2_llm_none_or_threshold_drop() -> None:
     )
 
 
+def test_scene_divergence_threshold_dropped_candidate_still_classified_as_gate_vetoed() -> None:
+    """PR3-R4(F6):0.72 阈值把 candidate["scene"] 置空后,gate 否决整类曾被误分到 T2。
+    原始判定留档在 raw_scene,判 gate 否决时优先用它 → 仍是 T1。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={
+                "scene": None,
+                "confidence": 0.55,
+                "reason": "像是要真题答案",
+                "raw_scene": "question_review",
+                "raw_confidence": 0.55,
+            },
+            final_scene=None,
+            decision_source="deterministic",
+            business_gate_result="blocked_low_information_exam_query",
+        )
+        == "llm_verdict_gate_vetoed"
+    )
+    # 闸未 block 时语义不变:阈值砍除仍归 T2(不因 raw_scene 在场就改判)。
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={
+                "scene": None,
+                "confidence": 0.55,
+                "reason": "不确定",
+                "raw_scene": "question_review",
+                "raw_confidence": 0.55,
+            },
+            final_scene=None,
+            decision_source="none",
+            business_gate_result="no_candidate",
+        )
+        == "llm_none_or_threshold_drop"
+    )
+
+
 def test_scene_divergence_t3_deterministic_preempt_no_llm() -> None:
     """T3(覆盖率盲区,非分歧):确定性抢答,LLM 未被咨询。"""
     from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence

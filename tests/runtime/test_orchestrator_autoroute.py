@@ -1199,9 +1199,11 @@ async def test_orchestrator_tolerates_legacy_clarification_object_without_resolv
 
 
 @pytest.mark.asyncio
-async def test_low_information_exam_query_keeps_preselected_deep_question_with_blocked_metadata() -> None:
-    # PR3 刀2 翻转(2026-08-10 三族根因 §3):needs_clarification 不再夺走 preselect
-    # (旧行为=强选 tutorbot)。gate 结果只活在 metadata,数据面否决由 loop 侧执行。
+async def test_low_information_exam_query_overrides_preselected_deep_question() -> None:
+    # PR3(2026-08-10 三族根因 §3 6a)只撤"话语终局权",**不撤路由**:blocked 轮仍必须
+    # 夺走 preselect=deep_question 并落到默认聊天能力(tutorbot)——否则 blocked 的真题
+    # 请求会被 deep_question 当成出题请求执行,且 loop 侧 exact_question_blocked_reason
+    # 三锁与澄清 prompt hint 全部失联。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1217,17 +1219,18 @@ async def test_low_information_exam_query_keeps_preselected_deep_question_with_b
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert registry.captured[0] == "deep_question"
+    assert registry.captured[0] == "tutorbot"
     assert context.metadata["question_lifecycle_scene"] is None
     assert context.metadata["question_lifecycle_decision"]["needs_clarification"] is True
     assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
     assert context.metadata["semantic_router_mode"] == "question_lifecycle"
     assert context.metadata["semantic_router_mode_reason"] == "blocked_low_information_exam_query"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
 
 
 @pytest.mark.asyncio
-async def test_unanchored_answer_submission_keeps_preselected_deep_question_with_blocked_metadata() -> None:
-    # PR3 刀2 翻转:同上——无锚作答轮保留 preselect=deep_question,blocked metadata 守恒。
+async def test_unanchored_answer_submission_overrides_preselected_deep_question() -> None:
+    # 同上:无锚作答轮仍夺走 preselect,路由到默认聊天能力;blocked metadata 守恒。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1243,7 +1246,7 @@ async def test_unanchored_answer_submission_keeps_preselected_deep_question_with
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert registry.captured[0] == "deep_question"
+    assert registry.captured[0] == "tutorbot"
     assert context.metadata["question_lifecycle_scene"] is None
     assert context.metadata["question_lifecycle_decision"].items() >= {
         "needs_clarification": True,
@@ -1253,6 +1256,7 @@ async def test_unanchored_answer_submission_keeps_preselected_deep_question_with
     }.items()
     assert context.metadata["semantic_router_mode"] == "question_lifecycle"
     assert context.metadata["semantic_router_mode_reason"] == "blocked_unanchored_answer_submission"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
 
 
 @pytest.mark.asyncio

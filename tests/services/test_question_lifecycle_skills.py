@@ -344,6 +344,51 @@ def test_clarification_prompt_hint_covers_all_reasons_and_empty():
     assert build_question_lifecycle_clarification_prompt_hint(None) == ""
 
 
+def test_exam_catalog_response_derives_topic_and_never_echoes_action_phrases() -> None:
+    """PR3-R2(F2):澄清快照(唯一跨轮 topic 供给)随 6c 退役后,exam_catalog 模板一度把
+    当前消息原文当 topic 回声——学生发的目录动作短语(常常正是已退役澄清模板的选项原文)
+    会被塞回"你现在问的是「…」这一类真题"。修法=主题必须导出;导不出返回 ""让上层
+    fall-through 主 LLM。"""
+    from deeptutor.services.question_lifecycle_skills import (
+        build_question_lifecycle_exam_catalog_response,
+    )
+
+    # 能导出真实主题锚 → 允许模板,且 topic 是锚而不是整句
+    for message, expected_topic in (
+        ("2025年真题目录", "2025年真题"),
+        ("帮我看看2025年防水真题的考点范围", "2025年防水真题"),
+        ("地下防水真题目录", "地下防水"),
+    ):
+        response = build_question_lifecycle_exam_catalog_response(message, {})
+        assert response, message
+        assert f"“{expected_topic}”" in response, (message, response[:80])
+        assert f"“{message}”" not in response, f"逐字回声整句: {message!r}"
+
+    # 纯目录动作短语 / 已退役澄清模板的三条选项原文 → 不吐模板
+    for message in (
+        "真题目录",
+        "考点范围",
+        "查看真题目录",
+        "查看这一类真题目录或考点范围",
+        "让我出一套真题风格练习",
+        "粘贴具体题干和选项，我按题目讲评",
+    ):
+        assert build_question_lifecycle_exam_catalog_response(message, {}) == "", message
+
+    # 导不出时可退到真实上下文锚(active question context 的考点),仍不回声
+    response = build_question_lifecycle_exam_catalog_response(
+        "查看这一类真题目录或考点范围",
+        {
+            "question_followup_context": {
+                "question": "地下防水工程的防水等级应如何确定？",
+                "concentration": "地下防水",
+            }
+        },
+    )
+    assert "“地下防水”" in response
+    assert "查看这一类真题目录或考点范围" not in response
+
+
 def test_active_mcq_low_confidence_non_answer_does_not_nail_grading_scene() -> None:
     """Step 2 判分态单一权威收口(2026-06-24):active MCQ 在场时,只有 HIGH 置信作答才
     确定性钉 mcq_grading scene(保硬约束40 真作答必判);LOW 置信(答案被埋在试探/保留/

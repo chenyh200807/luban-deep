@@ -427,14 +427,113 @@ def _looks_like_exam_catalog_query(query: str) -> bool:
     return any(marker in text for marker in catalog_action_markers)
 
 
+_EXAM_CATALOG_ACTION_PHRASES: tuple[str, ...] = (
+    # 目录/范围**动作**短语(含已退役澄清模板的选项原文)——这些是"想干什么",不是"主题"。
+    # 逐条 replace 前长后短,避免短语先被吃掉留下碎片。
+    "查看这一类真题目录或考点范围",
+    "查看这一类真题目录",
+    "查看真题目录",
+    "真题目录",
+    "试题目录",
+    "题库目录",
+    "试卷目录",
+    "考点范围",
+    "题目范围",
+    "范围目录",
+    "目录范围",
+    "目录",
+    "范围",
+)
+_EXAM_CATALOG_TOPIC_FILLERS: tuple[str, ...] = (
+    "帮我", "给我", "我想", "我要", "麻烦", "请问", "请",
+    "看一下", "查一下", "看看", "查查", "看下", "查下", "查看", "看",
+    "有哪些", "都有什么", "有什么", "是什么",
+    "这一类", "这类", "那一类", "那类",
+    "一下", "的", "或", "和", "与", "吧", "呢", "啊", "了", "，", ",", "。", "、", "?", "？",
+)
+_EXAM_CATALOG_TOPIC_MIN_LEN = 2
+_EXAM_CATALOG_TOPIC_MAX_LEN = 12
+# 主题锚里出现"要内容"的诉求词 = 这不是主题、是整句诉求(回声病灶形状),判导不出。
+# "我"/"你"同理:真实主题锚是名词性的,带人称代词说明剩下的是整句诉求而非主题
+# (已退役澄清模板的三条选项原文正是此形状,例如"让我出一套真题风格练习")。
+_EXAM_CATALOG_TOPIC_DISQUALIFIERS: tuple[str, ...] = (
+    "答案", "解析", "解答", "发我", "背诵", "我", "你",
+)
+
+
+def _strip_exam_catalog_action_phrases(message: str) -> str:
+    """把目录查询里的动作短语与套话剥掉,只留结构化剩余(候选主题锚)。"""
+
+    residual = re.sub(r"\s+", "", str(message or "").strip())
+    for phrase in _EXAM_CATALOG_ACTION_PHRASES:
+        residual = residual.replace(phrase, "")
+    for filler in _EXAM_CATALOG_TOPIC_FILLERS:
+        residual = residual.replace(filler, "")
+    return residual.strip()
+
+
+_EXAM_CATALOG_BARE_GENERICS: frozenset[str] = frozenset(
+    {"真题", "试题", "题库", "试卷", "题目", "考点", "知识点", "考试", "练习", "习题"}
+)
+
+
+def _is_usable_exam_catalog_topic(candidate: str) -> bool:
+    text = str(candidate or "").strip()
+    if not (_EXAM_CATALOG_TOPIC_MIN_LEN <= len(text) <= _EXAM_CATALOG_TOPIC_MAX_LEN):
+        # 过短=没主题;过长=在逐字回声学生整句(F2 病灶),两者都判"导不出"。
+        return False
+    if text in _EXAM_CATALOG_BARE_GENERICS:
+        # 光秃秃的"真题"/"考点"不是主题锚,套进模板只会产出同义反复。
+        return False
+    if any(marker in text for marker in _EXAM_CATALOG_TOPIC_DISQUALIFIERS):
+        return False
+    return bool(re.search(r"[一-鿿 A-Za-z0-9]", text))
+
+
+def _derive_exam_catalog_topic(message: str, metadata: dict[str, Any] | None) -> str:
+    """导出真实真题主题锚;导不出返回 ""(上层据此 fall-through 主 LLM)。
+
+    PR3-R2(F2)根因:澄清快照(唯一的跨轮 topic 供给)随 6c 退役后,本函数退化成
+    "把当前消息原文当 topic 回声"——学生发的目录动作短语(常常正是已退役模板的选项
+    原文,如"查看这一类真题目录或考点范围")会被当成主题塞回模板,产出"你现在问的是
+    「查看这一类真题目录或考点范围」这一类真题"的鬼话。修法:主题必须**导出**,
+    导不出就不吐模板。
+    """
+
+    residual = _strip_exam_catalog_action_phrases(message)
+    year_match = re.search(r"(?:19|20)\d{2}", residual)
+    if year_match:
+        year = year_match.group(0)
+        if _is_usable_exam_catalog_topic(residual):
+            if "真题" in residual:
+                return residual
+            widened = f"{residual}真题"
+            return widened if len(widened) <= _EXAM_CATALOG_TOPIC_MAX_LEN else f"{year}年真题"
+        # 年份锚在场但剩余过长/过短:退回"<年份>年真题"这一可核事实,不回声整句。
+        return f"{year}年真题"
+    if _is_usable_exam_catalog_topic(residual):
+        return residual
+    # 真实上下文锚:本轮在场的题目对象(active question context)带的考点/知识点。
+    active_ctx = _active_question_context_from_metadata(metadata)
+    for key in ("concentration", "knowledge_context"):
+        candidate = str(active_ctx.get(key) or "").strip()
+        if _is_usable_exam_catalog_topic(candidate):
+            return candidate
+    return ""
+
+
 def build_question_lifecycle_exam_catalog_response(message: str, metadata: dict[str, Any] | None = None) -> str:
-    """Student-facing answer for exam catalog/range requests without inventing a specific paper."""
+    """Student-facing answer for exam catalog/range requests without inventing a specific paper.
+
+    返回 ""(空串)= 本轮导不出真实主题锚,**不吐模板**,由调用方 fall-through 到主 LLM。
+    """
 
     # PR3-6c(2026-08-10 三族根因 §3):澄清对象(question_lifecycle_clarification)
-    # 及其读端(_clarification_state_from_metadata / _resolve_clarification_option_intent)
-    # 已随模板终局退役;topic 只来自本轮 message,不再从澄清快照带入。
+    # 及其读端已随模板终局退役,跨轮 topic 供给消失。PR3-R2:改为"导出主题或不吐"。
     metadata = metadata or {}
-    topic = str(message or "真题").strip() or "真题"
+    topic = _derive_exam_catalog_topic(message, metadata)
+    if not topic:
+        return ""
     return (
         f"可以。你现在问的是“{topic}”这一类真题的目录或考点范围，我先按复习入口帮你整理，"
         "不直接编造某一道题的标准答案。\n\n"
@@ -1611,21 +1710,36 @@ async def _llm_question_lifecycle_scene_proposal(
     except (TypeError, ValueError):
         confidence = 0.0
     confidence = max(0.0, min(1.0, confidence))
-    if confidence < 0.72:
+    # PR3-R4(F6,observe-only):阈值置空会把 LLM 的原始判定**擦掉**——
+    # llm_scene_candidate.scene 变 None 后,semantic_router_telemetry 的
+    # `_classify_scene_divergence` 再也认不出"LLM 本来判了某 scene、被闸否决"(T1),
+    # 全数误分到 T2 llm_none_or_threshold_drop,shadow 分歧度量就此瞎掉一整类。
+    # 修法:置空前把原始值原样留档(raw_scene / raw_confidence),**只给度量读**,
+    # 路由/skill 选择一律仍用被砍除后的 scene(零行为改动)。
+    pre_threshold_scene = scene
+    pre_threshold_confidence = confidence
+    threshold_dropped = confidence < 0.72
+    if threshold_dropped:
         scene = None
     skill_names = select_question_lifecycle_skill_names(scene)
+    reason_text = str(payload.get("reason") or "").strip()
+    llm_scene_candidate: dict[str, Any] = {
+        "scene": scene,
+        "confidence": confidence,
+        "reason": reason_text,
+    }
+    if threshold_dropped and pre_threshold_scene:
+        # raw_* 两键的**在场本身**就是"阈值砍除发生过"的信号(未砍除时不写,payload 守恒)。
+        llm_scene_candidate["raw_scene"] = pre_threshold_scene
+        llm_scene_candidate["raw_confidence"] = pre_threshold_confidence
     return QuestionLifecycleSceneDecision(
         scene=scene,
         source="llm",
         confidence=confidence,
-        reason=str(payload.get("reason") or "").strip(),
+        reason=reason_text,
         required_anchor_status="satisfied" if scene else "",
         selected_skill_names=skill_names,
-        llm_scene_candidate={
-            "scene": scene,
-            "confidence": confidence,
-            "reason": str(payload.get("reason") or "").strip(),
-        },
+        llm_scene_candidate=llm_scene_candidate,
         business_gate_result="passed" if scene else "llm_none_or_low_confidence",
     )
 
