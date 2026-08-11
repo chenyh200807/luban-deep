@@ -894,6 +894,24 @@ def _looks_like_explicit_question_generation_request(text: str) -> bool:
 # (questions_bank + exam 卷面 chunk),见 deeptutor/services/rag/retrieval_profiles.py。
 # 本模块不再持有任何题库文本改写器。
 
+# 复审 F1（2026-08-11）:blocked 事实是 turn-start 决策——唯一写者是
+# orchestrator._record_lifecycle_decision(本轮写 / 本轮 pop),它只活在 per-turn
+# 信道(capability session_metadata → manager → msg.metadata)。但 manager 会把
+# merged metadata **整份持久化**进 loop session.metadata(send_message),陈旧拷贝
+# 会让一次锁权把后续所有合法轮的题库供给永久 disarm。与 turn_failure marker 同款
+# per-turn 纪律:凡从持久化 session metadata 继承,合并 per-turn 信道**之前**必须
+# 先剥掉本清单里的键。消费点 = manager.send_message 的 merged_metadata 与
+# loop._build_turn_runtime_metadata。
+TURN_SCOPED_LIFECYCLE_METADATA_KEYS = ("exact_question_blocked_reason",)
+
+
+def strip_stale_question_lifecycle_turn_metadata(metadata: dict) -> None:
+    """从 session 继承的 metadata 里剥掉 turn-scoped lifecycle 键(原地修改)。"""
+    if not isinstance(metadata, dict):
+        return
+    for key in TURN_SCOPED_LIFECYCLE_METADATA_KEYS:
+        metadata.pop(key, None)
+
 
 def build_question_lifecycle_clarification_prompt_hint(reason: str) -> str:
     """PR3-6a:lifecycle gate 结果降级为主 LLM 上下文提示(非学生可见终局文案)。

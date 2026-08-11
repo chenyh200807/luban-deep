@@ -636,20 +636,37 @@ domains:
         (that lights the degradation gates and demotes a normal graded answer
         into "insufficient evidence"). Domain tests live in
         tests/services/rag/test_case_grading_identity_profile.py.
-        unanchored_exam_query (2026-08-11) is the question-surface disarm for
+        unanchored_exam_query (2026-08-11, revised same day by the 16-agent
+        F1-F8 review) is the question-surface disarm for
         low_information_exam_query locked turns — the pipeline runs with BOTH
         question-surface channels unarmed, i.e. the questions_bank retrieval
         family (bank vector, exact text probe, derived question_exact_vector,
         case second pass, the exact_question payload) and exam paper chunks,
         while textbook/standard channels stay armed and degradation semantics
-        are unchanged. The single declaration point is TutorBot
-        RAGAdapterTool.execute (the shared supply boundary of prefetch, in-loop
-        and exact-fast-path calls, reading the locked fact from tool runtime
-        context; an explicit caller-declared profile is never overridden). No
-        sink- or prompt-side question-bank text rewriter may act as a second
-        authority (the former redact sink was proven dead on the live fast
-        path — prefetch injects before the loop, so the in-loop sink never
-        fires). Domain tests live in
+        are unchanged (empty-index detection keeps full-round semantics under
+        this profile, unlike case_grading_identity). The ONE derivation
+        authority is retrieval_profiles.resolve_turn_retrieval_profile — a
+        pure function fed the per-turn runtime_metadata captured in each call
+        site's closure, never the shared mutable RAGAdapterTool._runtime_context
+        (concurrent turns overwrite it via _set_tool_context — F3). The
+        server-side derivation OVERRIDES any caller-declared profile, and a
+        model-authored retrieval_profile kwarg (undeclared in the tool schema)
+        is always stripped by AgentLoop._prepare_rag_tool_args (F4). Stamping
+        sites are the loop's prefetch, in-loop dispatch and exact-fast-path
+        executes (mechanical, zero decisions). RAGService is the second,
+        provider-agnostic enforcement layer (F2/F7) — on disarmed rounds it
+        skips the historical-question re-injection
+        (_apply_historical_question_context / _build_historical_question_result)
+        and requires the provider result to ECHO the profile; a non-echoing
+        provider (llamaindex/kbv5 swallow it via **kwargs) fails closed to an
+        empty-supply result with
+        retrieval_status=question_surface_disarm_unsupported. Exported
+        retrieval_plan must reflect the real disarmed fanout via
+        disable_question_surface_groups (QUESTION_SURFACE_SOURCE_GROUPS is the
+        one list of question-surface groups — F8). No sink- or prompt-side
+        question-bank text rewriter may act as a second authority (the former
+        redact sink was proven dead on the live fast path — prefetch injects
+        before the loop, so the in-loop sink never fires). Domain tests live in
         tests/services/rag/test_unanchored_exam_query_profile.py and
         tests/tutorbot/test_low_information_bank_disarm.py.
     contract_files:

@@ -1,18 +1,24 @@
 """low_information_exam_query 锁权轮的题面供给收口（loop 级 hermetic）。
 
 病（2026-08-11 live 3/3 复现,4 轮 sink/hint 补丁无效）:锁权轮 fast 路径经
-`_maybe_prefetch_grounded_rag`（loop.py 注入点 add_tool_result）把 questions_bank
-相似题行（【题目】【选项】【答案】【解析】）喂进模型上下文,模型拿相似题答案冒充
-学员点名的某年某题。in-loop rag 结果 sink 上的 redact（已删）接了线但 live 不通电:
-fast 政策轮 prefetch 先行注入,模型不再发起 in-loop rag,sink 永不执行。
+`_maybe_prefetch_grounded_rag` 把 questions_bank 相似题行（【题目】【选项】【答案】
+【解析】）喂进模型上下文,模型拿相似题答案冒充学员点名的某年某题。
 
-收口（单一权威）: 检索供给边界 = `RAGAdapterTool.execute` —— prefetch / in-loop /
-exact-fast-path 三通路唯一共享的 execute 点,且经 `_set_tool_context` 手握
-runtime_metadata。锁权轮它向统一 pipeline 声明 `retrieval_profile=
-"unanchored_exam_query"`,pipeline 在同一条管线内不武装 questions_bank + exam
-卷面 chunk 两条题目面通道（教材/规范照常）。管线侧真值由
-`tests/services/rag/test_unanchored_exam_query_profile.py` 钉住;本文件的
-fake pipeline 只复读那份契约。
+收口后复审(16-agent code review)再收 4 洞,本文件同时钉:
+- F1 锁权键滞留:blocked_reason 是 turn-start 决策(orchestrator 唯一写者,本轮写/
+  本轮 pop),持久化 session metadata 里的陈旧拷贝必须在入口剥掉(与 turn_failure
+  marker 同款 per-turn 纪律)——一次锁权不得让后续合法轮永久失去题库供给。
+- F3 并发竞态:disarm 判据不得走共享可变 tool state(RAGAdapterTool._runtime_context
+  会被并发轮的 _set_tool_context 覆盖);唯一决策权威 =
+  `resolve_turn_retrieval_profile`(纯函数,吃各调用点闭包里的 per-turn
+  runtime_metadata),profile 随 args 传递。
+- F4 模型绕过:服务端推导压过一切调用方声明;模型自发 rag 调用里未在 schema 声明的
+  retrieval_profile kwarg 一律不被尊重(`_prepare_rag_tool_args` 先剥后盖)。
+- F5 第五通路:manager 侧 general-knowledge 编译 pack 的「真题」源消费同一 per-turn
+  事实,锁权轮被过滤(教材/规范/讲义源照常)。
+
+管线侧真值由 `tests/services/rag/test_unanchored_exam_query_profile.py` 钉住;
+本文件的 fake pipeline 只复读那份契约。
 """
 
 from __future__ import annotations
@@ -121,8 +127,6 @@ class _Tools:
 def _prefetch_loop(metadata: dict) -> tuple[AgentLoop, RAGAdapterTool]:
     loop = AgentLoop.__new__(AgentLoop)
     rag_tool = RAGAdapterTool()
-    # 与 live 同构:loop._set_tool_context(loop.py, 先于 prefetch)把整份
-    # runtime_metadata 交给工具。
     rag_tool.set_runtime_context(metadata=dict(metadata))
     loop.tools = _Tools(rag_tool)
     loop.context = _Ctx()
@@ -130,7 +134,7 @@ def _prefetch_loop(metadata: dict) -> tuple[AgentLoop, RAGAdapterTool]:
 
 
 # --------------------------------------------------------------------------- #
-# 红测 1(live 通路②):prefetch 注入的 messages 不得含题库题面/答案钥匙。        #
+# live 通路②:prefetch 注入的 messages 不得含题库题面/答案钥匙。                  #
 # --------------------------------------------------------------------------- #
 
 
@@ -160,7 +164,6 @@ async def test_prefetch_messages_carry_no_bank_surface_on_locked_turn(monkeypatc
 
 @pytest.mark.asyncio
 async def test_prefetch_supply_declares_disarm_profile_on_locked_turn(monkeypatch) -> None:
-    """供给声明本身(单一决策点在 RAGAdapterTool.execute,不在各调用点)。"""
     from deeptutor.services.rag.retrieval_profiles import (
         RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
     )
@@ -184,13 +187,70 @@ async def test_prefetch_supply_declares_disarm_profile_on_locked_turn(monkeypatc
 
 
 # --------------------------------------------------------------------------- #
-# 红测 2(通路①同一收口):模型自发 in-loop rag 调用(永远不带 profile 键)          #
-# 经同一 execute 点,同样必须声明 disarm。                                       #
+# F3+F4:单一决策权威 = 纯函数 resolve_turn_retrieval_profile,per-turn 传参。     #
 # --------------------------------------------------------------------------- #
 
 
+def test_resolver_is_a_pure_per_turn_function() -> None:
+    from deeptutor.services.rag.retrieval_profiles import (
+        RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+        resolve_turn_retrieval_profile,
+    )
+
+    assert (
+        resolve_turn_retrieval_profile(dict(_BLOCKED_METADATA))
+        == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+    )
+    assert resolve_turn_retrieval_profile({}) == ""
+    assert resolve_turn_retrieval_profile(None) == ""
+    # 非锁权轮:调用方显式声明原样透传(案例直通身份轮)。
+    assert (
+        resolve_turn_retrieval_profile({}, "case_grading_identity")
+        == "case_grading_identity"
+    )
+
+
+def test_server_derived_disarm_overrides_caller_declared_profile() -> None:
+    """F4 翻转优先级:服务端推导压过一切调用方声明——锁权事实是 lifecycle gate
+    唯一写的数据面否决,不给任何调用方(更不给模型)留逃生舱。"""
+    from deeptutor.services.rag.retrieval_profiles import (
+        RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+        resolve_turn_retrieval_profile,
+    )
+
+    for declared in ("full", "case_grading_identity", "unknown_profile"):
+        assert (
+            resolve_turn_retrieval_profile(dict(_BLOCKED_METADATA), declared)
+            == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+        )
+
+
+def test_model_authored_retrieval_profile_kwarg_is_never_honored() -> None:
+    """F4:模型自发 rag 调用的 args 是不受信任输入;schema 未声明的
+    retrieval_profile kwarg 一律剥掉,再按本轮事实盖章。"""
+    from deeptutor.services.rag.retrieval_profiles import (
+        RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+    )
+
+    # 锁权轮:模型注入 "full" 妄图重新武装 → 强制 disarm。
+    stamped = AgentLoop._prepare_rag_tool_args(
+        {"query": "2025年真题第3题标准答案", "retrieval_profile": "full"},
+        dict(_BLOCKED_METADATA),
+    )
+    assert stamped["retrieval_profile"] == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+    # 非锁权轮:模型声明的 profile 同样不被尊重(undeclared param)。
+    clean = AgentLoop._prepare_rag_tool_args(
+        {"query": "混凝土强度", "retrieval_profile": "case_grading_identity"},
+        {},
+    )
+    assert "retrieval_profile" not in clean
+    assert clean["query"] == "混凝土强度"
+
+
 @pytest.mark.asyncio
-async def test_model_issued_in_loop_rag_call_is_also_disarmed(monkeypatch) -> None:
+async def test_disarm_rides_args_and_survives_concurrent_context_overwrite(monkeypatch) -> None:
+    """F3:并发轮 _set_tool_context 覆盖共享 _runtime_context 后,A 轮已按自身
+    per-turn metadata 盖章的 args 仍然 disarm——判据不走共享可变 tool state。"""
     from deeptutor.services.rag.retrieval_profiles import (
         RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
     )
@@ -200,9 +260,11 @@ async def test_model_issued_in_loop_rag_call_is_also_disarmed(monkeypatch) -> No
         "deeptutor.tools.rag_tool.rag_search", _contract_faithful_rag_search(captured)
     )
     rag_tool = RAGAdapterTool()
-    rag_tool.set_runtime_context(metadata=dict(_BLOCKED_METADATA))
+    # A 轮(锁权)盖章后,B 轮并发覆盖共享 context 为干净 metadata:
+    a_args = AgentLoop._prepare_rag_tool_args({"query": QUERY}, dict(_BLOCKED_METADATA))
+    rag_tool.set_runtime_context(metadata={"default_kb": "construction-exam"})
 
-    result = await rag_tool.execute(query="2025年真题第3题标准答案")
+    result = await rag_tool.execute(**a_args)
 
     assert (
         captured["kwargs"].get("retrieval_profile")
@@ -211,31 +273,10 @@ async def test_model_issued_in_loop_rag_call_is_also_disarmed(monkeypatch) -> No
     assert "【答案】" not in str(result)
 
 
-# --------------------------------------------------------------------------- #
-# 守恒钉:非锁权轮逐字节旧行为;调用方显式 profile(案例直通身份轮)不被覆盖。       #
-# --------------------------------------------------------------------------- #
-
-
 @pytest.mark.asyncio
-async def test_unlocked_turn_supply_is_byte_for_byte_unchanged(monkeypatch) -> None:
-    captured: dict = {}
-    monkeypatch.setattr(
-        "deeptutor.tools.rag_tool.rag_search", _contract_faithful_rag_search(captured)
-    )
-    unlocked = {k: v for k, v in _BLOCKED_METADATA.items() if k != "exact_question_blocked_reason"}
-    rag_tool = RAGAdapterTool()
-    rag_tool.set_runtime_context(metadata=unlocked)
-
-    result = await rag_tool.execute(query=QUERY)
-
-    assert "retrieval_profile" not in captured["kwargs"]
-    assert "【答案】" in str(result)  # 正常轮 bank 供给原样(fake 契约的 full 分支)
-
-
-@pytest.mark.asyncio
-async def test_caller_declared_profile_wins_over_disarm(monkeypatch) -> None:
-    """案例判分直通身份轮显式声明 case_grading_identity——bank 是它的身份命脉,
-    锁权 disarm 不得覆盖调用方声明(两场景本就互斥,此钉防未来交叠时静默改判)。"""
+async def test_adapter_does_not_derive_disarm_from_shared_runtime_context(monkeypatch) -> None:
+    """F3 反面钉:adapter 不再从共享 _runtime_context 推导 disarm(那是竞态源)。
+    未盖章的 args + 锁权 context → 不注入 profile(收口责任全在 per-turn 盖章点)。"""
     captured: dict = {}
     monkeypatch.setattr(
         "deeptutor.tools.rag_tool.rag_search", _contract_faithful_rag_search(captured)
@@ -243,50 +284,137 @@ async def test_caller_declared_profile_wins_over_disarm(monkeypatch) -> None:
     rag_tool = RAGAdapterTool()
     rag_tool.set_runtime_context(metadata=dict(_BLOCKED_METADATA))
 
-    await rag_tool.execute(query=QUERY, retrieval_profile="case_grading_identity")
+    await rag_tool.execute(query=QUERY)
 
-    assert captured["kwargs"].get("retrieval_profile") == "case_grading_identity"
+    assert "retrieval_profile" not in captured["kwargs"]
 
 
 # --------------------------------------------------------------------------- #
-# (b) 假说实证钉:blocked 键在 loop 工具边界时点确实在场——                       #
-# _set_tool_context 把整份 runtime_metadata 交给 rag 工具(HEAD 上即绿,           #
-# 证明 live 病不是"键缺失"(b),而是 prefetch 通路绕过 sink(a))。                  #
+# F1:锁权键 per-turn 纪律——陈旧拷贝入口剥离,下一合法轮恢复题库供给。             #
 # --------------------------------------------------------------------------- #
 
 
-def test_set_tool_context_hands_blocked_reason_to_rag_tool(tmp_path) -> None:
-    from types import SimpleNamespace
-
-    from deeptutor.tutorbot.bus.queue import MessageBus
-    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
-
-    class _P(LLMProvider):
-        async def chat(self, *_a, **_k):
-            return LLMResponse(content="占位")
-
-        def get_default_model(self):
-            return "fake"
-
-    loop = AgentLoop(
-        bus=MessageBus(),
-        provider=_P(),
-        workspace=tmp_path,
-        session_manager=SimpleNamespace(
-            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
-            save=lambda session: None,
-        ),
+def test_stale_blocked_reason_is_stripped_from_session_inherited_metadata() -> None:
+    from deeptutor.services.question_lifecycle_skills import (
+        strip_stale_question_lifecycle_turn_metadata,
     )
-    loop._set_tool_context(
-        "web",
-        "chat-1",
-        None,
-        session_key="web:chat-1",
-        metadata=dict(_BLOCKED_METADATA),
+
+    stale = {"exact_question_blocked_reason": "low_information_exam_query", "default_kb": "k"}
+    strip_stale_question_lifecycle_turn_metadata(stale)
+    assert "exact_question_blocked_reason" not in stale
+    assert stale["default_kb"] == "k"
+
+
+def test_loop_turn_metadata_seam_never_inherits_blocked_reason_from_session() -> None:
+    """loop 入口 seam(dict(session.metadata) → strip → update(msg.metadata)):
+    per-turn 信道(msg.metadata)是 blocked 事实唯一入口;session 持久层的陈旧拷贝
+    不得漏进本轮。"""
+    inherited = AgentLoop._build_turn_runtime_metadata(
+        dict(_BLOCKED_METADATA),  # 上一锁权轮被 manager 持久化进 session.metadata
+        {"raw_user_message": _BANK_STEM + " 我选A对吗?"},  # 本轮合法作答,无 blocked 键
     )
-    rag_tool = loop.tools.get("rag")
-    assert rag_tool is not None
+    assert "exact_question_blocked_reason" not in inherited
+
+    blocked_turn = AgentLoop._build_turn_runtime_metadata(
+        {"default_kb": "construction-exam"},
+        dict(_BLOCKED_METADATA),  # 本轮确实锁权:per-turn 信道带键
+    )
     assert (
-        rag_tool._runtime_context.get("exact_question_blocked_reason")
-        == "low_information_exam_query"
+        blocked_turn["exact_question_blocked_reason"] == "low_information_exam_query"
     )
+
+
+def test_next_legitimate_turn_restores_bank_supply() -> None:
+    """F1 复原钉(两轮序列):锁权轮 disarm → 键随 merged metadata 持久化 →
+    下一合法轮(学员补发完整题干)必须恢复题库供给(profile 为空 = bank 武装)。"""
+    from deeptutor.services.rag.retrieval_profiles import (
+        RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+        resolve_turn_retrieval_profile,
+    )
+
+    # 轮 1:锁权。
+    turn1 = AgentLoop._build_turn_runtime_metadata({}, dict(_BLOCKED_METADATA))
+    assert (
+        resolve_turn_retrieval_profile(turn1) == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+    )
+    # manager.send_message 把 merged metadata(含键)写回 session.metadata 并保存。
+    persisted_session_metadata = dict(turn1)
+
+    # 轮 2:学员补发完整题干+选项,lifecycle 不再 blocked(orchestrator pop 了键),
+    # per-turn 信道无键;session 里滞留的是轮 1 的陈旧拷贝。
+    turn2 = AgentLoop._build_turn_runtime_metadata(
+        persisted_session_metadata,
+        {"raw_user_message": _BANK_STEM + " A.15MPa B.10MPa 我选A"},
+    )
+    assert resolve_turn_retrieval_profile(turn2) == "", (
+        "锁权键滞留 session:合法轮题库供给未恢复(F1 回归——一次锁权,全会话失供)"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# F5:第五通路——manager 侧 general-knowledge 编译 pack 的「真题」源。            #
+# --------------------------------------------------------------------------- #
+
+
+def _teaching_pack() -> dict:
+    return {
+        "leaf_name_path": "项目施工进度管理/双代号网络图",
+        "confidence": {"status": "high", "policy": "leaf_exact", "reason": "high"},
+        "sources": {
+            "textbook": [
+                {"text_preview": "教材:双代号网络图的绘制规则……", "title": "教材"}
+            ],
+            "question": [
+                {"text_preview": "真题:2020年管理第22题 双代号网络图计算工期,答案C", "title": "真题"}
+            ],
+        },
+    }
+
+
+def test_general_knowledge_pack_question_source_disarmed_on_locked_turn(monkeypatch) -> None:
+    from deeptutor.services.tutorbot import manager as manager_module
+
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", raising=False)
+    monkeypatch.setattr(
+        manager_module,
+        "resolve_general_knowledge_context",
+        lambda content, learner_context=None: _teaching_pack(),
+    )
+    md = {
+        **_BLOCKED_METADATA,
+        "general_knowledge_context": True,  # 显式 opt-in,绕开 cohort 门
+        "user_id": "student-1",
+    }
+    manager_module._attach_general_knowledge_context(
+        content="2020年一建管理双代号网络图那道真题的答案", runtime_metadata=md
+    )
+
+    grounding = str(md.get("conversation_context_text") or "")
+    pack = md.get("luban_general_knowledge_context") or {}
+    assert "答案C" not in grounding and "真题:2020年管理第22题" not in grounding, (
+        "锁权轮 general-knowledge pack 的真题源进了 grounding(F5 第五通路)"
+    )
+    assert not (pack.get("sources") or {}).get("question"), "存储 pack 仍带真题源"
+    # 教材源照常(概念讲解不受影响)。
+    assert "双代号网络图的绘制规则" in grounding
+
+
+def test_general_knowledge_pack_untouched_on_unlocked_turn(monkeypatch) -> None:
+    from deeptutor.services.tutorbot import manager as manager_module
+
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", raising=False)
+    monkeypatch.setattr(
+        manager_module,
+        "resolve_general_knowledge_context",
+        lambda content, learner_context=None: _teaching_pack(),
+    )
+    md = {
+        "general_knowledge_context": True,
+        "user_id": "student-1",
+        "bot_id": "construction-exam-coach",
+    }
+    manager_module._attach_general_knowledge_context(
+        content="双代号网络图怎么算工期", runtime_metadata=md
+    )
+    grounding = str(md.get("conversation_context_text") or "")
+    assert "真题:2020年管理第22题" in grounding  # 非锁权轮逐字节旧行为

@@ -20,7 +20,8 @@ from .factory import (
 from .evidence_bundle import build_evidence_bundle
 from .exceptions import RAGError, wrap_rag_error
 from .provenance import build_ranking_trace
-from .retrieval_plan import build_retrieval_plan
+from .retrieval_plan import build_retrieval_plan, disable_question_surface_groups
+from .retrieval_profiles import RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
 from .historical_questions import (
     build_canonical_question_context,
     build_historical_question_source,
@@ -179,6 +180,22 @@ class RAGService:
                     stage="service.search",
                 )
 
+            # 复审 F7(2026-08-11,provider 无关执法):锁权 disarm 声明的可证伪判据
+            # = provider 结果必须回声 retrieval_profile。不识该 profile 的 provider
+            # (llamaindex/kbv5 经 **kwargs 静默吞掉声明)照常返回真题/答案材料 =
+            # 假收口;此处 fail-closed——本轮不供给,宁空(hint 引导学员补题干)不冒充。
+            if (
+                str(kwargs.get("retrieval_profile") or "").strip()
+                == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+                and str(result.get("retrieval_profile") or "").strip()
+                != RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+            ):
+                result = self._question_surface_disarm_fail_closed_result(
+                    query=query,
+                    kb_name=kb_name,
+                    provider=str(result.get("provider") or provider),
+                )
+
             if "query" not in result:
                 result["query"] = query
             if "answer" not in result and "content" in result:
@@ -217,7 +234,10 @@ class RAGService:
                 )
             result["evidence_bundle"] = evidence_bundle
             result["provider"] = normalize_provider_name(result.get("provider") or provider)
-            self._apply_historical_question_context(result)
+            self._apply_historical_question_context(
+                result,
+                retrieval_profile=str(kwargs.get("retrieval_profile") or "").strip(),
+            )
 
             answer = result.get("answer") or result.get("content") or ""
             await self._emit_tool_event(
@@ -244,8 +264,62 @@ class RAGService:
             return
         await event_sink(event_type, message, metadata or {})
 
-    def _apply_historical_question_context(self, result: dict[str, Any]) -> None:
+    def _question_surface_disarm_fail_closed_result(
+        self,
+        *,
+        query: str,
+        kb_name: str,
+        provider: str,
+    ) -> dict[str, Any]:
+        """复审 F7:provider 未回声锁权 disarm 声明时的 fail-closed 终态。
+
+        本轮零供给(空正文/空 sources/无 exact 权威),retrieval_status 发声供观测;
+        不标 retrieval_degraded——这不是基础设施故障,是供给收权的诚实空轮。
+        retrieval_plan 按 disarm 后真实 fanout 导出(F8 观测诚实同款)。
+        """
+        plan = disable_question_surface_groups(
+            build_retrieval_plan(query, include_questions_default=False),
+            reason=f"retrieval_profile={RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY}",
+        )
+        evidence_bundle = build_evidence_bundle(
+            query=query,
+            provider=provider,
+            kb_name=kb_name,
+            content_blocks=[],
+            sources=[],
+            exact_question={},
+            retrieval_plan=plan.to_dict(),
+            ranking_trace=build_ranking_trace([]),
+            retrieval_status="question_surface_disarm_unsupported",
+            trace={"question_surface_disarm_fail_closed": True},
+        )
+        return {
+            "query": query,
+            "answer": "",
+            "content": "",
+            "sources": [],
+            "provider": provider,
+            "kb_name": kb_name,
+            "exact_question": {},
+            "retrieval_profile": RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+            "retrieval_status": "question_surface_disarm_unsupported",
+            "evidence_bundle": evidence_bundle,
+        }
+
+    def _apply_historical_question_context(
+        self,
+        result: dict[str, Any],
+        *,
+        retrieval_profile: str = "",
+    ) -> None:
         if not isinstance(result, dict):
+            return
+        # 复审 F2(2026-08-11):历史真题回注是 pipeline disarm 之上的第四条题面
+        # 供给通路(『【题库原题】…标准答案…解析…』整段回注)。锁权轮跳过。
+        if (
+            str(retrieval_profile or "").strip()
+            == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+        ):
             return
         if isinstance(result.get("exact_question"), dict) and result.get("exact_question"):
             return
@@ -298,6 +372,13 @@ class RAGService:
         search_kwargs: dict[str, Any],
         retrieval_error: RAGError | None = None,
     ) -> dict[str, Any] | None:
+        # 复审 F2(2026-08-11):pipeline 失败时的历史真题兜底同样是题面供给——
+        # 锁权轮不武装(fail-closed 到原错误,宁降级不冒充)。
+        if (
+            str((search_kwargs or {}).get("retrieval_profile") or "").strip()
+            == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
+        ):
+            return None
         exact_question = resolve_historical_question(query)
         if not exact_question:
             return None

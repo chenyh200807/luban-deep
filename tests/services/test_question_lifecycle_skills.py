@@ -586,3 +586,30 @@ def test_full_case_split_recognizes_bracket_answer_markers() -> None:
 # (retrieval_profile=unanchored_exam_query,题目面通道整轮不武装),钉在
 # tests/tutorbot/test_low_information_bank_disarm.py 与
 # tests/services/rag/test_unanchored_exam_query_profile.py。
+
+
+def test_strip_stale_question_lifecycle_turn_metadata_is_per_turn_discipline():
+    """复审 F1(2026-08-11):blocked 事实是 turn-start 决策,唯一写者是
+    orchestrator(本轮写/本轮 pop)。manager 会把 merged metadata 整份持久化进
+    session.metadata,陈旧拷贝若从持久层漏进后续轮,一次锁权就让该会话所有合法轮
+    永久失去题库供给。凡从 session 持久层继承,合并 per-turn 信道前必须先剥。"""
+    from deeptutor.services.question_lifecycle_skills import (
+        TURN_SCOPED_LIFECYCLE_METADATA_KEYS,
+        strip_stale_question_lifecycle_turn_metadata,
+    )
+
+    assert "exact_question_blocked_reason" in TURN_SCOPED_LIFECYCLE_METADATA_KEYS
+
+    inherited = {
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "default_kb": "construction-exam",
+        "active_object": {"object_type": "question"},
+    }
+    strip_stale_question_lifecycle_turn_metadata(inherited)
+    assert "exact_question_blocked_reason" not in inherited
+    # 非 turn-scoped 键原样保留(session 持久层的合法背景不受影响)。
+    assert inherited["default_kb"] == "construction-exam"
+    assert inherited["active_object"] == {"object_type": "question"}
+
+    # 非 dict 输入不炸(防御面:调用点在 manager/loop 热路径上)。
+    strip_stale_question_lifecycle_turn_metadata(None)  # type: ignore[arg-type]

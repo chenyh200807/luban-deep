@@ -5,6 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from deeptutor.services.rag.retrieval_profiles import (
+    RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+)
 from deeptutor.tutorbot.agent.tools.base import Tool
 
 logger = logging.getLogger(__name__)
@@ -150,29 +153,17 @@ class RAGAdapterTool(Tool):
             routing_metadata["personalization_context_available"] = True
         if any(routing_metadata.values()):
             search_kwargs["routing_metadata"] = routing_metadata
-        # L1 瘦身检索（2026-08-01）：调用方声明的检索深度 profile 直通 pipeline。
-        # 模型自发的 in-loop rag 调用永远不带这个键 → 恒走全量（旧行为）。
+        # L1 瘦身检索（2026-08-01）：profile 只随 args 进来——调用方显式声明,或
+        # loop 侧 per-turn 盖章（AgentLoop._prepare_rag_tool_args 与
+        # prefetch/fast-path 的 resolve_turn_retrieval_profile 盖章点）。
+        # 复审 F3（2026-08-11）：本 adapter **不得**从共享可变 self._runtime_context
+        # 推导锁权 disarm——并发轮的 _set_tool_context 会覆盖它（A 轮锁权被 B 轮
+        # 解除 / B 轮合法检索被 A 轮误伤的竞态）。唯一决策权威 =
+        # retrieval_profiles.resolve_turn_retrieval_profile（纯函数,吃调用点闭包里
+        # 的本轮 runtime_metadata）。
         retrieval_profile = str(kwargs.get("retrieval_profile") or "").strip()
         if retrieval_profile:
             search_kwargs["retrieval_profile"] = retrieval_profile
-        elif (
-            str(self._runtime_context.get("exact_question_blocked_reason") or "").strip()
-            == "low_information_exam_query"
-        ):
-            # 题面供给收口的唯一决策点（2026-08-11 live 防冒充钉,3/3 红实证）：
-            # prefetch / in-loop / exact-fast-path 三通路全部经本 execute 点,
-            # 锁权轮（exact 题目权威被 lifecycle gate 拒绝武装）在检索供给层
-            # 声明「不消费题目面材料」——pipeline 整轮不武装 questions_bank 与
-            # exam 卷面 chunk 两条题目面通道（教材/规范照常）。模型手里没有
-            # 题库题面/【答案】/【解析】,便无法把相似题冒充学员点名的某年某题。
-            # 注意本变量 `retrieval_profile` 保持空串:下方 empty-index 降级
-            # 判据（`if not retrieval_profile and not sources ...`）对教材通道
-            # 仍然生效——供给收口不改降级语义。
-            from deeptutor.services.rag.retrieval_profiles import (
-                RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
-            )
-
-            search_kwargs["retrieval_profile"] = RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
         try:
             result = await rag_search(**search_kwargs)
         except Exception as exc:
@@ -208,7 +199,13 @@ class RAGAdapterTool(Tool):
         answer = str(result.get("answer") or result.get("content") or "").strip()
         # 空 sources + 空正文是身份 profile 的**正常终态**，不是空索引降级。
         # 误判成降级会点亮三个降级闸，把正常判分回答降成「证据不足」。
-        if not retrieval_profile and not sources and self._looks_like_empty_retrieval_answer(answer):
+        # 锁权 disarm profile 例外:教材/规范通道照常武装,空罐头正文=真空索引,
+        # 降级语义必须与全量轮一致(供给收口不改降级语义)。
+        if (
+            (not retrieval_profile or retrieval_profile == RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY)
+            and not sources
+            and self._looks_like_empty_retrieval_answer(answer)
+        ):
             self._last_trace_metadata = {
                 "kb_name": kb_name or "",
                 "sources": [],

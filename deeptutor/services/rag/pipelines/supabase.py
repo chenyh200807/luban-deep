@@ -28,7 +28,10 @@ from deeptutor.services.rag.compiled_truth_source import materialize_compiled_tr
 from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
-from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
+from deeptutor.services.rag.retrieval_plan import (
+    build_retrieval_plan,
+    disable_question_surface_groups,
+)
 from deeptutor.services.rag.retrieval_profiles import (
     RETRIEVAL_PROFILE_CASE_GRADING_IDENTITY,
     RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
@@ -967,6 +970,13 @@ class SupabasePipeline:
                     or bool(routing_metadata.get("personalization_context_available")),
                 },
             )
+            if question_surface_disarmed:
+                # 复审 F8(观测诚实):build_retrieval_plan 内部自跑 select_sources,
+                # 看不见上面的 disarm 翻转——不修正,锁权轮 trace 会谎称查了题库/试卷。
+                retrieval_plan = disable_question_surface_groups(
+                    retrieval_plan,
+                    reason=f"retrieval_profile={RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY}",
+                )
             query_shape = rewritten.query_shape or classify_query_shape(query)
             exact_probe = (
                 prepare_exact_question_probe(query)
