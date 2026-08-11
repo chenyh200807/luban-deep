@@ -315,7 +315,9 @@ def test_low_information_clarification_prompt_hint_does_not_leak_internals():
     # 承接指令:请学员补题干选项 + 绝不编造 + 不声称查库
     assert "题干和选项发来" in hint
     assert "绝不编造" in hint
-    assert "不要声称已查询题库" in hint
+    assert "不要声称已核实过学员点名的那道题" in hint
+    # 2026-08-11 live 钉实证补丁:相似题必须如实标注真实卷次,不得冒充点名题号。
+    assert "冒充" in hint and "真实来源/卷次" in hint
     # 内部机制词表反断言(沿用模板时代词表)
     for leak in ["题卡 id", "题卡id", "传给 TutorBot", "传给TutorBot", "就是在编", "小程序", "题卡对象"]:
         assert leak not in hint, f"内部机制泄露: {leak!r} in clarification prompt hint"
