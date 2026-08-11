@@ -121,6 +121,12 @@
     无痕作废上游语义层已做对的结果吗？它在替模型对用户说话吗？任一为是即越权。
     路由收权迁移纪律：从确定性管线切向 LLM tool-choice 必须先 shadow 度量分歧率
     （observe-only）,有数据后灰度切换,禁止信仰式一步切。
+    归属诚实条款（2026-08-11 live 防编造钉实证）：blocked/低信息真题查询轮 fall-through
+    主 LLM 后,若常规检索命中相似题,回答必须如实标注该题的真实来源/卷次（以检索元数据
+    为准）并明说无法确认与学员点名题号的对应关系；把相似题答案以确定口吻冒充点名的
+    某年某题=归属不诚实,与内容编造同级违规。prompt hint 单一权威 =
+    `build_question_lifecycle_clarification_prompt_hint`,回归钉在
+    `tests/services/test_question_lifecycle_skills.py`。
 
 ## Schema
 
