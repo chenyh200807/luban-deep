@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-08-11 - harness 化第一刀:撤模板终局权 + 冒充病五轮治本(TDD 供给层收口)
+
+- 问题:owner 拍板「确定性层不得替 LLM 理解/回答用户」(Claude Code 类 harness 原则)。第一刀=PR3(撤 tutorbot 澄清罐头模板终局权,fall-through 主 LLM+prompt hint)+§45 三职责红线+shadow 分歧度量(#668)。上线闸防冒充钉暴露新病:锁权轮(low_information_exam_query)主 LLM 把 RAG 检索到的相似题(2015 卷)以确定口吻冒充学员点名的「2025年真题第3题」,内容真、归属假;变体更糟(宣称「检索到的2025年真题第3题是…」)。
+- 根因:数据面把可冒充素材(题库题面+答案钥匙)喂进了模型上下文;fast 政策轮证据经 _maybe_prefetch_grounded_rag(loop.py:4368)在工具轮之前注入。
+- 失败的尝试(最值钱的一栏):①#669 hint 措辞补归属条款——复钉 1/2 红,LLM ~50% 无视(prompt≠terminal authority,memory 老结论再证);②#670 redact sink 剥【答案】——终钉 3/3 红,汇点接在工具结果处理,prefetch 通路根本不经过;其"接线钉"用源码字符串自证接线=假绿(**wiring 钉必须钉行为**);且即使通电也治不了模型从题面自行解题再冒充。两轮均按预承诺硬门回滚生产(b853d9ef4×2)。
+- 成功修法(#671,TDD):全新上下文根因 agent 测绘穷尽五条供给通路(prefetch/in-loop/exact fast path/historical_question 回注/general-knowledge pack),hermetic 红测在 HEAD 复现 live 病灶后收口:retrieval_profile=unanchored_exam_query 单一权威(lifecycle gate 唯一写,纯函数 resolve_turn_retrieval_profile 推导,服务端压过一切调用方声明),RAGService 层执法(provider 无关,不回声即 fail-closed 零供给),锁权轮 disarm questions_bank+exam 通道(教材/规范照常);复审 8 洞收权轮再修:锁权键 per-turn 纪律(strip_stale_question_lifecycle_turn_metadata,照 turn_failure marker 先例)、删共享态竞态、模型 schema 外 kwarg 先剥再盖章、pack 过滤 question 源、retrieval_plan 观测诚实。
+- 验证(数字):TDD 红 5+13 先行全数转绿;电池 772 passed;17a216a0 部署五层+指纹两端;**防冒充终钉 3/3 绿(诚实"未收录该卷次,请发题干")+F1 复原钉 3/3 绿(锁权轮后合法轮题库供给完全恢复)**。
+- 教训:①wiring 钉钉行为不钉字符串;②"接线"≠"通电",复现真实执行路径的红测先行;③预承诺回滚门第 2/3 次触发时最痛也最值;④review workflow 两轮共揪 17 洞(含会伤正常学生的 F1 回归),多 agent 对抗审查是这条链上唯一没漏过的环节。
+
 ## 2026-08-10 - 出题/判分/超时三族生产事故一次根因清剿（F1/F2/F3,三专家+指挥官）
 
 - 问题（两个生产 session,SHA 2496329）:①「出3道题…先只出题,不要提前给答案和解析」出题后,批量作答「1、c 2.c 3.c」被判到更早的 stale 旧单题(蒸馏成"C"、0.92 高置信 0 分倒诬),3 道新题一道没判;②9 分钟后问「第二题答案」,bot 对自己亲手出的题称「还没拿到题干」(逐字罐头模板);③「出10道第一章摸底」180s deadline 硬死,q_1..q_8 已生成合格被全量丢弃,用户见无类型「本轮生成失败」。
