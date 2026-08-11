@@ -58,6 +58,7 @@ from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
+    extract_choice_result_summary_from_text,
     followup_action_route,
     looks_like_practice_generation_request,
     normalize_question_followup_context,
@@ -7083,6 +7084,39 @@ class TurnRuntimeManager:
                 )
             if question_followup_context is not None and "question_followup_context" not in metadata:
                 metadata["question_followup_context"] = dict(question_followup_context)
+            # PR3-6b(2026-08-10 三族根因 §3,observe-only):轮末唯一汇点为
+            # 「可见输出携带题组形状、但本轮注册对象覆盖不到这些题」落类型化痕迹。
+            # 只观测不改写任何状态、不参与任何路由;拿到生产频次后再议注册权
+            # (单一权威收口 playbook:测绘→收权;f5d95d0df 家族是这里不直接
+            # 注册的原因——复述/terse re-present 旧题会被文本判据误判为新题组)。
+            if not failure_result:
+                emitted_summary = extract_choice_result_summary_from_text(
+                    _result_response_text(metadata)
+                )
+                emitted_count = len((emitted_summary or {}).get("results") or [])
+                registered_items = (
+                    question_followup_context.get("items")
+                    if isinstance(question_followup_context, dict)
+                    else None
+                )
+                registered_count = (
+                    len(registered_items)
+                    if isinstance(registered_items, list) and registered_items
+                    else (1 if question_followup_context else 0)
+                )
+                if emitted_count >= 2 and emitted_count > registered_count:
+                    unregistered_marker = {
+                        "emitted_question_count": emitted_count,
+                        "registered_question_count": registered_count,
+                        "execution_path": str(metadata.get("execution_path") or ""),
+                        "capability_source": str(event.source or ""),
+                    }
+                    metadata["unregistered_question_set_emitted"] = unregistered_marker
+                    nested_meta = metadata.get("metadata")
+                    if isinstance(nested_meta, dict):
+                        nested_meta = dict(nested_meta)
+                        nested_meta["unregistered_question_set_emitted"] = dict(unregistered_marker)
+                        metadata["metadata"] = nested_meta
             if active_object is not None:
                 self._set_volatile_question_context(
                     execution.session_id, dict(question_followup_context or {})

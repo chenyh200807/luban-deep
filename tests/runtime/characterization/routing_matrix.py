@@ -99,8 +99,12 @@ MATRIX: list[Row] = [
         "full case answer → case_grading", dict(_PROD_FLAGS)),
     Row("bare_answer_empty", M_BARE_ANSWER, C_EMPTY, "A",
         "unanchored submission → clarification", dict(_PROD_FLAGS)),
-    Row("bare_answer_multi", M_BARE_ANSWER, _multi_active(), "A",
-        "ambiguous multi submission → clarification (no LLM)", dict(_PROD_FLAGS)),
+    Row("bare_answer_multi", M_BARE_ANSWER, _multi_active(), "C",
+        # PR3 刀2(2026-08-10 三族根因 §3):needs_clarification 不再终局——blocked 轮
+        # fall-through 进语义层,followup 解释可合法触发 LLM(tier A→C)。gate 判定
+        # 本身仍确定性(blocked metadata 不变),终局权交还主 LLM。
+        "ambiguous multi submission → blocked metadata + fall-through (LLM allowed)",
+        dict(_PROD_FLAGS)),
     Row("numbered_batch_multi", M_NUMBERED_BATCH, _multi_active(), "C",
         "numbered batch answers", dict(_PROD_FLAGS)),
     Row("smalltalk_empty", M_SMALLTALK, C_EMPTY, "A",

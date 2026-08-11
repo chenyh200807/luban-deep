@@ -193,9 +193,12 @@ def test_tutorbot_general_knowledge_shadow_opt_in_does_not_attach_with_active_qu
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_low_information_exam_query_returns_clarification(
+async def test_tutorbot_low_information_exam_query_falls_through_to_main_llm_with_blocked_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # PR3-6a 翻转(2026-08-10 三族根因 §3):澄清模板短路已退役——blocked 轮不再由
+    # 罐头终结,fall-through 到主 LLM(sent_messages==1);数据面守恒断言
+    # (exact_question_blocked_reason 导出 + exact_fast_path_hit False)原样保留。
     manager = _FakeTutorBotManager()
     monkeypatch.setattr(
         tutorbot_capability,
@@ -232,23 +235,22 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
     result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
     assert result_events
     result_payload = result_events[-1].metadata
-    # 去毒(2026-06-22 meta-leak 修复):low_info 澄清不再逐字回显学生原句、不再泄露内部机制
-    assert "2025真题" not in result_payload["response"]
-    assert "题卡" not in result_payload["response"]
-    assert "传给 TutorBot" not in result_payload["response"]
-    assert "就是在编" not in result_payload["response"]
-    # 仍是可继续的澄清:引导学生给题干/选项
-    assert "题干" in result_payload["response"] and "选项" in result_payload["response"]
-    assert "标准答案" not in result_payload["response"]
+    # fall-through:回复来自主 LLM(_FakeTutorBotManager 返回文本),不再是模板罐头。
+    assert manager.sent_messages == 1
+    assert "施工缝" in result_payload["response"]
+    # 数据面守恒:gate 结果照常导出,exact 权威/fast path 在 blocked 轮仍被否决。
     assert result_payload["exact_question_blocked_reason"] == "low_information_exam_query"
     assert result_payload["exact_fast_path_hit"] is False
-    assert manager.sent_messages == 0
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_low_information_clarification_does_not_echo_raw_user_message(
+async def test_tutorbot_low_information_blocked_turn_falls_through_with_metadata_export(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # PR3-6a 翻转:原测试对象(澄清模板不回显学生原句)随模板退役消失。
+    # 本测改钉 fall-through(主 LLM 已跑)+ blocked metadata 原样导出;
+    # "不回显/不泄内部机制"职责转移到 hint 单测
+    # (tests/services/test_question_lifecycle_skills.py)与 live 异源裁判钉。
     manager = _FakeTutorBotManager()
     monkeypatch.setattr(
         tutorbot_capability,
@@ -294,14 +296,10 @@ async def test_tutorbot_low_information_clarification_does_not_echo_raw_user_mes
     result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
     assert result_events
     result_payload = result_events[-1].metadata
-    # 去毒(2026-06-22 meta-leak 修复):澄清绝不逐字回显学生原句(旧行为=把整句当 {topic}
-    # 嵌入"我知道你是想直接要…"=meta 泄露主源),也不泄露增强证据/内部机制。
-    assert raw_message not in result_payload["response"]
-    assert "答案发我" not in result_payload["response"]
-    assert "题卡" not in result_payload["response"]
-    assert "参考证据" not in result_payload["response"]
-    assert "局部工作记忆投影" not in result_payload["response"]
-    assert manager.sent_messages == 0
+    # fall-through:blocked 轮由主 LLM 承接,gate 结果只作为 metadata 导出。
+    assert manager.sent_messages == 1
+    assert result_payload["exact_question_blocked_reason"] == "low_information_exam_query"
+    assert result_payload["exact_fast_path_hit"] is False
 
 
 @pytest.mark.asyncio
@@ -396,21 +394,19 @@ async def test_tutorbot_exam_catalog_query_answers_directory_without_llm_call(
         lambda: manager,
     )
 
+    # PR3-6c 翻转:澄清对象/快照已退役,exam_catalog topic 只来自本轮 message——
+    # fixture 从「"1" + 澄清快照带 topic」改为直接发目录查询原文;
+    # exam_catalog 短路本身(execution_path + sent_messages==0)本 PR 不撤,断言保留。
     stream = StreamBus()
     context = UnifiedContext(
         session_id="s-exam-catalog-query",
-        user_message="1",
+        user_message="2025年真题目录",
         config_overrides={
             "bot_id": "construction-exam-coach",
             "chat_mode": "fast",
         },
         metadata={
             "question_lifecycle_scene": "exam_catalog_query",
-            "question_lifecycle_clarification": {
-                "topic": "2025年真题",
-                "reason": "low_information_exam_query",
-                "options": [],
-            },
             "question_lifecycle_decision": {
                 "scene": "exam_catalog_query",
                 "decision_source": "deterministic",
@@ -421,7 +417,7 @@ async def test_tutorbot_exam_catalog_query_answers_directory_without_llm_call(
                     "construction-study-assistant",
                 ],
                 "needs_clarification": False,
-                "business_gate_result": "resolved_clarification_option",
+                "business_gate_result": "passed",
             },
         },
         language="zh",

@@ -1090,7 +1090,10 @@ async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem(
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_persists_low_information_exam_query_clarification_choice() -> None:
+async def test_orchestrator_does_not_persist_clarification_object_for_low_information_exam_query() -> None:
+    # PR3-6c 反向 pin(2026-08-10 三族根因 §3):澄清对象(question_lifecycle_clarification)
+    # 已退役——blocked 轮不再写 active_object、不再落澄清快照、不再建 suspended stack;
+    # blocked 事实只以 exact_question_blocked_reason 单键存在。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1107,16 +1110,20 @@ async def test_orchestrator_persists_low_information_exam_query_clarification_ch
     _ = [event async for event in orchestrator.handle(context)]
 
     active_object = context.metadata.get("active_object")
-    assert isinstance(active_object, dict)
-    assert active_object["object_type"] == "question_lifecycle_clarification"
-    snapshot = active_object["state_snapshot"]
-    assert snapshot["topic"] == "2025真题"
-    assert snapshot["options"][0]["intent"] == "exam_catalog_query"
-    assert context.metadata["question_lifecycle_clarification"] == snapshot
+    assert not (
+        isinstance(active_object, dict)
+        and active_object.get("object_type") == "question_lifecycle_clarification"
+    )
+    assert "question_lifecycle_clarification" not in context.metadata
+    assert not context.metadata.get("suspended_object_stack")
+    assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
 
 
 @pytest.mark.asyncio
-async def test_low_information_clarification_suspends_existing_active_question() -> None:
+async def test_low_information_query_keeps_existing_active_question_unsuspended() -> None:
+    # PR3-6c headline 翻转:旧行为=低信息查询轮把真题 q1 压栈、active_object 改写为
+    # 澄清对象(F2 断链轮"真题被压栈污染下一轮承接"的源头)。新行为=q1 原样存活、
+    # 零压栈——正是该 mirror-state 增殖的反向验收。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1144,13 +1151,16 @@ async def test_low_information_clarification_suspends_existing_active_question()
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert context.metadata["active_object"]["object_type"] == "question_lifecycle_clarification"
-    assert context.metadata["suspended_object_stack"][0]["object_id"] == "q1"
+    assert context.metadata["active_object"]["object_id"] == "q1"
+    assert not context.metadata.get("suspended_object_stack")
 
 
 @pytest.mark.asyncio
-@pytest.mark.asyncio
-async def test_orchestrator_resolves_clarification_option_one_to_exam_catalog_query() -> None:
+async def test_orchestrator_tolerates_legacy_clarification_object_without_resolver() -> None:
+    # PR3-6c:澄清选项复位器(_resolve_clarification_option_intent)已删除
+    # (原 test_orchestrator_resolves_clarification_option_one_to_exam_catalog_query
+    # 的测试对象)。store 里存量老会话仍可能带澄清对象——本测钉 legacy 容忍:
+    # "1" + 存量澄清对象 → 正常 fall-through 到 tutorbot,无异常,不再确定性复位 scene。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1181,15 +1191,17 @@ async def test_orchestrator_resolves_clarification_option_one_to_exam_catalog_qu
     _ = [event async for event in orchestrator.handle(context)]
 
     assert registry.captured[0] == "tutorbot"
-    assert context.metadata["question_lifecycle_scene"] == "exam_catalog_query"
-    assert context.metadata["question_lifecycle_decision"]["business_gate_result"] == "resolved_clarification_option"
-    assert context.metadata["semantic_router_mode"] == "question_lifecycle"
-    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
-    assert "exact_question_blocked_reason" not in context.metadata
+    assert context.metadata.get("question_lifecycle_scene") != "exam_catalog_query"
+    assert (
+        context.metadata.get("question_lifecycle_decision", {}).get("business_gate_result")
+        != "resolved_clarification_option"
+    )
 
 
 @pytest.mark.asyncio
-async def test_low_information_exam_query_overrides_preselected_deep_question() -> None:
+async def test_low_information_exam_query_keeps_preselected_deep_question_with_blocked_metadata() -> None:
+    # PR3 刀2 翻转(2026-08-10 三族根因 §3):needs_clarification 不再夺走 preselect
+    # (旧行为=强选 tutorbot)。gate 结果只活在 metadata,数据面否决由 loop 侧执行。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1205,16 +1217,17 @@ async def test_low_information_exam_query_overrides_preselected_deep_question() 
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert registry.captured[0] == "tutorbot"
+    assert registry.captured[0] == "deep_question"
     assert context.metadata["question_lifecycle_scene"] is None
     assert context.metadata["question_lifecycle_decision"]["needs_clarification"] is True
     assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
     assert context.metadata["semantic_router_mode"] == "question_lifecycle"
-    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["semantic_router_mode_reason"] == "blocked_low_information_exam_query"
 
 
 @pytest.mark.asyncio
-async def test_unanchored_answer_submission_overrides_preselected_deep_question() -> None:
+async def test_unanchored_answer_submission_keeps_preselected_deep_question_with_blocked_metadata() -> None:
+    # PR3 刀2 翻转:同上——无锚作答轮保留 preselect=deep_question,blocked metadata 守恒。
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -1230,7 +1243,7 @@ async def test_unanchored_answer_submission_overrides_preselected_deep_question(
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert registry.captured[0] == "tutorbot"
+    assert registry.captured[0] == "deep_question"
     assert context.metadata["question_lifecycle_scene"] is None
     assert context.metadata["question_lifecycle_decision"].items() >= {
         "needs_clarification": True,
@@ -1239,7 +1252,7 @@ async def test_unanchored_answer_submission_overrides_preselected_deep_question(
         "business_gate_result": "blocked_unanchored_answer_submission",
     }.items()
     assert context.metadata["semantic_router_mode"] == "question_lifecycle"
-    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["semantic_router_mode_reason"] == "blocked_unanchored_answer_submission"
 
 
 @pytest.mark.asyncio

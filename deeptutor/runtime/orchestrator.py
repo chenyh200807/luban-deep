@@ -36,7 +36,6 @@ from deeptutor.services.question_followup import (
     resolve_submission_attempt,
 )
 from deeptutor.services.question_lifecycle_skills import (
-    build_question_lifecycle_clarification_context,
     looks_like_free_text_mcq_answer_request,
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
@@ -448,15 +447,18 @@ class ChatOrchestrator:
             context.metadata["semantic_router_selected_capability"] = cap_name
             return cap_name
         if lifecycle_decision.needs_clarification:
-            cap_name = self._default_chat_capability(context)
+            # PR3(2026-08-10 三族根因 §3 6a 修形):needs_clarification 不再是
+            # capability 选择权——gate 结果只活在 metadata(attach 阶段
+            # _record_lifecycle_decision 已写 business_gate_result /
+            # exact_question_blocked_reason / trace),数据面权限否决由 loop 侧
+            # exact_question_blocked_reason 消费点执行。路由交还 fall-through
+            # 唯一选择器;主 LLM 经 prompt 提示知悉 gate 结果。
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
                 lifecycle_decision.business_gate_result or "needs_clarification"
             )
             context.metadata["semantic_router_shadow_decision"] = {}
             context.metadata["semantic_router_shadow_route"] = ""
-            context.metadata["semantic_router_selected_capability"] = cap_name
-            return cap_name
         return await self._select_capability_after_lifecycle(context, routing_user_message)
 
     async def _select_capability_after_lifecycle(
@@ -769,25 +771,11 @@ class ChatOrchestrator:
         else:
             context.metadata.setdefault("question_lifecycle_skill_names", [])
         if decision.exact_question_blocked_reason:
+            # PR3-6c(2026-08-10 三族根因 §3):澄清对象(question_lifecycle_clarification)
+            # 退役——不再改写 active_object、不再把真题压进 suspended_object_stack。
+            # blocked 事实只以 exact_question_blocked_reason 这一个 metadata 键存在,
+            # 由 loop 侧数据面消费 + prompt 提示消费(mirror-state −1)。
             context.metadata["exact_question_blocked_reason"] = decision.exact_question_blocked_reason
-            clarification_context = build_question_lifecycle_clarification_context(
-                context.user_message,
-                decision.exact_question_blocked_reason,
-            )
-            if clarification_context:
-                previous_active_object = context.metadata.get("active_object")
-                if (
-                    isinstance(previous_active_object, dict)
-                    and str(previous_active_object.get("object_type") or "") != "question_lifecycle_clarification"
-                ):
-                    existing_stack = context.metadata.get("suspended_object_stack")
-                    suspended_stack = list(existing_stack) if isinstance(existing_stack, list) else []
-                    suspended_stack.append(dict(previous_active_object))
-                    context.metadata["suspended_object_stack"] = suspended_stack
-                context.metadata["active_object"] = clarification_context
-                snapshot = clarification_context.get("state_snapshot")
-                if isinstance(snapshot, dict):
-                    context.metadata["question_lifecycle_clarification"] = dict(snapshot)
         else:
             context.metadata.pop("exact_question_blocked_reason", None)
         trace_meta = context.metadata.setdefault("trace_metadata", {})

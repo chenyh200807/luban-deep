@@ -451,7 +451,11 @@ def test_explicit_exam_catalog_followup_is_not_blocked_as_low_information(messag
 
 
 @pytest.mark.asyncio
-async def test_clarification_option_number_resolves_to_exam_catalog_query():
+async def test_legacy_clarification_object_no_longer_resolves_option_number():
+    # PR3-6c 翻转(2026-08-10 三族根因 §3):澄清选项复位器
+    # (_resolve_clarification_option_intent)随澄清对象退役——模板选项不再出现在
+    # 学生面前,"1/2/3" 不再被确定性复位为 scene,改由主 LLM 语义承接。
+    # 本测改钉 legacy 容忍:存量澄清对象在场时判定不异常、不产生复位 gate 结果。
     decision = await resolve_question_lifecycle_scene_decision(
         _FakeContext(
             user_message="1",
@@ -473,13 +477,8 @@ async def test_clarification_option_number_resolves_to_exam_catalog_query():
         )
     )
 
-    assert decision.scene == "exam_catalog_query"
-    assert decision.required_anchor_status == "satisfied"
-    assert decision.business_gate_result == "resolved_clarification_option"
-    assert decision.selected_skill_names == (
-        "construction-exam-tutor",
-        "construction-study-assistant",
-    )
+    assert decision.scene != "exam_catalog_query"
+    assert decision.business_gate_result != "resolved_clarification_option"
 
 
 @pytest.mark.asyncio
