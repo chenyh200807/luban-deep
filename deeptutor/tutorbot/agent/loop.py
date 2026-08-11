@@ -33,6 +33,7 @@ from deeptutor.services.query_intent import (
     query_uses_learner_state_authority,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    build_question_lifecycle_clarification_prompt_hint,
     case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
@@ -4894,6 +4895,17 @@ class AgentLoop:
                     "missing_assets": list(skill_context.source_status.missing_assets),
                 }
                 parts.append(skill_instruction)
+
+        # PR3-6a(2026-08-10 三族根因 §3):lifecycle gate 结果降级为 prompt 提示——
+        # 模板终局已退役(tutorbot.py 短路删除),blocked 轮 fall-through 到主 LLM;
+        # 数据面否决(_prefetched_exact_authority_candidate / exact fast path /
+        # authority override 三锁)不在此处、原样保留。fast/deep 双模共享此函数,
+        # 一处注入两模生效。
+        blocked_reason = str(metadata.get("exact_question_blocked_reason") or "").strip()
+        if blocked_reason:
+            clarification_hint = build_question_lifecycle_clarification_prompt_hint(blocked_reason)
+            if clarification_hint:
+                parts.append(clarification_hint)
 
         lecture_instruction = get_lecture_skill_instruction(current_message)
         if lecture_instruction:

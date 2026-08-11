@@ -90,7 +90,7 @@
     - 2026-06-26 补充（control-plane Task 3 / 单一 capability decider，已授权移除 router killswitch）：`_select_capability_after_lifecycle` 的 lifecycle 后兜底**只有一个 capability decider —— canonical semantic router**。旧的启发式 decider `_select_legacy_capability`（及它支撑的 "router 出 bug 降级到启发式" killswitch）已删除：`DEEPTUTOR_SEMANTIC_ROUTER_ENABLED` 生产默认 True、scope 默认 all，该启发式生产从未启用，属休眠的第二套路由 authority。shadow / primary / disabled / scope-excluded 四条兜底分支现在都先解析 canonical `turn_semantic_decision` 再按它路由（`route_to_grading/route_to_generation/route_to_followup_explainer → deep_question`（带提交/出题 context prep）、`chat 系 → 默认 chat/tutorbot`）。§6 安全带不变：unresolved-switch follow-up（`is_unresolved_switch_followup`）仍降级到上下文连续主 LLM（`_default_chat_capability`），永不进 `deep_question` 结构化切换解析器 fail-closed；`mcq_grading` preselect bypass 守卫仍先于本兜底运行。None-route（resolver 给不出可映射 decision 的退化态）默认到上下文连续 chat/tutorbot 执行器，**不**再回落启发式。`orchestrator_business_decision_count` 因移除一个 routing 决策引擎而下降。回归见 `tests/runtime/test_orchestrator_autoroute.py`（`test_none_route_falls_through_to_context_continuous_chat` / `test_disabled_router_routes_via_canonical_not_legacy_heuristic` / `test_shadow_mode_routes_via_canonical_not_legacy` / `test_select_legacy_capability_is_removed`）与 `tests/runtime/test_orchestrator_semantic_router.py`（`test_orchestrator_shadow_mode_routes_via_canonical_decision` / `test_orchestrator_disabled_mode_routes_via_canonical_decision` / `test_orchestrator_scope_excluded_routes_via_canonical_decision`）。
     - 2026-06-26 补充（pre-stamped grading scene revalidation / explicit reference authority）：`question_lifecycle_scene=mcq_grading|case_grading` 的 pre-capability 盖章不是无条件 authority；`resolve_question_lifecycle_scene_decision` 必须在当前 turn 重新验证它对应 HIGH 置信提交或完整自包含提交。`总结/复盘/不要展示内部证据/输出 evidence source 标题` 等 meta、history 或 public-output 请求即使上一轮仍有 active case，也不得继承 sticky `case_grading`。active subjective submission 的提交前缀与题型集合必须覆盖 `作答/我的作答/学生作答` 与 `case_study/case_background/calculation/open_ended`，但这些解析只能服务同一个 `resolve_submission_attempt`，不得在 lifecycle 外另建主观题提交 parser。当前完整案例显式携带 `标准答案/正确答案/参考答案` 时，该 marked reference 是 V1 case grading 的本轮 reference answer authority；TutorBot V1 bridge / `deep_question` 只能把它作为 `correct_answer/reference_answer` 输入鲁班 V1，不得因 exact/followup 缺 reference 而退回 `derived_from_stem` 覆盖本轮 marked reference。回归见 `tests/services/test_question_lifecycle_scene_derivation.py::test_scene_decision_ignores_stale_pre_capability_case_grading_fact`、`tests/services/test_question_followup.py::test_resolve_submission_attempt_keeps_case_exit_or_study_plan_as_followup`、`tests/tutorbot/test_agent_loop_case_rubric_v1.py::test_build_v1_case_ctx_uses_current_full_submission_marked_reference` 与 `tests/core/test_deep_question_submission_grading.py::test_deep_question_full_case_submission_marks_current_reference_answer`。
 
-32. `ChatOrchestrator` 在路由决策点就地把本轮 routing 消息写入 `context.metadata["semantic_router_captured_input"]`，作为 semantic-router 决策遥测的 in-place 输入捕获（供 turn 完成时落 `semantic_router_telemetry` internal 事件，免事后 session+time join）。这是**纯 additive、只读观测**，**绝不改变任何 capability 路由判决**（behavior-preserving）；任何 capability/路由判定不得读取或依赖该字段做决策。
+32. `ChatOrchestrator` 在路由决策点就地把本轮 routing 消息写入 `context.metadata["semantic_router_captured_input"]`，作为 semantic-router 决策遥测的 in-place 输入捕获（供 turn 完成时落 `semantic_router_telemetry` internal 事件，免事后 session+time join）。这是**纯 additive、只读观测**，**绝不改变任何 capability 路由判决**（behavior-preserving）；任何 capability/路由判定不得读取或依赖该字段做决策。2026-08-11 起该遥测 payload（`authority_probe_schema_version` 2）新增三键 `lifecycle_final` / `llm_scene_candidate` / `scene_divergence`（确定性管线最终判定 vs LLM 语义判定的分歧形态，路由收权 shadow 度量），仍属本条款同一 observe-only 合同：只写不读，无任何代码回读。
 
 43. capability / TutorBot / provider 可以把 `llm_stream_telemetry`、provider timing、first-useful-content timing、`latency_timeline`、`latency_max_stall` 等写入 runtime/session metadata，供 `turn_runtime` terminal observer 和内部诊断消费；这些字段不得进入 `/api/v1/ws` outbound public copy，不属于 capability public result contract，也不得成为客户端展示、capability route、评分、计费或 learner-state authority。公开 WS redaction 只能删除 public copy 中的内部观测字段，不能改写持久化 turn event、canonical final answer 或 terminal observer truth。
 
@@ -108,6 +108,19 @@
     于题是合法部分提交不受拦。回归钉：`tests/services/test_semantic_router.py`（F1 原文
     快路径钉）、`tests/services/test_question_followup.py`（arity 双向钉+否定感知钉）、
     `tests/services/test_question_lifecycle_scene_derivation.py`（双形状 defer/作答优先钉）。
+
+45. 确定性层三职责红线（2026-08-11，owner 拍板；元病「防御被实现成终局」的总纲,
+    §44 是它在出题意图上的实例）：确定性代码在会话链路上只许承担三类职责——
+    ①**真值供给**（题库/rubric/编译资产等 governed 事实,模型不得现编的内容）；
+    ②**副作用闸**（计费、写库、发布、额度等动作前的门,门只拦动作不改写意图）；
+    ③**预算与观测**（超时、并发上限、typed marker、遥测）。三职责之外,**任何用
+    词表/正则/模板在语义层面判定或改写用户意图、或替主 LLM 生成学员可见回答的
+    确定性逻辑,一律违规**：新增即 review blocker；存量属清偿对象,清偿方向 =
+    确定性判定降级为高置信快路径或 observe-only 提示,终局权交还带完整上下文的
+    主 LLM（fall-through,绝不模板兜底）。判据三问：这段代码在理解用户吗？它能
+    无痕作废上游语义层已做对的结果吗？它在替模型对用户说话吗？任一为是即越权。
+    路由收权迁移纪律：从确定性管线切向 LLM tool-choice 必须先 shadow 度量分歧率
+    （observe-only）,有数据后灰度切换,禁止信仰式一步切。
 
 ## Schema
 

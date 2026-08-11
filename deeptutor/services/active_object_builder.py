@@ -292,3 +292,42 @@ def normalize_suspended_object_stack(raw: Any) -> list[dict[str, Any]]:
         if normalized is not None:
             normalized_stack.append(normalized)
     return normalized_stack
+
+
+# PR3-6c 退役的镜像态对象类型。存量来源:2026-08-10 之前
+# ``orchestrator._record_lifecycle_decision`` 在 blocked 轮把
+# ``build_question_lifecycle_clarification_context`` 的产物写成 active_object,
+# 并把真正在场的题目对象压进 suspended stack。该 writer 与其所有读端已删,
+# 但**已落库的会话仍带着这个垃圾对象**(它是一次性快照,永不会被自己刷新)。
+RETIRED_CLARIFICATION_OBJECT_TYPE = "question_lifecycle_clarification"
+
+
+def discard_retired_clarification_active_object(
+    active_object: dict[str, Any] | None,
+    suspended_object_stack: Any,
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]], bool]:
+    """读时一次性迁移(PR3-R5 / F7):丢弃存量 clarification 对象并 resume 栈顶。
+
+    F7 病灶:6c 删掉 writer 之后,存量会话恢复出来的 active_object 仍是
+    ``question_lifecycle_clarification``。它的 ``object_type`` 落在
+    ``active_object_family_for_type`` 的 ``""`` 桶(非题型),``question`` 家族的所有
+    承接(回指/判分/re-present/anti-peek carve-out)全部读不到题——而真正的题目对象
+    就压在 suspended stack 栈顶,被这个垃圾挡着永远回不来。
+
+    返回 ``(active_object, suspended_object_stack, migrated)``。非 clarification
+    对象**原样透传**(stack 也不重排),所以正常会话零影响。
+
+    删除时机:存量会话的这层垃圾会随本函数在每次读时被清掉、并由调用方写回持久层;
+    等生产上 ``migrated`` 计数长期为 0(会话时间衰减完)即可删除本函数与常量。
+    """
+
+    if not isinstance(active_object, dict):
+        return active_object, list(suspended_object_stack or []), False
+    object_type = str(active_object.get("object_type") or "").strip()
+    if object_type != RETIRED_CLARIFICATION_OBJECT_TYPE:
+        return active_object, list(suspended_object_stack or []), False
+    normalized_stack = normalize_suspended_object_stack(suspended_object_stack)
+    if not normalized_stack:
+        return None, [], True
+    # 栈顶 = index 0(_prepend_suspended_object 的 prepend 口径)。
+    return dict(normalized_stack[0]), list(normalized_stack[1:]), True

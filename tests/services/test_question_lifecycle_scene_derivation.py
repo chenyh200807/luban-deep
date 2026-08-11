@@ -451,7 +451,11 @@ def test_explicit_exam_catalog_followup_is_not_blocked_as_low_information(messag
 
 
 @pytest.mark.asyncio
-async def test_clarification_option_number_resolves_to_exam_catalog_query():
+async def test_legacy_clarification_object_no_longer_resolves_option_number():
+    # PR3-6c 翻转(2026-08-10 三族根因 §3):澄清选项复位器
+    # (_resolve_clarification_option_intent)随澄清对象退役——模板选项不再出现在
+    # 学生面前,"1/2/3" 不再被确定性复位为 scene,改由主 LLM 语义承接。
+    # 本测改钉 legacy 容忍:存量澄清对象在场时判定不异常、不产生复位 gate 结果。
     decision = await resolve_question_lifecycle_scene_decision(
         _FakeContext(
             user_message="1",
@@ -473,13 +477,8 @@ async def test_clarification_option_number_resolves_to_exam_catalog_query():
         )
     )
 
-    assert decision.scene == "exam_catalog_query"
-    assert decision.required_anchor_status == "satisfied"
-    assert decision.business_gate_result == "resolved_clarification_option"
-    assert decision.selected_skill_names == (
-        "construction-exam-tutor",
-        "construction-study-assistant",
-    )
+    assert decision.scene != "exam_catalog_query"
+    assert decision.business_gate_result != "resolved_clarification_option"
 
 
 @pytest.mark.asyncio
@@ -728,6 +727,52 @@ async def test_llm_scene_proposal_fills_semantic_question_review_gap(monkeypatch
 
     assert decision.scene == "question_review"
     assert decision.source == "llm"
+
+
+@pytest.mark.asyncio
+async def test_threshold_dropped_llm_candidate_keeps_raw_scene_for_shadow_metric(monkeypatch):
+    """PR3-R4(F6)供给侧:0.72 阈值置空前把原始判定留档进 llm_scene_candidate
+    (raw_scene/raw_confidence,observe-only)。没有它,semantic_router_telemetry 的
+    `llm_verdict_gate_vetoed`(T1)整类恒被误分到 T2。路由用的 scene 仍是被砍除后的
+    None —— 零行为改动。"""
+
+    async def _fake_complete(**_kwargs):
+        return '{"scene":"question_review","confidence":0.55,"reason":"可能是想讲评"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="项目质量计划管理这个点，帮我练到会")
+    )
+
+    assert decision.scene is None, "阈值砍除后路由用的 scene 必须仍为 None"
+    assert not decision.selected_skill_names
+    assert decision.llm_scene_candidate == {
+        "scene": None,
+        "confidence": pytest.approx(0.55),
+        "reason": "可能是想讲评",
+        "raw_scene": "question_review",
+        "raw_confidence": pytest.approx(0.55),
+    }
+
+
+@pytest.mark.asyncio
+async def test_above_threshold_llm_candidate_carries_no_raw_keys(monkeypatch):
+    """PR3-R4 payload 守恒:未发生阈值砍除时不写 raw_* 两键——它们的**在场本身**
+    就是"砍除发生过"的信号。"""
+
+    async def _fake_complete(**_kwargs):
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"想练"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="项目质量计划管理这个点，帮我练到会")
+    )
+
+    assert decision.scene == "practice_generation"
+    assert "raw_scene" not in (decision.llm_scene_candidate or {})
+    assert "raw_confidence" not in (decision.llm_scene_candidate or {})
 
 
 def test_scene_derivation_import_does_not_require_skill_loader_dependency():

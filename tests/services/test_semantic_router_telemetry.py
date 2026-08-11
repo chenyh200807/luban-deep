@@ -245,3 +245,192 @@ def test_build_telemetry_event_payload_is_internal_turn_event() -> None:
     assert tele["drove_route"] is True
     assert tele["captured_raw_input"] == "我选B"
     assert tele["final_executed_capability"] == "deep_question"
+
+
+# ---------------------------------------------------------------------------
+# 路由收权 shadow 度量(2026-08-11,observe-only,contracts/capability.md 条款 32
+# 追加三键):_classify_scene_divergence 纯分类函数 + payload 三键装配。
+# ---------------------------------------------------------------------------
+
+
+def test_scene_divergence_t1_llm_verdict_gate_vetoed() -> None:
+    """T1(F2 形态):LLM 判了 scene、业务闸整案否决(blocked_*)。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={"scene": "mcq_grading", "confidence": 0.95, "reason": "作答"},
+            final_scene=None,
+            decision_source="deterministic",
+            business_gate_result="blocked_low_information_exam_query",
+        )
+        == "llm_verdict_gate_vetoed"
+    )
+
+
+def test_scene_divergence_t2_llm_none_or_threshold_drop() -> None:
+    """T2:candidate 非 None 但 scene 为空(自判 none 或 0.72 阈值砍掉)。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={"scene": None, "confidence": 0.6, "reason": "不确定"},
+            final_scene=None,
+            decision_source="none",
+            business_gate_result="no_candidate",
+        )
+        == "llm_none_or_threshold_drop"
+    )
+
+
+def test_scene_divergence_threshold_dropped_candidate_still_classified_as_gate_vetoed() -> None:
+    """PR3-R4(F6):0.72 阈值把 candidate["scene"] 置空后,gate 否决整类曾被误分到 T2。
+    原始判定留档在 raw_scene,判 gate 否决时优先用它 → 仍是 T1。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={
+                "scene": None,
+                "confidence": 0.55,
+                "reason": "像是要真题答案",
+                "raw_scene": "question_review",
+                "raw_confidence": 0.55,
+            },
+            final_scene=None,
+            decision_source="deterministic",
+            business_gate_result="blocked_low_information_exam_query",
+        )
+        == "llm_verdict_gate_vetoed"
+    )
+    # 闸未 block 时语义不变:阈值砍除仍归 T2(不因 raw_scene 在场就改判)。
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={
+                "scene": None,
+                "confidence": 0.55,
+                "reason": "不确定",
+                "raw_scene": "question_review",
+                "raw_confidence": 0.55,
+            },
+            final_scene=None,
+            decision_source="none",
+            business_gate_result="no_candidate",
+        )
+        == "llm_none_or_threshold_drop"
+    )
+
+
+def test_scene_divergence_t3_deterministic_preempt_no_llm() -> None:
+    """T3(覆盖率盲区,非分歧):确定性抢答,LLM 未被咨询。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate=None,
+            final_scene="practice_generation",
+            decision_source="deterministic",
+            business_gate_result="passed",
+        )
+        == "deterministic_preempt_no_llm"
+    )
+
+
+def test_scene_divergence_t4_gate_blocked_llm_unavailable() -> None:
+    """T4:闸 block 且 LLM 调用失败/超时(candidate=None),或 llm_unavailable。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate=None,
+            final_scene=None,
+            decision_source="deterministic",
+            business_gate_result="blocked_unanchored_answer_submission",
+        )
+        == "gate_blocked_llm_unavailable"
+    )
+    assert (
+        _classify_scene_divergence(
+            llm_candidate=None,
+            final_scene=None,
+            decision_source="llm",
+            business_gate_result="llm_unavailable",
+        )
+        == "gate_blocked_llm_unavailable"
+    )
+
+
+def test_scene_divergence_agreement_and_conflict_and_defensive_buckets() -> None:
+    """agreement / llm_scene_conflicts_final / 防御桶(scene_without_source 预期恒 0,
+    仅在 source 缺失异常态出现)/ 无 scene 开放聊天桶。"""
+    from deeptutor.services.semantic_router_telemetry import _classify_scene_divergence
+
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={"scene": "practice_generation", "confidence": 0.9, "reason": "出题"},
+            final_scene="practice_generation",
+            decision_source="llm",
+            business_gate_result="passed",
+        )
+        == "agreement"
+    )
+    assert (
+        _classify_scene_divergence(
+            llm_candidate={"scene": "mcq_grading", "confidence": 0.9, "reason": "作答"},
+            final_scene="practice_generation",
+            decision_source="deterministic",
+            business_gate_result="passed",
+        )
+        == "llm_scene_conflicts_final"
+    )
+    # 防御桶:正常轮次不可能出现(scene 有值必有 source);机械可构造以证桶存在。
+    assert (
+        _classify_scene_divergence(
+            llm_candidate=None,
+            final_scene="mcq_grading",
+            decision_source="",
+            business_gate_result="",
+        )
+        == "scene_without_source"
+    )
+    assert (
+        _classify_scene_divergence(
+            llm_candidate=None,
+            final_scene=None,
+            decision_source="",
+            business_gate_result="",
+        )
+        == "no_llm_no_scene"
+    )
+
+
+def test_telemetry_payload_carries_shadow_divergence_keys() -> None:
+    """payload 三键(lifecycle_final / llm_scene_candidate / scene_divergence)
+    + schema version 2;observe-only:装配为纯只读,不改任何路由 metadata。"""
+    context_metadata = {
+        "semantic_router_mode": "question_lifecycle",
+        "semantic_router_mode_reason": "blocked_low_information_exam_query",
+        "llm_scene_candidate": {"scene": "mcq_grading", "confidence": 0.95, "reason": "作答"},
+        "question_lifecycle_scene": None,
+        "question_lifecycle_scene_source": "deterministic",
+        "business_gate_result": "blocked_low_information_exam_query",
+    }
+    telemetry = build_semantic_router_telemetry(
+        context_metadata=context_metadata,
+        final_executed_capability="tutorbot",
+        captured_raw_input="2025真题",
+    )
+
+    assert telemetry["authority_probe_schema_version"] == 2
+    assert telemetry["scene_divergence"] == "llm_verdict_gate_vetoed"
+    assert telemetry["llm_scene_candidate"] == {
+        "scene": "mcq_grading",
+        "confidence": 0.95,
+        "reason": "作答",
+    }
+    assert telemetry["lifecycle_final"] == {
+        "scene": None,
+        "source": "deterministic",
+        "business_gate_result": "blocked_low_information_exam_query",
+        "mode_reason": "blocked_low_information_exam_query",
+    }

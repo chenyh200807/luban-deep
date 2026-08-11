@@ -275,6 +275,14 @@
 6. **孤儿必须交代**：启动 orphan recovery 除翻 `status=failed` 外，必须经同一 terminal
    mapper 给每个孤儿 turn 的 session 补一条中文 assistant 通知（`orphaned_on_restart`），
    不得让学员面对静默无应答。
+7. **`unregistered_question_set_emitted`（2026-08-10 三族根因 PR3-6b，observe-only）**：
+   `_persist_and_publish` RESULT 分支在轮末唯一汇点落此 typed marker——判据 = 可见正文
+   解析出 ≥2 个选择题块（复用 `extract_choice_result_summary_from_text` 唯一 primitive）
+   且本轮注册对象覆盖的题目条数 < 解析块数（f5d95d0df 家族防误报收窄：单题复述不落）。
+   marker 写 RESULT metadata 顶层与 nested `metadata.metadata` 双投影。**纯观测痕迹，
+   不是 authority**：不注册对象、不压栈、不改路由、不影响任何 store 写入序列；严禁在
+   拿到生产频次数据前把它升级成注册 writer（单一权威收口 playbook：测绘→收权）。
+   域测试：`tests/services/session/test_turn_event_batching_replay.py`。
 
 ## 必测项
 

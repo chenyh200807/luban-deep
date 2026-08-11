@@ -37,7 +37,6 @@ from deeptutor.services.question_followup import (
     should_block_unanswered_reference_reveal,
 )
 from deeptutor.services.question_lifecycle_skills import (
-    build_question_lifecycle_clarification_response,
     build_question_lifecycle_exam_catalog_response,
     build_question_lifecycle_study_assistant_degraded_response,
     study_assistant_has_learning_evidence,
@@ -260,7 +259,6 @@ class TutorBotCapability(BaseCapability):
             "question_lifecycle_scene_confidence",
             "question_lifecycle_scene_reason",
             "question_lifecycle_skill_names",
-            "question_lifecycle_clarification",
             "general_knowledge_context",
         ):
             if metadata_key in context.metadata:
@@ -387,7 +385,6 @@ class TutorBotCapability(BaseCapability):
                     "question_lifecycle_scene_confidence",
                     "question_lifecycle_scene_reason",
                     "question_lifecycle_skill_names",
-                    "question_lifecycle_clarification",
                     "active_object",
                     "release_id",
                     "git_sha",
@@ -441,17 +438,11 @@ class TutorBotCapability(BaseCapability):
             )
             return
 
-        clarification_response = build_question_lifecycle_clarification_response(
-            self._raw_user_message(context),
-            str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
-        )
-        if clarification_response:
-            await _emit_lifecycle_terminal_response(
-                clarification_response,
-                execution_path="tutorbot_lifecycle_clarification",
-                call_kind="lifecycle_clarification",
-            )
-            return
+        # PR3-6a(2026-08-10 三族根因 §3):lifecycle 澄清模板短路已退役——
+        # needs_clarification 轮 fall-through 到主 LLM(带完整 history),gate 结果经
+        # exact_question_blocked_reason 走数据面否决(loop 侧 exact 权威/exact fast path/
+        # authority override 三锁不变)+ prompt 提示(loop._build_progressive_skill_instruction)。
+        # 防御不得拥有话语终局权;同族先例 = 84d1efc58 deep_question 罐头拒答撤除。
 
         study_assistant_degraded_response = ""
         if (

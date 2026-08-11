@@ -1325,7 +1325,8 @@ def active_object_family_for_type(object_type: Any) -> str:
     """Single family-first authority: classify an ``object_type`` string into its
     active-object family — ``"question"`` (题型: single_question / question_set /
     open_world_question, has a question lifecycle) / ``"guide"`` / ``"open_chat"`` /
-    ``""`` (unknown / non-classified, e.g. question_lifecycle_clarification).
+    ``""`` (unknown / non-classified, e.g. legacy question_lifecycle_clarification
+    objects persisted before PR3-6c retired that writer).
 
     This is the ONE place that decides "题型 vs 非题型". Callers MUST consult this
     instead of hand-listing ``{"question_set", "single_question"}`` inline — every such

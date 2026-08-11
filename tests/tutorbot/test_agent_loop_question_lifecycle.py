@@ -26,6 +26,9 @@ def test_active_question_grading_does_not_prefetch_grounded_rag() -> None:
 
 
 def test_lifecycle_clarification_object_does_not_disable_new_mcq_rag_prefetch() -> None:
+    """PR3-6c 后的新身份:legacy-object tolerance pin。question_lifecycle_clarification
+    对象自 PR3-6c 起无 writer,但 store 存量老会话仍可能带着它(只删 writer 不做数据
+    迁移)——读端必须继续容忍该对象且不误伤新题预取。保留原样,不删不改。"""
     assert (
         AgentLoop._should_prefetch_grounded_rag(
             current_message=(
@@ -212,3 +215,77 @@ def test_citation_required_non_construction_bot_does_not_prefetch_default_rag() 
         )
         is False
     )
+
+
+def test_blocked_reason_vetoes_prefetched_exact_authority_candidate() -> None:
+    """PR3-6a 数据面守恒钉(loop.py _prefetched_exact_authority_candidate):撤话语面
+    不撤数据面——blocked 轮即使预取到 exact 权威候选也必须被否决(返回 None),
+    主 LLM 在 blocked 轮只有 history + prompt 提示可用,拿不到题库 exact 权威。"""
+    exact_question = {
+        "question_id": "q-2025-3",
+        "question": "2025年真题第3题题干",
+        "correct_answer": "B",
+        "match_type": "exact",
+        "answer_kind": "mcq",
+    }
+    assert (
+        AgentLoop._prefetched_exact_authority_candidate(
+            {
+                "_prefetched_exact_question": dict(exact_question),
+                "exact_question_blocked_reason": "low_information_exam_query",
+            },
+            current_message="2025年真题第3题答案",
+        )
+        is None
+    )
+    # 对照:无 blocked reason 时同一候选不被此闸否决(可能被其他闸处理,但不为 None
+    # 的路径存在与否不在本钉范围——这里只断言 blocked 键是决定性差异)。
+    unblocked = AgentLoop._prefetched_exact_authority_candidate(
+        {"_prefetched_exact_question": dict(exact_question)},
+        current_message="2025年真题第3题答案",
+    )
+    assert unblocked is not None
+
+
+def test_progressive_skill_instruction_injects_clarification_hint(tmp_path) -> None:
+    """PR3-6a 新增钉:runtime_metadata 带 exact_question_blocked_reason 时,
+    _build_progressive_skill_instruction 输出必须含权威门提示段(含防编造指令);
+    无 blocked reason 时不含。fast/deep 双模共享此函数,一处注入两模生效。"""
+    from typing import Any
+
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    for response_mode in ("fast", "deep"):
+        blocked_metadata = {
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": response_mode,
+            "exact_question_blocked_reason": "low_information_exam_query",
+        }
+        instruction = loop._build_progressive_skill_instruction(
+            "2025年真题第3题答案",
+            runtime_metadata=blocked_metadata,
+        )
+        assert "题目权威门提示" in instruction
+        assert "绝不编造" in instruction
+
+        clean_metadata = {
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": response_mode,
+        }
+        clean_instruction = loop._build_progressive_skill_instruction(
+            "建筑构造是什么？",
+            runtime_metadata=clean_metadata,
+        )
+        assert "题目权威门提示" not in clean_instruction

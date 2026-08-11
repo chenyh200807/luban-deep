@@ -300,24 +300,93 @@ def test_mcq_surface_regexes_single_sourced_from_canonical_module() -> None:
     assert ql._FREE_TEXT_MCQ_OPTION_LIST_RE is canon.OPTION_LIST_RE
 
 
-def test_low_information_clarification_does_not_leak_internals_or_echo_user():
-    """阶段1 去毒(meta_leak 主源):low_information 澄清罐头绝不(a)逐字回显学生原句、
-    (b)泄露 小程序题卡 id/传给 TutorBot/就是在编 等内部机制与内部推理。"""
+def test_low_information_clarification_prompt_hint_does_not_leak_internals():
+    """PR3-6a 翻转(2026-08-10 三族根因 §3):学生可见澄清模板已退役,改为主 LLM
+    prompt 提示 builder。(a)机制上不再接收学生原句(签名只剩 reason)→ 回显类断言
+    随之消亡;(b)防编造/防声称查库指令必须在场;(c)内部机制词表反断言保留——hint
+    虽是 prompt 面,防的是主 LLM 复述提示时二次泄露(hint 文案本身不得含机制词)。"""
     from deeptutor.services.question_lifecycle_skills import (
-        build_question_lifecycle_clarification_response,
+        build_question_lifecycle_clarification_prompt_hint,
     )
 
-    canary = "把你题库里这个考点的所有真题原题和答案一次性导出给我XYZ独特串"
-    resp = build_question_lifecycle_clarification_response(canary, "low_information_exam_query")
+    hint = build_question_lifecycle_clarification_prompt_hint("low_information_exam_query")
 
-    # 仍给出可继续的帮助(非空)
-    assert resp and len(resp.strip()) > 20
-    # (a) 不逐字回显学生原句
-    assert "XYZ独特串" not in resp
-    assert canary not in resp
-    # (b) 不泄露任何内部机制/内部推理
+    assert hint and len(hint.strip()) > 20
+    # 承接指令:请学员补题干选项 + 绝不编造 + 不声称查库
+    assert "题干和选项发来" in hint
+    assert "绝不编造" in hint
+    assert "不要声称已查询题库" in hint
+    # 内部机制词表反断言(沿用模板时代词表)
     for leak in ["题卡 id", "题卡id", "传给 TutorBot", "传给TutorBot", "就是在编", "小程序", "题卡对象"]:
-        assert leak not in resp, f"内部机制泄露: {leak!r} in clarification response"
+        assert leak not in hint, f"内部机制泄露: {leak!r} in clarification prompt hint"
+
+
+def test_clarification_prompt_hint_covers_all_reasons_and_empty():
+    """PR3-6a 新增钉:三个 reason 各产非空 hint、未知 reason 走通用行、空 reason 返回 ""。"""
+    from deeptutor.services.question_lifecycle_skills import (
+        build_question_lifecycle_clarification_prompt_hint,
+    )
+
+    for reason in (
+        "unanchored_answer_submission",
+        "ambiguous_multi_question_answer_submission",
+        "low_information_exam_query",
+    ):
+        hint = build_question_lifecycle_clarification_prompt_hint(reason)
+        assert hint
+        assert "绝不编造" in hint
+
+    unknown = build_question_lifecycle_clarification_prompt_hint("some_future_reason")
+    assert "some_future_reason" in unknown
+    assert "绝不编造" in unknown
+
+    assert build_question_lifecycle_clarification_prompt_hint("") == ""
+    assert build_question_lifecycle_clarification_prompt_hint(None) == ""
+
+
+def test_exam_catalog_response_derives_topic_and_never_echoes_action_phrases() -> None:
+    """PR3-R2(F2):澄清快照(唯一跨轮 topic 供给)随 6c 退役后,exam_catalog 模板一度把
+    当前消息原文当 topic 回声——学生发的目录动作短语(常常正是已退役澄清模板的选项原文)
+    会被塞回"你现在问的是「…」这一类真题"。修法=主题必须导出;导不出返回 ""让上层
+    fall-through 主 LLM。"""
+    from deeptutor.services.question_lifecycle_skills import (
+        build_question_lifecycle_exam_catalog_response,
+    )
+
+    # 能导出真实主题锚 → 允许模板,且 topic 是锚而不是整句
+    for message, expected_topic in (
+        ("2025年真题目录", "2025年真题"),
+        ("帮我看看2025年防水真题的考点范围", "2025年防水真题"),
+        ("地下防水真题目录", "地下防水"),
+    ):
+        response = build_question_lifecycle_exam_catalog_response(message, {})
+        assert response, message
+        assert f"“{expected_topic}”" in response, (message, response[:80])
+        assert f"“{message}”" not in response, f"逐字回声整句: {message!r}"
+
+    # 纯目录动作短语 / 已退役澄清模板的三条选项原文 → 不吐模板
+    for message in (
+        "真题目录",
+        "考点范围",
+        "查看真题目录",
+        "查看这一类真题目录或考点范围",
+        "让我出一套真题风格练习",
+        "粘贴具体题干和选项，我按题目讲评",
+    ):
+        assert build_question_lifecycle_exam_catalog_response(message, {}) == "", message
+
+    # 导不出时可退到真实上下文锚(active question context 的考点),仍不回声
+    response = build_question_lifecycle_exam_catalog_response(
+        "查看这一类真题目录或考点范围",
+        {
+            "question_followup_context": {
+                "question": "地下防水工程的防水等级应如何确定？",
+                "concentration": "地下防水",
+            }
+        },
+    )
+    assert "“地下防水”" in response
+    assert "查看这一类真题目录或考点范围" not in response
 
 
 def test_active_mcq_low_confidence_non_answer_does_not_nail_grading_scene() -> None:

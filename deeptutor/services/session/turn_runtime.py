@@ -31,6 +31,9 @@ from deeptutor.contracts.bot_runtime_defaults import (
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.logging.context import bind_log_context, reset_log_context
+from deeptutor.services.active_object_builder import (
+    discard_retired_clarification_active_object,
+)
 from deeptutor.services.construction_grading.case_output_policy import (
     CASE_GRADING_AUTHORITY_EXPORT_KEYS,
 )
@@ -58,6 +61,7 @@ from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
+    extract_choice_result_summary_from_text,
     followup_action_route,
     looks_like_practice_generation_request,
     normalize_question_followup_context,
@@ -192,6 +196,40 @@ def _result_response_text(metadata: dict[str, Any] | None) -> str:
             if isinstance(value, str) and value.strip():
                 return value.strip()
     return ""
+
+
+def _registered_question_item_count(question_context: Any) -> int:
+    """How many questions a (normalized) question-followup context registers.
+
+    PR3-6b marker 分母的唯一计数口径:多题组按 ``items`` 长度,单题按 1,空/非法按 0。
+    """
+
+    if not isinstance(question_context, dict) or not question_context:
+        return 0
+    items = question_context.get("items")
+    if isinstance(items, list) and items:
+        return len(items)
+    return 1
+
+
+def _turn_start_active_object_projection(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
+    """turn-START 恢复的 active_object 在 RESULT payload 里的 trace 投影(若在场)。
+
+    PR3-R3:只读进程内已有的 metadata 投影,**不新增任何 DB 读**;不在场返回 None。
+    """
+
+    if not isinstance(metadata, dict):
+        return None
+    for container in (metadata, metadata.get("metadata")):
+        if not isinstance(container, dict):
+            continue
+        trace_metadata = container.get("trace_metadata")
+        if not isinstance(trace_metadata, dict):
+            continue
+        candidate = trace_metadata.get("active_object")
+        if isinstance(candidate, dict) and candidate:
+            return candidate
+    return None
 
 
 def _event_type_value(event: StreamEvent | dict[str, Any]) -> str:
@@ -5201,6 +5239,32 @@ class TurnRuntimeManager:
                     default=[],
                 )
                 original_stored_suspended_object_stack = list(stored_suspended_object_stack)
+                # PR3-R5(F7)读时一次性迁移:6c 退役了 clarification 对象的 writer,
+                # 但存量会话仍带着已落库的 question_lifecycle_clarification 垃圾对象
+                # (一次性快照,永不自我刷新)。它不属于 question 家族,把真正在场的题目
+                # 对象挡在 suspended 栈顶,导致回指/判分/re-present/anti-peek carve-out
+                # 全部读不到题。这里丢弃它并 resume 栈顶;下面既有的
+                # `stored_suspended_object_stack != original_...` 与 active_object
+                # 身份变更两条写回分支会把迁移结果持久化(不新增写点)。
+                (
+                    stored_active_object,
+                    stored_suspended_object_stack,
+                    _retired_clarification_discarded,
+                ) = discard_retired_clarification_active_object(
+                    stored_active_object,
+                    stored_suspended_object_stack,
+                )
+                if _retired_clarification_discarded and stored_active_object is None:
+                    # 栈里没有可 resume 的对象:显式清空持久层,否则这块垃圾会一直躺在
+                    # store 里(下面的 active_object 写回分支对 None 是 no-op)。
+                    await self._safe_store_call(
+                        execution,
+                        "clear_retired_clarification_active_object",
+                        self.store.set_active_object,
+                        session_id,
+                        None,
+                        default=False,
+                    )
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
                 stored_followup_question_context = extract_question_context_from_active_object(
                     stored_active_object
@@ -7083,6 +7147,53 @@ class TurnRuntimeManager:
                 )
             if question_followup_context is not None and "question_followup_context" not in metadata:
                 metadata["question_followup_context"] = dict(question_followup_context)
+            # PR3-6b(2026-08-10 三族根因 §3,observe-only):轮末唯一汇点为
+            # 「可见输出携带题组形状、但本轮注册对象覆盖不到这些题」落类型化痕迹。
+            # 只观测不改写任何状态、不参与任何路由;拿到生产频次后再议注册权
+            # (单一权威收口 playbook:测绘→收权;f5d95d0df 家族是这里不直接
+            # 注册的原因——复述/terse re-present 旧题会被文本判据误判为新题组)。
+            if not failure_result:
+                emitted_summary = extract_choice_result_summary_from_text(
+                    _result_response_text(metadata)
+                )
+                emitted_count = len((emitted_summary or {}).get("results") or [])
+                # PR3-R3(F4)分母修形:只数「本轮 RESULT 自带的 followup context」会把
+                # 复述轮(「把刚才三道题再发一遍」——RESULT 通常不重带题组)的分母塌成 0,
+                # 制造纯假阳。分母并入 **turn 运行时内存中轮初恢复的那份题组**:
+                #   (1) volatile question context —— turn-START 唯一恢复点写入
+                #       (_set_volatile_question_context),本汇点在下方 7120+ 才覆写它,
+                #       所以此刻读到的仍是轮初值;
+                #   (2) trace_metadata.active_object —— turn-START 恢复对象的 payload 投影。
+                # 两者都是**进程内内存**,零新增 DB 读(硬约束)。marker 同时如实带出
+                # 三个分母来源,便于生产判读时区分"事件局部" vs "轮初恢复"。
+                event_local_count = _registered_question_item_count(question_followup_context)
+                restored_count = max(
+                    _registered_question_item_count(
+                        self._volatile_question_contexts.get(execution.session_id)
+                    ),
+                    _registered_question_item_count(
+                        extract_question_context_from_active_object(
+                            _turn_start_active_object_projection(metadata)
+                        )
+                    ),
+                )
+                registered_count = max(event_local_count, restored_count)
+                if emitted_count >= 2 and emitted_count > registered_count:
+                    unregistered_marker = {
+                        "emitted_question_count": emitted_count,
+                        "registered_question_count": registered_count,
+                        "registered_count_event_local": event_local_count,
+                        "registered_count_restored_active_object": restored_count,
+                        "denominator": "max(event_local,restored_active_object)",
+                        "execution_path": str(metadata.get("execution_path") or ""),
+                        "capability_source": str(event.source or ""),
+                    }
+                    metadata["unregistered_question_set_emitted"] = unregistered_marker
+                    nested_meta = metadata.get("metadata")
+                    if isinstance(nested_meta, dict):
+                        nested_meta = dict(nested_meta)
+                        nested_meta["unregistered_question_set_emitted"] = dict(unregistered_marker)
+                        metadata["metadata"] = nested_meta
             if active_object is not None:
                 self._set_volatile_question_context(
                     execution.session_id, dict(question_followup_context or {})

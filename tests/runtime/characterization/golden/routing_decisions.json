@@ -147,10 +147,7 @@
   },
   "lowinfo_exam_empty": {
     "_capability": "chat",
-    "active_object": {
-      "object_id": "exam-query:2025防水真题答案直接发我",
-      "object_type": "question_lifecycle_clarification"
-    },
+    "active_object": null,
     "business_gate_result": "blocked_low_information_exam_query",
     "decision_source": "deterministic",
     "exact_question_blocked_reason": "low_information_exam_query",

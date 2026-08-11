@@ -90,3 +90,29 @@ def test_v1_graded_still_short_circuits():
         "已判分", runtime_metadata=md, user_message=_GRADING_REQUEST
     )
     assert out == ""
+
+
+# ---- PR3-6a(2026-08-10 三族根因 §3):同族裁决补到 tutorbot 侧 ---------------------------
+# 本文件钉的 84d1efc58 家族裁决(fall-through, not fail-closed-to-template)在 PR3 被
+# 补到 tutorbot lifecycle 侧:澄清模板短路退役,blocked 轮 fall-through 主 LLM;
+# 数据面否决(exact 权威锁)原样保留。此钉登记 loop.py 的 protected-file domain 覆盖。
+def test_lifecycle_blocked_turn_data_face_veto_survives_falls_through_family():
+    # 撤话语面不撤数据面:blocked 轮 exact 权威候选必须被否决(主 LLM 无权威运行),
+    # 与本文件"真判分轮仍 demote"同构——防御保数据权,不保话语终局权。
+    exact_question = {
+        "question_id": "q-2025-3",
+        "question": "2025年真题第3题题干",
+        "correct_answer": "B",
+        "match_type": "exact",
+        "answer_kind": "mcq",
+    }
+    assert (
+        AgentLoop._prefetched_exact_authority_candidate(
+            {
+                "_prefetched_exact_question": dict(exact_question),
+                "exact_question_blocked_reason": "low_information_exam_query",
+            },
+            current_message="2025年真题第3题答案",
+        )
+        is None
+    )

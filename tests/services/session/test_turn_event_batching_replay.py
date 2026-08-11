@@ -280,3 +280,199 @@ async def test_concurrent_turns_batch_commits_and_keep_per_turn_contiguity(
     # ~4 commits (3 threshold flushes + terminal flush); allow slack for
     # elapsed-window flushes on slow machines but stay far below one-per-event.
     assert len(batch_calls) < 400
+
+
+# ---------------------------------------------------------------------------
+# PR3-6b(2026-08-10 三族根因 §3):observe-only marker
+# `unregistered_question_set_emitted` — 轮末唯一汇点(RESULT 分支)对「可见输出
+# 携带题组形状、但本轮注册对象覆盖不到这些题」落类型化痕迹。只观测:不注册、
+# 不压栈、不改路由(f5d95d0df 家族防误报=判据收窄到 ≥2 块 + 覆盖差)。
+# ---------------------------------------------------------------------------
+
+_THREE_QUESTION_RESPONSE = (
+    "第1题：下列关于施工缝处理正确的是？\nA. 任意留设\nB. 按设计和规范处理\n"
+    "C. 不清理\nD. 留在跨中\n答案：B\n解析：按规范处理。\n\n"
+    "第2题：屋面防水等级Ⅰ级的做法是？\nA. 一道设防\nB. 两道设防\nC. 不设防\n"
+    "D. 随意\n答案：B\n解析：两道设防。\n\n"
+    "第3题：模板拆除顺序正确的是？\nA. 先支先拆\nB. 后支先拆\nC. 同时拆\n"
+    "D. 任意\n答案：B\n解析：后支先拆。"
+)
+
+_SINGLE_QUESTION_RESPONSE = (
+    "第1题：下列关于施工缝处理正确的是？\nA. 任意留设\nB. 按设计和规范处理\n"
+    "答案：B\n解析：按规范处理。"
+)
+
+
+def _result_event(response: str, metadata_extra: dict | None = None) -> StreamEvent:
+    metadata = {"response": response, "metadata": {}}
+    metadata.update(metadata_extra or {})
+    return StreamEvent(
+        type=StreamEventType.RESULT,
+        source="tutorbot",
+        stage="responding",
+        metadata=metadata,
+    )
+
+
+@pytest.mark.asyncio
+async def test_unregistered_question_set_marker_lands_in_both_projections(store, runtime) -> None:
+    """(a) 3 题形状正文 + 无注册 → marker 落顶层与 nested 双投影,3/0。"""
+    execution = await _new_execution(store, runtime, "session-6b-marker")
+    await runtime._persist_and_publish(execution, _result_event(_THREE_QUESTION_RESPONSE))
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    marker = result_row["metadata"]["unregistered_question_set_emitted"]
+    assert marker["emitted_question_count"] == 3
+    assert marker["registered_question_count"] == 0
+    nested_marker = result_row["metadata"]["metadata"]["unregistered_question_set_emitted"]
+    assert nested_marker == marker
+
+
+@pytest.mark.asyncio
+async def test_registered_question_set_suppresses_marker(store, runtime) -> None:
+    """(b) 3 题形状 + 注册了 3-item question_set → 无 marker(覆盖差为 0)。"""
+    execution = await _new_execution(store, runtime, "session-6b-registered")
+    followup_context = {
+        "question_id": "quiz_1",
+        "question": "三题组",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q_1", "question": "题1", "correct_answer": "B"},
+            {"question_id": "q_2", "question": "题2", "correct_answer": "B"},
+            {"question_id": "q_3", "question": "题3", "correct_answer": "B"},
+        ],
+    }
+    await runtime._persist_and_publish(
+        execution,
+        _result_event(
+            _THREE_QUESTION_RESPONSE,
+            {"question_followup_context": followup_context},
+        ),
+    )
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    assert "unregistered_question_set_emitted" not in result_row["metadata"]
+
+
+_THREE_ITEM_FOLLOWUP_CONTEXT = {
+    "question_id": "quiz_1",
+    "question": "三题组",
+    "question_type": "choice",
+    "items": [
+        {"question_id": "q_1", "question": "题1", "correct_answer": "B"},
+        {"question_id": "q_2", "question": "题2", "correct_answer": "B"},
+        {"question_id": "q_3", "question": "题3", "correct_answer": "B"},
+    ],
+}
+
+
+@pytest.mark.asyncio
+async def test_re_presentation_turn_uses_restored_active_object_as_denominator(
+    store, runtime
+) -> None:
+    """PR3-R3(F4)分母修形:「把刚才三道题再发一遍」这类复述轮的 RESULT 不重带
+    question_followup_context —— 只数事件局部会让分母塌成 0 → 3>0 纯假阳。
+    分母并入 turn 运行时内存中轮初恢复的那份题组(volatile question context)后
+    3>3 为假,marker 不落。"""
+    execution = await _new_execution(store, runtime, "session-6b-represent")
+    # turn-START 恢复点写入的那份(_set_volatile_question_context 是唯一写者)
+    runtime._set_volatile_question_context(
+        execution.session_id, dict(_THREE_ITEM_FOLLOWUP_CONTEXT)
+    )
+
+    await runtime._persist_and_publish(execution, _result_event(_THREE_QUESTION_RESPONSE))
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    assert "unregistered_question_set_emitted" not in result_row["metadata"]
+
+
+@pytest.mark.asyncio
+async def test_re_presentation_turn_uses_trace_metadata_active_object_as_denominator(
+    store, runtime
+) -> None:
+    """PR3-R3:第二个内存来源 —— turn-START 恢复的 active_object 在 RESULT payload 上的
+    trace_metadata 投影。同样只读进程内内存,零新增 DB 读。"""
+    execution = await _new_execution(store, runtime, "session-6b-represent-trace")
+
+    await runtime._persist_and_publish(
+        execution,
+        _result_event(
+            _THREE_QUESTION_RESPONSE,
+            {
+                "trace_metadata": {
+                    "active_object": {
+                        "object_type": "question_set",
+                        "object_id": "quiz_1",
+                        "state_snapshot": dict(_THREE_ITEM_FOLLOWUP_CONTEXT),
+                    }
+                }
+            },
+        ),
+    )
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    assert "unregistered_question_set_emitted" not in result_row["metadata"]
+
+
+@pytest.mark.asyncio
+async def test_marker_declares_its_denominator_sources(store, runtime) -> None:
+    """PR3-R3:marker 如实声明分母口径与两个来源的分项值(生产判读需要区分
+    "事件局部没带" vs "轮初真的没有")。"""
+    execution = await _new_execution(store, runtime, "session-6b-denominator")
+    await runtime._persist_and_publish(execution, _result_event(_THREE_QUESTION_RESPONSE))
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    marker = result_row["metadata"]["unregistered_question_set_emitted"]
+    assert marker["denominator"] == "max(event_local,restored_active_object)"
+    assert marker["registered_count_event_local"] == 0
+    assert marker["registered_count_restored_active_object"] == 0
+    assert marker["registered_question_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_single_question_re_presentation_does_not_mark(store, runtime) -> None:
+    """(c) 单题复述(1 块)→ 无 marker(f5d95d0df 家族防误报:判据 ≥2 块)。"""
+    execution = await _new_execution(store, runtime, "session-6b-single")
+    await runtime._persist_and_publish(execution, _result_event(_SINGLE_QUESTION_RESPONSE))
+
+    rows = await store.get_turn_events(execution.turn_id, 0)
+    result_row = next(row for row in rows if row["type"] == "result")
+    assert "unregistered_question_set_emitted" not in result_row["metadata"]
+
+
+@pytest.mark.asyncio
+async def test_marker_is_observe_only_store_writes_identical(store, runtime, monkeypatch) -> None:
+    """(d) observe-only 反断言:marker 在场时 set_active_object/压栈调用序列与
+    无 marker 时逐字节一致(这里两侧均为零调用),active_object store 不被改写。"""
+    calls: list[tuple[str, object]] = []
+    original_set_active_object = store.set_active_object
+    original_set_stack = store.set_suspended_object_stack
+
+    async def _spy_set_active_object(session_id, active_object):
+        calls.append(("set_active_object", active_object))
+        return await original_set_active_object(session_id, active_object)
+
+    async def _spy_set_stack(session_id, stack):
+        calls.append(("set_suspended_object_stack", stack))
+        return await original_set_stack(session_id, stack)
+
+    monkeypatch.setattr(store, "set_active_object", _spy_set_active_object)
+    monkeypatch.setattr(store, "set_suspended_object_stack", _spy_set_stack)
+
+    execution_marked = await _new_execution(store, runtime, "session-6b-obs-marked")
+    await runtime._persist_and_publish(execution_marked, _result_event(_THREE_QUESTION_RESPONSE))
+    marked_calls = list(calls)
+
+    calls.clear()
+    execution_clean = await _new_execution(store, runtime, "session-6b-obs-clean")
+    await runtime._persist_and_publish(execution_clean, _result_event(_SINGLE_QUESTION_RESPONSE))
+    clean_calls = list(calls)
+
+    assert marked_calls == clean_calls
+    assert await store.get_active_object(execution_marked.session_id) is None

@@ -34,6 +34,45 @@ _SEMANTIC_DECISION_FIELDS = (
 )
 
 
+_BLOCKED_GATE_PREFIX = "blocked_"
+
+
+def _classify_scene_divergence(
+    *,
+    llm_candidate: dict[str, Any] | None,
+    final_scene: Any,
+    decision_source: str,
+    business_gate_result: str,
+) -> str:
+    """Observe-only shadow probe: LLM scene proposal vs deterministic verdict.
+
+    Pure string/dict comparison over metadata the orchestrator already wrote
+    (orchestrator._record_lifecycle_decision). Never read back by routing.
+    """
+    has_candidate = isinstance(llm_candidate, dict)
+    candidate_scene = str((llm_candidate or {}).get("scene") or "") if has_candidate else ""
+    # PR3-R4(F6):`scene` 已被 0.72 阈值置空的候选,原始判定活在 `raw_scene`
+    # (question_lifecycle_skills._propose_scene_with_llm 置空前留档)。判 gate 否决
+    # **优先用 raw_scene** ——否则"LLM 本来判了 scene、被闸否决"整类恒被误分到 T2。
+    raw_candidate_scene = str((llm_candidate or {}).get("raw_scene") or "") if has_candidate else ""
+    gate_vetoed_candidate_scene = raw_candidate_scene or candidate_scene
+    gate_blocked = business_gate_result.startswith(_BLOCKED_GATE_PREFIX)
+    final = str(final_scene or "")
+    if gate_vetoed_candidate_scene and gate_blocked:
+        return "llm_verdict_gate_vetoed"          # T1(F2 形态)
+    if candidate_scene:
+        return "agreement" if candidate_scene == final else "llm_scene_conflicts_final"
+    if has_candidate:
+        return "llm_none_or_threshold_drop"       # T2
+    if gate_blocked or business_gate_result == "llm_unavailable":
+        return "gate_blocked_llm_unavailable"     # T4
+    if final and decision_source in {"deterministic", "metadata"}:
+        return "deterministic_preempt_no_llm"     # T3
+    if final:
+        return "scene_without_source"             # 防御桶,预期恒 0
+    return "no_llm_no_scene"                      # 开放聊天等无 scene 轮
+
+
 def _is_default_template(next_action: str, reason: str) -> bool:
     """True for non-discriminative default / fallback / hold decisions."""
     if next_action == "hold_and_wait":
@@ -127,6 +166,13 @@ def build_semantic_router_telemetry(
     raw_decision = context_metadata.get("turn_semantic_decision")
     decision = raw_decision if isinstance(raw_decision, dict) else {}
     mode = str(context_metadata.get("semantic_router_mode") or "").strip()
+    raw_candidate = context_metadata.get("llm_scene_candidate")
+    llm_candidate = dict(raw_candidate) if isinstance(raw_candidate, dict) else None
+    final_scene = context_metadata.get("question_lifecycle_scene")
+    business_gate_result = str(context_metadata.get("business_gate_result") or "").strip()
+    lifecycle_source = str(
+        context_metadata.get("question_lifecycle_scene_source") or ""
+    ).strip()
 
     semantic_decision = {
         field: decision[field] for field in _SEMANTIC_DECISION_FIELDS if field in decision
@@ -157,7 +203,25 @@ def build_semantic_router_telemetry(
         "drove_route": mode == "primary",
         "is_default_template": _is_default_template(next_action, reason),
         "mode": mode,
-        "authority_probe_schema_version": 1,
+        "authority_probe_schema_version": 2,
+        # 路由收权 shadow 度量(2026-08-11 owner 拍板,observe-only):确定性管线
+        # 最终判定 vs 已付费 LLM 语义判定的分歧形态。原料全部来自
+        # orchestrator._record_lifecycle_decision 已写入的 metadata,纯只读。
+        "lifecycle_final": {
+            "scene": final_scene,
+            "source": lifecycle_source,
+            "business_gate_result": business_gate_result,
+            "mode_reason": str(
+                context_metadata.get("semantic_router_mode_reason") or ""
+            ).strip(),
+        },
+        "llm_scene_candidate": llm_candidate,
+        "scene_divergence": _classify_scene_divergence(
+            llm_candidate=llm_candidate,
+            final_scene=final_scene,
+            decision_source=lifecycle_source,
+            business_gate_result=business_gate_result,
+        ),
         "decision_writer_chain": writer_chain,
         "decision_writer_chain_source": writer_chain_source,
         "final_decision_writer": writer_chain[-1] if writer_chain else "",
