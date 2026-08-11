@@ -636,6 +636,22 @@ domains:
         (that lights the degradation gates and demotes a normal graded answer
         into "insufficient evidence"). Domain tests live in
         tests/services/rag/test_case_grading_identity_profile.py.
+        unanchored_exam_query (2026-08-11) is the question-surface disarm for
+        low_information_exam_query locked turns — the pipeline runs with BOTH
+        question-surface channels unarmed, i.e. the questions_bank retrieval
+        family (bank vector, exact text probe, derived question_exact_vector,
+        case second pass, the exact_question payload) and exam paper chunks,
+        while textbook/standard channels stay armed and degradation semantics
+        are unchanged. The single declaration point is TutorBot
+        RAGAdapterTool.execute (the shared supply boundary of prefetch, in-loop
+        and exact-fast-path calls, reading the locked fact from tool runtime
+        context; an explicit caller-declared profile is never overridden). No
+        sink- or prompt-side question-bank text rewriter may act as a second
+        authority (the former redact sink was proven dead on the live fast
+        path — prefetch injects before the loop, so the in-loop sink never
+        fires). Domain tests live in
+        tests/services/rag/test_unanchored_exam_query_profile.py and
+        tests/tutorbot/test_low_information_bank_disarm.py.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -694,6 +710,10 @@ domains:
       # 构造点(_select 注入 retired_at=is.null，可证伪) + RPC/库内读者 9 对象
       # migration 穷举钉子 + 组卷通道谓词。
       - tests/services/rag/test_questions_bank_soft_delete_filter.py
+      # 低信息真题查询锁权轮题面供给收口（contracts/rag.md 44,
+      # retrieval_profile=unanchored_exam_query）：题目面两通道整轮不武装 +
+      # 缺省逐字节旧行为。
+      - tests/services/rag/test_unanchored_exam_query_profile.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -969,6 +989,10 @@ domains:
       # L1 瘦身检索（rag.md 44）：直通轮 lean 仍必须落 exact 身份、不注入正文、
       # 不毒化饱和台账、不点亮降级闸；kill switch off 逐字节回旧形状。
       - tests/tutorbot/test_case_direct_lean_rag.py
+      # 低信息真题查询锁权轮题面供给收口（rag.md 44 / capability.md 45,
+      # protected loop.py 的 prefetch 注入面 + RAGAdapterTool 唯一声明点 +
+      # (b) 假说钉:_set_tool_context 把 blocked 键交到工具边界）。
+      - tests/tutorbot/test_low_information_bank_disarm.py
       - tests/tutorbot/test_case_grading_generation_falls_through.py
       - tests/services/test_question_followup_case_submission.py
       - tests/tutorbot/test_case_grading_forward_reachability.py

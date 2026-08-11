@@ -155,6 +155,24 @@ class RAGAdapterTool(Tool):
         retrieval_profile = str(kwargs.get("retrieval_profile") or "").strip()
         if retrieval_profile:
             search_kwargs["retrieval_profile"] = retrieval_profile
+        elif (
+            str(self._runtime_context.get("exact_question_blocked_reason") or "").strip()
+            == "low_information_exam_query"
+        ):
+            # 题面供给收口的唯一决策点（2026-08-11 live 防冒充钉,3/3 红实证）：
+            # prefetch / in-loop / exact-fast-path 三通路全部经本 execute 点,
+            # 锁权轮（exact 题目权威被 lifecycle gate 拒绝武装）在检索供给层
+            # 声明「不消费题目面材料」——pipeline 整轮不武装 questions_bank 与
+            # exam 卷面 chunk 两条题目面通道（教材/规范照常）。模型手里没有
+            # 题库题面/【答案】/【解析】,便无法把相似题冒充学员点名的某年某题。
+            # 注意本变量 `retrieval_profile` 保持空串:下方 empty-index 降级
+            # 判据（`if not retrieval_profile and not sources ...`）对教材通道
+            # 仍然生效——供给收口不改降级语义。
+            from deeptutor.services.rag.retrieval_profiles import (
+                RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY,
+            )
+
+            search_kwargs["retrieval_profile"] = RETRIEVAL_PROFILE_UNANCHORED_EXAM_QUERY
         try:
             result = await rag_search(**search_kwargs)
         except Exception as exc:

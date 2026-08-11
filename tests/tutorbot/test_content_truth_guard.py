@@ -300,36 +300,10 @@ def test_review_record_marks_named_regulation_kind():
 
 
 # --------------------------------------------------------------------------- #
-# 2026-08-11 数据面剥答案钥匙(防相似题冒充点名题号,live 复钉 1/2 红后收口)。    #
+# 2026-08-11 防相似题冒充点名题号:sink 面 redact 已退役(接线正确但 live 不通电   #
+# ——fast 轮 prefetch 先行注入,in-loop sink 永不执行)。收口移到检索供给层:        #
+# 锁权轮 RAGAdapterTool.execute 声明 retrieval_profile=unanchored_exam_query,   #
+# pipeline 整轮不武装题目面通道。钉在                                            #
+# tests/tutorbot/test_low_information_bank_disarm.py 与                         #
+# tests/services/rag/test_unanchored_exam_query_profile.py。                    #
 # --------------------------------------------------------------------------- #
-
-
-def test_redact_question_bank_answer_keys_is_wired_at_rag_tool_result_sink() -> None:
-    """接线钉:loop 的 rag 工具结果后处理(与 exact 展示归一化同一汇点)必须在
-    low_information_exam_query 锁权轮调用 redact_question_bank_answer_keys——
-    这是数据面强制,不是 prompt 引导(capability.md §45 数据面强制条款)。"""
-    import inspect
-
-    from deeptutor.tutorbot.agent import loop as loop_module
-
-    source = inspect.getsource(loop_module)
-    assert "redact_question_bank_answer_keys" in source
-    # 锚定唯一汇点:exact 展示归一化调用之后的 1200 字符内必须出现锁权判据与剥离调用。
-    sink = source.split("normalize_exact_authority_display_text(result)", 1)[1][:1200]
-    assert "low_information_exam_query" in sink
-    assert "redact_question_bank_answer_keys(result)" in sink
-
-
-def test_redact_question_bank_answer_keys_denies_confident_impersonation_material() -> None:
-    """行为钉:剥离后文本不再含任何答案钥匙,模型无法据此确定性作答冒充;
-    题面与选项(讲相似题所需)原样保留。"""
-    from deeptutor.services.question_lifecycle_skills import redact_question_bank_answer_keys
-
-    raw = (
-        "【题目】某题干\n【选项】[{\"key\": \"A\", \"value\": \"15\"}]\n"
-        "【答案】A\n【解析】正确答案: A"
-    )
-    out = redact_question_bank_answer_keys(raw)
-    assert "【答案】A" not in out
-    assert "正确答案" not in out
-    assert "某题干" in out and "【选项】" in out

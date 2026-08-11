@@ -127,11 +127,18 @@
     某年某题=归属不诚实,与内容编造同级违规。prompt hint 单一权威 =
     `build_question_lifecycle_clarification_prompt_hint`,回归钉在
     `tests/services/test_question_lifecycle_skills.py`。
-    数据面强制（2026-08-11,hint 复钉 1/2 红实证 prompt≠terminal authority 后收口）：
-    low_information_exam_query 锁权轮,rag 工具结果在喂给模型前必须经
-    `redact_question_bank_answer_keys` 剥掉题库【答案】/【解析】段（题面/选项保留）——
-    模型没有答案钥匙即无法确定性冒充;消费点与 exact 展示归一化同一汇点
-    （tutorbot loop rag 工具结果后处理）,不得新增第二处 rag 结果改写点。
+    数据面强制（2026-08-11,live 3/3 红实证 prompt≠terminal authority、且 sink 面
+    redact 被 prefetch 通路绕过后,收口移到检索供给层）：low_information_exam_query
+    锁权轮,题目面材料（questions_bank 行与 exam 卷面 chunk）不得进入模型上下文——
+    唯一决策点 = TutorBot `RAGAdapterTool.execute`（prefetch / in-loop /
+    exact-fast-path 三通路共用的检索供给边界）,它读锁权事实一次并向统一 pipeline
+    声明 `retrieval_profile=unanchored_exam_query`（contracts/rag.md §44）,pipeline
+    在同一条管线内整轮不武装题目面两通道（textbook/standard 照常,模型仍有讲解
+    依据,不是拒答降级）。禁止任何 sink/prompt 面的题库文本改写器充当第二权威
+    （旧 `redact_question_bank_answer_keys` 已退役:接线正确但 fast 轮 prefetch
+    先行注入,sink 永不通电——供给层没给的东西才真正泄露不了）。回归钉:
+    `tests/tutorbot/test_low_information_bank_disarm.py`、
+    `tests/services/rag/test_unanchored_exam_query_profile.py`。
 
 ## Schema
 
