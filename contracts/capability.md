@@ -127,6 +127,11 @@
     某年某题=归属不诚实,与内容编造同级违规。prompt hint 单一权威 =
     `build_question_lifecycle_clarification_prompt_hint`,回归钉在
     `tests/services/test_question_lifecycle_skills.py`。
+    数据面强制（2026-08-11,hint 复钉 1/2 红实证 prompt≠terminal authority 后收口）：
+    low_information_exam_query 锁权轮,rag 工具结果在喂给模型前必须经
+    `redact_question_bank_answer_keys` 剥掉题库【答案】/【解析】段（题面/选项保留）——
+    模型没有答案钥匙即无法确定性冒充;消费点与 exact 展示归一化同一汇点
+    （tutorbot loop rag 工具结果后处理）,不得新增第二处 rag 结果改写点。
 
 ## Schema
 

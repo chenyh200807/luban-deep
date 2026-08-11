@@ -886,6 +886,39 @@ def _looks_like_explicit_question_generation_request(text: str) -> bool:
     return any(re.search(pattern, normalized) for pattern in generation_patterns)
 
 
+# 数据面收口(2026-08-11,live 防编造钉 1/2 红实证):hint 只是概率性引导
+# (prompt ≠ terminal authority),同一措辞下 deepseek 仍有约半数轮把检索到的
+# 相似题答案冒充学员点名的某年某题。真收口 = 低信息真题查询轮(exact 权威被
+# low_information_exam_query 锁死)不把题库检索结果里的答案钥匙喂进模型上下文:
+# 模型手里没有【答案】/【解析】就无法确定性冒充;题面/选项保留,仍可讲相似题、
+# 请学员补题干。消费点 = tutorbot loop 的 rag 工具结果后处理(与
+# normalize_exact_authority_display_text 同一汇点)。
+_BANK_ANSWER_KEY_SECTION_RE = re.compile(
+    r"【(?:答案|解析)】[^【]*",
+    re.S,
+)
+_BANK_ANSWER_KEY_REDACTED_MARKER = (
+    "【答案与解析已隐藏:本轮未命中你点名题目的真值权威,检索到的是相似题,"
+    "其答案不得当作学员点名题目的答案】\n"
+)
+
+
+def redact_question_bank_answer_keys(text: str) -> str:
+    """把题库检索文本里的【答案】/【解析】段整体替换为单条隐藏声明。
+
+    只在 low_information_exam_query 锁权轮由消费点调用;题面与选项原样保留。
+    """
+    raw = str(text or "")
+    if "【答案】" not in raw and "【解析】" not in raw:
+        return raw
+    redacted = _BANK_ANSWER_KEY_SECTION_RE.sub(_BANK_ANSWER_KEY_REDACTED_MARKER, raw)
+    # 相邻的答案+解析两段会产生连续两条声明,压成一条。
+    doubled = _BANK_ANSWER_KEY_REDACTED_MARKER + _BANK_ANSWER_KEY_REDACTED_MARKER
+    while doubled in redacted:
+        redacted = redacted.replace(doubled, _BANK_ANSWER_KEY_REDACTED_MARKER)
+    return redacted
+
+
 def build_question_lifecycle_clarification_prompt_hint(reason: str) -> str:
     """PR3-6a:lifecycle gate 结果降级为主 LLM 上下文提示(非学生可见终局文案)。
 
